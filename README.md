@@ -133,10 +133,11 @@ formatLakh(2500000); // "25 Lakh"
 
 ## 🤝 Contributing
 
-PRs welcome 🇵🇰
+welcome 🇵🇰 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 ---
 
 ## 📄 License
 
-MIT
+MIT — see [LICENSE](LICENSE).

@@ -1,5 +1,5 @@
 import networksData from '../data/networks.json';
-import { getPhonePrefix } from './phone.js';
+import { getPhonePrefix } from './internal/phone-utils.js';
 
 export type NetworkName = 'Jazz' | 'Zong' | 'Telenor' | 'Ufone' | 'Unknown';
 

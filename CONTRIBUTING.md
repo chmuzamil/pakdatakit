@@ -60,6 +60,38 @@ Schema:
 - `prefix` must be a 4-digit string starting with `0`
 - `network` must be one of: `Jazz`, `Zong`, `Telenor`, `Ufone`
 
+### `data/districts.json`
+
+Schema:
+
+```json
+{ "district": "Lahore", "province": "Punjab" }
+```
+
+- Use official district names (160 districts across all provinces/territories)
+- Regenerate with `npm run generate:data`
+
+### `data/banks.json`
+
+Schema:
+
+```json
+{ "code": "SCBL", "name": "Standard Chartered Bank" }
+```
+
+- `code` must be a 4-letter bank identifier from the Pakistani IBAN
+- `name` is the full bank name
+
+### `data/postal-codes.json`
+
+Schema:
+
+```json
+{ "city": "Multan", "postalCode": "60000" }
+```
+
+- Use official city names and postal codes
+
 ### `data/cities.json`
 
 Schema:

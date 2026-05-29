@@ -1,83 +1,602 @@
 [
-  { "city": "Abbottabad", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Attock", "province": "Punjab" },
-  { "city": "Badin", "province": "Sindh" },
-  { "city": "Bahawalnagar", "province": "Punjab" },
-  { "city": "Bahawalpur", "province": "Punjab" },
-  { "city": "Bannu", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Battagram", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Bhakkar", "province": "Punjab" },
-  { "city": "Bhalwal", "province": "Punjab" },
-  { "city": "Burewala", "province": "Punjab" },
-  { "city": "Chakwal", "province": "Punjab" },
-  { "city": "Charsadda", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Chiniot", "province": "Punjab" },
-  { "city": "Chitral", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Dadu", "province": "Sindh" },
-  { "city": "Dera Ghazi Khan", "province": "Punjab" },
-  { "city": "Dera Ismail Khan", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Faisalabad", "province": "Punjab" },
-  { "city": "Gilgit", "province": "Gilgit-Baltistan" },
-  { "city": "Gojra", "province": "Punjab" },
-  { "city": "Gujranwala", "province": "Punjab" },
-  { "city": "Gujrat", "province": "Punjab" },
-  { "city": "Hafizabad", "province": "Punjab" },
-  { "city": "Haripur", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Hub", "province": "Balochistan" },
-  { "city": "Hyderabad", "province": "Sindh" },
-  { "city": "Islamabad", "province": "Islamabad Capital Territory" },
-  { "city": "Jacobabad", "province": "Sindh" },
-  { "city": "Jamshoro", "province": "Sindh" },
-  { "city": "Jhang", "province": "Punjab" },
-  { "city": "Jhelum", "province": "Punjab" },
-  { "city": "Karachi", "province": "Sindh" },
-  { "city": "Kasur", "province": "Punjab" },
-  { "city": "Khanewal", "province": "Punjab" },
-  { "city": "Khanpur", "province": "Punjab" },
-  { "city": "Khushab", "province": "Punjab" },
-  { "city": "Khuzdar", "province": "Balochistan" },
-  { "city": "Kohat", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Kot Addu", "province": "Punjab" },
-  { "city": "Lahore", "province": "Punjab" },
-  { "city": "Larkana", "province": "Sindh" },
-  { "city": "Layyah", "province": "Punjab" },
-  { "city": "Lodhran", "province": "Punjab" },
-  { "city": "Loralai", "province": "Balochistan" },
-  { "city": "Mansehra", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Mardan", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Matiari", "province": "Sindh" },
-  { "city": "Mianwali", "province": "Punjab" },
-  { "city": "Mingora", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Mirpur", "province": "Azad Jammu and Kashmir" },
-  { "city": "Mirpur Khas", "province": "Sindh" },
-  { "city": "Multan", "province": "Punjab" },
-  { "city": "Muzaffarabad", "province": "Azad Jammu and Kashmir" },
-  { "city": "Muzaffargarh", "province": "Punjab" },
-  { "city": "Nawabshah", "province": "Sindh" },
-  { "city": "Nowshera", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Okara", "province": "Punjab" },
-  { "city": "Pakpattan", "province": "Punjab" },
-  { "city": "Peshawar", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Quetta", "province": "Balochistan" },
-  { "city": "Rahim Yar Khan", "province": "Punjab" },
-  { "city": "Rawalpindi", "province": "Punjab" },
-  { "city": "Sahiwal", "province": "Punjab" },
-  { "city": "Sargodha", "province": "Punjab" },
-  { "city": "Sheikhupura", "province": "Punjab" },
-  { "city": "Shikarpur", "province": "Sindh" },
-  { "city": "Sialkot", "province": "Punjab" },
-  { "city": "Skardu", "province": "Gilgit-Baltistan" },
-  { "city": "Sukkur", "province": "Sindh" },
-  { "city": "Swabi", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Swat", "province": "Khyber Pakhtunkhwa" },
-  { "city": "Talagang", "province": "Punjab" },
-  { "city": "Taxila", "province": "Punjab" },
-  { "city": "Thatta", "province": "Sindh" },
-  { "city": "Toba Tek Singh", "province": "Punjab" },
-  { "city": "Turbat", "province": "Balochistan" },
-  { "city": "Umerkot", "province": "Sindh" },
-  { "city": "Vehari", "province": "Punjab" },
-  { "city": "Wah Cantonment", "province": "Punjab" },
-  { "city": "Wazirabad", "province": "Punjab" },
-  { "city": "Zhob", "province": "Balochistan" }
+  {
+    "city": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Hyderabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Karachi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Multan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Quetta",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sialkot",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sukkur",
+    "province": "Sindh"
+  },
+  {
+    "city": "Ahmadpur East",
+    "province": "Punjab"
+  },
+  {
+    "city": "Ali Pur Chattha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Aliabad",
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Alpuri",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Arifwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Athmuqam",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Bagh City",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Bahrain",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Batkhela",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Bela",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Bhalwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Bhawana",
+    "province": "Punjab"
+  },
+  {
+    "city": "Burewala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Burewala City",
+    "province": "Punjab"
+  },
+  {
+    "city": "Cantt",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chak Jhumra",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chaman Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Chhor",
+    "province": "Sindh"
+  },
+  {
+    "city": "Chichawatni",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chilas",
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Chishtian",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chitral",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Chunian",
+    "province": "Punjab"
+  },
+  {
+    "city": "Clifton",
+    "province": "Sindh"
+  },
+  {
+    "city": "Daggar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Dalbandin",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Daska",
+    "province": "Punjab"
+  },
+  {
+    "city": "Daska City",
+    "province": "Punjab"
+  },
+  {
+    "city": "Defence",
+    "province": "Sindh"
+  },
+  {
+    "city": "Depalpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Dera Allah Yar",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Dera Murad Jamali",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Dhadar",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Dina",
+    "province": "Punjab"
+  },
+  {
+    "city": "Diplo",
+    "province": "Sindh"
+  },
+  {
+    "city": "Dir",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Dunyapur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Fort Abbas",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gaddani",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Gahkuch",
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Gambat",
+    "province": "Sindh"
+  },
+  {
+    "city": "Ghalanai",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Gojra",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujar Khan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gulberg",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gulshan-e-Iqbal",
+    "province": "Sindh"
+  },
+  {
+    "city": "Hala",
+    "province": "Sindh"
+  },
+  {
+    "city": "Haroonabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Hasilpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Hattian Bala Town",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Havelian",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Hub",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Hujra Shah Muqeem",
+    "province": "Punjab"
+  },
+  {
+    "city": "Jampur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Jaranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Jaranwala City",
+    "province": "Punjab"
+  },
+  {
+    "city": "Jiwani",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Kabirwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kahuta",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kalam",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kalat Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Kalaya",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kallar Kahar",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kallar Syedan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kamalia",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kamoke",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kandhkot",
+    "province": "Sindh"
+  },
+  {
+    "city": "Kandiaro",
+    "province": "Sindh"
+  },
+  {
+    "city": "Khaar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Khairpur Nathan Shah",
+    "province": "Sindh"
+  },
+  {
+    "city": "Khanpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Khaplu",
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Kharian",
+    "province": "Punjab"
+  },
+  {
+    "city": "Khipro",
+    "province": "Sindh"
+  },
+  {
+    "city": "Khurrianwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Khuzdar City",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Kohlu Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Kot Abdul Malik",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kot Momin",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kot Radha Kishan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kotli Loharan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kotri",
+    "province": "Sindh"
+  },
+  {
+    "city": "Landhi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Landi Kotal",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Lawa",
+    "province": "Punjab"
+  },
+  {
+    "city": "Liaquatpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Loralai Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Mailsi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Mastung Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Mehrabpur",
+    "province": "Sindh"
+  },
+  {
+    "city": "Mian Channu",
+    "province": "Punjab"
+  },
+  {
+    "city": "Mingora",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Miranshah",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Mithi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Model Town",
+    "province": "Punjab"
+  },
+  {
+    "city": "Moro",
+    "province": "Sindh"
+  },
+  {
+    "city": "Nawabshah",
+    "province": "Sindh"
+  },
+  {
+    "city": "Nazimabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Okara City",
+    "province": "Punjab"
+  },
+  {
+    "city": "Orangi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Ormara",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Palandri",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Parachinar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Pasni",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Pasrur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Pattoki",
+    "province": "Punjab"
+  },
+  {
+    "city": "Phalia",
+    "province": "Punjab"
+  },
+  {
+    "city": "Pind Dadan Khan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Pir Mahal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Pishin Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Ranipur",
+    "province": "Sindh"
+  },
+  {
+    "city": "Ratodero",
+    "province": "Sindh"
+  },
+  {
+    "city": "Rawalakot",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Renala Khurd",
+    "province": "Punjab"
+  },
+  {
+    "city": "Renala Khurd City",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rojhan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Saddar",
+    "province": "Sindh"
+  },
+  {
+    "city": "Sadiqabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sammundri",
+    "province": "Punjab"
+  },
+  {
+    "city": "Samundri",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sanghar City",
+    "province": "Sindh"
+  },
+  {
+    "city": "Sangla Hill",
+    "province": "Punjab"
+  },
+  {
+    "city": "Satiana",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sehwan",
+    "province": "Sindh"
+  },
+  {
+    "city": "Shahdadkot",
+    "province": "Sindh"
+  },
+  {
+    "city": "Shahdadpur",
+    "province": "Sindh"
+  },
+  {
+    "city": "Shahkot",
+    "province": "Punjab"
+  },
+  {
+    "city": "Shahpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Shakargarh",
+    "province": "Punjab"
+  },
+  {
+    "city": "Shorkot",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sibi Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Sohawa",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sohbatpur Town",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Talagang City",
+    "province": "Punjab"
+  },
+  {
+    "city": "Tandlianwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Taxila",
+    "province": "Punjab"
+  },
+  {
+    "city": "Timergara",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Turbat",
+    "province": "Balochistan"
+  }
 ]

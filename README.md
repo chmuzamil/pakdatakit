@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Production-ready TypeScript utilities for CNIC validation, phone parsing, network detection, geographic lookup, and PKR formatting.
+  Production-ready TypeScript utilities for CNIC validation, phone parsing, WhatsApp links, IBAN validation, postal lookup, network detection, geographic lookup, and PKR formatting.
 </p>
 
 <p align="center">
@@ -32,6 +32,9 @@ Every Pakistani application eventually needs to solve the same problems:
 * Validate CNIC numbers
 * Normalize mobile numbers
 * Detect mobile networks
+* Generate WhatsApp click-to-chat links
+* Validate Pakistani IBANs and detect banks
+* Look up postal codes and cities
 * Map cities to provinces
 * Format PKR values in Lakh and Crore conventions
 
@@ -46,6 +49,11 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 ✅ CNIC Validation
 ✅ Phone Number Validation
 ✅ Phone Number Normalization
+✅ Phone Intelligence (`analyzePhone`)
+✅ WhatsApp Link Generator
+✅ IBAN Validation
+✅ Bank Detection from IBAN
+✅ Postal Code Lookup
 ✅ Mobile Network Detection
 ✅ City → Province Lookup
 ✅ PKR Formatting
@@ -80,12 +88,36 @@ Requirements:
 ```ts
 import {
   validateCNIC,
+  analyzePhone,
+  createWhatsAppLink,
+  validateIBAN,
+  getBankFromIBAN,
+  getPostalCode,
+  getCityByPostalCode,
   getNetwork,
   formatLakh
 } from "pakdatakit";
 
 validateCNIC("35202-1234567-1");
 // true
+
+analyzePhone("03001234567");
+// { valid: true, formatted: "+923001234567", network: "Jazz" }
+
+createWhatsAppLink("03001234567", "Assalamualaikum");
+// "https://wa.me/923001234567?text=Assalamualaikum"
+
+validateIBAN("PK36SCBL0000001123456702");
+// true
+
+getBankFromIBAN("PK36SCBL0000001123456702");
+// "Standard Chartered Bank (Pakistan) Limited"
+
+getPostalCode("Multan");
+// "60000"
+
+getCityByPostalCode("60000");
+// "Multan"
 
 getNetwork("03001234567");
 // "Jazz"
@@ -170,6 +202,148 @@ formatPhone("03001234567");
 
 formatPhone("+92 300-123-4567");
 // "+923001234567"
+```
+
+---
+
+---
+
+### analyzePhone()
+
+Runs validation, formatting, and network detection in one call.
+
+```ts
+analyzePhone(phone: string): PhoneAnalysis
+```
+
+Returns:
+
+```ts
+{
+  valid: boolean;
+  formatted: string | null;
+  network: "Jazz" | "Zong" | "Telenor" | "Ufone" | "Unknown";
+}
+```
+
+Examples:
+
+```ts
+analyzePhone("03001234567");
+// { valid: true, formatted: "+923001234567", network: "Jazz" }
+
+analyzePhone("invalid");
+// { valid: false, formatted: null, network: "Unknown" }
+```
+
+---
+
+## WhatsApp Utilities
+
+### createWhatsAppLink()
+
+Generates a WhatsApp click-to-chat link for Pakistani mobile numbers.
+
+```ts
+createWhatsAppLink(phone: string, message?: string): string
+```
+
+Examples:
+
+```ts
+createWhatsAppLink("03001234567");
+// "https://wa.me/923001234567"
+
+createWhatsAppLink("03001234567", "Assalamualaikum");
+// "https://wa.me/923001234567?text=Assalamualaikum"
+```
+
+Returns an empty string for invalid phone numbers.
+
+---
+
+## IBAN Utilities
+
+### validateIBAN()
+
+Validates Pakistani IBANs using format and ISO 13616 mod-97 checksum.
+
+```ts
+validateIBAN(iban: string): boolean
+```
+
+Examples:
+
+```ts
+validateIBAN("PK36SCBL0000001123456702");
+// true
+
+validateIBAN("PK37SCBL0000001123456702");
+// false
+```
+
+---
+
+### getBankFromIBAN()
+
+Returns the bank name from a valid Pakistani IBAN's 4-letter bank code.
+
+```ts
+getBankFromIBAN(iban: string): string | null
+```
+
+Examples:
+
+```ts
+getBankFromIBAN("PK36SCBL0000001123456702");
+// "Standard Chartered Bank (Pakistan) Limited"
+
+getBankFromIBAN("invalid");
+// null
+```
+
+Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, and 46 total entries in the dataset.
+
+---
+
+## Postal Code Utilities
+
+### getCityByPostalCode()
+
+Returns the city for a Pakistani postal code.
+
+```ts
+getCityByPostalCode(postalCode: string): string | null
+```
+
+Examples:
+
+```ts
+getCityByPostalCode("60000");
+// "Multan"
+
+getCityByPostalCode("99999");
+// null
+```
+
+---
+
+### getPostalCode()
+
+Returns the primary postal code for a Pakistani city (case-insensitive).
+
+```ts
+getPostalCode(city: string): string | null
+```
+
+Examples:
+
+```ts
+getPostalCode("Multan");
+// "60000"
+
+getPostalCode("karachi");
+// "74200"
 ```
 
 ---
@@ -309,6 +483,12 @@ import {
   validateCNIC,
   validatePhone,
   formatPhone,
+  analyzePhone,
+  createWhatsAppLink,
+  validateIBAN,
+  getBankFromIBAN,
+  getPostalCode,
+  getCityByPostalCode,
   getNetwork,
   getProvince,
   searchCities,
@@ -319,17 +499,22 @@ import {
 // CNIC validation
 const cnicValid = validateCNIC("35202-1234567-1");
 
-// Phone normalization
-const phone = formatPhone("0300 123 4567");
+// Phone intelligence
+const phoneInfo = analyzePhone("03001234567");
 
-// Network lookup
-const network = getNetwork(phone);
+// WhatsApp link for ecommerce support
+const waLink = createWhatsAppLink("0300 123 4567", "Assalamualaikum");
+
+// IBAN validation for fintech checkout
+const ibanValid = validateIBAN("PK36SCBL0000001123456702");
+const bank = getBankFromIBAN("PK36SCBL0000001123456702");
+
+// Postal lookup for shipping forms
+const postal = getPostalCode("Multan");
+const city = getCityByPostalCode("60000");
 
 // Province lookup
 const province = getProvince("Lahore");
-
-// City search
-const cities = searchCities("fais");
 
 // Formatting
 const amount = formatPKR(150000);
@@ -354,16 +539,19 @@ The PakDataKit Playground will provide:
 
 # Roadmap
 
-### v0.2
+### v0.2 ✅
 
-* Bank Utilities
+* Phone Intelligence (`analyzePhone`)
+* WhatsApp Link Generator
 * IBAN Validation
-* Account Helpers
+* Bank Detection from IBAN
+* Postal Code Lookup
+* Expanded datasets (150 cities, 171 districts, 109 postal codes, 46 banks)
 
 ### v0.3
 
 * Address Parsing
-* Postal Data
+* Expanded Postal Data
 
 ### v0.4
 

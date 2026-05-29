@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatPhone, validatePhone } from '../src/phone.js';
+import { analyzePhone, formatPhone, validatePhone } from '../src/phone.js';
 
 describe('validatePhone', () => {
   it('accepts local format', () => {
@@ -44,5 +44,31 @@ describe('formatPhone', () => {
 
   it('returns empty string for invalid input', () => {
     expect(formatPhone('invalid')).toBe('');
+  });
+});
+
+describe('analyzePhone', () => {
+  it('analyzes valid local number', () => {
+    expect(analyzePhone('03001234567')).toEqual({
+      valid: true,
+      formatted: '+923001234567',
+      network: 'Jazz',
+    });
+  });
+
+  it('analyzes valid international number', () => {
+    expect(analyzePhone('+923101234567')).toEqual({
+      valid: true,
+      formatted: '+923101234567',
+      network: 'Zong',
+    });
+  });
+
+  it('returns unknown for invalid number', () => {
+    expect(analyzePhone('invalid')).toEqual({
+      valid: false,
+      formatted: null,
+      network: 'Unknown',
+    });
   });
 });

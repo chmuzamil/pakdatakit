@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/banner.png" alt="PakDataKit Banner" />
+  <img src="./banner.png" alt="PakDataKit Banner" />
 </p>
 
 <h1 align="center">🇵🇰 PakDataKit</h1>

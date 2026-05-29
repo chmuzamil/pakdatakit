@@ -1,143 +1,104 @@
 # 🇵🇰 PakDataKit
 
-> The missing standard utility toolkit for Pakistani developers.
+![npm](https://img.shields.io/npm/v/pakdatakit)
+![license](https://img.shields.io/github/license/yourname/pakdatakit)
+![typescript](https://img.shields.io/badge/TypeScript-ready-blue)
+![downloads](https://img.shields.io/npm/dm/pakdatakit)
 
-PakDataKit is a production-ready, open-source TypeScript utility library that provides reliable, typed, and reusable helpers for Pakistani application development — including CNIC validation, phone normalization, mobile network detection, geographic lookup, and PKR formatting.
+> **The missing standard utility toolkit for Pakistani developers.**
 
----
-
-## ✨ Why PakDataKit?
-
-Most Pakistani applications repeatedly implement the same logic:
-
-- CNIC validation across multiple formats
-- Phone number normalization (+92 / 03XX / raw formats)
-- Mobile network detection from prefixes
-- City → province mapping for forms and analytics
-- PKR formatting (Lakh / Crore system)
-
-PakDataKit standardizes all of these into one lightweight, typed, and reusable library.
+**PakDataKit** is a fast, typed, production-ready TypeScript utility library for building Pakistan-based applications. It eliminates the need for hardcoding regional data and reinventing validation logic for local formats.
 
 ---
 
-## 🚀 Features
+## ⚡ Why PakDataKit?
 
-- Fully typed (TypeScript)
-- Zero runtime dependencies
-- Tree-shakeable exports
-- Lightweight and fast
-- Works in Node.js and modern bundlers
-- Developer-friendly API
+Every Pakistani app repeatedly solves the same problems:
+- Validating CNIC formats (dashes, no dashes)
+- Parsing phone numbers (`+92`, `03XX`)
+- Detecting mobile networks from prefixes
+- Mapping cities to provinces
+- Formatting PKR amounts in the Lakh/Crore system
+
+**PakDataKit** standardizes these tasks in one lightweight, zero-dependency package.
 
 ---
 
-## 📦 Installation
+## 🚀 Installation
 
 ```bash
 npm install pakdatakit
-```
+Requires Node.js 18+ (ESM support)
 
-Requires Node.js 18+ (ESM support).
-
----
-
-## ⚡ Quick Start
-
-```ts
+⚡ Quick Example
+TypeScript
 import { validateCNIC, getNetwork, formatLakh } from "pakdatakit";
 
-validateCNIC("35202-1234567-1"); // true
+console.log(validateCNIC("35202-1234567-1")); // true
+console.log(getNetwork("03001234567"));       // "Jazz"
+console.log(formatLakh(2500000));             // "25 Lakh"
+🧠 Core Features
+Fully Typed: Built with TypeScript for excellent IDE autocomplete.
+
+Zero Dependencies: Keeps your bundle size minimal.
+
+Tree-shakeable: Import only what you need.
+
+Developer-friendly: Clean, intuitive API.
+
+📚 API Reference
+🆔 CNIC Validation
+TypeScript
+import { validateCNIC } from "pakdatakit";
+
+validateCNIC("3520212345671");     // true
+validateCNIC("35202-1234567-1");    // true
+📱 Phone Utilities
+TypeScript
+import { validatePhone, formatPhone } from "pakdatakit";
+
+validatePhone("03001234567");      // true
+formatPhone("03001234567");        // "+923001234567"
+📡 Network Detection
+TypeScript
+import { getNetwork } from "pakdatakit";
+
 getNetwork("03001234567"); // "Jazz"
-formatLakh(2500000); // "25 Lakh"
-```
+⚠️ Note: Due to Mobile Number Portability (MNP), the actual carrier may differ.
 
----
+🗺️ Geography
+TypeScript
+import { getProvince, searchCities } from "pakdatakit";
 
-## 🆔 CNIC
-
-```ts
-validateCNIC(cnic: string): boolean
-```
-
-```ts
-validateCNIC("3520212345671"); // true
-validateCNIC("35202-1234567-1"); // true
-validateCNIC("35202-123456-1"); // false
-```
-
----
-
-## 📱 Phone
-
-```ts
-validatePhone(phone: string): boolean
-formatPhone(phone: string): string
-```
-
-```ts
-validatePhone("03001234567"); // true
-formatPhone("03001234567"); // "+923001234567"
-```
-
----
-
-## 📡 Network
-
-```ts
-getNetwork(phone: string): string
-```
-
-```ts
-getNetwork("03001234567"); // "Jazz"
-```
-
----
-
-## 🗺️ Geography
-
-```ts
-getProvince(city: string): string | null
-searchCities(query: string): string[]
-```
-
-```ts
 getProvince("Multan"); // "Punjab"
-searchCities("mul"); // ["Multan"]
-```
+searchCities("mul");    // ["Multan"]
+💰 Currency Formatting
+TypeScript
+import { formatPKR, formatLakh } from "pakdatakit";
 
----
-
-## 💰 Currency
-
-```ts
-formatPKR(amount: number): string
-formatLakh(amount: number): string
-```
-
-```ts
-formatPKR(150000); // "Rs. 150,000"
+formatPKR(150000);   // "Rs. 150,000"
 formatLakh(2500000); // "25 Lakh"
-```
+🛣️ Roadmap
+We are actively expanding PakDataKit:
 
----
+[ ] 🏦 Banking: IBAN and account validation.
 
-## 🛣️ Roadmap
+[ ] 🏠 Address Parsing: Optimized for local formats.
 
-- Bank utilities
-- Address parsing
-- Islamic calendar utilities
-- Roman Urdu normalization
-- CLI tool
+[ ] 🕌 Islamic Utilities: Date conversions.
 
----
+[ ] 🔤 Roman Urdu: Normalization and transliteration.
 
-## 🤝 Contributing
+[ ] ⚡ CLI: Command-line tool for quick data lookups.
 
-welcome 🇵🇰 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+🤝 Contributing
+We welcome contributions 🇵🇰!
 
----
+Open an issue to discuss a new feature.
 
-## 📄 License
+Submit a PR for improvements or bug fixes.
 
-MIT — see [LICENSE](LICENSE).
+Help us make this the standard toolkit for all Pakistani developers.
+
+📄 License
+Distributed under the MIT License. See LICENSE for more information.

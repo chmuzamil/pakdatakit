@@ -588,15 +588,66 @@ const budget = formatLakh(2500000);
 
 # Playground
 
-🚧 Interactive Playground Coming Soon
+# 🌐 Playground
 
-The PakDataKit Playground will provide:
+Try PakDataKit instantly in your browser:
 
-* Live CNIC validation
-* Phone number analysis
-* Network detection
-* City lookups
-* PKR formatting tools
+👉 https://pakdatakit-playground.vercel.app/
+
+The playground provides live interactive tools powered by the PakDataKit library:
+
+### Available Tools
+
+* 🆔 CNIC Validation
+* 📱 Phone Number Analysis
+* 📡 Mobile Network Detection
+* 💬 WhatsApp Link Generator
+* 🏦 IBAN Validation
+* 🏛️ Bank Detection from IBAN
+* 📮 Postal Code Lookup
+* 🗺️ City & Province Lookup
+* 💰 PKR Formatting
+* 🔤 Text Utilities
+* 🕌 Hijri & Islamic Utilities (experimental)
+
+### Why the Playground?
+
+The playground serves as a live documentation and testing environment for PakDataKit.
+
+You can:
+
+* Test utilities instantly
+* Explore API behavior
+* Validate inputs
+* Preview outputs before integrating into your application
+
+No installation required.
+
+---
+
+### Example
+
+```ts
+import {
+  analyzePhone,
+  validateIBAN,
+  createWhatsAppLink
+} from "pakdatakit";
+
+analyzePhone("03001234567");
+
+validateIBAN("PK36SCBL0000001123456702");
+
+createWhatsAppLink(
+  "03001234567",
+  "Assalamualaikum"
+);
+```
+
+---
+
+Built for developers building software for Pakistan 🇵🇰
+
 
 ---
 

@@ -8,6 +8,7 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "resolveJsonModule": true,
+    "types": ["node"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,

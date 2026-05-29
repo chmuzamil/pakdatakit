@@ -54,6 +54,10 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 ✅ IBAN Validation
 ✅ Bank Detection from IBAN
 ✅ Postal Code Lookup
+✅ Address Parsing
+✅ Roman Urdu Normalization
+✅ Hijri Date Utilities
+✅ CLI Tool
 ✅ Mobile Network Detection
 ✅ City → Province Lookup
 ✅ PKR Formatting
@@ -124,6 +128,16 @@ getNetwork("03001234567");
 
 formatLakh(2500000);
 // "25 Lakh"
+```
+
+### CLI
+
+```bash
+npx pakdatakit validate-cnic 35202-1234567-1
+npx pakdatakit analyze-phone 03001234567
+npx pakdatakit parse-address "House 12, Gulberg III, Lahore, Punjab 54660"
+npx pakdatakit hijri
+npx pakdatakit normalize-urdu "ap kia ker rhe ho"
 ```
 
 ---
@@ -203,8 +217,6 @@ formatPhone("03001234567");
 formatPhone("+92 300-123-4567");
 // "+923001234567"
 ```
-
----
 
 ---
 
@@ -431,6 +443,57 @@ searchCities("kar");
 
 ---
 
+### getDistrictProvince() / searchDistricts()
+
+District-level geography lookup across 171 districts.
+
+```ts
+getDistrictProvince("Lahore"); // "Punjab"
+searchDistricts("karachi"); // ["Karachi Central", "Karachi East", ...]
+```
+
+---
+
+## Address Utilities
+
+### parseAddress()
+
+Parses free-form Pakistani addresses into structured components.
+
+```ts
+parseAddress("House 12, Gulberg III, Lahore, Punjab 54660");
+// { street: "House 12", area: "Gulberg III", city: "Lahore", province: "Punjab", postalCode: "54660", ... }
+```
+
+### formatAddress()
+
+Formats structured components back into a mailing address string.
+
+---
+
+## Text Utilities
+
+### normalizeRomanUrdu()
+
+Normalizes informal Roman Urdu spellings (`ap kia ker` → `aap kya kar`).
+
+### toUrduDigits() / toEnglishDigits()
+
+Convert between English, Urdu, and Arabic-Indic digits.
+
+---
+
+## Hijri Calendar
+
+### toHijri() / formatHijri() / isRamadan()
+
+```ts
+formatHijri(new Date()); // "14 Ramadan 1447"
+isRamadan(new Date());   // true | false
+```
+
+---
+
 ## Currency Formatting
 
 ### formatPKR()
@@ -548,26 +611,32 @@ The PakDataKit Playground will provide:
 * Postal Code Lookup
 * Expanded datasets (150 cities, 171 districts, 109 postal codes, 46 banks)
 
-### v0.3
+### v0.3 ✅
 
-* Address Parsing
-* Expanded Postal Data
+* Address Parsing (`parseAddress`, `formatAddress`)
+* Expanded Postal Data (`getPostalAreas`, `searchPostalCodes`)
 
-### v0.4
+### v0.4 ✅
 
-* Roman Urdu Utilities
-* Text Normalization
+* Roman Urdu Utilities (`normalizeRomanUrdu`)
+* Text Normalization (`normalizeText`, `toUrduDigits`, `toEnglishDigits`)
 
-### v0.5
+### v0.5 ✅
 
-* Islamic Calendar Utilities
-* Hijri Date Helpers
+* Islamic Calendar Utilities (`toHijri`, `fromHijri`, `formatHijri`)
+* Hijri Date Helpers (`getHijriMonthName`, `isRamadan`)
 
-### v1.0
+### v1.0 ✅
 
-* CLI Tool
-* Dataset API
-* Community Contributions
+* CLI Tool (`pakdatakit` command)
+* Dataset-backed lookup APIs
+* Community Contributions (see CONTRIBUTING.md)
+
+### v1.1+
+
+* Interactive Playground
+* CNIC checksum validation
+* Mobile Number Portability lookup API
 
 ---
 

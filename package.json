@@ -1,10 +1,13 @@
 {
   "name": "pakdatakit",
-  "version": "0.2.0",
-  "description": "Production-ready utility toolkit for Pakistani developers — CNIC, phone, WhatsApp, IBAN, postal codes, networks, geography, and formatting",
+  "version": "1.1.0",
+  "description": "Production-ready utility toolkit for Pakistani developers — CNIC, phone, WhatsApp, IBAN, postal codes, address parsing, Hijri dates, Roman Urdu, networks, geography, and formatting",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "pakdatakit": "./dist/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -44,7 +47,10 @@
     "fintech",
     "ecommerce",
     "utilities",
-    "typescript"
+    "typescript",
+    "hijri",
+    "urdu",
+    "address"
   ],
   "author": "",
   "license": "MIT",
@@ -61,9 +67,11 @@
     "@typescript-eslint/parser": "^8.33.0",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
+    "globals": "^17.6.0",
     "prettier": "^3.5.3",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
+    "@types/node": "^22.15.21",
     "vitest": "^3.2.1"
   }
 }

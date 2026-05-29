@@ -3,6 +3,7 @@ import {
   getCityByPostalCode,
   getPostalCode,
   getPostalCodes,
+  getPostalAreas,
   searchPostalCodes,
 } from '../src/postal.js';
 
@@ -58,5 +59,13 @@ describe('searchPostalCodes', () => {
 
   it('finds postal codes by area name', () => {
     expect(searchPostalCodes('gulberg')).toContain('54660');
+  });
+});
+
+describe('getPostalAreas', () => {
+  it('returns areas for Karachi', () => {
+    const areas = getPostalAreas('Karachi');
+    expect(areas.length).toBeGreaterThan(3);
+    expect(areas).toContain('Karachi GPO');
   });
 });

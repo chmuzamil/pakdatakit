@@ -97,6 +97,25 @@ export function searchPostalCodes(query: string): string[] {
   return [...new Set(matches)].sort((a, b) => a.localeCompare(b));
 }
 
+/**
+ * Returns known area names for a city's postal entries.
+ *
+ * @param city - City name to look up
+ * @returns Alphabetically sorted area names
+ */
+export function getPostalAreas(city: string): string[] {
+  const key = normalizeKey(city);
+  if (key.length === 0) {
+    return [];
+  }
+
+  return POSTAL_ENTRIES.filter(
+    (entry) => normalizeKey(entry.city) === key && entry.area,
+  )
+    .map((entry) => entry.area as string)
+    .sort((a, b) => a.localeCompare(b));
+}
+
 function stripPostalCode(postalCode: string): string {
   return postalCode.trim().replace(/\s+/g, '');
 }

@@ -18,6 +18,7 @@
   { "prefix": "0326", "network": "Jazz" },
   { "prefix": "0327", "network": "Jazz" },
   { "prefix": "0328", "network": "Jazz" },
+  { "prefix": "0329", "network": "Jazz" },
   { "prefix": "0310", "network": "Zong" },
   { "prefix": "0311", "network": "Zong" },
   { "prefix": "0312", "network": "Zong" },
@@ -49,5 +50,6 @@
   { "prefix": "0346", "network": "Telenor" },
   { "prefix": "0347", "network": "Telenor" },
   { "prefix": "0348", "network": "Telenor" },
-  { "prefix": "0349", "network": "Telenor" }
+  { "prefix": "0349", "network": "Telenor" },
+  { "prefix": "0355", "network": "SCO" }
 ]

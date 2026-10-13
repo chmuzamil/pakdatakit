@@ -23,10 +23,20 @@ describe('getNetwork', () => {
   });
 
   it('returns Unknown for unmapped prefix', () => {
-    expect(getNetwork('03551234567')).toBe('Unknown');
+    expect(getNetwork('03601234567')).toBe('Unknown');
   });
 
   it('returns Unknown for invalid phone', () => {
     expect(getNetwork('invalid')).toBe('Unknown');
+  });
+});
+
+describe('getNetwork prefixes', () => {
+  it('detects Jazz from 0329 prefix', () => {
+    expect(getNetwork('03291234567')).toBe('Jazz');
+  });
+
+  it('detects SCO from 0355 prefix', () => {
+    expect(getNetwork('03551234567')).toBe('SCO');
   });
 });

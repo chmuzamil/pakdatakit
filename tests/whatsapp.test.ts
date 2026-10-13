@@ -32,7 +32,7 @@ describe('createWhatsAppLink', () => {
     );
   });
 
-  it('returns empty string for invalid phone', () => {
-    expect(createWhatsAppLink('invalid')).toBe('');
+  it('returns null for invalid phone', () => {
+    expect(createWhatsAppLink('invalid')).toBeNull();
   });
 });

@@ -5,48 +5,60 @@ const pkrFormatter = new Intl.NumberFormat('en-PK', {
   maximumFractionDigits: 0,
 });
 
-/**
- * Formats a numeric amount as Pakistani Rupees with comma separators.
- *
- * Non-finite values and negative amounts are treated as zero.
- *
- * @param amount - The amount in PKR
- * @returns Formatted string (e.g. `"Rs. 150,000"`)
- */
-export function formatPKR(amount: number): string {
-  const safeAmount = Number.isFinite(amount) && amount > 0 ? amount : 0;
-  return `Rs. ${pkrFormatter.format(safeAmount)}`;
+function assertFinite(amount: number): void {
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    throw new RangeError(`Amount must be a finite number, received ${String(amount)}`);
+  }
 }
 
-function formatScaled(value: number, unit: 'Lakh' | 'Crore'): string {
-  const rounded = Math.round(value * 100) / 100;
-  const formatted =
-    Number.isInteger(rounded) ? String(rounded) : String(rounded);
-  return `${formatted} ${unit}`;
+function roundTo2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/**
+ * Formats a numeric amount as Pakistani Rupees with comma separators,
+ * rounded to whole rupees. Negative amounts are prefixed with `-`.
+ *
+ * @param amount - The amount in PKR
+ * @returns Formatted string (e.g. `"Rs. 150,000"`, `"-Rs. 500"`)
+ * @throws {RangeError} If `amount` is `NaN` or infinite
+ */
+export function formatPKR(amount: number): string {
+  assertFinite(amount);
+  const rounded = Math.round(Math.abs(amount));
+  const sign = amount < 0 && rounded !== 0 ? '-' : '';
+  return `${sign}Rs. ${pkrFormatter.format(rounded)}`;
 }
 
 /**
  * Formats a numeric amount using Pakistani lakh/crore conventions.
  *
- * - Amounts >= 1 crore render as `"N Crore"` (e.g. `10000000` → `"1 Crore"`)
- * - Amounts >= 1 lakh render as `"N Lakh"` (e.g. `2500000` → `"25 Lakh"`)
+ * - Amounts of 1 crore or more render as `"N Crore"` (e.g. `10000000` → `"1 Crore"`)
+ * - Amounts of 1 lakh or more render as `"N Lakh"` (e.g. `2500000` → `"25 Lakh"`)
  * - Smaller amounts fall back to {@link formatPKR}
  *
- * Non-finite values and negative amounts are treated as zero.
+ * Values are rounded to two decimals before the unit is chosen, so
+ * `9999999` renders as `"1 Crore"` rather than `"100 Lakh"`.
+ * Negative amounts are prefixed with `-`.
  *
  * @param amount - The amount in PKR
  * @returns Human-readable lakh/crore string
+ * @throws {RangeError} If `amount` is `NaN` or infinite
  */
 export function formatLakh(amount: number): string {
-  const safeAmount = Number.isFinite(amount) && amount > 0 ? amount : 0;
+  assertFinite(amount);
+  const sign = amount < 0 ? '-' : '';
+  const absolute = Math.abs(amount);
 
-  if (safeAmount >= CRORE) {
-    return formatScaled(safeAmount / CRORE, 'Crore');
+  const crores = roundTo2(absolute / CRORE);
+  if (crores >= 1) {
+    return `${sign}${crores} Crore`;
   }
 
-  if (safeAmount >= LAKH) {
-    return formatScaled(safeAmount / LAKH, 'Lakh');
+  const lakhs = roundTo2(absolute / LAKH);
+  if (lakhs >= 1) {
+    return `${sign}${lakhs} Lakh`;
   }
 
-  return formatPKR(safeAmount);
+  return formatPKR(amount);
 }

@@ -10,8 +10,14 @@ describe('formatPKR', () => {
     expect(formatPKR(0)).toBe('Rs. 0');
   });
 
-  it('treats invalid amounts as zero', () => {
-    expect(formatPKR(Number.NaN)).toBe('Rs. 0');
+  it('throws on non-finite amounts', () => {
+    expect(() => formatPKR(Number.NaN)).toThrow(RangeError);
+    expect(() => formatPKR(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  });
+
+  it('formats negative amounts', () => {
+    expect(formatPKR(-1500)).toBe('-Rs. 1,500');
+    expect(formatPKR(-0.2)).toBe('Rs. 0');
   });
 });
 
@@ -34,5 +40,22 @@ describe('formatLakh', () => {
 
   it('falls back to PKR for amounts below one lakh', () => {
     expect(formatLakh(50000)).toBe('Rs. 50,000');
+  });
+});
+
+describe('formatLakh boundaries', () => {
+  it('rounds before choosing the unit', () => {
+    expect(formatLakh(9_999_999)).toBe('1 Crore');
+    expect(formatLakh(99_999.5)).toBe('1 Lakh');
+    expect(formatLakh(999_999.999)).toBe('10 Lakh');
+  });
+
+  it('formats negative amounts', () => {
+    expect(formatLakh(-2_500_000)).toBe('-25 Lakh');
+    expect(formatLakh(-50_000)).toBe('-Rs. 50,000');
+  });
+
+  it('throws on non-finite amounts', () => {
+    expect(() => formatLakh(Number.NaN)).toThrow(RangeError);
   });
 });

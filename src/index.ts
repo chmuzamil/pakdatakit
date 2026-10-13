@@ -38,4 +38,5 @@ export {
   getHijriMonthName,
   isRamadan,
   type HijriDate,
+  type HijriOptions,
 } from './hijri.js';

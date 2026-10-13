@@ -1,6 +1,6 @@
 import citiesData from '../data/cities.json';
 import districtsData from '../data/districts.json';
-import { normalizeKey } from './internal/normalize.js';
+import { lazy, normalizeKey } from './internal/normalize.js';
 
 interface CityEntry {
   city: string;
@@ -15,12 +15,18 @@ interface DistrictEntry {
 const CITIES = citiesData as CityEntry[];
 const DISTRICTS = districtsData as DistrictEntry[];
 
-const CITY_LOOKUP = new Map<string, string>(
-  CITIES.map((entry) => [normalizeKey(entry.city), entry.province]),
+const cityLookup = lazy(
+  () =>
+    new Map<string, string>(
+      CITIES.map((entry) => [normalizeKey(entry.city), entry.province]),
+    ),
 );
 
-const DISTRICT_LOOKUP = new Map<string, string>(
-  DISTRICTS.map((entry) => [normalizeKey(entry.district), entry.province]),
+const districtLookup = lazy(
+  () =>
+    new Map<string, string>(
+      DISTRICTS.map((entry) => [normalizeKey(entry.district), entry.province]),
+    ),
 );
 
 /**
@@ -37,7 +43,7 @@ export function getProvince(city: string): string | null {
   if (key.length === 0) {
     return null;
   }
-  return CITY_LOOKUP.get(key) ?? null;
+  return cityLookup().get(key) ?? null;
 }
 
 /**
@@ -73,7 +79,7 @@ export function getDistrictProvince(district: string): string | null {
   if (key.length === 0) {
     return null;
   }
-  return DISTRICT_LOOKUP.get(key) ?? null;
+  return districtLookup().get(key) ?? null;
 }
 
 /**

@@ -1,25 +1,19 @@
 import banksData from '../data/banks.json';
-import { stripSeparators } from './internal/normalize.js';
+import { lazy, stripSeparators } from './internal/normalize.js';
 
 const PK_IBAN_PATTERN = /^PK\d{2}[A-Z]{4}[A-Z0-9]{16}$/;
-const PK_IBAN_LENGTH = 24;
 
 interface BankEntry {
   code: string;
   name: string;
 }
 
-const BANK_MAP = new Map<string, string>();
-
-for (const entry of banksData as BankEntry[]) {
-  BANK_MAP.set(entry.code, entry.name);
-}
-
-// Legacy IBAN bank codes that map to current SBP identifiers
-const BANK_ALIASES: Record<string, string> = {
-  NBPB: 'NBPA',
-  MCBL: 'MUCB',
-};
+const bankMap = lazy(
+  () =>
+    new Map<string, string>(
+      (banksData as BankEntry[]).map((entry) => [entry.code, entry.name]),
+    ),
+);
 
 /**
  * Expands IBAN letters to digits for mod-97 checksum (A=10 … Z=35).
@@ -40,7 +34,7 @@ function mod97(numericIban: string): number {
 }
 
 /**
- * Normalizes an IBAN by removing spaces and uppercasing.
+ * Normalizes an IBAN by removing separators and uppercasing.
  */
 function normalizeIBAN(iban: string): string {
   return stripSeparators(iban).toUpperCase();
@@ -58,18 +52,12 @@ function normalizeIBAN(iban: string): string {
 export function validateIBAN(iban: string): boolean {
   const normalized = normalizeIBAN(iban);
 
-  if (normalized.length !== PK_IBAN_LENGTH) {
-    return false;
-  }
-
   if (!PK_IBAN_PATTERN.test(normalized)) {
     return false;
   }
 
   const rearranged = normalized.slice(4) + normalized.slice(0, 4);
-  const expanded = expandIbanChars(rearranged);
-
-  return mod97(expanded) === 1;
+  return mod97(expandIbanChars(rearranged)) === 1;
 }
 
 /**
@@ -85,9 +73,5 @@ export function getBankFromIBAN(iban: string): string | null {
     return null;
   }
 
-  const normalized = normalizeIBAN(iban);
-  const bankCode = normalized.slice(4, 8);
-  const resolvedCode = BANK_ALIASES[bankCode] ?? bankCode;
-
-  return BANK_MAP.get(resolvedCode) ?? BANK_MAP.get(bankCode) ?? null;
+  return bankMap().get(normalizeIBAN(iban).slice(4, 8)) ?? null;
 }

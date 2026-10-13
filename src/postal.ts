@@ -1,5 +1,5 @@
 import postalData from '../data/postal-codes.json';
-import { normalizeKey } from './internal/normalize.js';
+import { lazy, normalizeKey } from './internal/normalize.js';
 
 interface PostalEntry {
   city: string;
@@ -10,19 +10,23 @@ interface PostalEntry {
 
 const POSTAL_ENTRIES = postalData as PostalEntry[];
 
-const POSTAL_BY_CODE = new Map<string, string>(
-  POSTAL_ENTRIES.map((entry) => [entry.postalCode, entry.city]),
+const postalByCode = lazy(
+  () =>
+    new Map<string, string>(
+      POSTAL_ENTRIES.map((entry) => [entry.postalCode, entry.city]),
+    ),
 );
 
-const POSTAL_BY_CITY = new Map<string, string>();
-
-for (const entry of POSTAL_ENTRIES) {
-  const key = normalizeKey(entry.city);
-  const existing = POSTAL_BY_CITY.get(key);
-  if (existing === undefined || entry.primary === true) {
-    POSTAL_BY_CITY.set(key, entry.postalCode);
+const postalByCity = lazy(() => {
+  const map = new Map<string, string>();
+  for (const entry of POSTAL_ENTRIES) {
+    const key = normalizeKey(entry.city);
+    if (!map.has(key) || entry.primary === true) {
+      map.set(key, entry.postalCode);
+    }
   }
-}
+  return map;
+});
 
 /**
  * Returns the city name for a Pakistani postal code.
@@ -35,7 +39,7 @@ export function getCityByPostalCode(postalCode: string): string | null {
   if (code.length === 0) {
     return null;
   }
-  return POSTAL_BY_CODE.get(code) ?? null;
+  return postalByCode().get(code) ?? null;
 }
 
 /**
@@ -52,7 +56,7 @@ export function getPostalCode(city: string): string | null {
   if (key.length === 0) {
     return null;
   }
-  return POSTAL_BY_CITY.get(key) ?? null;
+  return postalByCity().get(key) ?? null;
 }
 
 /**

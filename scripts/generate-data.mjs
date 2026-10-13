@@ -19,7 +19,11 @@ const PROVINCE_NAMES = {
   SD: 'Sindh',
 };
 
-/** All 169+ administrative districts (2023–2024). */
+/**
+ * Administrative districts. Duplicates are removed below. Districts created
+ * after 2022 (the 2024-2026 KP and Balochistan reorganisations) still need to
+ * be added from official notifications.
+ */
 const DISTRICTS_RAW = [
   ['Abbottabad', 'NW'],
   ['Astore', 'NA'],
@@ -157,7 +161,8 @@ const DISTRICTS_RAW = [
   ['Sibi', 'BA'],
   ['Skardu', 'NA'],
   ['Sohbatpur', 'BA'],
-  ['South Waziristan', 'NW'],
+  ['Lower South Waziristan', 'NW'],
+  ['Upper South Waziristan', 'NW'],
   ['Sudhnuti', 'JK'],
   ['Sujawal', 'SD'],
   ['Sukkur', 'SD'],
@@ -181,6 +186,10 @@ const DISTRICTS_RAW = [
   ['Wazirabad', 'PB'],
   ['Zhob', 'BA'],
   ['Ziarat', 'BA'],
+  // Districts created 2019-2022
+  ['Taunsa', 'PB'],
+  ['Hub', 'BA'],
+  ['Usta Muhammad', 'BA'],
   ['Darel', 'NA'],
   ['Gupis-Yasin', 'NA'],
   ['Tangir', 'NA'],
@@ -194,7 +203,7 @@ const DISTRICTS_RAW = [
   ['Kharmang', 'NA'],
 ];
 
-const districts = DISTRICTS_RAW.map(([district, code]) => ({
+const districts = [...new Map(DISTRICTS_RAW).entries()].map(([district, code]) => ({
   district,
   province: PROVINCE_NAMES[code],
 })).sort((a, b) => a.district.localeCompare(b.district));
@@ -214,7 +223,7 @@ const CORE_CITIES = [
   ['Sukkur', 'Sindh'],
 ];
 
-/** Top 150 cities by significance (district HQs + major urban centres). */
+/** Cities and towns (district HQs + major urban centres). */
 const citiesMap = new Map();
 
 for (const [city, province] of CORE_CITIES) {
@@ -273,13 +282,6 @@ const additionalCities = [
   ['Nawabshah', 'Sindh'],
   ['Chitral', 'Khyber Pakhtunkhwa'],
   ['Turbat', 'Balochistan'],
-  ['Defence', 'Sindh'],
-  ['Clifton', 'Sindh'],
-  ['Landhi', 'Sindh'],
-  ['Orangi', 'Sindh'],
-  ['Gulshan-e-Iqbal', 'Sindh'],
-  ['Nazimabad', 'Sindh'],
-  ['Saddar', 'Sindh'],
   ['Kotri', 'Sindh'],
   ['Hala', 'Sindh'],
   ['Moro', 'Sindh'],
@@ -338,9 +340,6 @@ const additionalCities = [
   ['Kohlu Town', 'Balochistan'],
   ['Dhadar', 'Balochistan'],
   ['Sohbatpur Town', 'Balochistan'],
-  ['Gulberg', 'Punjab'],
-  ['Model Town', 'Punjab'],
-  ['Cantt', 'Punjab'],
   ['Satiana', 'Punjab'],
   ['Shorkot', 'Punjab'],
   ['Kabirwala', 'Punjab'],
@@ -387,17 +386,6 @@ for (const [alias, canonical, province] of aliases) {
   if (citiesMap.has(canonical) && !citiesMap.has(alias)) {
     citiesMap.set(alias, province);
   }
-}
-
-let cities = [...citiesMap.entries()]
-  .map(([city, province]) => ({ city, province }))
-  .sort((a, b) => a.city.localeCompare(b.city));
-
-if (cities.length > 150) {
-  const coreSet = new Set(CORE_CITIES.map(([c]) => c));
-  const core = cities.filter((c) => coreSet.has(c.city));
-  const rest = cities.filter((c) => !coreSet.has(c.city));
-  cities = [...core, ...rest].slice(0, 150);
 }
 
 /** Major postal codes — GPO + key areas. primary=true is default for getPostalCode(). */
@@ -519,7 +507,28 @@ const POSTAL_CODES = [
   { city: 'Skardu', postalCode: '16100', area: 'Skardu GPO', primary: true },
 ];
 
-/** All registered Pakistani bank IBAN codes (SBP / SWIFT BIC prefix). */
+// Every city with a postal code must also resolve to a province. Postal
+// cities missing from the list above are district headquarters that share
+// their district's name, so take the province from the district list.
+const districtProvince = new Map(districts.map((d) => [d.district, d.province]));
+for (const { city } of POSTAL_CODES) {
+  if (citiesMap.has(city)) continue;
+  const province = districtProvince.get(city);
+  if (province === undefined) {
+    throw new Error(`No province for postal city "${city}"`);
+  }
+  citiesMap.set(city, province);
+}
+
+const cities = [...citiesMap.entries()]
+  .map(([city, province]) => ({ city, province }))
+  .sort((a, b) => a.city.localeCompare(b.city));
+
+/**
+ * Pakistani IBAN bank codes (characters 5-8 of the IBAN). SBP does not publish
+ * a master list, and IBAN codes do not always match SWIFT BIC prefixes, so
+ * entries should be confirmed against real IBANs before being added.
+ */
 const BANKS = [
   { code: 'ABPA', name: 'Allied Bank Limited' },
   { code: 'AIIN', name: 'Al Baraka Bank (Pakistan) Limited' },
@@ -539,35 +548,32 @@ const BANKS = [
   { code: 'MUCB', name: 'MCB Bank Limited' },
   { code: 'MEZN', name: 'Meezan Bank Limited' },
   { code: 'NBPA', name: 'National Bank of Pakistan' },
-  { code: 'NIBP', name: 'NIB Bank Limited' },
+  { code: 'NIBP', name: 'NIB Bank Limited (merged into MCB Bank)' },
   { code: 'SCBL', name: 'Standard Chartered Bank (Pakistan) Limited' },
-  { code: 'SILK', name: 'Silkbank Limited' },
-  { code: 'SMEP', name: 'Summit Bank Limited' },
+  { code: 'SUMB', name: 'Bank Makramah Limited (formerly Summit Bank)' },
   { code: 'UNIL', name: 'United Bank Limited' },
   { code: 'SAMB', name: 'Samba Bank Limited' },
-  { code: 'SAUD', name: 'Saudi Pak Industrial Investment Bank' },
+  { code: 'SAUD', name: 'Silkbank Limited (merged into United Bank Limited)' },
   { code: 'CITI', name: 'Citibank N.A. Pakistan' },
   { code: 'ICBK', name: 'Industrial and Commercial Bank of China' },
   { code: 'MSHQ', name: 'Mashreq Bank Pakistan' },
   { code: 'DEUT', name: 'Deutsche Bank AG' },
-  { code: 'BARC', name: 'Barclays Bank PLC' },
   { code: 'SBPP', name: 'State Bank of Pakistan' },
-  { code: 'TMFB', name: 'Telenor Microfinance Bank (Easypaisa)' },
+  { code: 'TMFB', name: 'easypaisa Digital Bank (formerly Telenor Microfinance Bank)' },
   { code: 'JCMA', name: 'Mobilink Microfinance Bank (JazzCash)' },
   { code: 'NRSP', name: 'NRSP Microfinance Bank' },
-  { code: 'FMFB', name: 'First MicroFinance Bank' },
+  { code: 'FMFB', name: 'HBL Microfinance Bank (formerly First MicroFinance Bank)' },
   { code: 'APNA', name: 'Apna Microfinance Bank' },
   { code: 'KMBL', name: 'Khushhali Microfinance Bank' },
-  { code: 'FINC', name: 'FINCA Microfinance Bank' },
+  { code: 'FINC', name: 'ABHI Microfinance Bank (formerly FINCA Microfinance Bank)' },
   { code: 'UMBL', name: 'U Microfinance Bank' },
   { code: 'PAKB', name: 'Pak Oman Microfinance Bank' },
-  { code: 'TAMW', name: 'Tameer Microfinance Bank' },
+  { code: 'TAMW', name: 'easypaisa Digital Bank (formerly Tameer Microfinance Bank)' },
   { code: 'SIND', name: 'Sindh Bank Limited' },
   { code: 'SONE', name: 'Soneri Bank Limited' },
-  { code: 'BIPL', name: 'Bank of Islamabad Limited' },
-  // Legacy aliases used in older datasets
-  { code: 'NBPB', name: 'National Bank of Pakistan', aliasOf: 'NBPA' },
-  { code: 'MCBL', name: 'MCB Bank Limited', aliasOf: 'MUCB' },
+  // Legacy codes seen in older IBANs
+  { code: 'NBPB', name: 'National Bank of Pakistan' },
+  { code: 'MCBL', name: 'MCB Bank Limited' },
   { code: 'UNIL', name: 'United Bank Limited' },
 ].filter((bank, index, arr) => {
   // Dedupe UNIL

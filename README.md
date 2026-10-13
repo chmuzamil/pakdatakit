@@ -46,22 +46,22 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 
 ## Features
 
-✅ CNIC Validation
-✅ Phone Number Validation
-✅ Phone Number Normalization
-✅ Phone Intelligence (`analyzePhone`)
-✅ WhatsApp Link Generator
-✅ IBAN Validation
-✅ Bank Detection from IBAN
-✅ Postal Code Lookup
-✅ Address Parsing
-✅ Roman Urdu Normalization
-✅ Hijri Date Utilities
-✅ CLI Tool
-✅ Mobile Network Detection
-✅ City → Province Lookup
-✅ PKR Formatting
-✅ Lakh / Crore Formatting
+* ✅ CNIC Validation
+* ✅ Phone Number Validation
+* ✅ Phone Number Normalization
+* ✅ Phone Intelligence (`analyzePhone`)
+* ✅ WhatsApp Link Generator
+* ✅ IBAN Validation
+* ✅ Bank Detection from IBAN
+* ✅ Postal Code Lookup
+* ✅ Address Parsing
+* ✅ Roman Urdu Normalization
+* ✅ Hijri Date Utilities
+* ✅ CLI Tool
+* ✅ Mobile Network Detection
+* ✅ City → Province Lookup
+* ✅ PKR Formatting
+* ✅ Lakh / Crore Formatting
 
 ### Developer Friendly
 
@@ -83,7 +83,7 @@ npm install pakdatakit
 Requirements:
 
 * Node.js 18+
-* ESM support
+* ESM only — use `import`; CommonJS `require()` is not supported (use dynamic `import()` from CommonJS code)
 
 ---
 
@@ -586,8 +586,6 @@ const budget = formatLakh(2500000);
 
 ---
 
-# Playground
-
 # 🌐 Playground
 
 Try PakDataKit instantly in your browser:
@@ -683,10 +681,13 @@ Built for developers building software for Pakistan 🇵🇰
 * Dataset-backed lookup APIs
 * Community Contributions (see CONTRIBUTING.md)
 
-### v1.1+
+### v1.1 ✅
 
-* Interactive Playground
-* CNIC checksum validation
+* Interactive Playground ([pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/))
+
+### Planned
+
+* CNIC check-digit validation (pending a publicly documented NADRA algorithm)
 * Mobile Number Portability lookup API
 
 ---

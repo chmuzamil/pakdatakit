@@ -6,6 +6,8 @@ import {
   withCrc,
   type EmvField,
 } from './internal/emv.js';
+
+export type { EmvField };
 import { stripSeparators } from './internal/normalize.js';
 
 /*

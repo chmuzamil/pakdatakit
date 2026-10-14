@@ -1,0 +1,49 @@
+name: Docs
+
+# Builds the API reference (TypeDoc) plus llms.txt / llms-full.txt and
+# publishes them to GitHub Pages at https://chmuzamil.github.io/pakdatakit/.
+# Runs on each release tag so the docs match the version on npm, and can be
+# run by hand. Requires Settings → Pages → Source: GitHub Actions.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run docs
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs-site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

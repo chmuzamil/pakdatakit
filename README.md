@@ -24,6 +24,9 @@
   <a href="https://pakdatakit-playground.vercel.app/">
     <img src="https://img.shields.io/badge/playground-try%20it%20live-brightgreen" alt="Playground">
   </a>
+  <a href="https://chmuzamil.github.io/pakdatakit/">
+    <img src="https://img.shields.io/badge/docs-API%20reference-blue" alt="API docs">
+  </a>
 </p>
 
 ---
@@ -35,6 +38,14 @@ Try PakDataKit in your browser, no installation needed:
 👉 **[pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/)**
 
 Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, check IBANs and banks, look up postal codes, cities and provinces, format PKR amounts, and try the text and Hijri utilities. Use it to preview outputs before you integrate the library.
+
+---
+
+## 📚 Documentation
+
+- **[API reference](https://chmuzamil.github.io/pakdatakit/)**: every function, option and return type
+- **[llms.txt](https://chmuzamil.github.io/pakdatakit/llms.txt)** and **[llms-full.txt](https://chmuzamil.github.io/pakdatakit/llms-full.txt)**: the library in a form AI coding assistants can read
+- **[DATA.md](./DATA.md)**: where every dataset comes from
 
 ---
 

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "PakDataKit",
+  "entryPoints": [
+    "src/cnic.ts",
+    "src/phone.ts",
+    "src/networks.ts",
+    "src/numbers.ts",
+    "src/whatsapp.ts",
+    "src/iban.ts",
+    "src/raast.ts",
+    "src/tax.ts",
+    "src/input.ts",
+    "src/postal.ts",
+    "src/geo.ts",
+    "src/address.ts",
+    "src/text.ts",
+    "src/words.ts",
+    "src/format.ts",
+    "src/hijri.ts",
+    "src/holidays.ts",
+    "src/data-version.ts",
+    "src/adapters/zod.ts",
+    "src/adapters/valibot.ts",
+    "src/adapters/yup.ts"
+  ],
+  "entryPointStrategy": "resolve",
+  "out": "docs-site",
+  "readme": "README.md",
+  "projectDocuments": ["DATA.md", "CHANGELOG.md", "SECURITY.md"],
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "sort": ["source-order"],
+  "navigationLinks": {
+    "GitHub": "https://github.com/chmuzamil/pakdatakit",
+    "npm": "https://www.npmjs.com/package/pakdatakit",
+    "Playground": "https://pakdatakit-playground.vercel.app/"
+  },
+  "hostedBaseUrl": "https://chmuzamil.github.io/pakdatakit/",
+  "useHostedBaseUrlForAbsoluteLinks": false,
+  "treatWarningsAsErrors": false
+}

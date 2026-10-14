@@ -78,6 +78,10 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 - ✅ Lakh / Crore Formatting
 - ✅ Amounts in Words (English & Urdu, cheque style)
 - ✅ Zod, Valibot & Yup Form Validation
+- ✅ NTN & STRN Validation
+- ✅ Landline, UAN (111), Toll-Free (0800) & Premium (0900) Numbers
+- ✅ Raast QR Codes (SBP standard)
+- ✅ Pakistan Public Holidays (moon-sighting aware)
 
 ### Developer Friendly
 
@@ -108,7 +112,7 @@ import { validateCNIC } from 'pakdatakit/cnic';
 const { analyzePhone } = require('pakdatakit/phone');
 ```
 
-Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `iban`, `networks`, `phone`, `postal`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot` and `yup`.
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot` and `yup`.
 
 ---
 
@@ -450,6 +454,26 @@ getNetwork('03451234567');
 
 ---
 
+## Landline, UAN & Service Numbers
+
+### analyzeNumber() / getNumberType() / validateLandline() / getAreaCode()
+
+Identifies any Pakistani number: mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal (`0122`). Uses the same number patterns as Google's libphonenumber, plus PTCL's area-code list.
+
+```ts
+analyzeNumber('021-111-825-888');
+// { type: 'uan', formatted: '021-111-825-888', e164: '+9221111825888', areaCode: '021', cities: ['Karachi'] }
+
+analyzeNumber('042 35761234');
+// { type: 'landline', formatted: '042-35761234', e164: '+924235761234', areaCode: '042', cities: ['Lahore'] }
+
+getNumberType('0800-12345'); // 'toll-free'
+validateLandline('051-9260138'); // true
+getAreaCode('Mardan'); // '0937'
+```
+
+---
+
 ## Geography
 
 ### getProvince()
@@ -639,6 +663,85 @@ Amounts are rounded to the nearest paisa. Negative or non-finite amounts throw a
 
 ---
 
+## Tax Numbers
+
+### analyzeNTN() / validateNTN() / validateSTRN()
+
+Validates FBR tax numbers. Individuals use their CNIC as their NTN; companies and AOPs have a 7-digit NTN, often written with a check digit as `1234567-8`. STRNs are 13 digits.
+
+```ts
+analyzeNTN('0622438-9');
+// { type: 'business', digits: '06224389', formatted: '0622438-9' }
+
+analyzeNTN('3520212345671');
+// { type: 'individual', digits: '3520212345671', formatted: '35202-1234567-1' }
+
+validateSTRN('17-00-3761-882-19'); // true
+```
+
+FBR does not publish its check-digit algorithms, so these check the format only.
+
+---
+
+## Raast QR Codes
+
+### createRaastP2PQr() / createMerchantQr() / parseRaastQr()
+
+Builds and reads payment QR codes following the State Bank of Pakistan's QR standard (Circular Letter No. 1 of 2022). Turn the returned string into an image with any QR library.
+
+```ts
+// Person-to-person: anyone can pay this IBAN through Raast
+const payload = createRaastP2PQr({
+  iban: 'PK36SCBL0000001123456702',
+  amount: 1500,
+});
+
+parseRaastQr(payload);
+// { kind: 'p2p', dynamic: true, crcValid: true, iban: 'PK36SCBL0000001123456702', amount: 1500, ... }
+
+// Merchant QR (EMVCo), with Pakistan-specific bill due dates
+createMerchantQr({
+  merchantAccount: {
+    tag: '28',
+    fields: {
+      /* sub-fields from your bank */
+    },
+  },
+  merchantName: 'Aziz General Store',
+  city: 'Karachi',
+  amount: 4250,
+  billNumber: 'INV-1001',
+  dueDate: new Date(2026, 10, 25),
+  amountAfterDueDate: 4500,
+});
+```
+
+SBP reserves merchant-account tags 28–30 for Raast but has shared the layout of the fields inside them only with banks, so `createMerchantQr` takes those sub-fields from you. `parseRaastQr` checks the CRC and finds the IBAN in either kind of QR.
+
+---
+
+## Public Holidays
+
+### getPakistanHolidays() / isPakistanHoliday() / getHolidaysOn()
+
+Lists Pakistan's federal public holidays. Eid, Ashura and Milad use the dates actually observed after moon sighting (2020 onwards, from Cabinet Division and SBP notices), not a calculation.
+
+```ts
+getPakistanHolidays(2025).filter((h) => h.id === 'eid-ul-fitr');
+// [{ name: 'Eid ul Fitr', date: '2025-03-31', estimated: false, source: 'https://…' }, … '2025-04-01', '2025-04-02']
+
+isPakistanHoliday('2026-08-14'); // true (Independence Day)
+
+// Future years are estimated and flagged; apply the official announcement when it comes
+getPakistanHolidays(2027, {
+  announced: { 'eid-ul-fitr': ['2027-03-10', '2027-03-11', '2027-03-12'] },
+});
+```
+
+Fixed holidays follow the year they applied in: Iqbal Day was restored in 2022 and Youm-e-Takbeer added in 2024. Pass `includeChristianHolidays: true` for 26 December. Optional holidays such as Shab-e-Barat and Easter are not included.
+
+---
+
 ## Form Validation
 
 Ready-made schemas for [Zod](https://zod.dev), [Valibot](https://valibot.dev) and [Yup](https://github.com/jquense/yup). Install the library you use; PakDataKit does not depend on any of them.
@@ -668,7 +771,7 @@ import { pk } from 'pakdatakit/yup';
 const CheckoutForm = object({ cnic: pk.cnic().required(), phone: pk.phone() });
 ```
 
-Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()` and `pk.landline()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
 
 ---
 
@@ -766,6 +869,10 @@ const budget = formatLakh(2500000);
 - CNIC province & gender decoding (`getCNICInfo`)
 - Amounts in words in English and Urdu (`amountInWords`, `numberToWords`)
 - Zod, Valibot and Yup adapters
+- NTN and STRN validation
+- Landline, UAN, toll-free and premium numbers
+- Raast QR codes
+- Public holidays with observed moon-sighting dates
 
 ### Planned
 

@@ -1,443 +1,294 @@
 [
   {
     "code": "21",
-    "cities": [
-      "Karachi"
-    ]
+    "cities": ["Karachi"]
   },
   {
     "code": "22",
-    "cities": [
-      "Hyderabad"
-    ]
+    "cities": ["Hyderabad"]
   },
   {
     "code": "232",
-    "cities": [
-      "Tharparkar"
-    ]
+    "cities": ["Tharparkar"]
   },
   {
     "code": "233",
-    "cities": [
-      "Mirpur Khas"
-    ]
+    "cities": ["Mirpur Khas"]
   },
   {
     "code": "235",
-    "cities": [
-      "Sanghar"
-    ]
+    "cities": ["Sanghar"]
   },
   {
     "code": "238",
-    "cities": [
-      "Umerkot"
-    ]
+    "cities": ["Umerkot"]
   },
   {
     "code": "242",
-    "cities": [
-      "Naushero Feroze"
-    ]
+    "cities": ["Naushero Feroze"]
   },
   {
     "code": "243",
-    "cities": [
-      "Khairpur"
-    ]
+    "cities": ["Khairpur"]
   },
   {
     "code": "244",
-    "cities": [
-      "Nawabshah"
-    ]
+    "cities": ["Nawabshah"]
   },
   {
     "code": "25",
-    "cities": [
-      "Dadu"
-    ]
+    "cities": ["Dadu"]
   },
   {
     "code": "297",
-    "cities": [
-      "Badin"
-    ]
+    "cities": ["Badin"]
   },
   {
     "code": "298",
-    "cities": [
-      "Thatta"
-    ]
+    "cities": ["Thatta"]
   },
   {
     "code": "40",
-    "cities": [
-      "Sahiwal"
-    ]
+    "cities": ["Sahiwal"]
   },
   {
     "code": "41",
-    "cities": [
-      "Faisalabad"
-    ]
+    "cities": ["Faisalabad"]
   },
   {
     "code": "42",
-    "cities": [
-      "Lahore"
-    ]
+    "cities": ["Lahore"]
   },
   {
     "code": "44",
-    "cities": [
-      "Okara"
-    ]
+    "cities": ["Okara"]
   },
   {
     "code": "453",
-    "cities": [
-      "Bhakkar"
-    ]
+    "cities": ["Bhakkar"]
   },
   {
     "code": "454",
-    "cities": [
-      "Khushab"
-    ]
+    "cities": ["Khushab"]
   },
   {
     "code": "457",
-    "cities": [
-      "Pakpattan"
-    ]
+    "cities": ["Pakpattan"]
   },
   {
     "code": "459",
-    "cities": [
-      "Mianwali"
-    ]
+    "cities": ["Mianwali"]
   },
   {
     "code": "46",
-    "cities": [
-      "Toba Tek Singh"
-    ]
+    "cities": ["Toba Tek Singh"]
   },
   {
     "code": "47",
-    "cities": [
-      "Jhang"
-    ]
+    "cities": ["Jhang"]
   },
   {
     "code": "48",
-    "cities": [
-      "Sargodha"
-    ]
+    "cities": ["Sargodha"]
   },
   {
     "code": "49",
-    "cities": [
-      "Kasur"
-    ]
+    "cities": ["Kasur"]
   },
   {
     "code": "51",
-    "cities": [
-      "Islamabad",
-      "Rawalpindi"
-    ]
+    "cities": ["Islamabad", "Rawalpindi"]
   },
   {
     "code": "52",
-    "cities": [
-      "Sialkot"
-    ]
+    "cities": ["Sialkot"]
   },
   {
     "code": "53",
-    "cities": [
-      "Gujrat"
-    ]
+    "cities": ["Gujrat"]
   },
   {
     "code": "542",
-    "cities": [
-      "Narowal"
-    ]
+    "cities": ["Narowal"]
   },
   {
     "code": "543",
-    "cities": [
-      "Chakwal"
-    ]
+    "cities": ["Chakwal"]
   },
   {
     "code": "544",
-    "cities": [
-      "Jhelum"
-    ]
+    "cities": ["Jhelum"]
   },
   {
     "code": "546",
-    "cities": [
-      "Mandi Bahauddin"
-    ]
+    "cities": ["Mandi Bahauddin"]
   },
   {
     "code": "547",
-    "cities": [
-      "Hafizabad"
-    ]
+    "cities": ["Hafizabad"]
   },
   {
     "code": "55",
-    "cities": [
-      "Gujranwala"
-    ]
+    "cities": ["Gujranwala"]
   },
   {
     "code": "56",
-    "cities": [
-      "Sheikhupura"
-    ]
+    "cities": ["Sheikhupura"]
   },
   {
     "code": "57",
-    "cities": [
-      "Attock"
-    ]
+    "cities": ["Attock"]
   },
   {
     "code": "604",
-    "cities": [
-      "Rajanpur"
-    ]
+    "cities": ["Rajanpur"]
   },
   {
     "code": "606",
-    "cities": [
-      "Layyah"
-    ]
+    "cities": ["Layyah"]
   },
   {
     "code": "608",
-    "cities": [
-      "Lodhran"
-    ]
+    "cities": ["Lodhran"]
   },
   {
     "code": "61",
-    "cities": [
-      "Multan"
-    ]
+    "cities": ["Multan"]
   },
   {
     "code": "62",
-    "cities": [
-      "Bahawalpur"
-    ]
+    "cities": ["Bahawalpur"]
   },
   {
     "code": "63",
-    "cities": [
-      "Bahawalnagar"
-    ]
+    "cities": ["Bahawalnagar"]
   },
   {
     "code": "64",
-    "cities": [
-      "Dera Ghazi Khan"
-    ]
+    "cities": ["Dera Ghazi Khan"]
   },
   {
     "code": "65",
-    "cities": [
-      "Khanewal"
-    ]
+    "cities": ["Khanewal"]
   },
   {
     "code": "66",
-    "cities": [
-      "Muzaffargarh"
-    ]
+    "cities": ["Muzaffargarh"]
   },
   {
     "code": "67",
-    "cities": [
-      "Vehari"
-    ]
+    "cities": ["Vehari"]
   },
   {
     "code": "68",
-    "cities": [
-      "Rahim Yar Khan"
-    ]
+    "cities": ["Rahim Yar Khan"]
   },
   {
     "code": "71",
-    "cities": [
-      "Sukkur"
-    ]
+    "cities": ["Sukkur"]
   },
   {
     "code": "722",
-    "cities": [
-      "Jacobabad"
-    ]
+    "cities": ["Jacobabad"]
   },
   {
     "code": "723",
-    "cities": [
-      "Ghotki"
-    ]
+    "cities": ["Ghotki"]
   },
   {
     "code": "726",
-    "cities": [
-      "Shikarpur"
-    ]
+    "cities": ["Shikarpur"]
   },
   {
     "code": "74",
-    "cities": [
-      "Larkana"
-    ]
+    "cities": ["Larkana"]
   },
   {
     "code": "81",
-    "cities": [
-      "Quetta"
-    ]
+    "cities": ["Quetta"]
   },
   {
     "code": "848",
-    "cities": [
-      "Khuzdar"
-    ]
+    "cities": ["Khuzdar"]
   },
   {
     "code": "852",
-    "cities": [
-      "Turbat"
-    ]
+    "cities": ["Turbat"]
   },
   {
     "code": "86",
-    "cities": [
-      "Gwadar"
-    ]
+    "cities": ["Gwadar"]
   },
   {
     "code": "91",
-    "cities": [
-      "Peshawar",
-      "Charsadda"
-    ]
+    "cities": ["Peshawar", "Charsadda"]
   },
   {
     "code": "922",
-    "cities": [
-      "Kohat"
-    ]
+    "cities": ["Kohat"]
   },
   {
     "code": "923",
-    "cities": [
-      "Nowshera"
-    ]
+    "cities": ["Nowshera"]
   },
   {
     "code": "925",
-    "cities": [
-      "Hangu"
-    ]
+    "cities": ["Hangu"]
   },
   {
     "code": "926",
-    "cities": [
-      "Kurram"
-    ]
+    "cities": ["Kurram"]
   },
   {
     "code": "927",
-    "cities": [
-      "Karak"
-    ]
+    "cities": ["Karak"]
   },
   {
     "code": "928",
-    "cities": [
-      "Bannu"
-    ]
+    "cities": ["Bannu"]
   },
   {
     "code": "937",
-    "cities": [
-      "Mardan"
-    ]
+    "cities": ["Mardan"]
   },
   {
     "code": "938",
-    "cities": [
-      "Swabi"
-    ]
+    "cities": ["Swabi"]
   },
   {
     "code": "943",
-    "cities": [
-      "Chitral"
-    ]
+    "cities": ["Chitral"]
   },
   {
     "code": "946",
-    "cities": [
-      "Swat",
-      "Mingora"
-    ]
+    "cities": ["Swat", "Mingora"]
   },
   {
     "code": "963",
-    "cities": [
-      "Tank"
-    ]
+    "cities": ["Tank"]
   },
   {
     "code": "966",
-    "cities": [
-      "Dera Ismail Khan"
-    ]
+    "cities": ["Dera Ismail Khan"]
   },
   {
     "code": "969",
-    "cities": [
-      "Lakki Marwat"
-    ]
+    "cities": ["Lakki Marwat"]
   },
   {
     "code": "992",
-    "cities": [
-      "Abbottabad"
-    ]
+    "cities": ["Abbottabad"]
   },
   {
     "code": "995",
-    "cities": [
-      "Haripur"
-    ]
+    "cities": ["Haripur"]
   },
   {
     "code": "997",
-    "cities": [
-      "Mansehra"
-    ]
+    "cities": ["Mansehra"]
   },
   {
     "code": "998",
-    "cities": [
-      "Kohistan"
-    ]
+    "cities": ["Kohistan"]
   }
 ]

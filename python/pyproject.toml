@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pakdatakit"
+version = "2.2.0"
+description = "Utilities for Pakistani data: CNIC, phone, IBAN, postal codes, address parsing, Hijri dates, holidays, amounts in words and Raast QR codes"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [{ name = "Muzamil Chaudhery" }]
+keywords = [
+  "pakistan", "cnic", "phone", "iban", "postal", "hijri", "urdu",
+  "address", "ntn", "raast", "qr", "holidays", "amount-in-words",
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/chmuzamil/pakdatakit"
+Documentation = "https://github.com/chmuzamil/pakdatakit#readme"
+Repository = "https://github.com/chmuzamil/pakdatakit"
+Issues = "https://github.com/chmuzamil/pakdatakit/issues"
+Changelog = "https://github.com/chmuzamil/pakdatakit/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pakdatakit"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/pakdatakit", "tests", "README.md", "RELEASING.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

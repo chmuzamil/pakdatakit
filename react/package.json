@@ -1,0 +1,91 @@
+{
+  "name": "pakdatakit-react",
+  "version": "0.1.0",
+  "description": "React inputs and hooks for Pakistani CNIC, mobile numbers and IBANs that format as you type, plus a Raast payment QR component, built on pakdatakit",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "keywords": [
+    "pakistan",
+    "react",
+    "cnic",
+    "phone",
+    "mobile",
+    "iban",
+    "raast",
+    "qr",
+    "input",
+    "input-mask",
+    "form",
+    "hooks",
+    "pakdatakit"
+  ],
+  "author": "Muzamil Chaudhery",
+  "license": "MIT",
+  "homepage": "https://github.com/chmuzamil/pakdatakit/tree/main/react#readme",
+  "bugs": {
+    "url": "https://github.com/chmuzamil/pakdatakit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chmuzamil/pakdatakit.git",
+    "directory": "react"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pakdatakit": "^2.2.0",
+    "qrcode": "^1.5.4"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^26.1.0",
+    "jsqr": "^1.4.0",
+    "pakdatakit": "file:..",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.4"
+  }
+}

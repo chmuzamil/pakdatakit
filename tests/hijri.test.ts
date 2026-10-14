@@ -18,13 +18,12 @@ function referenceHijri(date: Date): { year: number; month: number; day: number 
   const utc = new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
   );
-  const parts = Object.fromEntries(
-    islamicCivil
-      .formatToParts(utc)
-      .filter((part) => part.type !== 'literal')
-      .map((part) => [part.type, Number.parseInt(part.value, 10)]),
-  );
-  return { year: parts.year, month: parts.month, day: parts.day };
+  const part = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number.parseInt(
+      islamicCivil.formatToParts(utc).find((p) => p.type === type)?.value ?? '',
+      10,
+    );
+  return { year: part('year'), month: part('month'), day: part('day') };
 }
 
 function eachDay(from: Date, to: Date, step = 1): Date[] {

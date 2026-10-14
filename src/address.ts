@@ -96,7 +96,7 @@ export function parseAddress(address: string): ParsedAddress {
   for (let i = segments.length - 1; i >= 0; i -= 1) {
     const segment = segments[i] as string;
 
-    const matchedProvince =
+    const matchedProvince: string | null =
       province === null ? matchExact(segment, PROVINCES) : null;
     if (matchedProvince) {
       province = matchedProvince;
@@ -104,14 +104,14 @@ export function parseAddress(address: string): ParsedAddress {
       continue;
     }
 
-    const matchedCity = city === null ? matchExact(segment, cityNames()) : null;
+    const matchedCity: string | null = city === null ? matchExact(segment, cityNames()) : null;
     if (matchedCity) {
       city = matchedCity;
       segments[i] = '';
       continue;
     }
 
-    const matchedDistrict =
+    const matchedDistrict: string | null =
       district === null ? matchExact(segment, districtNames()) : null;
     if (matchedDistrict) {
       district = matchedDistrict;

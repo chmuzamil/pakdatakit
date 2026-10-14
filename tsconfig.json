@@ -18,7 +18,10 @@
     "rootDir": ".",
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "pakdatakit": ["./src/index.ts"]
+    }
   },
   "include": ["src/**/*", "tests/**/*", "data/**/*"],
   "exclude": ["node_modules", "dist"]

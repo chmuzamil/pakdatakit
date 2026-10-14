@@ -1,18 +1,136 @@
 {
   "name": "pakdatakit",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Production-ready utility toolkit for Pakistani developers — CNIC, phone, WhatsApp, IBAN, postal codes, address parsing, Hijri dates, Roman Urdu, networks, geography, and formatting",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
     "pakdatakit": "./dist/cli.js"
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./address": {
+      "import": {
+        "types": "./dist/address.d.ts",
+        "default": "./dist/address.js"
+      },
+      "require": {
+        "types": "./dist/address.d.cts",
+        "default": "./dist/address.cjs"
+      }
+    },
+    "./cnic": {
+      "import": {
+        "types": "./dist/cnic.d.ts",
+        "default": "./dist/cnic.js"
+      },
+      "require": {
+        "types": "./dist/cnic.d.cts",
+        "default": "./dist/cnic.cjs"
+      }
+    },
+    "./format": {
+      "import": {
+        "types": "./dist/format.d.ts",
+        "default": "./dist/format.js"
+      },
+      "require": {
+        "types": "./dist/format.d.cts",
+        "default": "./dist/format.cjs"
+      }
+    },
+    "./geo": {
+      "import": {
+        "types": "./dist/geo.d.ts",
+        "default": "./dist/geo.js"
+      },
+      "require": {
+        "types": "./dist/geo.d.cts",
+        "default": "./dist/geo.cjs"
+      }
+    },
+    "./hijri": {
+      "import": {
+        "types": "./dist/hijri.d.ts",
+        "default": "./dist/hijri.js"
+      },
+      "require": {
+        "types": "./dist/hijri.d.cts",
+        "default": "./dist/hijri.cjs"
+      }
+    },
+    "./iban": {
+      "import": {
+        "types": "./dist/iban.d.ts",
+        "default": "./dist/iban.js"
+      },
+      "require": {
+        "types": "./dist/iban.d.cts",
+        "default": "./dist/iban.cjs"
+      }
+    },
+    "./networks": {
+      "import": {
+        "types": "./dist/networks.d.ts",
+        "default": "./dist/networks.js"
+      },
+      "require": {
+        "types": "./dist/networks.d.cts",
+        "default": "./dist/networks.cjs"
+      }
+    },
+    "./phone": {
+      "import": {
+        "types": "./dist/phone.d.ts",
+        "default": "./dist/phone.js"
+      },
+      "require": {
+        "types": "./dist/phone.d.cts",
+        "default": "./dist/phone.cjs"
+      }
+    },
+    "./postal": {
+      "import": {
+        "types": "./dist/postal.d.ts",
+        "default": "./dist/postal.js"
+      },
+      "require": {
+        "types": "./dist/postal.d.cts",
+        "default": "./dist/postal.cjs"
+      }
+    },
+    "./text": {
+      "import": {
+        "types": "./dist/text.d.ts",
+        "default": "./dist/text.js"
+      },
+      "require": {
+        "types": "./dist/text.d.cts",
+        "default": "./dist/text.cjs"
+      }
+    },
+    "./whatsapp": {
+      "import": {
+        "types": "./dist/whatsapp.d.ts",
+        "default": "./dist/whatsapp.js"
+      },
+      "require": {
+        "types": "./dist/whatsapp.d.cts",
+        "default": "./dist/whatsapp.cjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
@@ -21,7 +139,7 @@
   "scripts": {
     "dev": "vitest",
     "dev:build": "tsup --watch",
-    "build": "tsup",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
     "generate:data": "node scripts/generate-data.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -29,7 +147,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "keywords": [
     "pakistan",
@@ -52,14 +170,18 @@
     "urdu",
     "address"
   ],
-  "author": "",
+  "author": "Muzamil Chaudhery",
+  "homepage": "https://github.com/chmuzamil/pakdatakit#readme",
+  "bugs": {
+    "url": "https://github.com/chmuzamil/pakdatakit/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/chmuzamil/pakdatakit.git"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

@@ -185,6 +185,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.21",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
     "eslint": "^9.28.0",
@@ -193,7 +194,9 @@
     "prettier": "^3.5.3",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
-    "@types/node": "^22.15.21",
-    "vitest": "^3.2.1"
+    "valibot": "^1.5.0",
+    "vitest": "^3.2.1",
+    "yup": "^1.7.1",
+    "zod": "^4.6.7"
   }
 }

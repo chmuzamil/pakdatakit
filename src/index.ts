@@ -1,4 +1,4 @@
-export { validateCNIC } from './cnic.js';
+export { validateCNIC, getCNICInfo, type CNICInfo } from './cnic.js';
 export {
   validatePhone,
   formatPhone,
@@ -40,3 +40,10 @@ export {
   type HijriDate,
   type HijriOptions,
 } from './hijri.js';
+export {
+  numberToWords,
+  amountInWords,
+  type WordsLanguage,
+  type NumberToWordsOptions,
+  type AmountInWordsOptions,
+} from './words.js';

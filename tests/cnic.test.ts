@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateCNIC } from '../src/cnic.js';
+import { getCNICInfo, validateCNIC } from '../src/cnic.js';
 
 describe('validateCNIC', () => {
   it('accepts plain 13-digit CNIC', () => {
@@ -42,5 +42,26 @@ describe('validateCNIC structure', () => {
     expect(validateCNIC('35202–1234567–1')).toBe(true);
     expect(validateCNIC('35202.1234567.1')).toBe(true);
     expect(validateCNIC('۳۵۲۰۲-۱۲۳۴۵۶۷-۱')).toBe(true);
+  });
+});
+
+describe('getCNICInfo', () => {
+  it('decodes province and gender', () => {
+    expect(getCNICInfo('35202-1234567-1')).toEqual({
+      digits: '3520212345671',
+      formatted: '35202-1234567-1',
+      province: 'Punjab',
+      gender: 'male',
+    });
+    expect(getCNICInfo('42101 1234567 2')).toMatchObject({
+      province: 'Sindh',
+      gender: 'female',
+    });
+    expect(getCNICInfo('2110112345670')?.province).toBe('Khyber Pakhtunkhwa');
+  });
+
+  it('returns null for invalid CNICs', () => {
+    expect(getCNICInfo('0000000000000')).toBeNull();
+    expect(getCNICInfo('abc')).toBeNull();
   });
 });

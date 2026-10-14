@@ -24,6 +24,9 @@
   <a href="https://pakdatakit-playground.vercel.app/">
     <img src="https://img.shields.io/badge/playground-try%20it%20live-brightgreen" alt="Playground">
   </a>
+  <a href="https://chmuzamil.github.io/pakdatakit/">
+    <img src="https://img.shields.io/badge/docs-API%20reference-blue" alt="API docs">
+  </a>
 </p>
 
 ---
@@ -35,6 +38,26 @@ Try PakDataKit in your browser, no installation needed:
 👉 **[pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/)**
 
 Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, check IBANs and banks, look up postal codes, cities and provinces, format PKR amounts, and try the text and Hijri utilities. Use it to preview outputs before you integrate the library.
+
+---
+
+## 📦 Packages
+
+| Package                                                                           | Install                        | For                                                            |
+| --------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------- |
+| [`pakdatakit`](https://www.npmjs.com/package/pakdatakit)                          | `npm install pakdatakit`       | JavaScript and TypeScript (Node, browsers, Bun, Deno)          |
+| [`pakdatakit` (Python)](https://github.com/chmuzamil/pakdatakit/tree/main/python) | `pip install pakdatakit`       | Python 3.9+, same functions in snake_case, same data           |
+| [`pakdatakit-react`](https://github.com/chmuzamil/pakdatakit/tree/main/react)     | `npm install pakdatakit-react` | React inputs that format as you type, and a Raast QR component |
+
+The Python package is checked against the TypeScript library with over 12,000 shared test cases, so both give the same results.
+
+---
+
+## 📚 Documentation
+
+- **[API reference](https://chmuzamil.github.io/pakdatakit/)**: every function, option and return type
+- **[llms.txt](https://chmuzamil.github.io/pakdatakit/llms.txt)** and **[llms-full.txt](https://chmuzamil.github.io/pakdatakit/llms-full.txt)**: the library in a form AI coding assistants can read
+- **[DATA.md](./DATA.md)**: where every dataset comes from
 
 ---
 
@@ -78,6 +101,7 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 - ✅ Lakh / Crore Formatting
 - ✅ Amounts in Words (English & Urdu, cheque style)
 - ✅ Zod, Valibot & Yup Form Validation
+- ✅ As-You-Type Formatting for CNIC, Phone & IBAN
 - ✅ NTN & STRN Validation
 - ✅ Landline, UAN (111), Toll-Free (0800) & Premium (0900) Numbers
 - ✅ Raast QR Codes (SBP standard)
@@ -112,7 +136,7 @@ import { validateCNIC } from 'pakdatakit/cnic';
 const { analyzePhone } = require('pakdatakit/phone');
 ```
 
-Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot` and `yup`.
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot` and `yup`.
 
 ---
 
@@ -369,7 +393,7 @@ getBankFromIBAN('invalid');
 // null
 ```
 
-Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SADA (SadaPay), and 44 total entries in the dataset. Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
+Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SADA (SadaPay), NAYA (NayaPay), RQMI (Raqami), MSHQ (Mashreq), and 48 total entries in the dataset, checked against real IBANs (see [DATA.md](./DATA.md)). Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
 
 ---
 
@@ -521,7 +545,7 @@ searchCities('kar');
 
 ### getDistrictProvince() / searchDistricts()
 
-District-level geography lookup across 168 districts.
+District-level geography lookup across 177 districts, including the 2026 Balochistan and Khyber Pakhtunkhwa changes. Former names such as Quetta and South Waziristan still resolve.
 
 ```ts
 getDistrictProvince('Lahore'); // "Punjab"
@@ -700,6 +724,13 @@ const payload = createRaastP2PQr({
   expiresAt: new Date(2026, 10, 13, 23, 59),
 });
 
+// …or give how long it works: '30m', '12h', '7d' or milliseconds
+createRaastP2PQr({
+  iban: 'PK36SCBL0000001123456702',
+  amount: 1500,
+  expiresIn: '1d',
+});
+
 parseRaastQr(payload);
 // { kind: 'p2p', dynamic: true, crcValid: true, iban: 'PK36SCBL0000001123456702',
 //   amount: 1500, expiresAt: '2026-11-13T23:59', ... }
@@ -724,6 +755,25 @@ createMerchantQr({
 Person-to-person QR codes use the same layout as QR codes from banking apps (Faysal Bank and easypaisa without an amount; JazzCash and Mashreq with one), and scan in the Easypaisa and JazzCash apps. This is handy for accounts whose app cannot generate a receiving QR, such as SadaPay. A QR with an amount must have `expiresAt`: apps reject amount QRs without an expiry, and ignore an amount in a QR that has none.
 
 SBP reserves merchant-account tags 28–30 for Raast but has shared the layout of the fields inside them only with banks, so `createMerchantQr` takes those sub-fields from you. `parseRaastQr` checks the CRC and finds the IBAN in either kind of QR.
+
+### validateRaastQr()
+
+Checks a scanned QR before anyone pays, for example to warn about a QR sticker that was replaced or edited.
+
+```ts
+validateRaastQr(scannedText);
+// { valid: false, errors: ['expired'], warnings: [], qr: { iban: 'PK36…', amount: 1500, … } }
+```
+
+| Errors                     | Meaning                                                      |
+| -------------------------- | ------------------------------------------------------------ |
+| `not-a-raast-qr`           | Not a Pakistani payment QR                                   |
+| `bad-checksum`             | The QR was damaged or its contents were edited               |
+| `no-iban` / `invalid-iban` | No IBAN, or one that fails its checksum                      |
+| `expired`                  | A QR with an amount is past its expiry                       |
+| `missing-expiry`           | A QR with an amount has no expiry, so banking apps reject it |
+
+Warnings (payment still works): `amount-ignored` when a static QR carries an amount that apps ignore, and `expires-soon` when it expires within an hour (`expiresSoonMs` changes this). Pass `now` to check against another time.
 
 ---
 
@@ -779,6 +829,38 @@ const CheckoutForm = object({ cnic: pk.cnic().required(), phone: pk.phone() });
 ```
 
 Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()` and `pk.landline()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+
+### As-you-type helpers
+
+Format a field while the user types, and tell a half-typed value apart from a wrong one, so you don't show an error before they've finished.
+
+```ts
+import { formatCNICInput, checkCNICInput } from 'pakdatakit/input';
+
+formatCNICInput('352021234'); // "35202-1234"
+checkCNICInput('35202-1234'); // "incomplete" — keep typing
+checkCNICInput('05202'); // "invalid" — no CNIC starts with 0
+checkCNICInput('35202-1234567-1'); // "valid"
+```
+
+| Field  | Formatter                                                | Checker                                                                      |
+| ------ | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| CNIC   | `formatCNICInput` → `35202-1234567-1`                    | `checkCNICInput`                                                             |
+| Mobile | `formatPhoneInput` → `0300-1234567` or `+92 300 1234567` | `checkPhoneInput` (flags an unallocated `03XX` prefix as soon as it's typed) |
+| IBAN   | `formatIBANInput` → `PK36 SCBL 0000 0011 2345 6702`      | `checkIBANInput`                                                             |
+
+Checkers return `'empty'`, `'incomplete'`, `'valid'` or `'invalid'`. In React, for example:
+
+```tsx
+const [cnic, setCnic] = useState('');
+const state = checkCNICInput(cnic);
+
+<input
+  value={cnic}
+  onChange={(e) => setCnic(formatCNICInput(e.target.value))}
+  aria-invalid={state === 'invalid'}
+/>;
+```
 
 ---
 

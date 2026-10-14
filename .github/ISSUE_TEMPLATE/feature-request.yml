@@ -1,0 +1,16 @@
+name: Feature request
+description: Suggest a utility Pakistani developers need.
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need to do?
+      description: The problem you are solving, not only the function you want.
+    validations:
+      required: true
+  - type: textarea
+    id: rules
+    attributes:
+      label: Official rules or sources
+      description: Links to the format or rules (e.g. FBR, NADRA, SBP, PTA), if any.

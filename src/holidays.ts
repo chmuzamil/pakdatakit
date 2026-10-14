@@ -46,7 +46,8 @@ export interface HolidayOptions {
   /**
    * Observed or announced dates (`YYYY-MM-DD`) for Islamic holidays, used
    * instead of the dataset or estimate. Use this to apply a new moon-sighting
-   * announcement before the library is updated.
+   * announcement before the library is updated. An empty list removes that
+   * holiday for the year.
    */
   announced?: Partial<Record<IslamicHolidayId, string[]>>;
   /** Day offset applied to estimated Islamic dates. Defaults to `0`. */

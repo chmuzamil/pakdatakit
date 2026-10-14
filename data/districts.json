@@ -4,6 +4,10 @@
     "province": "Khyber Pakhtunkhwa"
   },
   {
+    "district": "Allai",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
     "district": "Astore",
     "province": "Gilgit-Baltistan"
   },
@@ -44,6 +48,10 @@
     "province": "Balochistan"
   },
   {
+    "district": "Barshore",
+    "province": "Balochistan"
+  },
+  {
     "district": "Batagram",
     "province": "Khyber Pakhtunkhwa"
   },
@@ -57,6 +65,10 @@
   },
   {
     "district": "Buner",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "district": "Central Dir",
     "province": "Khyber Pakhtunkhwa"
   },
   {
@@ -86,10 +98,6 @@
   {
     "district": "Darel",
     "province": "Gilgit-Baltistan"
-  },
-  {
-    "district": "Dera Bugti",
-    "province": "Balochistan"
   },
   {
     "district": "Dera Ghazi Khan",
@@ -448,6 +456,10 @@
     "province": "Azad Jammu and Kashmir"
   },
   {
+    "district": "North Dera Bugti",
+    "province": "Balochistan"
+  },
+  {
     "district": "North Waziristan",
     "province": "Khyber Pakhtunkhwa"
   },
@@ -465,6 +477,10 @@
   },
   {
     "district": "Orakzai",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "district": "Paharpur",
     "province": "Khyber Pakhtunkhwa"
   },
   {
@@ -492,7 +508,11 @@
     "province": "Sindh"
   },
   {
-    "district": "Quetta",
+    "district": "Quetta East",
+    "province": "Balochistan"
+  },
+  {
+    "district": "Quetta West",
     "province": "Balochistan"
   },
   {
@@ -564,6 +584,10 @@
     "province": "Balochistan"
   },
   {
+    "district": "South Dera Bugti",
+    "province": "Balochistan"
+  },
+  {
     "district": "Sudhnuti",
     "province": "Azad Jammu and Kashmir"
   },
@@ -628,6 +652,10 @@
     "province": "Khyber Pakhtunkhwa"
   },
   {
+    "district": "Tump",
+    "province": "Balochistan"
+  },
+  {
     "district": "Umerkot",
     "province": "Sindh"
   },
@@ -648,12 +676,20 @@
     "province": "Khyber Pakhtunkhwa"
   },
   {
+    "district": "Upper Swat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
     "district": "Usta Muhammad",
     "province": "Balochistan"
   },
   {
     "district": "Vehari",
     "province": "Punjab"
+  },
+  {
+    "district": "Wadh",
+    "province": "Balochistan"
   },
   {
     "district": "Washuk",

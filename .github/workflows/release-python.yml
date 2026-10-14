@@ -1,0 +1,71 @@
+name: Release Python package
+
+# Publishes python/ to PyPI when a tag like python-v2.2.0 is pushed, using
+# PyPI trusted publishing (no API token stored). The project must have this
+# repository, `release-python.yml` and environment `pypi` as its trusted
+# publisher on pypi.org (see python/RELEASING.md).
+
+on:
+  push:
+    tags: ['python-v*.*.*']
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # OIDC token for PyPI trusted publishing
+
+concurrency:
+  group: release-python
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Check the tag matches pyproject.toml
+        working-directory: python
+        run: |
+          version="$(grep -m1 '^version' pyproject.toml | sed -E 's/version *= *"(.*)"/\1/')"
+          if [ "${GITHUB_REF_NAME}" != "python-v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match pyproject.toml version ${version}"
+            exit 1
+          fi
+
+      - name: Check test vectors and data match the TypeScript library
+        run: |
+          npm ci
+          npm run build
+          node scripts/generate-test-vectors.mjs
+          git diff --exit-code -- test-vectors python/src/pakdatakit/data
+
+      - name: Test on the oldest and newest supported Python
+        working-directory: python
+        run: |
+          uv run --python 3.9 --with pytest pytest -q
+          uv run --python 3.13 --with pytest pytest -q
+
+      - name: Build
+        working-directory: python
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" --title "Python ${GITHUB_REF_NAME#python-v}" \
+            --notes "See [python/README.md](https://github.com/chmuzamil/pakdatakit/tree/main/python)." --verify-tag

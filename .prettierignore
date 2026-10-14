@@ -1,0 +1,7 @@
+# Generated files
+test-vectors/
+python/.venv/
+python/src/pakdatakit/data/
+docs-site/
+python/.pytest_cache/
+python/dist/

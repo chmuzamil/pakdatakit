@@ -1,0 +1,40 @@
+name: Bug report
+description: A function returns the wrong result or throws unexpectedly.
+labels: ['bug']
+body:
+  - type: textarea
+    id: code
+    attributes:
+      label: Code to reproduce
+      description: The smallest call that shows the problem. Use made-up values, not real CNICs or account numbers.
+      render: ts
+      placeholder: |
+        import { formatLakh } from 'pakdatakit';
+        formatLakh(9999999);
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: pakdatakit version
+      placeholder: '2.2.0'
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Where does it run?
+      options:
+        - Node.js
+        - Browser
+        - Bun
+        - Deno
+        - React Native
+        - Python
+        - Other

@@ -1,5 +1,45 @@
 # Changelog
 
+## 2.2.0
+
+### Added
+
+- `getBankInfo(ibanOrCode)` and `getBanks()`: bank name, type (commercial,
+  Islamic, microfinance, digital, EMI, foreign, specialized, central), whether
+  it still exists, and its current code.
+- API reference and `llms.txt` / `llms-full.txt` at
+  https://chmuzamil.github.io/pakdatakit/.
+- New packages from this repository: `pakdatakit` for Python (PyPI) and
+  `pakdatakit-react` (React inputs and a Raast QR component).
+- `pakdatakit/input`: as-you-type formatters (`formatCNICInput`,
+  `formatPhoneInput`, `formatIBANInput`) and checkers (`checkCNICInput`,
+  `checkPhoneInput`, `checkIBANInput`) that return `empty`, `incomplete`,
+  `valid` or `invalid`.
+- `createRaastP2PQr` accepts `expiresIn` (`30m`, `12h`, `7d` or
+  milliseconds) instead of `expiresAt`.
+- `validateRaastQr()`: checks a scanned QR for a bad checksum, missing or
+  invalid IBAN, expiry and other problems before payment.
+- `dataVersion` export and `DATA.md` documenting each dataset's sources.
+- Banks: `NAYA` (NayaPay), `BKCH` (Bank of China), `SMES` (SME Bank),
+  `WMBL` (Mobilink Bank's older code), and the digital banks `RQMI` (Raqami)
+  and `MSHQ` (Mashreq Bank Pakistan).
+- Districts: Allai, Central Dir, Paharpur and Upper Swat (Khyber
+  Pakhtunkhwa); Quetta East, Quetta West, North and South Dera Bugti,
+  Barshore, Tump and Wadh (Balochistan, July 2026). 177 districts in total.
+
+### Fixed
+
+- `createRaastP2PQr` / `createMerchantQr` reject amounts that would be
+  written in exponent form (e.g. `1e21`).
+- `parseRaastQr` reads only plain numeric amounts and rejects impossible
+  expiry dates; `createMerchantQr` writes account sub-fields in ID order.
+- `numberToWords` / `amountInWords` reject unknown languages.
+- `getDistrictProvince` no longer returns built-in object properties.
+- Khushhali Microfinance Bank's IBAN code is `KHBL`, not `KMBL`.
+- Removed `PAKB` (Pak Oman), which no real IBAN supports.
+- `getDistrictProvince` still resolves districts that were split or renamed
+  (Quetta, Dera Bugti, Upper Dera Bugti, South Waziristan).
+
 ## 2.1.2
 
 ### Fixed

@@ -84,3 +84,23 @@ describe('getBankFromIBAN e-money issuers', () => {
     expect(getBankFromIBAN(makeIban('SADA'))).toBe('SadaPay');
   });
 });
+
+describe('getBankFromIBAN codes confirmed from real IBANs (2026)', () => {
+  it.each([
+    ['KHBL', 'Khushhali Microfinance Bank'],
+    ['JCMA', 'Mobilink Bank (JazzCash)'],
+    ['WMBL', 'Mobilink Bank (JazzCash)'],
+    ['NAYA', 'NayaPay'],
+    ['BKCH', 'Bank of China Limited'],
+    ['SMES', 'SME Bank Limited'],
+    ['MSHQ', 'Mashreq Bank Pakistan Limited'],
+    ['RQMI', 'Raqami Islamic Digital Bank Limited'],
+  ])('%s → %s', (code, name) => {
+    expect(getBankFromIBAN(makeIban(code))).toBe(name);
+  });
+
+  it('drops codes with no evidence', () => {
+    expect(getBankFromIBAN(makeIban('KMBL'))).toBeNull();
+    expect(getBankFromIBAN(makeIban('PAKB'))).toBeNull();
+  });
+});

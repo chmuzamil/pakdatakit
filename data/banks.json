@@ -24,6 +24,10 @@
     "name": "Bank Al Habib Limited"
   },
   {
+    "code": "BKCH",
+    "name": "Bank of China Limited"
+  },
+  {
     "code": "BKIP",
     "name": "BankIslami Pakistan Limited"
   },
@@ -69,19 +73,19 @@
   },
   {
     "code": "JCMA",
-    "name": "Mobilink Microfinance Bank (JazzCash)"
+    "name": "Mobilink Bank (JazzCash)"
   },
   {
     "code": "JSBL",
     "name": "JS Bank Limited"
   },
   {
-    "code": "KHYB",
-    "name": "The Bank of Khyber"
+    "code": "KHBL",
+    "name": "Khushhali Microfinance Bank"
   },
   {
-    "code": "KMBL",
-    "name": "Khushhali Microfinance Bank"
+    "code": "KHYB",
+    "name": "The Bank of Khyber"
   },
   {
     "code": "MCBL",
@@ -100,12 +104,12 @@
     "name": "Habib Metropolitan Bank Limited"
   },
   {
-    "code": "MSHQ",
-    "name": "Mashreq Bank Pakistan"
-  },
-  {
     "code": "MUCB",
     "name": "MCB Bank Limited"
+  },
+  {
+    "code": "NAYA",
+    "name": "NayaPay"
   },
   {
     "code": "NBPA",
@@ -122,10 +126,6 @@
   {
     "code": "NRSP",
     "name": "NRSP Microfinance Bank"
-  },
-  {
-    "code": "PAKB",
-    "name": "Pak Oman Microfinance Bank"
   },
   {
     "code": "SADA",
@@ -152,6 +152,10 @@
     "name": "Sindh Bank Limited"
   },
   {
+    "code": "SMES",
+    "name": "SME Bank Limited"
+  },
+  {
     "code": "SONE",
     "name": "Soneri Bank Limited"
   },
@@ -174,5 +178,9 @@
   {
     "code": "UNIL",
     "name": "United Bank Limited"
+  },
+  {
+    "code": "WMBL",
+    "name": "Mobilink Bank (JazzCash)"
   }
 ]

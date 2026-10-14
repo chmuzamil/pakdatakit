@@ -223,7 +223,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "DATA.md"
   ],
   "sideEffects": false,
   "scripts": {

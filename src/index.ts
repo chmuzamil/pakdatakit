@@ -95,3 +95,4 @@ export {
   checkIBANInput,
   type InputState,
 } from './input.js';
+export { dataVersion } from './data-version.js';

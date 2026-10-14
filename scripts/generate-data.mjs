@@ -20,9 +20,8 @@ const PROVINCE_NAMES = {
 };
 
 /**
- * Administrative districts. Duplicates are removed below. Districts created
- * after 2022 (the 2024-2026 KP and Balochistan reorganisations) still need to
- * be added from official notifications.
+ * Administrative districts as of October 2026 (sources in DATA.md).
+ * Duplicates are removed below.
  */
 const DISTRICTS_RAW = [
   ['Abbottabad', 'NW'],
@@ -46,7 +45,7 @@ const DISTRICTS_RAW = [
   ['Charsadda', 'NW'],
   ['Chiniot', 'PB'],
   ['Dadu', 'SD'],
-  ['Dera Bugti', 'BA'],
+  ['South Dera Bugti', 'BA'],
   ['Dera Ghazi Khan', 'PB'],
   ['Dera Ismail Khan', 'NW'],
   ['Diamer', 'NA'],
@@ -144,7 +143,8 @@ const DISTRICTS_RAW = [
   ['Pishin', 'BA'],
   ['Poonch', 'JK'],
   ['Qambar Shahdadkot', 'SD'],
-  ['Quetta', 'BA'],
+  ['Quetta East', 'BA'],
+  ['Quetta West', 'BA'],
   ['Rahim Yar Khan', 'PB'],
   ['Rajanpur', 'PB'],
   ['Rawalpindi', 'PB'],
@@ -187,6 +187,18 @@ const DISTRICTS_RAW = [
   ['Zhob', 'BA'],
   ['Ziarat', 'BA'],
   // Districts created 2019-2022
+  // Khyber Pakhtunkhwa, 2023-2026: Central Dir and Allai (Jan 2023),
+  // Paharpur (Nov 2025), Upper Swat (Jan 2026). KP now has 40 districts.
+  ['Allai', 'NW'],
+  ['Central Dir', 'NW'],
+  ['Paharpur', 'NW'],
+  ['Upper Swat', 'NW'],
+  // Balochistan, 2026: 41 districts in 11 divisions (8 Jul 2026). Quetta was
+  // split into East and West; Dera Bugti into North and South.
+  ['Barshore', 'BA'],
+  ['North Dera Bugti', 'BA'],
+  ['Tump', 'BA'],
+  ['Wadh', 'BA'],
   ['Taunsa', 'PB'],
   ['Hub', 'BA'],
   ['Usta Muhammad', 'BA'],
@@ -753,30 +765,32 @@ const BANKS = [
   { code: 'UNIL', name: 'United Bank Limited' },
   { code: 'SAMB', name: 'Samba Bank Limited' },
   { code: 'SADA', name: 'SadaPay' },
+  { code: 'NAYA', name: 'NayaPay' },
+  { code: 'BKCH', name: 'Bank of China Limited' },
+  { code: 'SMES', name: 'SME Bank Limited' },
   { code: 'SAUD', name: 'Silkbank Limited (merged into United Bank Limited)' },
   { code: 'CITI', name: 'Citibank N.A. Pakistan' },
   { code: 'ICBK', name: 'Industrial and Commercial Bank of China' },
-  { code: 'MSHQ', name: 'Mashreq Bank Pakistan' },
   { code: 'DEUT', name: 'Deutsche Bank AG' },
   { code: 'SBPP', name: 'State Bank of Pakistan' },
   {
     code: 'TMFB',
     name: 'easypaisa Digital Bank (formerly Telenor Microfinance Bank)',
   },
-  { code: 'JCMA', name: 'Mobilink Microfinance Bank (JazzCash)' },
+  { code: 'JCMA', name: 'Mobilink Bank (JazzCash)' },
+  { code: 'WMBL', name: 'Mobilink Bank (JazzCash)' },
   { code: 'NRSP', name: 'NRSP Microfinance Bank' },
   {
     code: 'FMFB',
     name: 'HBL Microfinance Bank (formerly First MicroFinance Bank)',
   },
   { code: 'APNA', name: 'Apna Microfinance Bank' },
-  { code: 'KMBL', name: 'Khushhali Microfinance Bank' },
+  { code: 'KHBL', name: 'Khushhali Microfinance Bank' },
   {
     code: 'FINC',
     name: 'ABHI Microfinance Bank (formerly FINCA Microfinance Bank)',
   },
   { code: 'UMBL', name: 'U Microfinance Bank' },
-  { code: 'PAKB', name: 'Pak Oman Microfinance Bank' },
   {
     code: 'TAMW',
     name: 'easypaisa Digital Bank (formerly Tameer Microfinance Bank)',

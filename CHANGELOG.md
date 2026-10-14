@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `pakdatakit/input`: as-you-type formatters (`formatCNICInput`,
+  `formatPhoneInput`, `formatIBANInput`) and checkers (`checkCNICInput`,
+  `checkPhoneInput`, `checkIBANInput`) that return `empty`, `incomplete`,
+  `valid` or `invalid`.
+- `createRaastP2PQr` accepts `expiresIn` (`30m`, `12h`, `7d` or
+  milliseconds) instead of `expiresAt`.
+- `validateRaastQr()`: checks a scanned QR for a bad checksum, missing or
+  invalid IBAN, expiry and other problems before payment.
+- `dataVersion` export and `DATA.md` documenting each dataset's sources.
+- Banks: `NAYA` (NayaPay), `BKCH` (Bank of China), `SMES` (SME Bank),
+  `WMBL` (Mobilink Bank's older code).
+- Districts: Allai, Central Dir, Paharpur and Upper Swat (Khyber
+  Pakhtunkhwa); Quetta East, Quetta West, North and South Dera Bugti,
+  Barshore, Tump and Wadh (Balochistan, July 2026). 177 districts in total.
+
+### Fixed
+
+- Khushhali Microfinance Bank's IBAN code is `KHBL`, not `KMBL`.
+- Removed `MSHQ` (Mashreq) and `PAKB` (Pak Oman), which no real IBAN
+  supports.
+- `getDistrictProvince` still resolves districts that were split or renamed
+  (Quetta, Dera Bugti, Upper Dera Bugti, South Waziristan).
+
 ## 2.1.2
 
 ### Fixed

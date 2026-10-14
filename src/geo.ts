@@ -79,8 +79,22 @@ export function getDistrictProvince(district: string): string | null {
   if (key.length === 0) {
     return null;
   }
-  return districtLookup().get(key) ?? null;
+  return districtLookup().get(key) ?? FORMER_DISTRICTS[key] ?? null;
 }
+
+/**
+ * Districts that were split or renamed, so names stored before the change
+ * still resolve. They are not listed by searchDistricts or getDistrictsByProvince.
+ */
+const FORMER_DISTRICTS: Readonly<Record<string, string>> = {
+  // Split into Lower and Upper South Waziristan (2022).
+  'south waziristan': 'Khyber Pakhtunkhwa',
+  // Split into Quetta East and Quetta West (2026).
+  quetta: 'Balochistan',
+  // Became South Dera Bugti; Upper Dera Bugti became North Dera Bugti (2026).
+  'dera bugti': 'Balochistan',
+  'upper dera bugti': 'Balochistan',
+};
 
 /**
  * Searches districts by partial, case-insensitive name match.

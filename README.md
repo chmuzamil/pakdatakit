@@ -370,7 +370,7 @@ getBankFromIBAN('invalid');
 // null
 ```
 
-Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SADA (SadaPay), and 44 total entries in the dataset. Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
+Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SADA (SadaPay), NAYA (NayaPay), and 46 total entries in the dataset, checked against real IBANs (see [DATA.md](./DATA.md)). Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
 
 ---
 
@@ -522,7 +522,7 @@ searchCities('kar');
 
 ### getDistrictProvince() / searchDistricts()
 
-District-level geography lookup across 168 districts.
+District-level geography lookup across 177 districts, including the 2026 Balochistan and Khyber Pakhtunkhwa changes. Former names such as Quetta and South Waziristan still resolve.
 
 ```ts
 getDistrictProvince('Lahore'); // "Punjab"

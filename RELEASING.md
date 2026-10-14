@@ -1,45 +1,93 @@
 # Releasing
 
-Releases are published to npm by GitHub Actions (`.github/workflows/release.yml`)
-when a version tag is pushed. Nobody publishes from their own computer.
+This repository publishes three packages, each from GitHub Actions when its
+own tag is pushed. Nobody publishes from their own computer (except the very
+first `pakdatakit-react` release, see below).
+
+| Package                 | Registry     | Tag             | Workflow             | Version lives in        |
+| ----------------------- | ------------ | --------------- | -------------------- | ----------------------- |
+| `pakdatakit`            | npm          | `v2.2.0`        | `release.yml`        | `package.json`          |
+| `pakdatakit-react`      | npm          | `react-v0.1.0`  | `release-react.yml`  | `react/package.json`    |
+| `pakdatakit` (Python)   | PyPI         | `python-v2.2.0` | `release-python.yml` | `python/pyproject.toml` |
+| API docs and `llms.txt` | GitHub Pages | `v2.2.0`        | `docs.yml`           | (built from the source) |
+
+Each workflow checks that the tag matches the package's version, runs the
+checks, publishes with provenance, and creates a GitHub release. If any step
+fails, nothing is published.
+
+## Release order
+
+`pakdatakit-react` depends on `pakdatakit`, and the Python package must match
+the TypeScript library, so release in this order:
+
+1. `pakdatakit` (`v…`): also publishes the docs.
+2. Python (`python-v…`), using the same version number as `pakdatakit`.
+3. `pakdatakit-react` (`react-v…`), once the `pakdatakit` version it needs is
+   on npm. Its workflow checks this.
 
 ## Release a new version
 
-1. On a branch, update `CHANGELOG.md` with a `## x.y.z` section, and set the
-   same version in `package.json`:
-
-   ```bash
-   npm version x.y.z --no-git-tag-version
-   ```
-
+1. On a branch:
+   - update `CHANGELOG.md` with a `## x.y.z` section;
+   - set the version in `package.json` (`npm version x.y.z --no-git-tag-version`),
+     and in `python/pyproject.toml` and `python/src/pakdatakit/__init__.py`;
+   - if data changed, update `dataVersion` in `src/data-version.ts` and
+     `python/src/pakdatakit/data_version.py`, and the date in `DATA.md`;
+   - run `npm run build && node scripts/generate-test-vectors.mjs` and commit
+     the updated `test-vectors/` and `python/src/pakdatakit/data/`.
 2. Open a pull request, let CI pass, and merge it into `main`.
-3. Tag the merge commit on `main` and push the tag:
+3. Tag the merge commit and push the tags, in the order above:
 
    ```bash
    git checkout main && git pull
-   git tag vx.y.z
-   git push origin vx.y.z
+   git tag vx.y.z && git push origin vx.y.z
+   git tag python-vx.y.z && git push origin python-vx.y.z
+   git tag react-va.b.c && git push origin react-va.b.c
    ```
-
-The workflow then checks that the tag matches `package.json`, runs the full
-checks, publishes to npm with a provenance attestation, and creates a GitHub
-release from the CHANGELOG section. If any step fails, nothing is published.
 
 ## One-time setup
 
-Trusted publishing lets npm accept releases from this workflow without an npm
-token.
+### npm: `pakdatakit` (done)
 
-1. On npmjs.com, open the `pakdatakit` package → **Settings** →
-   **Trusted Publisher** → **GitHub Actions**, and enter:
-   - Organization or user: `chmuzamil`
-   - Repository: `pakdatakit`
-   - Workflow filename: `release.yml`
-   - Environment name: `npm`
-2. On GitHub, the `npm` environment is created on the first run. To require
-   approval before each publish, add yourself as a required reviewer under
-   **Settings → Environments → npm**.
-3. Optional, once a release has gone through: in the package's **Settings** on
-   npmjs.com, under **Publishing access**, choose **Require two-factor
-   authentication and disallow tokens**, so the package can only be published
-   by this workflow or by you with 2FA.
+The trusted publisher on npmjs.com is `chmuzamil` / `pakdatakit` /
+`release.yml` / environment `npm`.
+
+### npm: `pakdatakit-react`
+
+npm can only add a trusted publisher to a package that already exists, so:
+
+1. Publish the first version by hand, approving with your passkey:
+
+   ```bash
+   cd react && npm ci && npm run build && npm publish --auth-type=web --access public
+   ```
+
+2. On npmjs.com, open `pakdatakit-react` → **Settings** → **Trusted
+   Publisher** → **GitHub Actions**: `chmuzamil` / `pakdatakit` /
+   `release-react.yml` / environment `npm`.
+
+Later versions are then released by pushing a `react-v…` tag.
+
+### PyPI: Python `pakdatakit`
+
+PyPI allows a _pending_ trusted publisher before the project exists:
+
+1. Sign in to [pypi.org](https://pypi.org) → **Your account** →
+   **Publishing** → **Add a new pending publisher** → **GitHub**:
+   - PyPI project name: `pakdatakit`
+   - Owner: `chmuzamil`
+   - Repository name: `pakdatakit`
+   - Workflow name: `release-python.yml`
+   - Environment name: `pypi`
+2. The first `python-v…` tag creates the project.
+
+### GitHub Pages (done)
+
+**Settings → Pages → Source: GitHub Actions.**
+
+### Optional hardening
+
+- Under **Settings → Environments**, add yourself as a required reviewer for
+  the `npm` and `pypi` environments, so every publish waits for your approval.
+- On npmjs.com, set each package's publishing access to **Require two-factor
+  authentication and disallow tokens**.

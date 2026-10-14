@@ -33,3 +33,71 @@ jobs:
       - run: npm test
 
       - run: npm run build
+
+  react:
+    name: react (pakdatakit-react)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            react/package-lock.json
+
+      # pakdatakit-react develops against the repo's own build of pakdatakit.
+      - run: npm ci && npm run build
+
+      - run: npm ci
+        working-directory: react
+
+      - run: npm run lint
+        working-directory: react
+
+      - run: npm run typecheck
+        working-directory: react
+
+      - run: npm test
+        working-directory: react
+
+      - run: npm run build
+        working-directory: react
+
+  python:
+    name: python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.13']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v6
+
+      # The Python package must match the TypeScript library: regenerate the
+      # shared test vectors and data copies, and fail if they were not committed.
+      - name: Check test vectors and data are up to date
+        run: |
+          npm ci
+          npm run build
+          node scripts/generate-test-vectors.mjs
+          git diff --exit-code -- test-vectors python/src/pakdatakit/data
+
+      - name: Run tests
+        working-directory: python
+        run: uv run --python ${{ matrix.python-version }} --with pytest pytest -q
+
+      - name: Build wheel and sdist
+        working-directory: python
+        run: uv build

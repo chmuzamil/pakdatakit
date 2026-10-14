@@ -1,0 +1,5 @@
+# Generated files
+test-vectors/
+python/.venv/
+python/src/pakdatakit/data/
+docs-site/

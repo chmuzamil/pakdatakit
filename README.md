@@ -29,14 +29,14 @@
 
 Every Pakistani application eventually needs to solve the same problems:
 
-* Validate CNIC numbers
-* Normalize mobile numbers
-* Detect mobile networks
-* Generate WhatsApp click-to-chat links
-* Validate Pakistani IBANs and detect banks
-* Look up postal codes and cities
-* Map cities to provinces
-* Format PKR values in Lakh and Crore conventions
+- Validate CNIC numbers
+- Normalize mobile numbers
+- Detect mobile networks
+- Generate WhatsApp click-to-chat links
+- Validate Pakistani IBANs and detect banks
+- Look up postal codes and cities
+- Map cities to provinces
+- Format PKR values in Lakh and Crore conventions
 
 Most teams implement these repeatedly.
 
@@ -46,31 +46,31 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 
 ## Features
 
-* ✅ CNIC Validation
-* ✅ Phone Number Validation
-* ✅ Phone Number Normalization
-* ✅ Phone Intelligence (`analyzePhone`)
-* ✅ WhatsApp Link Generator
-* ✅ IBAN Validation
-* ✅ Bank Detection from IBAN
-* ✅ Postal Code Lookup
-* ✅ Address Parsing
-* ✅ Roman Urdu Normalization
-* ✅ Hijri Date Utilities
-* ✅ CLI Tool
-* ✅ Mobile Network Detection
-* ✅ City → Province Lookup
-* ✅ PKR Formatting
-* ✅ Lakh / Crore Formatting
+- ✅ CNIC Validation
+- ✅ Phone Number Validation
+- ✅ Phone Number Normalization
+- ✅ Phone Intelligence (`analyzePhone`)
+- ✅ WhatsApp Link Generator
+- ✅ IBAN Validation
+- ✅ Bank Detection from IBAN
+- ✅ Postal Code Lookup
+- ✅ Address Parsing
+- ✅ Roman Urdu Normalization
+- ✅ Hijri Date Utilities
+- ✅ CLI Tool
+- ✅ Mobile Network Detection
+- ✅ City → Province Lookup
+- ✅ PKR Formatting
+- ✅ Lakh / Crore Formatting
 
 ### Developer Friendly
 
-* Fully Typed (TypeScript)
-* Zero Runtime Dependencies
-* Tree-Shakeable
-* Lightweight & Fast
-* ESM Ready
-* Production Ready
+- Fully Typed (TypeScript)
+- Zero Runtime Dependencies
+- Tree-Shakeable
+- Lightweight & Fast
+- ESM and CommonJS, with per-module subpath imports
+- Production Ready
 
 ---
 
@@ -82,8 +82,17 @@ npm install pakdatakit
 
 Requirements:
 
-* Node.js 18+
-* ESM only — use `import`; CommonJS `require()` is not supported (use dynamic `import()` from CommonJS code)
+- Node.js 20+
+- Works with both `import` and `require()`
+
+Import everything from `pakdatakit`, or a single module to keep bundles small:
+
+```ts
+import { validateCNIC } from 'pakdatakit/cnic';
+const { analyzePhone } = require('pakdatakit/phone');
+```
+
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `iban`, `networks`, `phone`, `postal`, `text`, `whatsapp`.
 
 ---
 
@@ -99,31 +108,31 @@ import {
   getPostalCode,
   getCityByPostalCode,
   getNetwork,
-  formatLakh
-} from "pakdatakit";
+  formatLakh,
+} from 'pakdatakit';
 
-validateCNIC("35202-1234567-1");
+validateCNIC('35202-1234567-1');
 // true
 
-analyzePhone("03001234567");
+analyzePhone('03001234567');
 // { valid: true, formatted: "+923001234567", network: "Jazz" }
 
-createWhatsAppLink("03001234567", "Assalamualaikum");
+createWhatsAppLink('03001234567', 'Assalamualaikum');
 // "https://wa.me/923001234567?text=Assalamualaikum"
 
-validateIBAN("PK36SCBL0000001123456702");
+validateIBAN('PK36SCBL0000001123456702');
 // true
 
-getBankFromIBAN("PK36SCBL0000001123456702");
+getBankFromIBAN('PK36SCBL0000001123456702');
 // "Standard Chartered Bank (Pakistan) Limited"
 
-getPostalCode("Multan");
+getPostalCode('Multan');
 // "60000"
 
-getCityByPostalCode("60000");
+getCityByPostalCode('60000');
 // "Multan"
 
-getNetwork("03001234567");
+getNetwork('03001234567');
 // "Jazz"
 
 formatLakh(2500000);
@@ -139,6 +148,8 @@ npx pakdatakit parse-address "House 12, Gulberg III, Lahore, Punjab 54660"
 npx pakdatakit hijri
 npx pakdatakit normalize-urdu "ap kia ker rhe ho"
 ```
+
+The CLI exits with status 0 when the input is valid or found, 1 when it is invalid or not found, and 2 for usage errors, so it can be used in scripts. Run `npx pakdatakit --help` for all commands.
 
 ---
 
@@ -157,21 +168,24 @@ validateCNIC(cnic: string): boolean
 Examples:
 
 ```ts
-validateCNIC("3520212345671");
+validateCNIC('3520212345671');
 // true
 
-validateCNIC("35202-1234567-1");
+validateCNIC('35202-1234567-1');
 // true
 
-validateCNIC("35202-123456-1");
+validateCNIC('35202-123456-1');
 // false
 ```
 
 Supports:
 
-* Plain format
-* Dashed format
-* Space-separated format
+- Plain format
+- Dashed format (hyphens or en-dashes)
+- Space- or dot-separated format
+- Urdu digits
+
+Separators must sit between the 5-7-1 digit groups, and the first digit must be a province code (1–8). NADRA does not publish a check-digit algorithm, so this checks structure only.
 
 ---
 
@@ -179,7 +193,7 @@ Supports:
 
 ### validatePhone()
 
-Validates Pakistani mobile numbers.
+Validates Pakistani mobile numbers. Accepts `03…`, `+92…`, `0092…`, `+92 (0) 3…` and short `3…` forms with spaces, dashes, dots or Urdu digits. The `03XX` prefix must belong to a mobile operator.
 
 ```ts
 validatePhone(phone: string): boolean
@@ -188,13 +202,13 @@ validatePhone(phone: string): boolean
 Examples:
 
 ```ts
-validatePhone("03001234567");
+validatePhone('03001234567');
 // true
 
-validatePhone("+923001234567");
+validatePhone('+923001234567');
 // true
 
-validatePhone("3001234567");
+validatePhone('3001234567');
 // true
 ```
 
@@ -205,17 +219,20 @@ validatePhone("3001234567");
 Converts valid Pakistani mobile numbers to E.164 format.
 
 ```ts
-formatPhone(phone: string): string
+formatPhone(phone: string): string | null
 ```
 
 Examples:
 
 ```ts
-formatPhone("03001234567");
+formatPhone('03001234567');
 // "+923001234567"
 
-formatPhone("+92 300-123-4567");
+formatPhone('+92 300-123-4567');
 // "+923001234567"
+
+formatPhone('03601234567');
+// null (unallocated prefix)
 ```
 
 ---
@@ -234,17 +251,17 @@ Returns:
 {
   valid: boolean;
   formatted: string | null;
-  network: "Jazz" | "Zong" | "Telenor" | "Ufone" | "Unknown";
+  network: 'Jazz' | 'Zong' | 'Telenor' | 'Ufone' | 'SCO' | 'Unknown';
 }
 ```
 
 Examples:
 
 ```ts
-analyzePhone("03001234567");
+analyzePhone('03001234567');
 // { valid: true, formatted: "+923001234567", network: "Jazz" }
 
-analyzePhone("invalid");
+analyzePhone('invalid');
 // { valid: false, formatted: null, network: "Unknown" }
 ```
 
@@ -257,20 +274,20 @@ analyzePhone("invalid");
 Generates a WhatsApp click-to-chat link for Pakistani mobile numbers.
 
 ```ts
-createWhatsAppLink(phone: string, message?: string): string
+createWhatsAppLink(phone: string, message?: string): string | null
 ```
 
 Examples:
 
 ```ts
-createWhatsAppLink("03001234567");
+createWhatsAppLink('03001234567');
 // "https://wa.me/923001234567"
 
-createWhatsAppLink("03001234567", "Assalamualaikum");
+createWhatsAppLink('03001234567', 'Assalamualaikum');
 // "https://wa.me/923001234567?text=Assalamualaikum"
 ```
 
-Returns an empty string for invalid phone numbers.
+Returns `null` for invalid phone numbers.
 
 ---
 
@@ -287,10 +304,10 @@ validateIBAN(iban: string): boolean
 Examples:
 
 ```ts
-validateIBAN("PK36SCBL0000001123456702");
+validateIBAN('PK36SCBL0000001123456702');
 // true
 
-validateIBAN("PK37SCBL0000001123456702");
+validateIBAN('PK37SCBL0000001123456702');
 // false
 ```
 
@@ -307,14 +324,14 @@ getBankFromIBAN(iban: string): string | null
 Examples:
 
 ```ts
-getBankFromIBAN("PK36SCBL0000001123456702");
+getBankFromIBAN('PK36SCBL0000001123456702');
 // "Standard Chartered Bank (Pakistan) Limited"
 
-getBankFromIBAN("invalid");
+getBankFromIBAN('invalid');
 // null
 ```
 
-Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, and 46 total entries in the dataset.
+Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, and 43 total entries in the dataset. Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
 
 ---
 
@@ -331,10 +348,10 @@ getCityByPostalCode(postalCode: string): string | null
 Examples:
 
 ```ts
-getCityByPostalCode("60000");
+getCityByPostalCode('60000');
 // "Multan"
 
-getCityByPostalCode("99999");
+getCityByPostalCode('99999');
 // null
 ```
 
@@ -351,10 +368,10 @@ getPostalCode(city: string): string | null
 Examples:
 
 ```ts
-getPostalCode("Multan");
+getPostalCode('Multan');
 // "60000"
 
-getPostalCode("karachi");
+getPostalCode('karachi');
 // "74200"
 ```
 
@@ -367,34 +384,35 @@ getPostalCode("karachi");
 Detects network using the original mobile prefix.
 
 ```ts
-getNetwork(phone: string): string
+getNetwork(phone: string): NetworkName
 ```
 
 Returns:
 
-* Jazz
-* Zong
-* Ufone
-* Telenor
-* Unknown
+- Jazz
+- Zong
+- Ufone
+- Telenor
+- SCO (0355, AJK and Gilgit-Baltistan)
+- Unknown
 
 Examples:
 
 ```ts
-getNetwork("03001234567");
+getNetwork('03001234567');
 // Jazz
 
-getNetwork("03151234567");
+getNetwork('03151234567');
 // Zong
 
-getNetwork("03331234567");
+getNetwork('03331234567');
 // Ufone
 
-getNetwork("03451234567");
+getNetwork('03451234567');
 // Telenor
 ```
 
-> Note: Pakistan supports Mobile Number Portability (MNP). The current carrier may differ from the original prefix.
+> Note: This is the operator the prefix was originally allocated to. With Mobile Number Portability (MNP), and Telenor Pakistan's 2026 merger into PTML (Ufone), the current carrier may differ.
 
 ---
 
@@ -411,13 +429,13 @@ getProvince(city: string): string | null
 Examples:
 
 ```ts
-getProvince("Multan");
+getProvince('Multan');
 // Punjab
 
-getProvince("Karachi");
+getProvince('Karachi');
 // Sindh
 
-getProvince("Unknown");
+getProvince('Unknown');
 // null
 ```
 
@@ -434,10 +452,10 @@ searchCities(query: string): string[]
 Examples:
 
 ```ts
-searchCities("mul");
+searchCities('mul');
 // ["Multan"]
 
-searchCities("kar");
+searchCities('kar');
 // ["Karachi"]
 ```
 
@@ -445,11 +463,11 @@ searchCities("kar");
 
 ### getDistrictProvince() / searchDistricts()
 
-District-level geography lookup across 171 districts.
+District-level geography lookup across 168 districts.
 
 ```ts
-getDistrictProvince("Lahore"); // "Punjab"
-searchDistricts("karachi"); // ["Karachi Central", "Karachi East", ...]
+getDistrictProvince('Lahore'); // "Punjab"
+searchDistricts('karachi'); // ["Karachi Central", "Karachi East", ...]
 ```
 
 ---
@@ -461,13 +479,21 @@ searchDistricts("karachi"); // ["Karachi Central", "Karachi East", ...]
 Parses free-form Pakistani addresses into structured components.
 
 ```ts
-parseAddress("House 12, Gulberg III, Lahore, Punjab 54660");
-// { street: "House 12", area: "Gulberg III", city: "Lahore", province: "Punjab", postalCode: "54660", ... }
+parseAddress('House 12, Gulberg III, Lahore, Punjab 54660');
+// { street: "House 12", area: "Gulberg III", city: "Lahore", province: "Punjab", postalCode: "54660", warnings: [], ... }
+
+parseAddress('12 Model Town Lahore');
+// { street: "12 Model Town", city: "Lahore", province: "Punjab", ... }
+
+parseAddress('House 1, Lahore, Sindh').warnings;
+// ["Lahore is in Punjab, but the address says Sindh"]
 ```
+
+House, plot, street and PO box numbers are not mistaken for postal codes.
 
 ### formatAddress()
 
-Formats structured components back into a mailing address string.
+Formats structured components back into a mailing address string. Only the components you pass are included.
 
 ---
 
@@ -488,9 +514,14 @@ Convert between English, Urdu, and Arabic-Indic digits.
 ### toHijri() / formatHijri() / isRamadan()
 
 ```ts
-formatHijri(new Date()); // "14 Ramadan 1447"
-isRamadan(new Date());   // true | false
+formatHijri(new Date(2025, 5, 7)); // "10 Dhu al-Hijjah 1446"
+isRamadan(new Date()); // true | false
+
+// Shift by whole days to match local moon sighting
+formatHijri(new Date(2025, 5, 7), { offset: -1 }); // "9 Dhu al-Hijjah 1446"
 ```
+
+Uses the tabular ("islamic-civil") calendar. Dates announced in Pakistan follow moon sighting and can differ by a day; use `offset` to adjust. Invalid dates throw a `RangeError`.
 
 ---
 
@@ -498,7 +529,7 @@ isRamadan(new Date());   // true | false
 
 ### formatPKR()
 
-Formats PKR amounts with separators.
+Formats PKR amounts with separators, rounded to whole rupees. Negative amounts keep their sign; `NaN` and `Infinity` throw a `RangeError`.
 
 ```ts
 formatPKR(amount: number): string
@@ -512,6 +543,9 @@ formatPKR(150000);
 
 formatPKR(0);
 // "Rs. 0"
+
+formatPKR(-1500);
+// "-Rs. 1,500"
 ```
 
 ---
@@ -556,28 +590,28 @@ import {
   getProvince,
   searchCities,
   formatPKR,
-  formatLakh
-} from "pakdatakit";
+  formatLakh,
+} from 'pakdatakit';
 
 // CNIC validation
-const cnicValid = validateCNIC("35202-1234567-1");
+const cnicValid = validateCNIC('35202-1234567-1');
 
 // Phone intelligence
-const phoneInfo = analyzePhone("03001234567");
+const phoneInfo = analyzePhone('03001234567');
 
 // WhatsApp link for ecommerce support
-const waLink = createWhatsAppLink("0300 123 4567", "Assalamualaikum");
+const waLink = createWhatsAppLink('0300 123 4567', 'Assalamualaikum');
 
 // IBAN validation for fintech checkout
-const ibanValid = validateIBAN("PK36SCBL0000001123456702");
-const bank = getBankFromIBAN("PK36SCBL0000001123456702");
+const ibanValid = validateIBAN('PK36SCBL0000001123456702');
+const bank = getBankFromIBAN('PK36SCBL0000001123456702');
 
 // Postal lookup for shipping forms
-const postal = getPostalCode("Multan");
-const city = getCityByPostalCode("60000");
+const postal = getPostalCode('Multan');
+const city = getCityByPostalCode('60000');
 
 // Province lookup
-const province = getProvince("Lahore");
+const province = getProvince('Lahore');
 
 // Formatting
 const amount = formatPKR(150000);
@@ -596,17 +630,17 @@ The playground provides live interactive tools powered by the PakDataKit library
 
 ### Available Tools
 
-* 🆔 CNIC Validation
-* 📱 Phone Number Analysis
-* 📡 Mobile Network Detection
-* 💬 WhatsApp Link Generator
-* 🏦 IBAN Validation
-* 🏛️ Bank Detection from IBAN
-* 📮 Postal Code Lookup
-* 🗺️ City & Province Lookup
-* 💰 PKR Formatting
-* 🔤 Text Utilities
-* 🕌 Hijri & Islamic Utilities (experimental)
+- 🆔 CNIC Validation
+- 📱 Phone Number Analysis
+- 📡 Mobile Network Detection
+- 💬 WhatsApp Link Generator
+- 🏦 IBAN Validation
+- 🏛️ Bank Detection from IBAN
+- 📮 Postal Code Lookup
+- 🗺️ City & Province Lookup
+- 💰 PKR Formatting
+- 🔤 Text Utilities
+- 🕌 Hijri & Islamic Utilities (experimental)
 
 ### Why the Playground?
 
@@ -614,10 +648,10 @@ The playground serves as a live documentation and testing environment for PakDat
 
 You can:
 
-* Test utilities instantly
-* Explore API behavior
-* Validate inputs
-* Preview outputs before integrating into your application
+- Test utilities instantly
+- Explore API behavior
+- Validate inputs
+- Preview outputs before integrating into your application
 
 No installation required.
 
@@ -626,26 +660,18 @@ No installation required.
 ### Example
 
 ```ts
-import {
-  analyzePhone,
-  validateIBAN,
-  createWhatsAppLink
-} from "pakdatakit";
+import { analyzePhone, validateIBAN, createWhatsAppLink } from 'pakdatakit';
 
-analyzePhone("03001234567");
+analyzePhone('03001234567');
 
-validateIBAN("PK36SCBL0000001123456702");
+validateIBAN('PK36SCBL0000001123456702');
 
-createWhatsAppLink(
-  "03001234567",
-  "Assalamualaikum"
-);
+createWhatsAppLink('03001234567', 'Assalamualaikum');
 ```
 
 ---
 
 Built for developers building software for Pakistan 🇵🇰
-
 
 ---
 
@@ -653,42 +679,48 @@ Built for developers building software for Pakistan 🇵🇰
 
 ### v0.2 ✅
 
-* Phone Intelligence (`analyzePhone`)
-* WhatsApp Link Generator
-* IBAN Validation
-* Bank Detection from IBAN
-* Postal Code Lookup
-* Expanded datasets (150 cities, 171 districts, 109 postal codes, 46 banks)
+- Phone Intelligence (`analyzePhone`)
+- WhatsApp Link Generator
+- IBAN Validation
+- Bank Detection from IBAN
+- Postal Code Lookup
+- Expanded datasets (cities, districts, postal codes, banks)
 
 ### v0.3 ✅
 
-* Address Parsing (`parseAddress`, `formatAddress`)
-* Expanded Postal Data (`getPostalAreas`, `searchPostalCodes`)
+- Address Parsing (`parseAddress`, `formatAddress`)
+- Expanded Postal Data (`getPostalAreas`, `searchPostalCodes`)
 
 ### v0.4 ✅
 
-* Roman Urdu Utilities (`normalizeRomanUrdu`)
-* Text Normalization (`normalizeText`, `toUrduDigits`, `toEnglishDigits`)
+- Roman Urdu Utilities (`normalizeRomanUrdu`)
+- Text Normalization (`normalizeText`, `toUrduDigits`, `toEnglishDigits`)
 
 ### v0.5 ✅
 
-* Islamic Calendar Utilities (`toHijri`, `fromHijri`, `formatHijri`)
-* Hijri Date Helpers (`getHijriMonthName`, `isRamadan`)
+- Islamic Calendar Utilities (`toHijri`, `fromHijri`, `formatHijri`)
+- Hijri Date Helpers (`getHijriMonthName`, `isRamadan`)
 
 ### v1.0 ✅
 
-* CLI Tool (`pakdatakit` command)
-* Dataset-backed lookup APIs
-* Community Contributions (see CONTRIBUTING.md)
+- CLI Tool (`pakdatakit` command)
+- Dataset-backed lookup APIs
+- Community Contributions (see CONTRIBUTING.md)
 
 ### v1.1 ✅
 
-* Interactive Playground ([pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/))
+- Interactive Playground ([pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/))
+
+### v2.0 ✅
+
+- Bug-fix release; see [CHANGELOG.md](./CHANGELOG.md) for breaking changes
+- CommonJS build and subpath imports
+- Corrected Hijri dates, datasets and validation
 
 ### Planned
 
-* CNIC check-digit validation (pending a publicly documented NADRA algorithm)
-* Mobile Number Portability lookup API
+- CNIC check-digit validation (pending a publicly documented NADRA algorithm)
+- Mobile Number Portability lookup API
 
 ---
 
@@ -702,8 +734,8 @@ Let's build the standard toolkit for Pakistani developers 🇵🇰
 
 See:
 
-* CONTRIBUTING.md
-* CODE_OF_CONDUCT.md
+- CONTRIBUTING.md
+- CODE_OF_CONDUCT.md
 
 ---
 

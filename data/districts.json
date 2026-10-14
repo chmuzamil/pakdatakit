@@ -8,10 +8,6 @@
     "province": "Gilgit-Baltistan"
   },
   {
-    "district": "Astore",
-    "province": "Gilgit-Baltistan"
-  },
-  {
     "district": "Attock",
     "province": "Punjab"
   },
@@ -120,14 +116,6 @@
     "province": "Gilgit-Baltistan"
   },
   {
-    "district": "Ghanche",
-    "province": "Gilgit-Baltistan"
-  },
-  {
-    "district": "Ghizer",
-    "province": "Gilgit-Baltistan"
-  },
-  {
     "district": "Ghizer",
     "province": "Gilgit-Baltistan"
   },
@@ -180,8 +168,8 @@
     "province": "Azad Jammu and Kashmir"
   },
   {
-    "district": "Hunza",
-    "province": "Gilgit-Baltistan"
+    "district": "Hub",
+    "province": "Balochistan"
   },
   {
     "district": "Hunza",
@@ -280,10 +268,6 @@
     "province": "Gilgit-Baltistan"
   },
   {
-    "district": "Kharmang",
-    "province": "Gilgit-Baltistan"
-  },
-  {
     "district": "Khushab",
     "province": "Punjab"
   },
@@ -372,6 +356,10 @@
     "province": "Khyber Pakhtunkhwa"
   },
   {
+    "district": "Lower South Waziristan",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
     "district": "Malakand",
     "province": "Khyber Pakhtunkhwa"
   },
@@ -434,10 +422,6 @@
   {
     "district": "Muzaffargarh",
     "province": "Punjab"
-  },
-  {
-    "district": "Nagar",
-    "province": "Gilgit-Baltistan"
   },
   {
     "district": "Nagar",
@@ -560,10 +544,6 @@
     "province": "Gilgit-Baltistan"
   },
   {
-    "district": "Shigar",
-    "province": "Gilgit-Baltistan"
-  },
-  {
     "district": "Shikarpur",
     "province": "Sindh"
   },
@@ -582,10 +562,6 @@
   {
     "district": "Sohbatpur",
     "province": "Balochistan"
-  },
-  {
-    "district": "South Waziristan",
-    "province": "Khyber Pakhtunkhwa"
   },
   {
     "district": "Sudhnuti",
@@ -632,6 +608,10 @@
     "province": "Khyber Pakhtunkhwa"
   },
   {
+    "district": "Taunsa",
+    "province": "Punjab"
+  },
+  {
     "district": "Tharparkar",
     "province": "Sindh"
   },
@@ -662,6 +642,14 @@
   {
     "district": "Upper Kohistan",
     "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "district": "Upper South Waziristan",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "district": "Usta Muhammad",
+    "province": "Balochistan"
   },
   {
     "district": "Vehari",

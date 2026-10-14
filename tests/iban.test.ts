@@ -44,3 +44,37 @@ describe('getBankFromIBAN', () => {
     expect(getBankFromIBAN('invalid')).toBeNull();
   });
 });
+
+/** Builds a checksum-valid PK IBAN for a bank code. */
+function makeIban(bankCode: string, account = '0000001123456702'): string {
+  const bban = `${bankCode}${account}`;
+  const numeric = `${bban}PK00`.replace(/[A-Z]/g, (c) =>
+    String(c.charCodeAt(0) - 55),
+  );
+  let remainder = 0;
+  for (const digit of numeric) {
+    remainder = (remainder * 10 + Number(digit)) % 97;
+  }
+  return `PK${String(98 - remainder).padStart(2, '0')}${bban}`;
+}
+
+describe('getBankFromIBAN dataset', () => {
+  it('maps SAUD to Silkbank', () => {
+    expect(getBankFromIBAN(makeIban('SAUD'))).toBe(
+      'Silkbank Limited (merged into United Bank Limited)',
+    );
+  });
+
+  it('maps SUMB to Bank Makramah', () => {
+    expect(getBankFromIBAN(makeIban('SUMB'))).toMatch(/Bank Makramah/);
+  });
+
+  it('resolves legacy codes', () => {
+    expect(getBankFromIBAN(makeIban('NBPB'))).toBe('National Bank of Pakistan');
+    expect(getBankFromIBAN(makeIban('MCBL'))).toBe('MCB Bank Limited');
+  });
+
+  it('does not map codes with no real bank', () => {
+    expect(getBankFromIBAN(makeIban('BIPL'))).toBeNull();
+  });
+});

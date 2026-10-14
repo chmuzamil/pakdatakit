@@ -41,7 +41,9 @@ describe('searchCities', () => {
 
   it('returns sorted unique results', () => {
     const results = searchCities('a');
-    expect(results).toEqual([...new Set(results)].sort((a, b) => a.localeCompare(b)));
+    expect(results).toEqual(
+      [...new Set(results)].sort((a, b) => a.localeCompare(b)),
+    );
   });
 
   it('returns empty array for empty query', () => {
@@ -70,7 +72,9 @@ describe('searchDistricts', () => {
 
   it('returns sorted unique results', () => {
     const results = searchDistricts('a');
-    expect(results).toEqual([...new Set(results)].sort((a, b) => a.localeCompare(b)));
+    expect(results).toEqual(
+      [...new Set(results)].sort((a, b) => a.localeCompare(b)),
+    );
   });
 });
 

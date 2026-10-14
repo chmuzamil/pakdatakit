@@ -13,37 +13,30 @@ export interface PhoneAnalysis {
   network: NetworkName;
 }
 
-const VALID_PHONE_PATTERN = /^\+923\d{9}$/;
-
 /**
  * Validates a Pakistani mobile phone number.
  *
- * Accepts local (`03001234567`), international (`+923001234567`),
- * and short (`3001234567`) formats. Ignores spaces and dashes.
+ * Accepts local (`03001234567`), international (`+923001234567`, `+92 (0) 300…`),
+ * and short (`3001234567`) formats, with common separators and Urdu digits.
+ * The `03XX` prefix must be allocated to a mobile operator.
  *
  * @param phone - The phone number string to validate
  * @returns `true` if valid, otherwise `false`
  */
 export function validatePhone(phone: string): boolean {
-  const digits = normalizePhoneDigits(phone);
-  if (digits === null) {
-    return false;
-  }
-  return VALID_PHONE_PATTERN.test(`+${digits}`);
+  return normalizePhoneDigits(phone) !== null;
 }
 
 /**
  * Formats a Pakistani mobile number to international E.164 style (`+923001234567`).
  *
- * Returns an empty string when the input is not a valid Pakistani mobile number.
- *
  * @param phone - The phone number string to format
- * @returns Formatted phone number or empty string if invalid
+ * @returns Formatted phone number, or `null` if invalid
  */
-export function formatPhone(phone: string): string {
+export function formatPhone(phone: string): string | null {
   const digits = normalizePhoneDigits(phone);
   if (digits === null) {
-    return '';
+    return null;
   }
   return `+${digits}`;
 }
@@ -60,7 +53,8 @@ export { getPhonePrefix, normalizePhoneDigits };
  * @returns Structured phone analysis result
  */
 export function analyzePhone(phone: string): PhoneAnalysis {
-  if (!validatePhone(phone)) {
+  const formatted = formatPhone(phone);
+  if (formatted === null) {
     return {
       valid: false,
       formatted: null,
@@ -70,7 +64,7 @@ export function analyzePhone(phone: string): PhoneAnalysis {
 
   return {
     valid: true,
-    formatted: formatPhone(phone),
+    formatted,
     network: getNetwork(phone),
   };
 }

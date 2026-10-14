@@ -42,8 +42,8 @@ describe('formatPhone', () => {
     expect(formatPhone('+92 300-123-4567')).toBe('+923001234567');
   });
 
-  it('returns empty string for invalid input', () => {
-    expect(formatPhone('invalid')).toBe('');
+  it('returns null for invalid input', () => {
+    expect(formatPhone('invalid')).toBeNull();
   });
 });
 
@@ -70,5 +70,29 @@ describe('analyzePhone', () => {
       formatted: null,
       network: 'Unknown',
     });
+  });
+});
+
+describe('validatePhone input formats', () => {
+  it('accepts +92 (0) and +920 forms', () => {
+    expect(formatPhone('+92 (0) 300 1234567')).toBe('+923001234567');
+    expect(formatPhone('+9203001234567')).toBe('+923001234567');
+    expect(formatPhone('0092 300 1234567')).toBe('+923001234567');
+  });
+
+  it('accepts dotted numbers and Urdu digits', () => {
+    expect(formatPhone('0300.123.4567')).toBe('+923001234567');
+    expect(formatPhone('۰۳۰۰۱۲۳۴۵۶۷')).toBe('+923001234567');
+  });
+
+  it('rejects unallocated mobile prefixes', () => {
+    expect(validatePhone('03601234567')).toBe(false);
+    expect(validatePhone('03901234567')).toBe(false);
+    expect(analyzePhone('03601234567').valid).toBe(false);
+  });
+
+  it('rejects wrong lengths', () => {
+    expect(validatePhone('0300123456')).toBe(false);
+    expect(validatePhone('030012345678')).toBe(false);
   });
 });

@@ -15,9 +15,7 @@ describe('createWhatsAppLink', () => {
   });
 
   it('creates link from short phone', () => {
-    expect(createWhatsAppLink('3001234567')).toBe(
-      'https://wa.me/923001234567',
-    );
+    expect(createWhatsAppLink('3001234567')).toBe('https://wa.me/923001234567');
   });
 
   it('creates link with message', () => {
@@ -32,7 +30,7 @@ describe('createWhatsAppLink', () => {
     );
   });
 
-  it('returns empty string for invalid phone', () => {
-    expect(createWhatsAppLink('invalid')).toBe('');
+  it('returns null for invalid phone', () => {
+    expect(createWhatsAppLink('invalid')).toBeNull();
   });
 });

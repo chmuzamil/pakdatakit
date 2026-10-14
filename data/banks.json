@@ -24,14 +24,6 @@
     "name": "Bank Al Habib Limited"
   },
   {
-    "code": "BARC",
-    "name": "Barclays Bank PLC"
-  },
-  {
-    "code": "BIPL",
-    "name": "Bank of Islamabad Limited"
-  },
-  {
     "code": "BKIP",
     "name": "BankIslami Pakistan Limited"
   },
@@ -57,11 +49,11 @@
   },
   {
     "code": "FINC",
-    "name": "FINCA Microfinance Bank"
+    "name": "ABHI Microfinance Bank (formerly FINCA Microfinance Bank)"
   },
   {
     "code": "FMFB",
-    "name": "First MicroFinance Bank"
+    "name": "HBL Microfinance Bank (formerly First MicroFinance Bank)"
   },
   {
     "code": "FWOM",
@@ -125,7 +117,7 @@
   },
   {
     "code": "NIBP",
-    "name": "NIB Bank Limited"
+    "name": "NIB Bank Limited (merged into MCB Bank)"
   },
   {
     "code": "NRSP",
@@ -141,7 +133,7 @@
   },
   {
     "code": "SAUD",
-    "name": "Saudi Pak Industrial Investment Bank"
+    "name": "Silkbank Limited (merged into United Bank Limited)"
   },
   {
     "code": "SBPP",
@@ -152,28 +144,24 @@
     "name": "Standard Chartered Bank (Pakistan) Limited"
   },
   {
-    "code": "SILK",
-    "name": "Silkbank Limited"
-  },
-  {
     "code": "SIND",
     "name": "Sindh Bank Limited"
-  },
-  {
-    "code": "SMEP",
-    "name": "Summit Bank Limited"
   },
   {
     "code": "SONE",
     "name": "Soneri Bank Limited"
   },
   {
+    "code": "SUMB",
+    "name": "Bank Makramah Limited (formerly Summit Bank)"
+  },
+  {
     "code": "TAMW",
-    "name": "Tameer Microfinance Bank"
+    "name": "easypaisa Digital Bank (formerly Tameer Microfinance Bank)"
   },
   {
     "code": "TMFB",
-    "name": "Telenor Microfinance Bank (Easypaisa)"
+    "name": "easypaisa Digital Bank (formerly Telenor Microfinance Bank)"
   },
   {
     "code": "UMBL",

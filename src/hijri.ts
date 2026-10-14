@@ -5,6 +5,16 @@ export interface HijriDate {
   day: number;
 }
 
+/** Options for Hijri conversions. */
+export interface HijriOptions {
+  /**
+   * Whole days to shift the tabular calendar by, to match local moon sighting.
+   * For example, `-1` when Pakistan's Ruet-e-Hilal calendar runs a day behind
+   * the tabular date. Defaults to `0`.
+   */
+  offset?: number;
+}
+
 const HIJRI_MONTHS = [
   'Muharram',
   'Safar',
@@ -23,120 +33,158 @@ const HIJRI_MONTHS = [
 /**
  * Converts a Gregorian `Date` to a Hijri (Islamic) date.
  *
- * Uses the Kuwaiti algorithm (approximate, suitable for general applications).
+ * Uses the tabular (arithmetic, "islamic-civil") calendar. Actual dates in
+ * Pakistan follow moon sighting and can differ by a day or two; pass
+ * `options.offset` to adjust.
  *
  * @param date - Gregorian date (local date components are used)
+ * @param options - Optional day offset for moon-sighting adjustment
  * @returns Hijri date components
+ * @throws {RangeError} If `date` is invalid or `offset` is not an integer
  */
-export function toHijri(date: Date): HijriDate {
-  const jd = gregorianToJulianDay(
+export function toHijri(date: Date, options: HijriOptions = {}): HijriDate {
+  assertValidDate(date);
+  const jdn = gregorianToJulianDayNumber(
     date.getFullYear(),
     date.getMonth() + 1,
     date.getDate(),
   );
-  return julianDayToHijri(jd);
+  return julianDayNumberToHijri(jdn + resolveOffset(options));
 }
 
 /**
  * Converts a Hijri date to a Gregorian `Date` (local midnight).
  *
  * @param hijri - Hijri date components
+ * @param options - Optional day offset, matching the one used with {@link toHijri}
  * @returns Gregorian date
+ * @throws {RangeError} If the Hijri components are out of range
  */
-export function fromHijri(hijri: HijriDate): Date {
-  const jd = hijriToJulianDay(hijri.year, hijri.month, hijri.day);
-  const { year, month, day } = julianDayToGregorian(jd);
-  return new Date(year, month - 1, day);
+export function fromHijri(hijri: HijriDate, options: HijriOptions = {}): Date {
+  assertValidHijri(hijri);
+  const jdn =
+    hijriToJulianDayNumber(hijri.year, hijri.month, hijri.day) -
+    resolveOffset(options);
+  const { year, month, day } = julianDayNumberToGregorian(jdn);
+  const result = new Date(year, month - 1, day);
+  // `new Date()` maps years 0-99 to 1900-1999; set the full year explicitly.
+  result.setFullYear(year);
+  return result;
 }
 
 /**
  * Formats a Gregorian date as a Hijri date string.
  *
  * @param date - Gregorian date
+ * @param options - Optional day offset for moon-sighting adjustment
  * @returns Formatted Hijri string (e.g. `"14 Ramadan 1447"`)
  */
-export function formatHijri(date: Date): string {
-  const hijri = toHijri(date);
-  const monthName = getHijriMonthName(hijri.month);
-  return `${hijri.day} ${monthName} ${hijri.year}`;
+export function formatHijri(date: Date, options: HijriOptions = {}): string {
+  const hijri = toHijri(date, options);
+  return `${hijri.day} ${HIJRI_MONTHS[hijri.month - 1]} ${hijri.year}`;
 }
 
 /**
  * Returns the English name of a Hijri month (1–12).
  *
  * @param month - Hijri month number
- * @returns Month name or empty string if invalid
+ * @returns Month name, or `null` if `month` is not an integer from 1 to 12
  */
-export function getHijriMonthName(month: number): string {
-  if (month < 1 || month > 12) {
-    return '';
+export function getHijriMonthName(month: number): string | null {
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    return null;
   }
-  return HIJRI_MONTHS[month - 1] ?? '';
+  return HIJRI_MONTHS[month - 1] ?? null;
 }
 
 /**
  * Returns whether a Gregorian date falls in the month of Ramadan.
  *
  * @param date - Gregorian date
+ * @param options - Optional day offset for moon-sighting adjustment
  * @returns `true` during Ramadan
  */
-export function isRamadan(date: Date): boolean {
-  return toHijri(date).month === 9;
+export function isRamadan(date: Date, options: HijriOptions = {}): boolean {
+  return toHijri(date, options).month === 9;
 }
 
-function gregorianToJulianDay(year: number, month: number, day: number): number {
-  let y = year;
-  let m = month;
-
-  if (m <= 2) {
-    y -= 1;
-    m += 12;
+function assertValidDate(date: Date): void {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    throw new RangeError('Invalid Date');
   }
+}
 
-  const A = Math.floor(y / 100);
-  const B = 2 - A + Math.floor(A / 4);
+function assertValidHijri(hijri: HijriDate): void {
+  const { year, month, day } = hijri;
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    year < 1 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 30
+  ) {
+    throw new RangeError(
+      `Invalid Hijri date: ${String(year)}-${String(month)}-${String(day)}`,
+    );
+  }
+}
 
+function resolveOffset(options: HijriOptions): number {
+  const offset = options.offset ?? 0;
+  if (!Number.isInteger(offset)) {
+    throw new RangeError(
+      `Hijri offset must be an integer, received ${String(offset)}`,
+    );
+  }
+  return offset;
+}
+
+/** Gregorian calendar date → Julian Day Number (integer). */
+function gregorianToJulianDayNumber(
+  year: number,
+  month: number,
+  day: number,
+): number {
+  const a = Math.floor((14 - month) / 12);
+  const y = year + 4800 - a;
+  const m = month + 12 * a - 3;
   return (
-    Math.floor(365.25 * (y + 4716)) +
-    Math.floor(30.6001 * (m + 1)) +
     day +
-    B -
-    1524.5
+    Math.floor((153 * m + 2) / 5) +
+    365 * y +
+    Math.floor(y / 4) -
+    Math.floor(y / 100) +
+    Math.floor(y / 400) -
+    32045
   );
 }
 
-function julianDayToGregorian(jd: number): {
+/** Julian Day Number → Gregorian calendar date. */
+function julianDayNumberToGregorian(jdn: number): {
   year: number;
   month: number;
   day: number;
 } {
-  const Z = Math.floor(jd + 0.5);
-  const F = jd + 0.5 - Z;
-  let A = Z;
-
-  if (Z >= 2299161) {
-    const alpha = Math.floor((Z - 1867216.25) / 36524.25);
-    A = Z + 1 + alpha - Math.floor(alpha / 4);
-  }
-
-  const B = A + 1524;
-  const C = Math.floor((B - 122.1) / 365.25);
-  const D = Math.floor(365.25 * C);
-  const E = Math.floor((B - D) / 30.6001);
-
-  const day = B - D - Math.floor(30.6001 * E) + F;
-  const month = E < 14 ? E - 1 : E - 13;
-  const year = month > 2 ? C - 4716 : C - 4715;
+  const a = jdn + 32044;
+  const b = Math.floor((4 * a + 3) / 146097);
+  const c = a - Math.floor((146097 * b) / 4);
+  const d = Math.floor((4 * c + 3) / 1461);
+  const e = c - Math.floor((1461 * d) / 4);
+  const m = Math.floor((5 * e + 2) / 153);
 
   return {
-    year: Math.floor(year),
-    month,
-    day: Math.floor(day),
+    day: e - Math.floor((153 * m + 2) / 5) + 1,
+    month: m + 3 - 12 * Math.floor(m / 10),
+    year: 100 * b + d - 4800 + Math.floor(m / 10),
   };
 }
 
-function julianDayToHijri(jd: number): HijriDate {
-  const l = Math.floor(jd - 1948440 + 10632);
+/** Julian Day Number → tabular Hijri date. */
+function julianDayNumberToHijri(jdn: number): HijriDate {
+  const l = jdn - 1948440 + 10632;
   const n = Math.floor((l - 1) / 10631);
   const l2 = l - 10631 * n + 354;
   const j =
@@ -154,7 +202,12 @@ function julianDayToHijri(jd: number): HijriDate {
   return { year, month, day };
 }
 
-function hijriToJulianDay(year: number, month: number, day: number): number {
+/** Tabular Hijri date → Julian Day Number. */
+function hijriToJulianDayNumber(
+  year: number,
+  month: number,
+  day: number,
+): number {
   return (
     Math.floor((11 * year + 3) / 30) +
     354 * year +

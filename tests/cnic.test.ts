@@ -26,3 +26,21 @@ describe('validateCNIC', () => {
     expect(validateCNIC('')).toBe(false);
   });
 });
+
+describe('validateCNIC structure', () => {
+  it('rejects an invalid province digit', () => {
+    expect(validateCNIC('0000000000000')).toBe(false);
+    expect(validateCNIC('95202-1234567-1')).toBe(false);
+  });
+
+  it('rejects misplaced or mixed separators', () => {
+    expect(validateCNIC('3520-21234567-1')).toBe(false);
+    expect(validateCNIC('35202-1234567 1')).toBe(false);
+  });
+
+  it('accepts en-dashes, dots and Urdu digits', () => {
+    expect(validateCNIC('35202–1234567–1')).toBe(true);
+    expect(validateCNIC('35202.1234567.1')).toBe(true);
+    expect(validateCNIC('۳۵۲۰۲-۱۲۳۴۵۶۷-۱')).toBe(true);
+  });
+});

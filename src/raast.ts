@@ -15,13 +15,22 @@ import { stripSeparators } from './internal/normalize.js';
 
 const PK_IBAN_PATTERN = /^PK\d{2}[A-Z]{4}[A-Z0-9]{16}$/;
 
-/** Scheme identifier for Raast in person-to-person QR codes. */
-const RAAST_P2P_SCHEME = '30';
+/**
+ * Scheme identifier written in person-to-person QR codes. SBP's standard lists
+ * `30` for Raast, but banking apps (Faysal Bank, easypaisa) generate QR codes
+ * with `00`, and the Easypaisa and JazzCash apps reject `30`.
+ */
+const DEFAULT_P2P_SCHEME = '00';
 
 /** Options for {@link createRaastP2PQr}. */
 export interface RaastP2PQrOptions {
   /** Payee's Pakistani IBAN. */
   iban: string;
+  /**
+   * Scheme identifier (tag 02). Defaults to `'00'`, as used by banking apps.
+   * `'30'` is the value listed for Raast in SBP's QR standard.
+   */
+  scheme?: '00' | '30';
   /** Amount in PKR. When set, the QR is dynamic (point of initiation 12). */
   amount?: number;
   /** Payee's bank name (up to 25 characters). */
@@ -123,9 +132,10 @@ function normalizeIban(iban: string): string {
 }
 
 /**
- * Creates a Raast person-to-person QR payload, following SBP's P2P QR format
- * (payload format `02`, scheme `30`). Encode the string as a QR code with any
- * QR library.
+ * Creates a Raast person-to-person QR payload in SBP's P2P QR format (payload
+ * format `02`), matching the QR codes banking apps generate, so it can be
+ * scanned by apps such as Easypaisa and JazzCash. Encode the string as a QR
+ * code with any QR library.
  *
  * @example
  * createRaastP2PQr({ iban: 'PK36SCBL0000001123456702', amount: 1500 });
@@ -139,7 +149,7 @@ export function createRaastP2PQr(options: RaastP2PQrOptions): string {
   let payload =
     encodeField('00', '02') +
     encodeField('01', options.amount === undefined ? '11' : '12') +
-    encodeField('02', RAAST_P2P_SCHEME);
+    encodeField('02', options.scheme ?? DEFAULT_P2P_SCHEME);
 
   if (options.bankName) {
     payload += encodeField('03', checkLength(options.bankName, 25, 'bankName'));

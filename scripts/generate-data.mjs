@@ -752,6 +752,7 @@ const BANKS = [
   { code: 'SUMB', name: 'Bank Makramah Limited (formerly Summit Bank)' },
   { code: 'UNIL', name: 'United Bank Limited' },
   { code: 'SAMB', name: 'Samba Bank Limited' },
+  { code: 'SADA', name: 'SadaPay' },
   { code: 'SAUD', name: 'Silkbank Limited (merged into United Bank Limited)' },
   { code: 'CITI', name: 'Citibank N.A. Pakistan' },
   { code: 'ICBK', name: 'Industrial and Commercial Bank of China' },

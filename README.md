@@ -369,7 +369,7 @@ getBankFromIBAN('invalid');
 // null
 ```
 
-Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, and 43 total entries in the dataset. Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
+Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SADA (SadaPay), and 44 total entries in the dataset. Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
 
 ---
 
@@ -715,6 +715,8 @@ createMerchantQr({
   amountAfterDueDate: 4500,
 });
 ```
+
+Person-to-person QR codes use the same layout as QR codes from banking apps (Faysal Bank, easypaisa), and scan in the Easypaisa and JazzCash apps. This is handy for accounts whose app cannot generate a receiving QR, such as SadaPay.
 
 SBP reserves merchant-account tags 28–30 for Raast but has shared the layout of the fields inside them only with banks, so `createMerchantQr` takes those sub-fields from you. `parseRaastQr` checks the CRC and finds the IBAN in either kind of QR.
 

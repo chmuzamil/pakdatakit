@@ -1,0 +1,47 @@
+name: Data correction
+description: A bank code, district, city, postal code, mobile prefix, area code or holiday is wrong or missing.
+title: '[Data] '
+labels: ['data']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep the data accurate. Every change needs a source, because the library is used for validation.
+        **Never paste a real CNIC, or an IBAN or phone number that is not public.** For bank codes, an IBAN already published on an official, charity or company page is ideal.
+  - type: dropdown
+    id: dataset
+    attributes:
+      label: Which data?
+      options:
+        - Bank / IBAN code
+        - District or province
+        - City
+        - Postal code
+        - Mobile prefix or network
+        - Landline area code
+        - Public holiday
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What is wrong or missing?
+      description: The current value (if any) and what it should be.
+      placeholder: e.g. Khushhali Microfinance Bank's IBAN code is KHBL, not KMBL.
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: A link to an official notification, the institution's own website, or a published IBAN or document that shows it. Include the date if you can.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I have not included anyone's private CNIC, IBAN or phone number.
+          required: true

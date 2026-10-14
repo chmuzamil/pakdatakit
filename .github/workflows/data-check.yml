@@ -1,0 +1,32 @@
+name: Monthly data check
+
+# Opens a checklist issue on the 1st of every month so the datasets are
+# re-checked against their sources (see DATA.md).
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  open-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Open the monthly checklist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          title="Monthly data check: $(date -u +'%B %Y')"
+          existing="$(gh issue list --repo "$REPO" --state all --search "\"${title}\" in:title" --json number --jq 'length')"
+          if [ "$existing" != "0" ]; then
+            echo "Already opened: ${title}"
+            exit 0
+          fi
+          gh label create data --repo "$REPO" --color 0e8a16 --description "Datasets and their sources" 2>/dev/null || true
+          gh issue create --repo "$REPO" --title "$title" --label data --body-file .github/data-check-issue.md

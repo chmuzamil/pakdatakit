@@ -819,9 +819,50 @@ function writeJson(name, data) {
 writeJson('districts.json', districts);
 writeJson('cities.json', cities);
 writeJson('postal-codes.json', POSTAL_CODES);
+/**
+ * Bank category, following SBP's grouping of scheduled banks: full-fledged
+ * Islamic banks, microfinance banks, digital banks, electronic money
+ * institutions (EMIs), branches of foreign banks, specialized banks and the
+ * central bank. Everything else is a commercial bank.
+ */
+const BANK_TYPES = {
+  islamic: ['AIIN', 'BKIP', 'DUIB', 'FAYS', 'MCIB', 'MEZN'],
+  microfinance: [
+    'APNA',
+    'FINC',
+    'FMFB',
+    'JCMA',
+    'KHBL',
+    'NRSP',
+    'UMBL',
+    'WMBL',
+  ],
+  digital: ['TAMW', 'TMFB'],
+  emi: ['NAYA', 'SADA'],
+  foreign: ['BKCH', 'CITI', 'DEUT', 'ICBK'],
+  specialized: ['SMES'],
+  central: ['SBPP'],
+};
+
+/** Banks that no longer exist, and the bank (code) that took them over. */
+const MERGED_INTO = { NIBP: 'MUCB', SAUD: 'UNIL' };
+
+/** Older codes still found on live accounts, and the bank's main code. */
+const ALIAS_OF = { MCBL: 'MUCB', NBPB: 'NBPA', TAMW: 'TMFB', WMBL: 'JCMA' };
+
+const bankType = (code) =>
+  Object.entries(BANK_TYPES).find(([, codes]) => codes.includes(code))?.[0] ??
+  'commercial';
+
 writeJson(
   'banks.json',
-  BANKS.map(({ code, name }) => ({ code, name })),
+  BANKS.map(({ code, name }) => ({
+    code,
+    name,
+    type: bankType(code),
+    ...(MERGED_INTO[code] ? { mergedInto: MERGED_INTO[code] } : {}),
+    ...(ALIAS_OF[code] ? { aliasOf: ALIAS_OF[code] } : {}),
+  })),
 );
 
 console.log(`\nSummary:`);

@@ -1,186 +1,238 @@
 [
   {
     "code": "ABPA",
-    "name": "Allied Bank Limited"
+    "name": "Allied Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "AIIN",
-    "name": "Al Baraka Bank (Pakistan) Limited"
+    "name": "Al Baraka Bank (Pakistan) Limited",
+    "type": "islamic"
   },
   {
     "code": "ALFH",
-    "name": "Bank Alfalah Limited"
+    "name": "Bank Alfalah Limited",
+    "type": "commercial"
   },
   {
     "code": "APNA",
-    "name": "Apna Microfinance Bank"
+    "name": "Apna Microfinance Bank",
+    "type": "microfinance"
   },
   {
     "code": "ASCM",
-    "name": "Askari Bank Limited"
+    "name": "Askari Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "BAHL",
-    "name": "Bank Al Habib Limited"
+    "name": "Bank Al Habib Limited",
+    "type": "commercial"
   },
   {
     "code": "BKCH",
-    "name": "Bank of China Limited"
+    "name": "Bank of China Limited",
+    "type": "foreign"
   },
   {
     "code": "BKIP",
-    "name": "BankIslami Pakistan Limited"
+    "name": "BankIslami Pakistan Limited",
+    "type": "islamic"
   },
   {
     "code": "BPUN",
-    "name": "The Bank of Punjab"
+    "name": "The Bank of Punjab",
+    "type": "commercial"
   },
   {
     "code": "CITI",
-    "name": "Citibank N.A. Pakistan"
+    "name": "Citibank N.A. Pakistan",
+    "type": "foreign"
   },
   {
     "code": "DEUT",
-    "name": "Deutsche Bank AG"
+    "name": "Deutsche Bank AG",
+    "type": "foreign"
   },
   {
     "code": "DUIB",
-    "name": "Dubai Islamic Bank Pakistan Limited"
+    "name": "Dubai Islamic Bank Pakistan Limited",
+    "type": "islamic"
   },
   {
     "code": "FAYS",
-    "name": "Faysal Bank Limited"
+    "name": "Faysal Bank Limited",
+    "type": "islamic"
   },
   {
     "code": "FINC",
-    "name": "ABHI Microfinance Bank (formerly FINCA Microfinance Bank)"
+    "name": "ABHI Microfinance Bank (formerly FINCA Microfinance Bank)",
+    "type": "microfinance"
   },
   {
     "code": "FMFB",
-    "name": "HBL Microfinance Bank (formerly First MicroFinance Bank)"
+    "name": "HBL Microfinance Bank (formerly First MicroFinance Bank)",
+    "type": "microfinance"
   },
   {
     "code": "FWOM",
-    "name": "First Women Bank Limited"
+    "name": "First Women Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "HABB",
-    "name": "Habib Bank Limited"
+    "name": "Habib Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "ICBK",
-    "name": "Industrial and Commercial Bank of China"
+    "name": "Industrial and Commercial Bank of China",
+    "type": "foreign"
   },
   {
     "code": "JCMA",
-    "name": "Mobilink Bank (JazzCash)"
+    "name": "Mobilink Bank (JazzCash)",
+    "type": "microfinance"
   },
   {
     "code": "JSBL",
-    "name": "JS Bank Limited"
+    "name": "JS Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "KHBL",
-    "name": "Khushhali Microfinance Bank"
+    "name": "Khushhali Microfinance Bank",
+    "type": "microfinance"
   },
   {
     "code": "KHYB",
-    "name": "The Bank of Khyber"
+    "name": "The Bank of Khyber",
+    "type": "commercial"
   },
   {
     "code": "MCBL",
-    "name": "MCB Bank Limited"
+    "name": "MCB Bank Limited",
+    "type": "commercial",
+    "aliasOf": "MUCB"
   },
   {
     "code": "MCIB",
-    "name": "MCB Islamic Bank Limited"
+    "name": "MCB Islamic Bank Limited",
+    "type": "islamic"
   },
   {
     "code": "MEZN",
-    "name": "Meezan Bank Limited"
+    "name": "Meezan Bank Limited",
+    "type": "islamic"
   },
   {
     "code": "MPBL",
-    "name": "Habib Metropolitan Bank Limited"
+    "name": "Habib Metropolitan Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "MUCB",
-    "name": "MCB Bank Limited"
+    "name": "MCB Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "NAYA",
-    "name": "NayaPay"
+    "name": "NayaPay",
+    "type": "emi"
   },
   {
     "code": "NBPA",
-    "name": "National Bank of Pakistan"
+    "name": "National Bank of Pakistan",
+    "type": "commercial"
   },
   {
     "code": "NBPB",
-    "name": "National Bank of Pakistan"
+    "name": "National Bank of Pakistan",
+    "type": "commercial",
+    "aliasOf": "NBPA"
   },
   {
     "code": "NIBP",
-    "name": "NIB Bank Limited (merged into MCB Bank)"
+    "name": "NIB Bank Limited (merged into MCB Bank)",
+    "type": "commercial",
+    "mergedInto": "MUCB"
   },
   {
     "code": "NRSP",
-    "name": "NRSP Microfinance Bank"
+    "name": "NRSP Microfinance Bank",
+    "type": "microfinance"
   },
   {
     "code": "SADA",
-    "name": "SadaPay"
+    "name": "SadaPay",
+    "type": "emi"
   },
   {
     "code": "SAMB",
-    "name": "Samba Bank Limited"
+    "name": "Samba Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "SAUD",
-    "name": "Silkbank Limited (merged into United Bank Limited)"
+    "name": "Silkbank Limited (merged into United Bank Limited)",
+    "type": "commercial",
+    "mergedInto": "UNIL"
   },
   {
     "code": "SBPP",
-    "name": "State Bank of Pakistan"
+    "name": "State Bank of Pakistan",
+    "type": "central"
   },
   {
     "code": "SCBL",
-    "name": "Standard Chartered Bank (Pakistan) Limited"
+    "name": "Standard Chartered Bank (Pakistan) Limited",
+    "type": "commercial"
   },
   {
     "code": "SIND",
-    "name": "Sindh Bank Limited"
+    "name": "Sindh Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "SMES",
-    "name": "SME Bank Limited"
+    "name": "SME Bank Limited",
+    "type": "specialized"
   },
   {
     "code": "SONE",
-    "name": "Soneri Bank Limited"
+    "name": "Soneri Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "SUMB",
-    "name": "Bank Makramah Limited (formerly Summit Bank)"
+    "name": "Bank Makramah Limited (formerly Summit Bank)",
+    "type": "commercial"
   },
   {
     "code": "TAMW",
-    "name": "easypaisa Digital Bank (formerly Tameer Microfinance Bank)"
+    "name": "easypaisa Digital Bank (formerly Tameer Microfinance Bank)",
+    "type": "digital",
+    "aliasOf": "TMFB"
   },
   {
     "code": "TMFB",
-    "name": "easypaisa Digital Bank (formerly Telenor Microfinance Bank)"
+    "name": "easypaisa Digital Bank (formerly Telenor Microfinance Bank)",
+    "type": "digital"
   },
   {
     "code": "UMBL",
-    "name": "U Microfinance Bank"
+    "name": "U Microfinance Bank",
+    "type": "microfinance"
   },
   {
     "code": "UNIL",
-    "name": "United Bank Limited"
+    "name": "United Bank Limited",
+    "type": "commercial"
   },
   {
     "code": "WMBL",
-    "name": "Mobilink Bank (JazzCash)"
+    "name": "Mobilink Bank (JazzCash)",
+    "type": "microfinance",
+    "aliasOf": "JCMA"
   }
 ]

@@ -166,6 +166,16 @@ const UR_0_TO_99 = [
   'ننانوے',
 ];
 
+function resolveLanguage(language: WordsLanguage | undefined): WordsLanguage {
+  const value = language ?? 'en';
+  if (value !== 'en' && value !== 'ur') {
+    throw new RangeError(
+      `language must be 'en' or 'ur', received ${String(value)}`,
+    );
+  }
+  return value;
+}
+
 function underHundred(n: number, language: WordsLanguage): string {
   if (language === 'ur') {
     return UR_0_TO_99[n] as string;
@@ -210,7 +220,7 @@ export function numberToWords(
   n: number,
   options: NumberToWordsOptions = {},
 ): string {
-  const language = options.language ?? 'en';
+  const language = resolveLanguage(options.language);
   if (!Number.isSafeInteger(n)) {
     throw new RangeError(`Expected a safe integer, received ${String(n)}`);
   }
@@ -252,7 +262,7 @@ export function amountInWords(
   amount: number,
   options: AmountInWordsOptions = {},
 ): string {
-  const language = options.language ?? 'en';
+  const language = resolveLanguage(options.language);
   if (!Number.isFinite(amount) || amount < 0) {
     throw new RangeError(
       `Amount must be a finite number of zero or more, received ${String(amount)}`,

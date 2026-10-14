@@ -163,7 +163,7 @@ function formatAmount(
     throw new RangeError(`${label} must be a positive number`);
   }
   const text = amount.toFixed(2);
-  if (text.length > maxLength) {
+  if (text.length > maxLength || !/^\d+\.\d{2}$/.test(text)) {
     throw new RangeError(`${label} is too large for a Raast QR code`);
   }
   return text;
@@ -175,7 +175,8 @@ function formatP2PAmount(amount: number): string {
     throw new RangeError('amount must be a positive number');
   }
   const text = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
-  if (text.length > 10) {
+  // Very large numbers stringify in exponent form ("1e+21"), so check the shape too.
+  if (text.length > 10 || !/^\d+(\.\d+)?$/.test(text)) {
     throw new RangeError('amount is too large for a Raast QR code');
   }
   return text;
@@ -302,13 +303,15 @@ export function createMerchantQr(options: MerchantQrOptions): string {
   }
 
   const dynamic = options.dynamic ?? options.amount !== undefined;
+  for (const [id] of accountFields) {
+    if (!/^\d{2}$/.test(id)) {
+      throw new RangeError(`Invalid merchant account sub-field ID: ${id}`);
+    }
+  }
+  // JavaScript lists keys "10"-"99" before "00"-"09", so sort by ID.
   const account = accountFields
-    .map(([id, value]) => {
-      if (!/^\d{2}$/.test(id)) {
-        throw new RangeError(`Invalid merchant account sub-field ID: ${id}`);
-      }
-      return encodeField(id, value);
-    })
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([id, value]) => encodeField(id, value))
     .join('');
 
   let payload =
@@ -378,10 +381,34 @@ function fieldValue(fields: EmvField[], id: string): string | null {
   return fields.find((field) => field.id === id)?.value ?? null;
 }
 
+/**
+ * Reads a `DDMMYYYYhhmm` expiry as local `YYYY-MM-DDTHH:mm`, or null when it
+ * is malformed or not a real date and time (e.g. month 13 or hour 25).
+ */
+function parseExpiry(value: string | null): string | null {
+  const match = value
+    ? /^(\d{2})(\d{2})(\d{4})(\d{2})(\d{2})$/.exec(value)
+    : null;
+  if (!match) return null;
+  const [, dd, mm, yyyy, hh, min] = match as unknown as string[];
+  const [day, month, year, hour, minute] = [dd, mm, yyyy, hh, min].map(
+    Number,
+  ) as [number, number, number, number, number];
+  const date = new Date(2000, month - 1, day, hour, minute);
+  date.setFullYear(year);
+  const real =
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day &&
+    date.getHours() === hour &&
+    date.getMinutes() === minute;
+  return real ? `${yyyy}-${mm}-${dd}T${hh}:${min}` : null;
+}
+
+/** Reads an amount field: plain digits with optional decimals, else null. */
 function toAmount(value: string | null): number | null {
-  if (value === null) return null;
-  const amount = Number(value);
-  return Number.isFinite(amount) ? amount : null;
+  if (value === null || !/^\d+(\.\d+)?$/.test(value)) return null;
+  return Number(value);
 }
 
 /**
@@ -442,10 +469,7 @@ export function parseRaastQr(payload: string): ParsedRaastQr | null {
     iban,
     ibanValid: iban !== null && validateIBAN(iban),
     amount: toAmount(fieldValue(fields, kind === 'p2p' ? '05' : '54')),
-    expiresAt:
-      expiry && /^\d{12}$/.test(expiry)
-        ? `${expiry.slice(4, 8)}-${expiry.slice(2, 4)}-${expiry.slice(0, 2)}T${expiry.slice(8, 10)}:${expiry.slice(10)}`
-        : null,
+    expiresAt: parseExpiry(expiry),
     bankName: kind === 'p2p' ? fieldValue(fields, '03') : null,
     particulars: kind === 'p2p' ? fieldValue(fields, '06') : null,
     merchantName: kind === 'merchant' ? fieldValue(fields, '59') : null,

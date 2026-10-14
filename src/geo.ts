@@ -79,7 +79,11 @@ export function getDistrictProvince(district: string): string | null {
   if (key.length === 0) {
     return null;
   }
-  return districtLookup().get(key) ?? FORMER_DISTRICTS[key] ?? null;
+  return (
+    districtLookup().get(key) ??
+    (Object.hasOwn(FORMER_DISTRICTS, key) ? FORMER_DISTRICTS[key] : null) ??
+    null
+  );
 }
 
 /**

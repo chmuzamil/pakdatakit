@@ -20,6 +20,9 @@ export const pk = {
   cnic: schema('cnic'),
   phone: schema('phone'),
   iban: schema('iban'),
+  ntn: schema('ntn'),
+  strn: schema('strn'),
+  landline: schema('landline'),
 };
 
 export type { AdapterOptions };

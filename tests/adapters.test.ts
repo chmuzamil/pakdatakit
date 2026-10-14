@@ -88,3 +88,30 @@ describe('yup adapter', () => {
     ]);
   });
 });
+
+describe('tax and landline rules', () => {
+  const form = z.object({
+    ntn: pkZod.ntn(),
+    strn: pkZod.strn(),
+    landline: pkZod.landline(),
+  });
+
+  it('validates NTN, STRN and landline fields', () => {
+    expect(
+      form.safeParse({
+        ntn: '0622438-9',
+        strn: '17-00-3761-882-19',
+        landline: '042-35761234',
+      }).success,
+    ).toBe(true);
+    expect(
+      form.safeParse({ ntn: '123', strn: '1', landline: '03001234567' }).error
+        ?.issues.length,
+    ).toBe(3);
+  });
+
+  it('exposes the same rules in every adapter', () => {
+    expect(Object.keys(pkValibot)).toEqual(Object.keys(pkZod));
+    expect(Object.keys(pkYup)).toEqual(Object.keys(pkZod));
+  });
+});

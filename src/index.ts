@@ -47,3 +47,18 @@ export {
   type NumberToWordsOptions,
   type AmountInWordsOptions,
 } from './words.js';
+export {
+  analyzeNTN,
+  validateNTN,
+  validateSTRN,
+  type NTNInfo,
+  type NTNType,
+} from './tax.js';
+export {
+  analyzeNumber,
+  getNumberType,
+  validateLandline,
+  getAreaCode,
+  type NumberInfo,
+  type NumberType,
+} from './numbers.js';

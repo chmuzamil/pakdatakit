@@ -23,8 +23,10 @@ export function validateCNIC(cnic: string): boolean {
 }
 
 /**
- * Province of registration encoded in a CNIC's first digit. Code 2 was issued
- * in the former FATA, which merged into Khyber Pakhtunkhwa in 2018.
+ * Province of registration encoded in a CNIC's first digit, per FBR's tax-ID
+ * description filed with the OECD (codes 1-7). Code 2 was issued in the former
+ * FATA, which merged into Khyber Pakhtunkhwa in 2018. Code 8 for Azad Jammu and
+ * Kashmir is widely reported but not in FBR's list.
  */
 const CNIC_PROVINCES: Readonly<Record<string, string>> = {
   '1': 'Khyber Pakhtunkhwa',

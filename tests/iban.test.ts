@@ -78,3 +78,9 @@ describe('getBankFromIBAN dataset', () => {
     expect(getBankFromIBAN(makeIban('BIPL'))).toBeNull();
   });
 });
+
+describe('getBankFromIBAN e-money issuers', () => {
+  it('maps SADA to SadaPay', () => {
+    expect(getBankFromIBAN(makeIban('SADA'))).toBe('SadaPay');
+  });
+});

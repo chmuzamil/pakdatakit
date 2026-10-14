@@ -90,6 +90,16 @@
         "default": "./dist/iban.cjs"
       }
     },
+    "./input": {
+      "import": {
+        "types": "./dist/input.d.ts",
+        "default": "./dist/input.js"
+      },
+      "require": {
+        "types": "./dist/input.d.cts",
+        "default": "./dist/input.cjs"
+      }
+    },
     "./networks": {
       "import": {
         "types": "./dist/networks.d.ts",

@@ -9,6 +9,11 @@ const allocatedPrefixes = lazy(
     ),
 );
 
+/** Whether a `03XX` mobile prefix is allocated to an operator. */
+export function isAllocatedPrefix(prefix: string): boolean {
+  return allocatedPrefixes().has(prefix);
+}
+
 /**
  * Normalizes a phone string to digits with country code (no leading plus).
  *

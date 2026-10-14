@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.2
+
+### Fixed
+
+- `createRaastP2PQr()` with an `amount` made QR codes that banking apps
+  reject. Amount QRs now include an expiry (tag 07, `DDMMYYYYhhmm`) and write
+  whole amounts without decimals (`1500`, not `1500.00`), matching dynamic QR
+  codes from JazzCash and Mashreq. Pass the new `expiresAt` option; it is
+  required whenever `amount` is set.
+- `parseRaastQr()` returns the expiry of person-to-person QR codes as
+  `expiresAt` (`YYYY-MM-DDTHH:mm`).
+
 ## 2.1.1
 
 ### Fixed

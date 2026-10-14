@@ -30,20 +30,43 @@ describe('createRaastP2PQr', () => {
     });
   });
 
-  it('builds a dynamic P2P payload with amount and details', () => {
+  it('builds a dynamic P2P payload with amount and expiry', () => {
+    const payload = createRaastP2PQr({
+      iban: IBAN,
+      amount: 1500,
+      expiresAt: new Date(2026, 10, 13, 23, 59),
+    });
+    // Same layout as dynamic QR codes from banking apps (JazzCash, Mashreq).
+    expect(payload).toMatch(
+      /^0002020102120202000424PK36SCBL00000011234567020504150007121311202623591004[0-9A-F]{4}$/,
+    );
+  });
+
+  it('writes whole amounts without decimals', () => {
+    const expiresAt = new Date(2026, 10, 13, 23, 59);
+    expect(createRaastP2PQr({ iban: IBAN, amount: 100, expiresAt })).toContain(
+      '0503100',
+    );
+    expect(
+      createRaastP2PQr({ iban: IBAN, amount: 1500.5, expiresAt }),
+    ).toContain('05071500.50');
+  });
+
+  it('parses amount, expiry and details', () => {
     const payload = createRaastP2PQr({
       iban: 'pk36 scbl 0000 0011 2345 6702',
       amount: 1500,
+      expiresAt: new Date(2026, 10, 13, 23, 59),
       bankName: 'Standard Chartered',
       particulars: 'Rent October',
     });
-    expect(payload).toContain('05071500.00');
     expect(parseRaastQr(payload)).toMatchObject({
       kind: 'p2p',
       dynamic: true,
       crcValid: true,
       iban: IBAN,
       amount: 1500,
+      expiresAt: '2026-11-13T23:59',
       bankName: 'Standard Chartered',
       particulars: 'Rent October',
     });
@@ -54,6 +77,13 @@ describe('createRaastP2PQr', () => {
     expect(() => createRaastP2PQr({ iban: IBAN, amount: -5 })).toThrow(
       RangeError,
     );
+    // Banking apps reject dynamic QR codes without an expiry.
+    expect(() => createRaastP2PQr({ iban: IBAN, amount: 100 })).toThrow(
+      /expiresAt/,
+    );
+    expect(() =>
+      createRaastP2PQr({ iban: IBAN, amount: 100, expiresAt: new Date('x') }),
+    ).toThrow(RangeError);
     expect(() =>
       createRaastP2PQr({ iban: IBAN, particulars: 'x'.repeat(31) }),
     ).toThrow(RangeError);

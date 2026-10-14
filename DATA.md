@@ -26,10 +26,12 @@ against real IBANs.
   `SAUD`.
 - **Confirmed from published IBANs on smaller sites:** `SADA` (SadaPay), `NAYA`
   (NayaPay).
+- **Confirmed from real account IBANs shared by a maintainer:** `RQMI` (Raqami
+  Islamic Digital Bank) and `MSHQ` (Mashreq Bank Pakistan), both digital banks.
 - **Likely, not confirmed by a real IBAN:** `DEUT` (Deutsche Bank), `SBPP`
   (State Bank of Pakistan).
-- **Not included, because no code could be confirmed:** Mashreq Bank Pakistan,
-  HugoBank, Raqami, KT Bank (reportedly renamed Buraq Bank), LOLC Microfinance
+- **Not included, because no code could be confirmed:** HugoBank (in pilot,
+  not yet issuing IBANs), KT Bank (reportedly renamed Buraq Bank), LOLC Microfinance
   (formerly Pak Oman), Zarai Taraqiati Bank and Bank of AJK.
 - **Merged or renamed** banks keep their code with the current name, e.g.
   `SAUD` → "Silkbank Limited (merged into United Bank Limited)".

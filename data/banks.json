@@ -131,6 +131,11 @@
     "type": "commercial"
   },
   {
+    "code": "MSHQ",
+    "name": "Mashreq Bank Pakistan Limited",
+    "type": "digital"
+  },
+  {
     "code": "MUCB",
     "name": "MCB Bank Limited",
     "type": "commercial"
@@ -161,6 +166,11 @@
     "code": "NRSP",
     "name": "NRSP Microfinance Bank",
     "type": "microfinance"
+  },
+  {
+    "code": "RQMI",
+    "name": "Raqami Islamic Digital Bank Limited",
+    "type": "digital"
   },
   {
     "code": "SADA",

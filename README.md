@@ -41,6 +41,18 @@ Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, ch
 
 ---
 
+## 📦 Packages
+
+| Package                                                  | Install                        | For                                                            |
+| -------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------- |
+| [`pakdatakit`](https://www.npmjs.com/package/pakdatakit) | `npm install pakdatakit`       | JavaScript and TypeScript (Node, browsers, Bun, Deno)          |
+| [`pakdatakit` (Python)](./python)                        | `pip install pakdatakit`       | Python 3.9+, same functions in snake_case, same data           |
+| [`pakdatakit-react`](./react)                            | `npm install pakdatakit-react` | React inputs that format as you type, and a Raast QR component |
+
+The Python package is checked against the TypeScript library with over 12,000 shared test cases, so both give the same results.
+
+---
+
 ## 📚 Documentation
 
 - **[API reference](https://chmuzamil.github.io/pakdatakit/)**: every function, option and return type

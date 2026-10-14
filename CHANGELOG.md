@@ -1,9 +1,16 @@
 # Changelog
 
-## Unreleased
+## 2.2.0
 
 ### Added
 
+- `getBankInfo(ibanOrCode)` and `getBanks()`: bank name, type (commercial,
+  Islamic, microfinance, digital, EMI, foreign, specialized, central), whether
+  it still exists, and its current code.
+- API reference and `llms.txt` / `llms-full.txt` at
+  https://chmuzamil.github.io/pakdatakit/.
+- New packages from this repository: `pakdatakit` for Python (PyPI) and
+  `pakdatakit-react` (React inputs and a Raast QR component).
 - `pakdatakit/input`: as-you-type formatters (`formatCNICInput`,
   `formatPhoneInput`, `formatIBANInput`) and checkers (`checkCNICInput`,
   `checkPhoneInput`, `checkIBANInput`) that return `empty`, `incomplete`,
@@ -22,6 +29,12 @@
 
 ### Fixed
 
+- `createRaastP2PQr` / `createMerchantQr` reject amounts that would be
+  written in exponent form (e.g. `1e21`).
+- `parseRaastQr` reads only plain numeric amounts and rejects impossible
+  expiry dates; `createMerchantQr` writes account sub-fields in ID order.
+- `numberToWords` / `amountInWords` reject unknown languages.
+- `getDistrictProvince` no longer returns built-in object properties.
 - Khushhali Microfinance Bank's IBAN code is `KHBL`, not `KMBL`.
 - Removed `PAKB` (Pak Oman), which no real IBAN supports.
 - `getDistrictProvince` still resolves districts that were split or renamed

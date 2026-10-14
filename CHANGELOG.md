@@ -1,0 +1,71 @@
+# Changelog
+
+## 2.0.0
+
+A bug-fix release. Several fixes change return values, so this is a major
+version.
+
+### Breaking changes
+
+- **Node.js 20+** is required (Node 18 is end-of-life).
+- `formatPhone()` and `createWhatsAppLink()` return `null` instead of `""` for
+  invalid numbers.
+- `getHijriMonthName()` returns `null` instead of `""` for invalid months.
+- `toHijri()`, `formatHijri()` and `isRamadan()` throw a `RangeError` for
+  invalid dates instead of returning `NaN` fields. `fromHijri()` throws for
+  out-of-range Hijri components.
+- `formatPKR()` and `formatLakh()` throw a `RangeError` for `NaN` and
+  `Infinity`, and keep the sign of negative amounts (they previously returned
+  `"Rs. 0"` for all of these).
+- `validatePhone()` rejects numbers on `03XX` prefixes that are not allocated
+  to a mobile operator (e.g. `036x`, `038x`, `039x`).
+- `validateCNIC()` rejects a leading `0` or `9`, misplaced separators and
+  mixed separators.
+- `NetworkName` adds `'SCO'`.
+- `ParsedAddress` adds a `warnings: string[]` field.
+- `formatAddress()` no longer adds a GPO postal code that was not supplied.
+- `normalizeRomanUrdu()` keeps capitalisation (`Assalam o Alaikum` →
+  `Assalamualaikum`) and no longer rewrites `mein`/`men`.
+- Dataset changes: `South Waziristan` is now `Lower South Waziristan` and
+  `Upper South Waziristan`; neighbourhoods such as `Gulberg` and `Saddar` are
+  no longer returned as cities; bank codes `SILK`, `BIPL` and `BARC` are
+  removed.
+
+### Fixed
+
+- **Hijri dates were one day behind** the tabular calendar for every date, and
+  `fromHijri(toHijri(d))` returned the previous day. Conversions now match
+  `islamic-civil` exactly and round-trip. Added an `offset` option for
+  moon-sighting adjustment.
+- **Cities**: the list was cut at 150 entries, so `getProvince()` returned
+  `null` for Bahawalpur, Sargodha, Larkana, Mardan, Abbottabad and 72 other
+  cities with postal codes. All 226 cities are now included.
+- **Districts**: 7 Gilgit-Baltistan districts were listed twice. Added Taunsa,
+  Hub and Usta Muhammad, and split South Waziristan (168 districts).
+- **Banks**: `SAUD` is Silkbank's IBAN code (merged into UBL), not Saudi Pak;
+  Summit Bank (now Bank Makramah) uses `SUMB`; renamed microfinance banks
+  (easypaisa, HBL Microfinance, ABHI) now show current names. Removed an alias
+  table that never took effect.
+- **Phone**: added `0329` (Jazz) and `0355` (SCO); accepts `+92 (0) 3…`,
+  `+9203…`, dotted numbers and Urdu digits.
+- **CNIC**: accepts en-dashes, dots and Urdu digits.
+- **formatLakh** rounds before choosing the unit: `9,999,999` is `"1 Crore"`,
+  not `"100 Lakh"`.
+- **parseAddress** ignores house, plot, street and PO box numbers when finding
+  the postal code, works without commas, and reports city/province conflicts.
+- **normalizeRomanUrdu**: removed 6 rules that did nothing and the rules that
+  changed `mein` ("in") to `main` ("I"); acronyms such as `AP` are left alone.
+- **CLI** exits with 1 for invalid/not found and 2 for usage errors, rejects
+  non-numeric amounts and invalid dates, and supports `--version`.
+
+### Added
+
+- CommonJS build alongside ESM.
+- Subpath imports (`pakdatakit/cnic`, `pakdatakit/phone`, …). Importing a
+  single function no longer pulls in every dataset: `validateCNIC` alone
+  bundles to about 0.4 KB instead of 25 KB.
+- Dataset integrity tests and CI on Node 20, 22 and 24 with a format check.
+
+## 1.1.0
+
+- Interactive playground.

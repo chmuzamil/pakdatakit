@@ -69,7 +69,7 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 - Zero Runtime Dependencies
 - Tree-Shakeable
 - Lightweight & Fast
-- ESM Ready
+- ESM and CommonJS, with per-module subpath imports
 - Production Ready
 
 ---
@@ -82,8 +82,17 @@ npm install pakdatakit
 
 Requirements:
 
-- Node.js 18+
-- ESM only — use `import`; CommonJS `require()` is not supported (use dynamic `import()` from CommonJS code)
+- Node.js 20+
+- Works with both `import` and `require()`
+
+Import everything from `pakdatakit`, or a single module to keep bundles small:
+
+```ts
+import { validateCNIC } from 'pakdatakit/cnic';
+const { analyzePhone } = require('pakdatakit/phone');
+```
+
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `iban`, `networks`, `phone`, `postal`, `text`, `whatsapp`.
 
 ---
 
@@ -140,6 +149,8 @@ npx pakdatakit hijri
 npx pakdatakit normalize-urdu "ap kia ker rhe ho"
 ```
 
+The CLI exits with status 0 when the input is valid or found, 1 when it is invalid or not found, and 2 for usage errors, so it can be used in scripts. Run `npx pakdatakit --help` for all commands.
+
 ---
 
 # API Reference
@@ -170,8 +181,11 @@ validateCNIC('35202-123456-1');
 Supports:
 
 - Plain format
-- Dashed format
-- Space-separated format
+- Dashed format (hyphens or en-dashes)
+- Space- or dot-separated format
+- Urdu digits
+
+Separators must sit between the 5-7-1 digit groups, and the first digit must be a province code (1–8). NADRA does not publish a check-digit algorithm, so this checks structure only.
 
 ---
 
@@ -179,7 +193,7 @@ Supports:
 
 ### validatePhone()
 
-Validates Pakistani mobile numbers.
+Validates Pakistani mobile numbers. Accepts `03…`, `+92…`, `0092…`, `+92 (0) 3…` and short `3…` forms with spaces, dashes, dots or Urdu digits. The `03XX` prefix must belong to a mobile operator.
 
 ```ts
 validatePhone(phone: string): boolean
@@ -205,7 +219,7 @@ validatePhone('3001234567');
 Converts valid Pakistani mobile numbers to E.164 format.
 
 ```ts
-formatPhone(phone: string): string
+formatPhone(phone: string): string | null
 ```
 
 Examples:
@@ -216,6 +230,9 @@ formatPhone('03001234567');
 
 formatPhone('+92 300-123-4567');
 // "+923001234567"
+
+formatPhone('03601234567');
+// null (unallocated prefix)
 ```
 
 ---
@@ -234,7 +251,7 @@ Returns:
 {
   valid: boolean;
   formatted: string | null;
-  network: 'Jazz' | 'Zong' | 'Telenor' | 'Ufone' | 'Unknown';
+  network: 'Jazz' | 'Zong' | 'Telenor' | 'Ufone' | 'SCO' | 'Unknown';
 }
 ```
 
@@ -257,7 +274,7 @@ analyzePhone('invalid');
 Generates a WhatsApp click-to-chat link for Pakistani mobile numbers.
 
 ```ts
-createWhatsAppLink(phone: string, message?: string): string
+createWhatsAppLink(phone: string, message?: string): string | null
 ```
 
 Examples:
@@ -270,7 +287,7 @@ createWhatsAppLink('03001234567', 'Assalamualaikum');
 // "https://wa.me/923001234567?text=Assalamualaikum"
 ```
 
-Returns an empty string for invalid phone numbers.
+Returns `null` for invalid phone numbers.
 
 ---
 
@@ -314,7 +331,7 @@ getBankFromIBAN('invalid');
 // null
 ```
 
-Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, and 46 total entries in the dataset.
+Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, and 43 total entries in the dataset. Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
 
 ---
 
@@ -367,7 +384,7 @@ getPostalCode('karachi');
 Detects network using the original mobile prefix.
 
 ```ts
-getNetwork(phone: string): string
+getNetwork(phone: string): NetworkName
 ```
 
 Returns:
@@ -376,6 +393,7 @@ Returns:
 - Zong
 - Ufone
 - Telenor
+- SCO (0355, AJK and Gilgit-Baltistan)
 - Unknown
 
 Examples:
@@ -394,7 +412,7 @@ getNetwork('03451234567');
 // Telenor
 ```
 
-> Note: Pakistan supports Mobile Number Portability (MNP). The current carrier may differ from the original prefix.
+> Note: This is the operator the prefix was originally allocated to. With Mobile Number Portability (MNP), and Telenor Pakistan's 2026 merger into PTML (Ufone), the current carrier may differ.
 
 ---
 
@@ -445,7 +463,7 @@ searchCities('kar');
 
 ### getDistrictProvince() / searchDistricts()
 
-District-level geography lookup across 171 districts.
+District-level geography lookup across 168 districts.
 
 ```ts
 getDistrictProvince('Lahore'); // "Punjab"
@@ -462,12 +480,20 @@ Parses free-form Pakistani addresses into structured components.
 
 ```ts
 parseAddress('House 12, Gulberg III, Lahore, Punjab 54660');
-// { street: "House 12", area: "Gulberg III", city: "Lahore", province: "Punjab", postalCode: "54660", ... }
+// { street: "House 12", area: "Gulberg III", city: "Lahore", province: "Punjab", postalCode: "54660", warnings: [], ... }
+
+parseAddress('12 Model Town Lahore');
+// { street: "12 Model Town", city: "Lahore", province: "Punjab", ... }
+
+parseAddress('House 1, Lahore, Sindh').warnings;
+// ["Lahore is in Punjab, but the address says Sindh"]
 ```
+
+House, plot, street and PO box numbers are not mistaken for postal codes.
 
 ### formatAddress()
 
-Formats structured components back into a mailing address string.
+Formats structured components back into a mailing address string. Only the components you pass are included.
 
 ---
 
@@ -488,9 +514,14 @@ Convert between English, Urdu, and Arabic-Indic digits.
 ### toHijri() / formatHijri() / isRamadan()
 
 ```ts
-formatHijri(new Date()); // "14 Ramadan 1447"
+formatHijri(new Date(2025, 5, 7)); // "10 Dhu al-Hijjah 1446"
 isRamadan(new Date()); // true | false
+
+// Shift by whole days to match local moon sighting
+formatHijri(new Date(2025, 5, 7), { offset: -1 }); // "9 Dhu al-Hijjah 1446"
 ```
+
+Uses the tabular ("islamic-civil") calendar. Dates announced in Pakistan follow moon sighting and can differ by a day; use `offset` to adjust. Invalid dates throw a `RangeError`.
 
 ---
 
@@ -498,7 +529,7 @@ isRamadan(new Date()); // true | false
 
 ### formatPKR()
 
-Formats PKR amounts with separators.
+Formats PKR amounts with separators, rounded to whole rupees. Negative amounts keep their sign; `NaN` and `Infinity` throw a `RangeError`.
 
 ```ts
 formatPKR(amount: number): string
@@ -512,6 +543,9 @@ formatPKR(150000);
 
 formatPKR(0);
 // "Rs. 0"
+
+formatPKR(-1500);
+// "-Rs. 1,500"
 ```
 
 ---
@@ -650,7 +684,7 @@ Built for developers building software for Pakistan 🇵🇰
 - IBAN Validation
 - Bank Detection from IBAN
 - Postal Code Lookup
-- Expanded datasets (150 cities, 171 districts, 109 postal codes, 46 banks)
+- Expanded datasets (cities, districts, postal codes, banks)
 
 ### v0.3 ✅
 
@@ -676,6 +710,12 @@ Built for developers building software for Pakistan 🇵🇰
 ### v1.1 ✅
 
 - Interactive Playground ([pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/))
+
+### v2.0 ✅
+
+- Bug-fix release; see [CHANGELOG.md](./CHANGELOG.md) for breaking changes
+- CommonJS build and subpath imports
+- Corrected Hijri dates, datasets and validation
 
 ### Planned
 

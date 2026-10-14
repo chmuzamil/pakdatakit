@@ -31,8 +31,14 @@ export interface RaastP2PQrOptions {
    * `'30'` is the value listed for Raast in SBP's QR standard.
    */
   scheme?: '00' | '30';
-  /** Amount in PKR. When set, the QR is dynamic (point of initiation 12). */
+  /**
+   * Amount in PKR. When set, the QR is dynamic (point of initiation 12) and
+   * `expiresAt` is required: banking apps reject dynamic QR codes without an
+   * expiry, and ignore the amount in static ones.
+   */
   amount?: number;
+  /** When a QR with an amount stops working (tag 07). Required with `amount`. */
+  expiresAt?: Date;
   /** Payee's bank name (up to 25 characters). */
   bankName?: string;
   /** Payment description (up to 30 characters). */
@@ -86,6 +92,8 @@ export interface ParsedRaastQr {
   /** Whether `iban` passes the IBAN checksum. */
   ibanValid: boolean;
   amount: number | null;
+  /** P2P: expiry of a dynamic QR as local `YYYY-MM-DDTHH:mm`. */
+  expiresAt: string | null;
   /** P2P: bank name. */
   bankName: string | null;
   /** P2P: payment description. */
@@ -116,6 +124,33 @@ function formatAmount(
   return text;
 }
 
+/** P2P amounts: whole rupees as `1500` (as banking apps write them), otherwise `1500.50`. */
+function formatP2PAmount(amount: number): string {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new RangeError('amount must be a positive number');
+  }
+  const text = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
+  if (text.length > 10) {
+    throw new RangeError('amount is too large for a Raast QR code');
+  }
+  return text;
+}
+
+/** `DDMMYYYYhhmm` in local time. */
+function formatExpiry(date: Date): string {
+  if (Number.isNaN(date.getTime())) {
+    throw new RangeError('expiresAt is invalid');
+  }
+  const two = (n: number) => String(n).padStart(2, '0');
+  return (
+    two(date.getDate()) +
+    two(date.getMonth() + 1) +
+    String(date.getFullYear()).padStart(4, '0') +
+    two(date.getHours()) +
+    two(date.getMinutes())
+  );
+}
+
 function checkLength(value: string, max: number, label: string): string {
   if ([...value].length > max) {
     throw new RangeError(`${label} must be at most ${max} characters`);
@@ -137,12 +172,22 @@ function normalizeIban(iban: string): string {
  * scanned by apps such as Easypaisa and JazzCash. Encode the string as a QR
  * code with any QR library.
  *
- * @example
- * createRaastP2PQr({ iban: 'PK36SCBL0000001123456702', amount: 1500 });
+ * A QR with an `amount` is dynamic and needs `expiresAt`; this layout
+ * (`01` = `12`, amount in tag 05, expiry in tag 07) matches dynamic QR codes
+ * from banking apps and scans in Easypaisa and JazzCash.
  *
- * @param options - Payee IBAN and optional amount, bank name and description
+ * @example
+ * createRaastP2PQr({ iban: 'PK36SCBL0000001123456702' });
+ * createRaastP2PQr({
+ *   iban: 'PK36SCBL0000001123456702',
+ *   amount: 1500,
+ *   expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+ * });
+ *
+ * @param options - Payee IBAN and optional amount with expiry, bank name and description
  * @returns QR payload string
- * @throws {RangeError} If the IBAN is invalid or a field is too long
+ * @throws {RangeError} If the IBAN is invalid, a field is too long, or an
+ *   amount is given without `expiresAt`
  */
 export function createRaastP2PQr(options: RaastP2PQrOptions): string {
   const iban = normalizeIban(options.iban);
@@ -156,13 +201,19 @@ export function createRaastP2PQr(options: RaastP2PQrOptions): string {
   }
   payload += encodeField('04', iban);
   if (options.amount !== undefined) {
-    payload += encodeField('05', formatAmount(options.amount, 10, 'amount'));
+    payload += encodeField('05', formatP2PAmount(options.amount));
   }
   if (options.particulars) {
     payload += encodeField(
       '06',
       checkLength(options.particulars, 30, 'particulars'),
     );
+  }
+  if (options.amount !== undefined) {
+    if (options.expiresAt === undefined) {
+      throw new RangeError('A QR with an amount needs expiresAt');
+    }
+    payload += encodeField('07', formatExpiry(options.expiresAt));
   }
 
   const data = `${payload}1004`;
@@ -336,6 +387,7 @@ export function parseRaastQr(payload: string): ParsedRaastQr | null {
 
   const additional = fields.find((field) => field.id === '62')?.children ?? [];
   const due = fieldValue(additional, '50');
+  const expiry = kind === 'p2p' ? fieldValue(fields, '07') : null;
 
   return {
     kind,
@@ -344,6 +396,10 @@ export function parseRaastQr(payload: string): ParsedRaastQr | null {
     iban,
     ibanValid: iban !== null && validateIBAN(iban),
     amount: toAmount(fieldValue(fields, kind === 'p2p' ? '05' : '54')),
+    expiresAt:
+      expiry && /^\d{12}$/.test(expiry)
+        ? `${expiry.slice(4, 8)}-${expiry.slice(2, 4)}-${expiry.slice(0, 2)}T${expiry.slice(8, 10)}:${expiry.slice(10)}`
+        : null,
     bankName: kind === 'p2p' ? fieldValue(fields, '03') : null,
     particulars: kind === 'p2p' ? fieldValue(fields, '06') : null,
     merchantName: kind === 'merchant' ? fieldValue(fields, '59') : null,

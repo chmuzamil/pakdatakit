@@ -690,14 +690,19 @@ FBR does not publish its check-digit algorithms, so these check the format only.
 Builds and reads payment QR codes following the State Bank of Pakistan's QR standard (Circular Letter No. 1 of 2022). Turn the returned string into an image with any QR library.
 
 ```ts
-// Person-to-person: anyone can pay this IBAN through Raast
+// Person-to-person: anyone can pay this IBAN through Raast; the payer enters the amount
+createRaastP2PQr({ iban: 'PK36SCBL0000001123456702' });
+
+// With a fixed amount: banking apps require an expiry
 const payload = createRaastP2PQr({
   iban: 'PK36SCBL0000001123456702',
   amount: 1500,
+  expiresAt: new Date(2026, 10, 13, 23, 59),
 });
 
 parseRaastQr(payload);
-// { kind: 'p2p', dynamic: true, crcValid: true, iban: 'PK36SCBL0000001123456702', amount: 1500, ... }
+// { kind: 'p2p', dynamic: true, crcValid: true, iban: 'PK36SCBL0000001123456702',
+//   amount: 1500, expiresAt: '2026-11-13T23:59', ... }
 
 // Merchant QR (EMVCo), with Pakistan-specific bill due dates
 createMerchantQr({
@@ -716,7 +721,7 @@ createMerchantQr({
 });
 ```
 
-Person-to-person QR codes use the same layout as QR codes from banking apps (Faysal Bank, easypaisa), and scan in the Easypaisa and JazzCash apps. This is handy for accounts whose app cannot generate a receiving QR, such as SadaPay.
+Person-to-person QR codes use the same layout as QR codes from banking apps (Faysal Bank and easypaisa without an amount; JazzCash and Mashreq with one), and scan in the Easypaisa and JazzCash apps. This is handy for accounts whose app cannot generate a receiving QR, such as SadaPay. A QR with an amount must have `expiresAt`: apps reject amount QRs without an expiry, and ignore an amount in a QR that has none.
 
 SBP reserves merchant-account tags 28–30 for Raast but has shared the layout of the fields inside them only with banks, so `createMerchantQr` takes those sub-fields from you. `parseRaastQr` checks the CRC and finds the IBAN in either kind of QR.
 

@@ -1,6 +1,6 @@
 {
   "name": "pakdatakit",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Production-ready utility toolkit for Pakistani developers — CNIC, phone, WhatsApp, IBAN, postal codes, address parsing, Hijri dates, Roman Urdu, networks, geography, and formatting",
   "type": "module",
   "main": "./dist/index.cjs",

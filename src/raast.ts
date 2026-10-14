@@ -22,6 +22,41 @@ const PK_IBAN_PATTERN = /^PK\d{2}[A-Z]{4}[A-Z0-9]{16}$/;
  */
 const DEFAULT_P2P_SCHEME = '00';
 
+/** A duration such as `'30m'`, `'12h'` or `'7d'` (minutes, hours or days). */
+export type RaastDuration = `${number}${'m' | 'h' | 'd'}`;
+
+const DURATION_UNITS = { m: 60_000, h: 3_600_000, d: 86_400_000 } as const;
+
+/** Resolves `expiresAt` / `expiresIn` to a date. */
+function resolveExpiry(
+  expiresAt: Date | undefined,
+  expiresIn: number | RaastDuration | undefined,
+  now: Date,
+): Date | undefined {
+  if (expiresAt !== undefined && expiresIn !== undefined) {
+    throw new RangeError('Use either expiresAt or expiresIn, not both');
+  }
+  if (expiresIn === undefined) return expiresAt;
+  let ms: number;
+  if (typeof expiresIn === 'number') {
+    ms = expiresIn;
+  } else {
+    const match = /^(\d+(?:\.\d+)?)([mhd])$/.exec(expiresIn);
+    if (!match) {
+      throw new RangeError(
+        `expiresIn must be milliseconds or like '30m', '12h' or '7d', received ${expiresIn}`,
+      );
+    }
+    ms =
+      Number(match[1]) *
+      DURATION_UNITS[match[2] as keyof typeof DURATION_UNITS];
+  }
+  if (!Number.isFinite(ms) || ms <= 0) {
+    throw new RangeError('expiresIn must be a positive duration');
+  }
+  return new Date(now.getTime() + ms);
+}
+
 /** Options for {@link createRaastP2PQr}. */
 export interface RaastP2PQrOptions {
   /** Payee's Pakistani IBAN. */
@@ -37,8 +72,16 @@ export interface RaastP2PQrOptions {
    * expiry, and ignore the amount in static ones.
    */
   amount?: number;
-  /** When a QR with an amount stops working (tag 07). Required with `amount`. */
+  /**
+   * When a QR with an amount stops working (tag 07). With `amount`, give this
+   * or `expiresIn`.
+   */
   expiresAt?: Date;
+  /**
+   * How long from now a QR with an amount works, instead of `expiresAt`:
+   * milliseconds, or a string such as `'30m'`, `'12h'` or `'7d'`.
+   */
+  expiresIn?: number | RaastDuration;
   /** Payee's bank name (up to 25 characters). */
   bankName?: string;
   /** Payment description (up to 30 characters). */
@@ -178,18 +221,19 @@ function normalizeIban(iban: string): string {
  *
  * @example
  * createRaastP2PQr({ iban: 'PK36SCBL0000001123456702' });
- * createRaastP2PQr({
- *   iban: 'PK36SCBL0000001123456702',
- *   amount: 1500,
- *   expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
- * });
+ * createRaastP2PQr({ iban: 'PK36SCBL0000001123456702', amount: 1500, expiresIn: '1d' });
  *
  * @param options - Payee IBAN and optional amount with expiry, bank name and description
  * @returns QR payload string
  * @throws {RangeError} If the IBAN is invalid, a field is too long, or an
- *   amount is given without `expiresAt`
+ *   amount is given without `expiresAt` or `expiresIn`
  */
 export function createRaastP2PQr(options: RaastP2PQrOptions): string {
+  const expiresAt = resolveExpiry(
+    options.expiresAt,
+    options.expiresIn,
+    new Date(),
+  );
   const iban = normalizeIban(options.iban);
   let payload =
     encodeField('00', '02') +
@@ -210,10 +254,10 @@ export function createRaastP2PQr(options: RaastP2PQrOptions): string {
     );
   }
   if (options.amount !== undefined) {
-    if (options.expiresAt === undefined) {
-      throw new RangeError('A QR with an amount needs expiresAt');
+    if (expiresAt === undefined) {
+      throw new RangeError('A QR with an amount needs expiresAt or expiresIn');
     }
-    payload += encodeField('07', formatExpiry(options.expiresAt));
+    payload += encodeField('07', formatExpiry(expiresAt));
   }
 
   const data = `${payload}1004`;
@@ -413,4 +457,97 @@ export function parseRaastQr(payload: string): ParsedRaastQr | null {
     amountAfterDueDate: toAmount(fieldValue(additional, '51')),
     fields,
   };
+}
+
+/** A problem that stops a Raast QR from working or makes it unsafe to pay. */
+export type RaastQrError =
+  | 'not-a-raast-qr'
+  | 'bad-checksum'
+  | 'no-iban'
+  | 'invalid-iban'
+  | 'expired'
+  | 'missing-expiry';
+
+/** Something worth telling the payer, but which does not stop payment. */
+export type RaastQrWarning = 'amount-ignored' | 'expires-soon';
+
+/** Result of {@link validateRaastQr}. */
+export interface RaastQrValidation {
+  /** `true` when there are no errors. */
+  valid: boolean;
+  errors: RaastQrError[];
+  warnings: RaastQrWarning[];
+  /** The parsed QR, or `null` if it could not be read. */
+  qr: ParsedRaastQr | null;
+}
+
+/** Options for {@link validateRaastQr}. */
+export interface ValidateRaastQrOptions {
+  /** The time to check expiry against. Defaults to now. */
+  now?: Date;
+  /** Warn when a QR expires within this many milliseconds. Defaults to 1 hour. */
+  expiresSoonMs?: number;
+}
+
+/** Converts parseRaastQr's local `YYYY-MM-DDTHH:mm` to a Date. */
+function localDateTime(value: string): Date {
+  const [date, time] = value.split('T') as [string, string];
+  const [year, month, day] = date.split('-').map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  const [hour, minute] = time.split(':').map(Number) as [number, number];
+  return new Date(year, month - 1, day, hour, minute);
+}
+
+/**
+ * Checks whether a Raast QR code can be paid, e.g. before showing a payment
+ * screen or to warn about a tampered sticker.
+ *
+ * Errors: not a Pakistani payment QR, checksum mismatch (damaged or edited),
+ * no IBAN or an IBAN that fails its checksum, expired, or a fixed-amount QR
+ * without the expiry that banking apps require.
+ * Warnings: an amount in a static QR (apps ignore it, so the payer must type
+ * it), or a QR that expires soon (within an hour by default).
+ *
+ * @example
+ * validateRaastQr(scannedText);
+ * // { valid: false, errors: ['expired'], warnings: [], qr: { ... } }
+ *
+ * @param payload - Text decoded from the QR code
+ * @param options - Time to check against and the "expires soon" window
+ * @returns Validation result with the parsed QR
+ */
+export function validateRaastQr(
+  payload: string,
+  options: ValidateRaastQrOptions = {},
+): RaastQrValidation {
+  const qr = parseRaastQr(payload);
+  if (qr === null) {
+    return { valid: false, errors: ['not-a-raast-qr'], warnings: [], qr: null };
+  }
+
+  const errors: RaastQrError[] = [];
+  const warnings: RaastQrWarning[] = [];
+  const now = options.now ?? new Date();
+
+  if (!qr.crcValid) errors.push('bad-checksum');
+  if (qr.iban === null) errors.push('no-iban');
+  else if (!qr.ibanValid) errors.push('invalid-iban');
+
+  if (qr.kind === 'p2p') {
+    if (qr.dynamic && qr.expiresAt === null) errors.push('missing-expiry');
+    if (!qr.dynamic && qr.amount !== null) warnings.push('amount-ignored');
+    if (qr.expiresAt !== null) {
+      const remaining = localDateTime(qr.expiresAt).getTime() - now.getTime();
+      if (remaining <= 0) {
+        errors.push('expired');
+      } else if (remaining <= (options.expiresSoonMs ?? 3_600_000)) {
+        warnings.push('expires-soon');
+      }
+    }
+  }
+
+  return { valid: errors.length === 0, errors, warnings, qr };
 }

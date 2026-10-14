@@ -1,4 +1,4 @@
-export { validateCNIC } from './cnic.js';
+export { validateCNIC, getCNICInfo, type CNICInfo } from './cnic.js';
 export {
   validatePhone,
   formatPhone,
@@ -40,3 +40,43 @@ export {
   type HijriDate,
   type HijriOptions,
 } from './hijri.js';
+export {
+  numberToWords,
+  amountInWords,
+  type WordsLanguage,
+  type NumberToWordsOptions,
+  type AmountInWordsOptions,
+} from './words.js';
+export {
+  analyzeNTN,
+  validateNTN,
+  validateSTRN,
+  type NTNInfo,
+  type NTNType,
+} from './tax.js';
+export {
+  analyzeNumber,
+  getNumberType,
+  validateLandline,
+  getAreaCode,
+  type NumberInfo,
+  type NumberType,
+} from './numbers.js';
+export {
+  createRaastP2PQr,
+  createMerchantQr,
+  parseRaastQr,
+  type RaastP2PQrOptions,
+  type MerchantQrOptions,
+  type MerchantAccountInfo,
+  type ParsedRaastQr,
+} from './raast.js';
+export {
+  getPakistanHolidays,
+  getHolidaysOn,
+  isPakistanHoliday,
+  type Holiday,
+  type HolidayId,
+  type HolidayOptions,
+  type IslamicHolidayId,
+} from './holidays.js';

@@ -22,6 +22,8 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+      // TypeScript already checks for undefined names.
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },

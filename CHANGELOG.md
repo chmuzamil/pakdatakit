@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.1.0
+
+### Added
+
+- `getCNICInfo()`: province of registration and gender from a CNIC.
+- `amountInWords()` and `numberToWords()`: lakh/crore/arab/kharab in English
+  and Urdu, with paisa and cheque style ("Rupees ... Only").
+- `pakdatakit/zod`, `pakdatakit/valibot` and `pakdatakit/yup`: form schemas
+  for CNIC, phone, IBAN, NTN, STRN and landline. The libraries are optional
+  peer dependencies.
+- `analyzeNTN()`, `validateNTN()` and `validateSTRN()` (format checks).
+- `analyzeNumber()`, `getNumberType()`, `validateLandline()` and
+  `getAreaCode()`: landline, UAN, toll-free, premium and personal numbers,
+  with area codes and cities.
+- `createRaastP2PQr()`, `createMerchantQr()` and `parseRaastQr()`: SBP
+  Pakistan QR standard, with CRC checks.
+- `getPakistanHolidays()`, `getHolidaysOn()` and `isPakistanHoliday()`:
+  federal public holidays with observed moon-sighting dates for 2020-2026 and
+  flagged estimates for later years.
+- New subpaths: `holidays`, `numbers`, `raast`, `tax`, `words`.
+
 ## 2.0.0
 
 A bug-fix release. Several fixes change return values, so this is a major

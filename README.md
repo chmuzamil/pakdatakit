@@ -21,7 +21,20 @@
   </a>
   <img src="https://img.shields.io/npm/l/pakdatakit" alt="license">
   <img src="https://img.shields.io/badge/TypeScript-ready-blue" alt="TypeScript">
+  <a href="https://pakdatakit-playground.vercel.app/">
+    <img src="https://img.shields.io/badge/playground-try%20it%20live-brightgreen" alt="Playground">
+  </a>
 </p>
+
+---
+
+## 🌐 Playground
+
+Try PakDataKit in your browser, no installation needed:
+
+👉 **[pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/)**
+
+Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, check IBANs and banks, look up postal codes, cities and provinces, format PKR amounts, and try the text and Hijri utilities. Use it to preview outputs before you integrate the library.
 
 ---
 
@@ -47,6 +60,7 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 ## Features
 
 - ✅ CNIC Validation
+- ✅ CNIC Province & Gender Decoding
 - ✅ Phone Number Validation
 - ✅ Phone Number Normalization
 - ✅ Phone Intelligence (`analyzePhone`)
@@ -62,11 +76,13 @@ PakDataKit provides a single, typed, reusable solution so you can focus on build
 - ✅ City → Province Lookup
 - ✅ PKR Formatting
 - ✅ Lakh / Crore Formatting
+- ✅ Amounts in Words (English & Urdu, cheque style)
+- ✅ Zod, Valibot & Yup Form Validation
 
 ### Developer Friendly
 
 - Fully Typed (TypeScript)
-- Zero Runtime Dependencies
+- Zero Runtime Dependencies (form libraries are optional peers)
 - Tree-Shakeable
 - Lightweight & Fast
 - ESM and CommonJS, with per-module subpath imports
@@ -92,7 +108,7 @@ import { validateCNIC } from 'pakdatakit/cnic';
 const { analyzePhone } = require('pakdatakit/phone');
 ```
 
-Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `iban`, `networks`, `phone`, `postal`, `text`, `whatsapp`.
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `iban`, `networks`, `phone`, `postal`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot` and `yup`.
 
 ---
 
@@ -186,6 +202,24 @@ Supports:
 - Urdu digits
 
 Separators must sit between the 5-7-1 digit groups, and the first digit must be a province code (1–8). NADRA does not publish a check-digit algorithm, so this checks structure only.
+
+### getCNICInfo()
+
+Reads the province of registration and gender encoded in a CNIC.
+
+```ts
+getCNICInfo(cnic: string): CNICInfo | null
+```
+
+```ts
+getCNICInfo('35202-1234567-1');
+// { digits: "3520212345671", formatted: "35202-1234567-1", province: "Punjab", gender: "male" }
+
+getCNICInfo('invalid');
+// null
+```
+
+The first digit is the province where the CNIC was first registered, which is not necessarily where the holder lives now. The last digit is odd for male and even for female.
 
 ---
 
@@ -573,6 +607,71 @@ formatLakh(50000);
 
 ---
 
+## Amounts in Words
+
+### amountInWords() / numberToWords()
+
+Writes numbers and rupee amounts in words using the Pakistani scale (hundred, thousand, lakh, crore, arab, kharab), in English or Urdu. Useful for cheques, invoices and receipts.
+
+```ts
+amountInWords(amount: number, options?: { language?: "en" | "ur"; cheque?: boolean }): string
+numberToWords(n: number, options?: { language?: "en" | "ur" }): string
+```
+
+```ts
+amountInWords(125000.5);
+// "one lakh twenty-five thousand rupees and fifty paisa"
+
+amountInWords(125000, { cheque: true });
+// "Rupees One Lakh Twenty-Five Thousand Only"
+
+amountInWords(125000, { language: 'ur' });
+// "ایک لاکھ پچیس ہزار روپے"
+
+amountInWords(500.5, { language: 'ur', cheque: true });
+// "پانچ سو روپے اور پچاس پیسے صرف"
+
+numberToWords(12_34_56_789);
+// "twelve crore thirty-four lakh fifty-six thousand seven hundred eighty-nine"
+```
+
+Amounts are rounded to the nearest paisa. Negative or non-finite amounts throw a `RangeError`.
+
+---
+
+## Form Validation
+
+Ready-made schemas for [Zod](https://zod.dev), [Valibot](https://valibot.dev) and [Yup](https://github.com/jquense/yup). Install the library you use; PakDataKit does not depend on any of them.
+
+```ts
+import { z } from 'zod';
+import { pk } from 'pakdatakit/zod';
+
+const CheckoutForm = z.object({
+  cnic: pk.cnic(),
+  phone: pk.phone(),
+  iban: pk.iban({ message: 'Please enter a valid IBAN' }),
+});
+```
+
+```ts
+import * as v from 'valibot';
+import { pk } from 'pakdatakit/valibot';
+
+const CheckoutForm = v.object({ cnic: pk.cnic(), phone: pk.phone() });
+```
+
+```ts
+import { object } from 'yup';
+import { pk } from 'pakdatakit/yup';
+
+const CheckoutForm = object({ cnic: pk.cnic().required(), phone: pk.phone() });
+```
+
+Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+
+---
+
 # Real-World Example
 
 ```ts
@@ -620,61 +719,6 @@ const budget = formatLakh(2500000);
 
 ---
 
-# 🌐 Playground
-
-Try PakDataKit instantly in your browser:
-
-👉 https://pakdatakit-playground.vercel.app/
-
-The playground provides live interactive tools powered by the PakDataKit library:
-
-### Available Tools
-
-- 🆔 CNIC Validation
-- 📱 Phone Number Analysis
-- 📡 Mobile Network Detection
-- 💬 WhatsApp Link Generator
-- 🏦 IBAN Validation
-- 🏛️ Bank Detection from IBAN
-- 📮 Postal Code Lookup
-- 🗺️ City & Province Lookup
-- 💰 PKR Formatting
-- 🔤 Text Utilities
-- 🕌 Hijri & Islamic Utilities (experimental)
-
-### Why the Playground?
-
-The playground serves as a live documentation and testing environment for PakDataKit.
-
-You can:
-
-- Test utilities instantly
-- Explore API behavior
-- Validate inputs
-- Preview outputs before integrating into your application
-
-No installation required.
-
----
-
-### Example
-
-```ts
-import { analyzePhone, validateIBAN, createWhatsAppLink } from 'pakdatakit';
-
-analyzePhone('03001234567');
-
-validateIBAN('PK36SCBL0000001123456702');
-
-createWhatsAppLink('03001234567', 'Assalamualaikum');
-```
-
----
-
-Built for developers building software for Pakistan 🇵🇰
-
----
-
 # Roadmap
 
 ### v0.2 ✅
@@ -716,6 +760,12 @@ Built for developers building software for Pakistan 🇵🇰
 - Bug-fix release; see [CHANGELOG.md](./CHANGELOG.md) for breaking changes
 - CommonJS build and subpath imports
 - Corrected Hijri dates, datasets and validation
+
+### v2.1 ✅
+
+- CNIC province & gender decoding (`getCNICInfo`)
+- Amounts in words in English and Urdu (`amountInWords`, `numberToWords`)
+- Zod, Valibot and Yup adapters
 
 ### Planned
 

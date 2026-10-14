@@ -26,9 +26,7 @@ describe('toUrduDigits', () => {
 
 describe('normalizeRomanUrdu', () => {
   it('normalizes common spellings', () => {
-    expect(normalizeRomanUrdu('ap kia ker rhe ho')).toBe(
-      'aap kya kar rhe ho',
-    );
+    expect(normalizeRomanUrdu('ap kia ker rhe ho')).toBe('aap kya kar rhe ho');
   });
 
   it('normalizes greeting variants', () => {

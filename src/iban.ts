@@ -19,7 +19,9 @@ const bankMap = lazy(
  * Expands IBAN letters to digits for mod-97 checksum (A=10 … Z=35).
  */
 function expandIbanChars(value: string): string {
-  return value.replace(/[A-Z]/g, (char) => (char.charCodeAt(0) - 55).toString());
+  return value.replace(/[A-Z]/g, (char) =>
+    (char.charCodeAt(0) - 55).toString(),
+  );
 }
 
 /**

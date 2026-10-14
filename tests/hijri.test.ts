@@ -14,7 +14,11 @@ const islamicCivil = new Intl.DateTimeFormat('en-u-ca-islamic-civil', {
   timeZone: 'UTC',
 });
 
-function referenceHijri(date: Date): { year: number; month: number; day: number } {
+function referenceHijri(date: Date): {
+  year: number;
+  month: number;
+  day: number;
+} {
   const utc = new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
   );

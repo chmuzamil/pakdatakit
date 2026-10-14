@@ -2,7 +2,11 @@ import citiesData from '../data/cities.json';
 import districtsData from '../data/districts.json';
 import { getCityByPostalCode } from './postal.js';
 import { getDistrictProvince, getProvince } from './geo.js';
-import { lazy, normalizeKey, normalizeWhitespace } from './internal/normalize.js';
+import {
+  lazy,
+  normalizeKey,
+  normalizeWhitespace,
+} from './internal/normalize.js';
 
 interface CityEntry {
   city: string;
@@ -104,7 +108,8 @@ export function parseAddress(address: string): ParsedAddress {
       continue;
     }
 
-    const matchedCity: string | null = city === null ? matchExact(segment, cityNames()) : null;
+    const matchedCity: string | null =
+      city === null ? matchExact(segment, cityNames()) : null;
     if (matchedCity) {
       city = matchedCity;
       segments[i] = '';
@@ -192,7 +197,9 @@ export function formatAddress(
     parts.area,
     parts.city ?? parts.district,
     parts.province,
-  ].filter((part): part is string => typeof part === 'string' && part.length > 0);
+  ].filter(
+    (part): part is string => typeof part === 'string' && part.length > 0,
+  );
 
   let formatted = segments.join(', ');
 
@@ -223,9 +230,7 @@ function emptyParsedAddress(raw: string): ParsedAddress {
  * Finds the last standalone 5-digit number that is not a house, plot, box or
  * street number.
  */
-function findPostalCode(
-  text: string,
-): { code: string; index: number } | null {
+function findPostalCode(text: string): { code: string; index: number } | null {
   let result: { code: string; index: number } | null = null;
   for (const match of text.matchAll(/(?<![\w#/-])([1-9]\d{4})(?![\w/-])/g)) {
     const before = text.slice(0, match.index);
@@ -254,7 +259,9 @@ function matchTrailing(
     if (key.endsWith(` ${optionKey}`)) {
       return {
         match: option,
-        rest: normalizeWhitespace(segment.slice(0, segment.length - option.length)),
+        rest: normalizeWhitespace(
+          segment.slice(0, segment.length - option.length),
+        ),
       };
     }
   }

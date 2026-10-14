@@ -1,7 +1,4 @@
-import {
-  normalizeWhitespace,
-  toAsciiDigits,
-} from './internal/normalize.js';
+import { normalizeWhitespace, toAsciiDigits } from './internal/normalize.js';
 
 const URDU_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
 

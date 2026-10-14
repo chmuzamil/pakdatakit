@@ -203,10 +203,12 @@ const DISTRICTS_RAW = [
   ['Kharmang', 'NA'],
 ];
 
-const districts = [...new Map(DISTRICTS_RAW).entries()].map(([district, code]) => ({
-  district,
-  province: PROVINCE_NAMES[code],
-})).sort((a, b) => a.district.localeCompare(b.district));
+const districts = [...new Map(DISTRICTS_RAW).entries()]
+  .map(([district, code]) => ({
+    district,
+    province: PROVINCE_NAMES[code],
+  }))
+  .sort((a, b) => a.district.localeCompare(b.district));
 
 const CORE_CITIES = [
   ['Karachi', 'Sindh'],
@@ -391,8 +393,18 @@ for (const [alias, canonical, province] of aliases) {
 /** Major postal codes — GPO + key areas. primary=true is default for getPostalCode(). */
 const POSTAL_CODES = [
   // Islamabad & Rawalpindi
-  { city: 'Islamabad', postalCode: '44000', area: 'Islamabad GPO', primary: true },
-  { city: 'Rawalpindi', postalCode: '46000', area: 'Rawalpindi GPO', primary: true },
+  {
+    city: 'Islamabad',
+    postalCode: '44000',
+    area: 'Islamabad GPO',
+    primary: true,
+  },
+  {
+    city: 'Rawalpindi',
+    postalCode: '46000',
+    area: 'Rawalpindi GPO',
+    primary: true,
+  },
   { city: 'Rawalpindi', postalCode: '46300', area: 'Satellite Town' },
   { city: 'Murree', postalCode: '47150', area: 'Murree GPO', primary: true },
   { city: 'Taxila', postalCode: '47040', area: 'Taxila GPO', primary: true },
@@ -402,43 +414,143 @@ const POSTAL_CODES = [
   { city: 'Lahore', postalCode: '54700', area: 'Model Town' },
   { city: 'Lahore', postalCode: '54810', area: 'Lahore Cantt' },
   { city: 'Lahore', postalCode: '54570', area: 'Iqbal Town' },
-  { city: 'Faisalabad', postalCode: '38000', area: 'Faisalabad GPO', primary: true },
+  {
+    city: 'Faisalabad',
+    postalCode: '38000',
+    area: 'Faisalabad GPO',
+    primary: true,
+  },
   { city: 'Multan', postalCode: '60000', area: 'Multan GPO', primary: true },
-  { city: 'Gujranwala', postalCode: '52250', area: 'Gujranwala GPO', primary: true },
+  {
+    city: 'Gujranwala',
+    postalCode: '52250',
+    area: 'Gujranwala GPO',
+    primary: true,
+  },
   { city: 'Sialkot', postalCode: '51310', area: 'Sialkot GPO', primary: true },
-  { city: 'Sargodha', postalCode: '40100', area: 'Sargodha GPO', primary: true },
-  { city: 'Bahawalpur', postalCode: '63100', area: 'Bahawalpur GPO', primary: true },
-  { city: 'Sheikhupura', postalCode: '39350', area: 'Sheikhupura GPO', primary: true },
+  {
+    city: 'Sargodha',
+    postalCode: '40100',
+    area: 'Sargodha GPO',
+    primary: true,
+  },
+  {
+    city: 'Bahawalpur',
+    postalCode: '63100',
+    area: 'Bahawalpur GPO',
+    primary: true,
+  },
+  {
+    city: 'Sheikhupura',
+    postalCode: '39350',
+    area: 'Sheikhupura GPO',
+    primary: true,
+  },
   { city: 'Gujrat', postalCode: '50700', area: 'Gujrat GPO', primary: true },
   { city: 'Jhang', postalCode: '35200', area: 'Jhang GPO', primary: true },
   { city: 'Sahiwal', postalCode: '57000', area: 'Sahiwal GPO', primary: true },
   { city: 'Okara', postalCode: '56300', area: 'Okara GPO', primary: true },
   { city: 'Kasur', postalCode: '55050', area: 'Kasur GPO', primary: true },
-  { city: 'Dera Ghazi Khan', postalCode: '32200', area: 'DG Khan GPO', primary: true },
-  { city: 'Muzaffargarh', postalCode: '34200', area: 'Muzaffargarh GPO', primary: true },
-  { city: 'Rahim Yar Khan', postalCode: '64200', area: 'RY Khan GPO', primary: true },
-  { city: 'Bahawalnagar', postalCode: '62300', area: 'Bahawalnagar GPO', primary: true },
-  { city: 'Khanewal', postalCode: '58150', area: 'Khanewal GPO', primary: true },
+  {
+    city: 'Dera Ghazi Khan',
+    postalCode: '32200',
+    area: 'DG Khan GPO',
+    primary: true,
+  },
+  {
+    city: 'Muzaffargarh',
+    postalCode: '34200',
+    area: 'Muzaffargarh GPO',
+    primary: true,
+  },
+  {
+    city: 'Rahim Yar Khan',
+    postalCode: '64200',
+    area: 'RY Khan GPO',
+    primary: true,
+  },
+  {
+    city: 'Bahawalnagar',
+    postalCode: '62300',
+    area: 'Bahawalnagar GPO',
+    primary: true,
+  },
+  {
+    city: 'Khanewal',
+    postalCode: '58150',
+    area: 'Khanewal GPO',
+    primary: true,
+  },
   { city: 'Vehari', postalCode: '61100', area: 'Vehari GPO', primary: true },
-  { city: 'Pakpattan', postalCode: '57400', area: 'Pakpattan GPO', primary: true },
+  {
+    city: 'Pakpattan',
+    postalCode: '57400',
+    area: 'Pakpattan GPO',
+    primary: true,
+  },
   { city: 'Chiniot', postalCode: '35400', area: 'Chiniot GPO', primary: true },
-  { city: 'Hafizabad', postalCode: '52110', area: 'Hafizabad GPO', primary: true },
-  { city: 'Mandi Bahauddin', postalCode: '50400', area: 'Mandi Bahauddin GPO', primary: true },
+  {
+    city: 'Hafizabad',
+    postalCode: '52110',
+    area: 'Hafizabad GPO',
+    primary: true,
+  },
+  {
+    city: 'Mandi Bahauddin',
+    postalCode: '50400',
+    area: 'Mandi Bahauddin GPO',
+    primary: true,
+  },
   { city: 'Jhelum', postalCode: '49600', area: 'Jhelum GPO', primary: true },
   { city: 'Attock', postalCode: '43600', area: 'Attock GPO', primary: true },
   { city: 'Chakwal', postalCode: '48800', area: 'Chakwal GPO', primary: true },
-  { city: 'Mianwali', postalCode: '42200', area: 'Mianwali GPO', primary: true },
+  {
+    city: 'Mianwali',
+    postalCode: '42200',
+    area: 'Mianwali GPO',
+    primary: true,
+  },
   { city: 'Bhakkar', postalCode: '30000', area: 'Bhakkar GPO', primary: true },
   { city: 'Khushab', postalCode: '41000', area: 'Khushab GPO', primary: true },
   { city: 'Narowal', postalCode: '51600', area: 'Narowal GPO', primary: true },
-  { city: 'Nankana Sahib', postalCode: '39100', area: 'Nankana Sahib GPO', primary: true },
-  { city: 'Toba Tek Singh', postalCode: '36050', area: 'TTS GPO', primary: true },
+  {
+    city: 'Nankana Sahib',
+    postalCode: '39100',
+    area: 'Nankana Sahib GPO',
+    primary: true,
+  },
+  {
+    city: 'Toba Tek Singh',
+    postalCode: '36050',
+    area: 'TTS GPO',
+    primary: true,
+  },
   { city: 'Lodhran', postalCode: '59320', area: 'Lodhran GPO', primary: true },
   { city: 'Layyah', postalCode: '31200', area: 'Layyah GPO', primary: true },
-  { city: 'Rajanpur', postalCode: '33500', area: 'Rajanpur GPO', primary: true },
-  { city: 'Wazirabad', postalCode: '52000', area: 'Wazirabad GPO', primary: true },
-  { city: 'Talagang', postalCode: '48100', area: 'Talagang GPO', primary: true },
-  { city: 'Kot Addu', postalCode: '34050', area: 'Kot Addu GPO', primary: true },
+  {
+    city: 'Rajanpur',
+    postalCode: '33500',
+    area: 'Rajanpur GPO',
+    primary: true,
+  },
+  {
+    city: 'Wazirabad',
+    postalCode: '52000',
+    area: 'Wazirabad GPO',
+    primary: true,
+  },
+  {
+    city: 'Talagang',
+    postalCode: '48100',
+    area: 'Talagang GPO',
+    primary: true,
+  },
+  {
+    city: 'Kot Addu',
+    postalCode: '34050',
+    area: 'Kot Addu GPO',
+    primary: true,
+  },
   // Sindh
   { city: 'Karachi', postalCode: '74200', area: 'Karachi GPO', primary: true },
   { city: 'Karachi', postalCode: '74000', area: 'Karachi City GPO' },
@@ -451,42 +563,117 @@ const POSTAL_CODES = [
   { city: 'Karachi', postalCode: '74600', area: 'Nazimabad' },
   { city: 'Karachi', postalCode: '74900', area: 'Korangi' },
   { city: 'Karachi', postalCode: '75950', area: 'Federal B Area' },
-  { city: 'Hyderabad', postalCode: '71000', area: 'Hyderabad GPO', primary: true },
+  {
+    city: 'Hyderabad',
+    postalCode: '71000',
+    area: 'Hyderabad GPO',
+    primary: true,
+  },
   { city: 'Sukkur', postalCode: '65200', area: 'Sukkur GPO', primary: true },
   { city: 'Larkana', postalCode: '77150', area: 'Larkana GPO', primary: true },
-  { city: 'Nawabshah', postalCode: '67450', area: 'Nawabshah GPO', primary: true },
-  { city: 'Mirpur Khas', postalCode: '69000', area: 'Mirpur Khas GPO', primary: true },
-  { city: 'Jacobabad', postalCode: '79000', area: 'Jacobabad GPO', primary: true },
-  { city: 'Shikarpur', postalCode: '78100', area: 'Shikarpur GPO', primary: true },
+  {
+    city: 'Nawabshah',
+    postalCode: '67450',
+    area: 'Nawabshah GPO',
+    primary: true,
+  },
+  {
+    city: 'Mirpur Khas',
+    postalCode: '69000',
+    area: 'Mirpur Khas GPO',
+    primary: true,
+  },
+  {
+    city: 'Jacobabad',
+    postalCode: '79000',
+    area: 'Jacobabad GPO',
+    primary: true,
+  },
+  {
+    city: 'Shikarpur',
+    postalCode: '78100',
+    area: 'Shikarpur GPO',
+    primary: true,
+  },
   { city: 'Dadu', postalCode: '76200', area: 'Dadu GPO', primary: true },
   { city: 'Badin', postalCode: '72220', area: 'Badin GPO', primary: true },
   { city: 'Thatta', postalCode: '73020', area: 'Thatta GPO', primary: true },
   { city: 'Sanghar', postalCode: '68100', area: 'Sanghar GPO', primary: true },
   { city: 'Umerkot', postalCode: '69100', area: 'Umerkot GPO', primary: true },
   { city: 'Tharparkar', postalCode: '69230', area: 'Mithi GPO', primary: true },
-  { city: 'Jamshoro', postalCode: '76080', area: 'Jamshoro GPO', primary: true },
+  {
+    city: 'Jamshoro',
+    postalCode: '76080',
+    area: 'Jamshoro GPO',
+    primary: true,
+  },
   { city: 'Matiari', postalCode: '70100', area: 'Matiari GPO', primary: true },
-  { city: 'Khairpur', postalCode: '66020', area: 'Khairpur GPO', primary: true },
+  {
+    city: 'Khairpur',
+    postalCode: '66020',
+    area: 'Khairpur GPO',
+    primary: true,
+  },
   { city: 'Ghotki', postalCode: '65110', area: 'Ghotki GPO', primary: true },
-  { city: 'Kashmore', postalCode: '79200', area: 'Kashmore GPO', primary: true },
+  {
+    city: 'Kashmore',
+    postalCode: '79200',
+    area: 'Kashmore GPO',
+    primary: true,
+  },
   { city: 'Sujawal', postalCode: '73220', area: 'Sujawal GPO', primary: true },
   // KPK
-  { city: 'Peshawar', postalCode: '25000', area: 'Peshawar GPO', primary: true },
+  {
+    city: 'Peshawar',
+    postalCode: '25000',
+    area: 'Peshawar GPO',
+    primary: true,
+  },
   { city: 'Mardan', postalCode: '23200', area: 'Mardan GPO', primary: true },
-  { city: 'Abbottabad', postalCode: '22010', area: 'Abbottabad GPO', primary: true },
+  {
+    city: 'Abbottabad',
+    postalCode: '22010',
+    area: 'Abbottabad GPO',
+    primary: true,
+  },
   { city: 'Kohat', postalCode: '26000', area: 'Kohat GPO', primary: true },
   { city: 'Bannu', postalCode: '28100', area: 'Bannu GPO', primary: true },
   { city: 'Swat', postalCode: '19200', area: 'Mingora GPO', primary: true },
-  { city: 'Mansehra', postalCode: '21300', area: 'Mansehra GPO', primary: true },
-  { city: 'Dera Ismail Khan', postalCode: '29120', area: 'DI Khan GPO', primary: true },
-  { city: 'Nowshera', postalCode: '24100', area: 'Nowshera GPO', primary: true },
+  {
+    city: 'Mansehra',
+    postalCode: '21300',
+    area: 'Mansehra GPO',
+    primary: true,
+  },
+  {
+    city: 'Dera Ismail Khan',
+    postalCode: '29120',
+    area: 'DI Khan GPO',
+    primary: true,
+  },
+  {
+    city: 'Nowshera',
+    postalCode: '24100',
+    area: 'Nowshera GPO',
+    primary: true,
+  },
   { city: 'Swabi', postalCode: '23430', area: 'Swabi GPO', primary: true },
-  { city: 'Charsadda', postalCode: '24420', area: 'Charsadda GPO', primary: true },
+  {
+    city: 'Charsadda',
+    postalCode: '24420',
+    area: 'Charsadda GPO',
+    primary: true,
+  },
   { city: 'Haripur', postalCode: '22620', area: 'Haripur GPO', primary: true },
   { city: 'Hangu', postalCode: '26190', area: 'Hangu GPO', primary: true },
   { city: 'Karak', postalCode: '27200', area: 'Karak GPO', primary: true },
   { city: 'Tank', postalCode: '29430', area: 'Tank GPO', primary: true },
-  { city: 'Lakki Marwat', postalCode: '28420', area: 'Lakki Marwat GPO', primary: true },
+  {
+    city: 'Lakki Marwat',
+    postalCode: '28420',
+    area: 'Lakki Marwat GPO',
+    primary: true,
+  },
   // Balochistan
   { city: 'Quetta', postalCode: '87300', area: 'Quetta GPO', primary: true },
   { city: 'Gwadar', postalCode: '91200', area: 'Gwadar GPO', primary: true },
@@ -498,10 +685,20 @@ const POSTAL_CODES = [
   { city: 'Chaman', postalCode: '86000', area: 'Chaman GPO', primary: true },
   { city: 'Hub', postalCode: '90250', area: 'Hub GPO', primary: true },
   // AJK & GB
-  { city: 'Muzaffarabad', postalCode: '13100', area: 'Muzaffarabad GPO', primary: true },
+  {
+    city: 'Muzaffarabad',
+    postalCode: '13100',
+    area: 'Muzaffarabad GPO',
+    primary: true,
+  },
   { city: 'Mirpur', postalCode: '10250', area: 'Mirpur GPO', primary: true },
   { city: 'Kotli', postalCode: '11100', area: 'Kotli GPO', primary: true },
-  { city: 'Rawalakot', postalCode: '12350', area: 'Rawalakot GPO', primary: true },
+  {
+    city: 'Rawalakot',
+    postalCode: '12350',
+    area: 'Rawalakot GPO',
+    primary: true,
+  },
   { city: 'Bagh', postalCode: '12500', area: 'Bagh GPO', primary: true },
   { city: 'Gilgit', postalCode: '15700', area: 'Gilgit GPO', primary: true },
   { city: 'Skardu', postalCode: '16100', area: 'Skardu GPO', primary: true },
@@ -510,7 +707,9 @@ const POSTAL_CODES = [
 // Every city with a postal code must also resolve to a province. Postal
 // cities missing from the list above are district headquarters that share
 // their district's name, so take the province from the district list.
-const districtProvince = new Map(districts.map((d) => [d.district, d.province]));
+const districtProvince = new Map(
+  districts.map((d) => [d.district, d.province]),
+);
 for (const { city } of POSTAL_CODES) {
   if (citiesMap.has(city)) continue;
   const province = districtProvince.get(city);
@@ -559,37 +758,56 @@ const BANKS = [
   { code: 'MSHQ', name: 'Mashreq Bank Pakistan' },
   { code: 'DEUT', name: 'Deutsche Bank AG' },
   { code: 'SBPP', name: 'State Bank of Pakistan' },
-  { code: 'TMFB', name: 'easypaisa Digital Bank (formerly Telenor Microfinance Bank)' },
+  {
+    code: 'TMFB',
+    name: 'easypaisa Digital Bank (formerly Telenor Microfinance Bank)',
+  },
   { code: 'JCMA', name: 'Mobilink Microfinance Bank (JazzCash)' },
   { code: 'NRSP', name: 'NRSP Microfinance Bank' },
-  { code: 'FMFB', name: 'HBL Microfinance Bank (formerly First MicroFinance Bank)' },
+  {
+    code: 'FMFB',
+    name: 'HBL Microfinance Bank (formerly First MicroFinance Bank)',
+  },
   { code: 'APNA', name: 'Apna Microfinance Bank' },
   { code: 'KMBL', name: 'Khushhali Microfinance Bank' },
-  { code: 'FINC', name: 'ABHI Microfinance Bank (formerly FINCA Microfinance Bank)' },
+  {
+    code: 'FINC',
+    name: 'ABHI Microfinance Bank (formerly FINCA Microfinance Bank)',
+  },
   { code: 'UMBL', name: 'U Microfinance Bank' },
   { code: 'PAKB', name: 'Pak Oman Microfinance Bank' },
-  { code: 'TAMW', name: 'easypaisa Digital Bank (formerly Tameer Microfinance Bank)' },
+  {
+    code: 'TAMW',
+    name: 'easypaisa Digital Bank (formerly Tameer Microfinance Bank)',
+  },
   { code: 'SIND', name: 'Sindh Bank Limited' },
   { code: 'SONE', name: 'Soneri Bank Limited' },
   // Legacy codes seen in older IBANs
   { code: 'NBPB', name: 'National Bank of Pakistan' },
   { code: 'MCBL', name: 'MCB Bank Limited' },
   { code: 'UNIL', name: 'United Bank Limited' },
-].filter((bank, index, arr) => {
-  // Dedupe UNIL
-  return arr.findIndex((b) => b.code === bank.code) === index;
-}).sort((a, b) => a.code.localeCompare(b.code));
+]
+  .filter((bank, index, arr) => {
+    // Dedupe UNIL
+    return arr.findIndex((b) => b.code === bank.code) === index;
+  })
+  .sort((a, b) => a.code.localeCompare(b.code));
 
 function writeJson(name, data) {
   const path = join(dataDir, name);
   writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
-  console.log(`Wrote ${name}: ${Array.isArray(data) ? data.length : 'object'} entries`);
+  console.log(
+    `Wrote ${name}: ${Array.isArray(data) ? data.length : 'object'} entries`,
+  );
 }
 
 writeJson('districts.json', districts);
 writeJson('cities.json', cities);
 writeJson('postal-codes.json', POSTAL_CODES);
-writeJson('banks.json', BANKS.map(({ code, name }) => ({ code, name })));
+writeJson(
+  'banks.json',
+  BANKS.map(({ code, name }) => ({ code, name })),
+);
 
 console.log(`\nSummary:`);
 console.log(`  Districts: ${districts.length}`);

@@ -79,13 +79,22 @@ function parseLocalDate(value: string): Date | null {
   if (!match) {
     return null;
   }
-  const [year, month, day] = match.slice(1).map(Number) as [number, number, number];
+  const [year, month, day] = match.slice(1).map(Number) as [
+    number,
+    number,
+    number,
+  ];
   const date = new Date(year, month - 1, day);
   return date.getMonth() === month - 1 ? date : null;
 }
 
 function run(): number {
-  if (!command || command === 'help' || command === '--help' || command === '-h') {
+  if (
+    !command ||
+    command === 'help' ||
+    command === '--help' ||
+    command === '-h'
+  ) {
     printUsage();
     return EXIT_OK;
   }
@@ -128,13 +137,17 @@ function run(): number {
       if (amount === null) {
         return usageError(`"${input}" is not a number`);
       }
-      console.log(command === 'format-pkr' ? formatPKR(amount) : formatLakh(amount));
+      console.log(
+        command === 'format-pkr' ? formatPKR(amount) : formatLakh(amount),
+      );
       return EXIT_OK;
     }
     case 'hijri': {
       const date = input.length > 0 ? parseLocalDate(input) : new Date();
       if (date === null) {
-        return usageError(`"${input}" is not a valid date (expected yyyy-mm-dd)`);
+        return usageError(
+          `"${input}" is not a valid date (expected yyyy-mm-dd)`,
+        );
       }
       console.log(formatHijri(date));
       console.log(JSON.stringify(toHijri(date), null, 2));

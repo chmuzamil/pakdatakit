@@ -36,9 +36,15 @@ describe('parseAddress', () => {
 
   it('ignores house, plot and PO box numbers', () => {
     expect(parseAddress('PO Box 12345, Karachi').postalCode).toBeNull();
-    expect(parseAddress('House 54000, Model Town, Lahore').postalCode).toBeNull();
-    expect(parseAddress('Plot 12345, DHA, Karachi 75500').postalCode).toBe('75500');
-    expect(parseAddress('Block 4, Gulshan East 75300, Karachi').postalCode).toBe('75300');
+    expect(
+      parseAddress('House 54000, Model Town, Lahore').postalCode,
+    ).toBeNull();
+    expect(parseAddress('Plot 12345, DHA, Karachi 75500').postalCode).toBe(
+      '75500',
+    );
+    expect(
+      parseAddress('Block 4, Gulshan East 75300, Karachi').postalCode,
+    ).toBe('75300');
   });
 
   it('parses addresses without commas', () => {
@@ -47,7 +53,9 @@ describe('parseAddress', () => {
       city: 'Lahore',
       province: 'Punjab',
     });
-    expect(parseAddress('House 5 Satellite Town Rawalpindi Punjab 46300')).toMatchObject({
+    expect(
+      parseAddress('House 5 Satellite Town Rawalpindi Punjab 46300'),
+    ).toMatchObject({
       street: 'House 5 Satellite Town',
       city: 'Rawalpindi',
       province: 'Punjab',

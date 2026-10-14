@@ -7,7 +7,9 @@ const pkrFormatter = new Intl.NumberFormat('en-PK', {
 
 function assertFinite(amount: number): void {
   if (typeof amount !== 'number' || !Number.isFinite(amount)) {
-    throw new RangeError(`Amount must be a finite number, received ${String(amount)}`);
+    throw new RangeError(
+      `Amount must be a finite number, received ${String(amount)}`,
+    );
   }
 }
 

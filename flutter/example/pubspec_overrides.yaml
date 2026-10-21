@@ -1,0 +1,5 @@
+# Local development: use the core package from this repository until
+# pakdatakit 2.2.0 is on pub.dev.
+dependency_overrides:
+  pakdatakit:
+    path: ../../dart

@@ -171,3 +171,31 @@ jobs:
 
       - run: dart pub publish --dry-run
         working-directory: dart
+
+  flutter:
+    name: flutter (pakdatakit_flutter)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # pubspec_overrides.yaml points pakdatakit at ../dart in this repo.
+      - run: flutter pub get
+        working-directory: flutter
+
+      - run: dart format --output=none --set-exit-if-changed .
+        working-directory: flutter
+
+      - run: flutter analyze --fatal-infos
+        working-directory: flutter
+
+      - run: flutter test
+        working-directory: flutter
+
+      - run: flutter pub get && flutter analyze --fatal-infos
+        working-directory: flutter/example

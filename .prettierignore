@@ -5,3 +5,6 @@ python/src/pakdatakit/data/
 docs-site/
 python/.pytest_cache/
 python/dist/
+# Dart and Flutter packages are formatted with dart format
+dart/
+flutter/

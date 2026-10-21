@@ -36,7 +36,8 @@ const HEADER =
 // Dart literals
 // ---------------------------------------------------------------------------
 
-const ESCAPE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Zs}\p{Mn}\p{Me}\p{Cs}\p{Co}\p{Cn}]/u;
+const ESCAPE =
+  /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Zs}\p{Mn}\p{Me}\p{Cs}\p{Co}\p{Cn}]/u;
 
 /** A single-quoted Dart string literal. */
 function dartString(text, asciiOnly = false) {
@@ -74,8 +75,7 @@ function dartValue(value) {
   return `<String, Object?>{${entries.join(', ')}${entries.length > 1 ? ',' : ''}}`;
 }
 
-const camel = (name) =>
-  name.replace(/[-_](\w)/g, (_, c) => c.toUpperCase());
+const camel = (name) => name.replace(/[-_](\w)/g, (_, c) => c.toUpperCase());
 
 const written = [];
 function write(name, body) {
@@ -218,11 +218,18 @@ const cased = ranges(/^\p{Cased}$/u);
 const caseIgnorable = ranges(/^\p{Case_Ignorable}$/u);
 
 const mapLines = (entries) =>
-  entries.map(([cp, text]) => `  ${hex(cp)}: ${dartString(text, true)},`).join('\n');
+  entries
+    .map(([cp, text]) => `  ${hex(cp)}: ${dartString(text, true)},`)
+    .join('\n');
 const intList = (values) => {
   const lines = [];
   for (let i = 0; i < values.length; i += 8) {
-    lines.push(`  ${values.slice(i, i + 8).map(hex).join(', ')},`);
+    lines.push(
+      `  ${values
+        .slice(i, i + 8)
+        .map(hex)
+        .join(', ')},`,
+    );
   }
   return lines.join('\n');
 };

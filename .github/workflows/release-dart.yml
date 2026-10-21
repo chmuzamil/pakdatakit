@@ -1,0 +1,21 @@
+name: Release Dart package
+
+# Publishes dart/ (pakdatakit on pub.dev) when a tag like dart-v2.2.0 is
+# pushed, using pub.dev automated publishing (GitHub OIDC, no token stored).
+# On pub.dev, the package's Admin tab must enable publishing from GitHub
+# Actions for chmuzamil/pakdatakit with tag pattern `dart-v{{version}}` and
+# environment `pub.dev` (see dart/RELEASING.md). The first version must be
+# published by hand.
+
+on:
+  push:
+    tags: ['dart-v[0-9]+.[0-9]+.[0-9]+*']
+
+jobs:
+  publish:
+    permissions:
+      id-token: write # OIDC token for pub.dev
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: dart
+      environment: pub.dev

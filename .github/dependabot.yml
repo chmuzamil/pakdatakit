@@ -39,6 +39,11 @@ updates:
     directory: /flutter
     schedule:
       interval: monthly
+    ignore:
+      # qr 4 needs Dart ^3.11 (Flutter 3.41+) and drops the API we use
+      # (QrCode.fromData, QrErrorCorrectLevel.L/M/Q/H). Stay on qr 3.x for now.
+      - dependency-name: qr
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: pip
     directory: /python

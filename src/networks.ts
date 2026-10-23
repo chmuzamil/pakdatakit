@@ -10,12 +10,7 @@ import { lazy } from './internal/normalize.js';
  * Communications Organization (0355, serving AJK and Gilgit-Baltistan).
  */
 export type NetworkName =
-  | 'Jazz'
-  | 'Zong'
-  | 'Telenor'
-  | 'Ufone'
-  | 'SCO'
-  | 'Unknown';
+  'Jazz' | 'Zong' | 'Telenor' | 'Ufone' | 'SCO' | 'Unknown';
 
 interface NetworkEntry {
   prefix: string;

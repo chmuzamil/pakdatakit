@@ -9,12 +9,7 @@ import {
 
 /** Kind of Pakistani telephone number. */
 export type NumberType =
-  | 'mobile'
-  | 'landline'
-  | 'uan'
-  | 'toll-free'
-  | 'premium'
-  | 'personal';
+  'mobile' | 'landline' | 'uan' | 'toll-free' | 'premium' | 'personal';
 
 /** Result of {@link analyzeNumber}. */
 export interface NumberInfo {

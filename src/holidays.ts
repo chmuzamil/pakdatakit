@@ -3,10 +3,7 @@ import { fromHijri, toHijri } from './hijri.js';
 
 /** Islamic public holidays, whose dates depend on moon sighting. */
 export type IslamicHolidayId =
-  | 'eid-ul-fitr'
-  | 'eid-ul-adha'
-  | 'ashura'
-  | 'eid-milad-un-nabi';
+  'eid-ul-fitr' | 'eid-ul-adha' | 'ashura' | 'eid-milad-un-nabi';
 
 /** Identifier of a Pakistani federal public holiday. */
 export type HolidayId =

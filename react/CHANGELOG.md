@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+Maintenance release with no API changes.
+
+- Published from GitHub Actions with npm provenance, so each release can be
+  traced to the commit and workflow that built it.
+- Development dependencies updated.
+
 ## 0.1.0
 
 First release.

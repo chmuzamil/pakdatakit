@@ -1,6 +1,6 @@
 {
   "name": "pakdatakit-faker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Seeded mock data for Pakistan: valid CNICs, mobile numbers, landlines, IBANs, NTNs, names, addresses, companies and coherent personas, checked against pakdatakit",
   "type": "module",
   "main": "./dist/index.cjs",

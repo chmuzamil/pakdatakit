@@ -286,11 +286,11 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@eslint/js": "^9.28.0",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.15.21",
     "@typescript-eslint/eslint-plugin": "^8.72.0",
     "@typescript-eslint/parser": "^8.72.0",
-    "eslint": "^9.28.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.5",
     "globals": "^17.6.0",
     "libphonenumber-js": "^1.13.15",

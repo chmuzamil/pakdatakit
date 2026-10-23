@@ -9,6 +9,11 @@ updates:
         dependency-type: development
         update-types: [minor, patch]
     open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint supports TypeScript <6.1 only; revisit when it
+      # supports TypeScript 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: npm
     directory: /react
@@ -19,6 +24,11 @@ updates:
         dependency-type: development
         update-types: [minor, patch]
     open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint supports TypeScript <6.1 only; revisit when it
+      # supports TypeScript 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: npm
     directory: /faker
@@ -29,6 +39,11 @@ updates:
         dependency-type: development
         update-types: [minor, patch]
     open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint supports TypeScript <6.1 only; revisit when it
+      # supports TypeScript 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: pub
     directory: /dart

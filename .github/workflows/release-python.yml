@@ -58,7 +58,20 @@ jobs:
         working-directory: python
         run: uv build
 
+      - name: Check whether this version is already on PyPI
+        id: published
+        run: |
+          version="${GITHUB_REF_NAME#python-v}"
+          status="$(curl -s -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/pakdatakit/$version/json")"
+          if [ "$status" = "200" ]; then
+            echo "pakdatakit $version is already on PyPI; skipping publish"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to PyPI
+        if: steps.published.outputs.exists == 'false'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: python/dist
@@ -67,5 +80,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" --title "Python ${GITHUB_REF_NAME#python-v}" \
-            --notes "See [python/README.md](https://github.com/chmuzamil/pakdatakit/tree/main/python)." --verify-tag
+          version="${GITHUB_REF_NAME#python-v}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs python/CHANGELOG.md "$version" "pakdatakit for Python" "https://pypi.org/project/pakdatakit/$version/" > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" --title "pakdatakit for Python $version" \
+            --notes-file release-notes.md --verify-tag --latest=false

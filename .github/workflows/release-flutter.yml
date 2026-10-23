@@ -1,25 +1,34 @@
 name: Release Flutter package
 
 # Publishes flutter/ (pakdatakit_flutter on pub.dev) when a tag like
-# flutter-v0.1.0 is pushed, using pub.dev automated publishing (GitHub OIDC).
-# On pub.dev, the package's Admin tab must enable publishing from GitHub
-# Actions for chmuzamil/pakdatakit with tag pattern `flutter-v{{version}}` and
-# environment `pub.dev`. Release the Dart pakdatakit core first: this package
-# depends on the published version, not on ../dart.
+# flutter-v0.1.0 is pushed, using pub.dev automated publishing (GitHub OIDC),
+# then creates a GitHub release. On pub.dev, the package's Admin tab must
+# enable publishing from GitHub Actions for chmuzamil/pakdatakit with tag
+# pattern `flutter-v{{version}}` and environment `pub.dev`. Release the Dart
+# pakdatakit core first: this package depends on the published version.
+# If the version is already on pub.dev, publishing is skipped.
 
 on:
   push:
     tags: ['flutter-v[0-9]+.[0-9]+.[0-9]+*']
+
+permissions:
+  contents: write # create the GitHub release
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment: pub.dev
     permissions:
+      contents: write
       id-token: write # OIDC token for pub.dev
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
       # Exchanges the GitHub OIDC token for a pub.dev publishing token.
       - uses: dart-lang/setup-dart@v1
@@ -28,16 +37,55 @@ jobs:
         with:
           channel: stable
 
+      - name: Check the tag matches pubspec.yaml
+        id: version
+        working-directory: flutter
+        run: |
+          version="$(grep -m1 '^version:' pubspec.yaml | sed -E 's/version: *//')"
+          if [ "${GITHUB_REF_NAME}" != "flutter-v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match pubspec.yaml version ${version}"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether this version is already on pub.dev
+        id: published
+        run: |
+          status="$(curl -s -o /dev/null -w '%{http_code}' "https://pub.dev/api/packages/pakdatakit_flutter/versions/${{ steps.version.outputs.version }}")"
+          if [ "$status" = "200" ]; then
+            echo "pakdatakit_flutter ${{ steps.version.outputs.version }} is already on pub.dev; skipping publish"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # Use the published pakdatakit, not the in-repo path override.
       - name: Remove the development override
+        if: steps.published.outputs.exists == 'false'
         working-directory: flutter
         run: rm -f pubspec_overrides.yaml
 
-      - run: flutter pub get
+      - name: Test
+        if: steps.published.outputs.exists == 'false'
         working-directory: flutter
+        run: |
+          flutter pub get
+          flutter test
 
-      - run: flutter test
+      - name: Publish to pub.dev
+        if: steps.published.outputs.exists == 'false'
         working-directory: flutter
+        run: flutter pub publish --force
 
-      - run: flutter pub publish --force
-        working-directory: flutter
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs flutter/CHANGELOG.md "$version" "pakdatakit_flutter" "https://pub.dev/packages/pakdatakit_flutter/versions/$version" > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" --title "pakdatakit_flutter $version" \
+            --notes-file release-notes.md --verify-tag --latest=false

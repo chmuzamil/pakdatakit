@@ -52,12 +52,30 @@ jobs:
       - run: npm ci && npm run build
       - run: npm ci
         working-directory: react
+      - name: Check whether this version is already on npm
+        id: published
+        run: |
+          version="$(node -p "require('./react/package.json').version")"
+          if npm view "pakdatakit-react@$version" version >/dev/null 2>&1; then
+            echo "pakdatakit-react $version is already on npm; skipping publish"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - run: npm publish --provenance --access public
+        if: steps.published.outputs.exists == 'false'
         working-directory: react
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" --title "pakdatakit-react ${GITHUB_REF_NAME#react-v}" \
-            --notes "See [react/README.md](https://github.com/chmuzamil/pakdatakit/tree/main/react)." --verify-tag
+          version="${GITHUB_REF_NAME#react-v}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs react/CHANGELOG.md "$version" "pakdatakit-react" "https://www.npmjs.com/package/pakdatakit-react/v/$version" > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" --title "pakdatakit-react $version" \
+            --notes-file release-notes.md --verify-tag --latest=false

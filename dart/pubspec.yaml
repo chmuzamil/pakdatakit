@@ -1,0 +1,23 @@
+name: pakdatakit
+version: 2.2.0
+description: >-
+  Pakistani data utilities: CNIC, phone, IBAN, postal codes, addresses, Hijri
+  dates, holidays, amounts in words and Raast QR codes. Pure Dart, all platforms.
+homepage: https://github.com/chmuzamil/pakdatakit
+repository: https://github.com/chmuzamil/pakdatakit
+issue_tracker: https://github.com/chmuzamil/pakdatakit/issues
+documentation: https://chmuzamil.github.io/pakdatakit/
+
+topics:
+  - pakistan
+  - validation
+  - iban
+  - cnic
+  - qr
+
+environment:
+  sdk: ^3.4.0
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

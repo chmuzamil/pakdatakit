@@ -1,0 +1,9 @@
+pubspec_overrides.yaml
+example/pubspec_overrides.yaml
+pubspec.lock
+example/pubspec.lock
+.dart_tool/
+example/.dart_tool/
+build/
+example/build/
+RELEASING.md

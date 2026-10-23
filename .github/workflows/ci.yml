@@ -101,3 +101,105 @@ jobs:
       - name: Build wheel and sdist
         working-directory: python
         run: uv build
+
+  faker:
+    name: faker (pakdatakit-faker)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            faker/package-lock.json
+
+      # pakdatakit-faker develops against the repo's own build of pakdatakit.
+      - run: npm ci && npm run build
+
+      - run: npm ci
+        working-directory: faker
+
+      - run: npm run lint
+        working-directory: faker
+
+      - run: npm run typecheck
+        working-directory: faker
+
+      - run: npm test
+        working-directory: faker
+
+      - run: npm run build
+        working-directory: faker
+
+  dart:
+    name: dart (pakdatakit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The generated Dart data embeds tables from Node's ICU and is formatted
+      # by dart format, so pin both to the versions it was generated with.
+      # Update these together with a regeneration (node scripts/generate-dart-data.mjs).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.11.5
+
+      # dart format needs the package resolved to use its language version.
+      - run: dart pub get
+        working-directory: dart
+
+      # The embedded data must match data/*.json.
+      - name: Check generated Dart data is up to date
+        run: |
+          node scripts/generate-dart-data.mjs
+          git diff --exit-code -- dart/lib/src/data
+
+      - run: dart format --output=none --set-exit-if-changed .
+        working-directory: dart
+
+      - run: dart analyze --fatal-infos
+        working-directory: dart
+
+      # Runs the 12,000+ shared test vectors from test-vectors/.
+      - run: dart test
+        working-directory: dart
+
+      - run: dart pub publish --dry-run
+        working-directory: dart
+
+  flutter:
+    name: flutter (pakdatakit_flutter)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # pubspec_overrides.yaml points pakdatakit at ../dart in this repo.
+      - run: flutter pub get
+        working-directory: flutter
+
+      - run: dart format --output=none --set-exit-if-changed .
+        working-directory: flutter
+
+      - run: flutter analyze --fatal-infos
+        working-directory: flutter
+
+      - run: flutter test
+        working-directory: flutter
+
+      - run: flutter pub get && flutter analyze --fatal-infos
+        working-directory: flutter/example

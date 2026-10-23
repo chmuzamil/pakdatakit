@@ -20,6 +20,26 @@ updates:
         update-types: [minor, patch]
     open-pull-requests-limit: 5
 
+  - package-ecosystem: npm
+    directory: /faker
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pub
+    directory: /dart
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: pub
+    directory: /flutter
+    schedule:
+      interval: monthly
+
   - package-ecosystem: pip
     directory: /python
     schedule:

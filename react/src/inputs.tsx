@@ -31,8 +31,7 @@ export interface MaskedInputComponentProps<Info> extends Omit<
    * details once it is valid (otherwise `null`).
    */
   onValueChange?:
-    | ((value: string, state: InputState, info: Info | null) => void)
-    | undefined;
+    ((value: string, state: InputState, info: Info | null) => void) | undefined;
 }
 
 export type CNICInputProps = MaskedInputComponentProps<CNICInfo>;

@@ -27,8 +27,7 @@ export interface MaskedInputOptions<Info> {
    * and details (`info`) once the value is valid (otherwise `null`).
    */
   onValueChange?:
-    | ((value: string, state: InputState, info: Info | null) => void)
-    | undefined;
+    ((value: string, state: InputState, info: Info | null) => void) | undefined;
 }
 
 /** Props to spread on an `<input>` (or a component that renders one). */

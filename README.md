@@ -742,9 +742,7 @@ parseRaastQr(payload);
 createMerchantQr({
   merchantAccount: {
     tag: '28',
-    fields: {
-      /* sub-fields from your bank */
-    },
+    fields: {/* sub-fields from your bank */},
   },
   merchantName: 'Aziz General Store',
   city: 'Karachi',

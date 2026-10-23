@@ -142,13 +142,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The generated Dart data embeds tables from Node's ICU and is formatted
+      # by dart format, so pin both to the versions it was generated with.
+      # Update these together with a regeneration (node scripts/generate-dart-data.mjs).
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.15.0
 
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: stable
+          sdk: 3.11.5
 
       # The embedded data must match data/*.json.
       - name: Check generated Dart data is up to date

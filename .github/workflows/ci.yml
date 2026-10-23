@@ -153,14 +153,15 @@ jobs:
         with:
           sdk: 3.11.5
 
+      # dart format needs the package resolved to use its language version.
+      - run: dart pub get
+        working-directory: dart
+
       # The embedded data must match data/*.json.
       - name: Check generated Dart data is up to date
         run: |
           node scripts/generate-dart-data.mjs
           git diff --exit-code -- dart/lib/src/data
-
-      - run: dart pub get
-        working-directory: dart
 
       - run: dart format --output=none --set-exit-if-changed .
         working-directory: dart

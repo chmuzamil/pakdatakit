@@ -20,7 +20,13 @@
  */
 
 import { execSync } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -269,8 +275,13 @@ write(
 // ---------------------------------------------------------------------------
 
 try {
-  // A fixed command line (no user input), run through the shell so the
-  // Windows `dart.bat` launcher is found too.
+  // dart format picks its style from the package's language version, which
+  // it can only read once the package is resolved; without it the output
+  // differs. Fixed command lines (no user input), run through the shell so
+  // the Windows `dart.bat` launcher is found too.
+  if (!existsSync(join(root, 'dart', '.dart_tool', 'package_config.json'))) {
+    execSync('dart pub get', { cwd: join(root, 'dart'), stdio: 'inherit' });
+  }
   execSync('dart format lib/src/data', {
     cwd: join(root, 'dart'),
     stdio: 'inherit',

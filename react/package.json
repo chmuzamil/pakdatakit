@@ -1,6 +1,6 @@
 {
   "name": "pakdatakit-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React inputs and hooks for Pakistani CNIC, mobile numbers and IBANs that format as you type, plus a Raast payment QR component, built on pakdatakit",
   "type": "module",
   "main": "./dist/index.cjs",

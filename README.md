@@ -964,11 +964,6 @@ const budget = formatLakh(2500000);
 - Raast QR codes
 - Public holidays with observed moon-sighting dates
 
-### Planned
-
-- CNIC check-digit validation (pending a publicly documented NADRA algorithm)
-- Mobile Number Portability lookup API
-
 ---
 
 # Contributing

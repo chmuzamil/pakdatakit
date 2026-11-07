@@ -26,6 +26,7 @@ _FORMER_DISTRICTS = {
     "quetta": "Balochistan",
     "dera bugti": "Balochistan",
     "upper dera bugti": "Balochistan",
+    "upper swat": "Khyber Pakhtunkhwa",
 }
 
 

@@ -44,6 +44,10 @@
     "province": "Khyber Pakhtunkhwa"
   },
   {
+    "district": "Bar Swat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
     "district": "Barkhan",
     "province": "Balochistan"
   },
@@ -673,10 +677,6 @@
   },
   {
     "district": "Upper South Waziristan",
-    "province": "Khyber Pakhtunkhwa"
-  },
-  {
-    "district": "Upper Swat",
     "province": "Khyber Pakhtunkhwa"
   },
   {

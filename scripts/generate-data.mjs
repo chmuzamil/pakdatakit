@@ -188,11 +188,11 @@ const DISTRICTS_RAW = [
   ['Ziarat', 'BA'],
   // Districts created 2019-2022
   // Khyber Pakhtunkhwa, 2023-2026: Central Dir and Allai (Jan 2023),
-  // Paharpur (Nov 2025), Upper Swat (Jan 2026). KP now has 40 districts.
+  // Paharpur (Nov 2025), Bar Swat (Jan 2026). KP now has 40 districts.
   ['Allai', 'NW'],
   ['Central Dir', 'NW'],
   ['Paharpur', 'NW'],
-  ['Upper Swat', 'NW'],
+  ['Bar Swat', 'NW'],
   // Balochistan, 2026: 41 districts in 11 divisions (8 Jul 2026). Quetta was
   // split into East and West; Dera Bugti into North and South.
   ['Barshore', 'BA'],

@@ -21,6 +21,8 @@ const Map<String, String> _formerDistricts = {
   // Became South Dera Bugti; Upper Dera Bugti became North Dera Bugti (2026).
   'dera bugti': 'Balochistan',
   'upper dera bugti': 'Balochistan',
+  // Notified as Bar Swat (2026); reported as Upper Swat before that.
+  'upper swat': 'Khyber Pakhtunkhwa',
 };
 
 /// Returns the province for a Pakistani city name.

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- The district split from Swat in January 2026 is now named **Bar Swat**, as in
+  the Board of Revenue notification, instead of "Upper Swat". `Upper Swat`
+  still resolves in `getDistrictProvince`.
+- `dataVersion` is now `2026-11-07` (November data check: no other changes).
+
 ## 2.2.0
 
 ### Added

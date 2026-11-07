@@ -165,6 +165,6 @@ void main() {
     expect(cnic.validateCNIC('35202-1234567-1'), isTrue);
     expect(phone.normalizePhoneDigits('0300-1234567'), '923001234567');
     expect(phone.getPhonePrefix('+923451234567'), '0345');
-    expect(dataVersion, '2026-10-14');
+    expect(dataVersion, '2026-11-07');
   });
 }

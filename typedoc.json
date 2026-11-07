@@ -26,6 +26,7 @@
   ],
   "entryPointStrategy": "resolve",
   "out": "docs-site",
+  "plugin": ["./scripts/typedoc-social.mjs"],
   "readme": "README.md",
   "projectDocuments": ["DATA.md", "CHANGELOG.md", "SECURITY.md"],
   "includeVersion": true,

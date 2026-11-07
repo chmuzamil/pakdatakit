@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow" cx="0.18" cy="0.05" r="0.9">
+      <stop offset="0" stop-color="#58a6ff" stop-opacity="0.22"/>
+      <stop offset="0.55" stop-color="#58a6ff" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#58a6ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.95" cy="1" r="0.6">
+      <stop offset="0" stop-color="#3fb950" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#3fb950" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#f0f6fc" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0d1117"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- Brand -->
+  <rect x="72" y="72" width="64" height="64" rx="14" fill="#3fb950" fill-opacity="0.15" stroke="#3fb950" stroke-opacity="0.45" stroke-width="2"/>
+  <text x="104" y="114" text-anchor="middle" font-family="Cascadia Code, Consolas, monospace" font-size="26" font-weight="700" fill="#3fb950">PK</text>
+  <text x="156" y="100" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="600" fill="#f0f6fc">PakDataKit</text>
+  <text x="156" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#8b949e">Documentation</text>
+
+  <!-- Headline -->
+  <text font-family="Segoe UI, Arial, sans-serif" font-size="50" font-weight="700" fill="#f0f6fc" letter-spacing="-1">
+    <tspan x="72" y="248">Pakistani data utilities</tspan>
+    <tspan x="72" y="310">for every stack</tspan>
+  </text>
+  <text x="72" y="374" font-family="Segoe UI, Arial, sans-serif" font-size="25" fill="#8b949e">Validate and format CNICs, phones and IBANs,</text>
+  <text x="72" y="408" font-family="Segoe UI, Arial, sans-serif" font-size="25" fill="#8b949e">create Raast QR codes, look up cities and holidays.</text>
+
+  <!-- Platform chips -->
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="600">
+    <rect x="72" y="452" width="132" height="40" rx="20" fill="#388bfd" fill-opacity="0.15" stroke="#58a6ff" stroke-opacity="0.4"/>
+    <text x="138" y="478" text-anchor="middle" fill="#79c0ff">TypeScript</text>
+    <rect x="216" y="452" width="104" height="40" rx="20" fill="#388bfd" fill-opacity="0.15" stroke="#58a6ff" stroke-opacity="0.4"/>
+    <text x="268" y="478" text-anchor="middle" fill="#79c0ff">Python</text>
+    <rect x="332" y="452" width="88" height="40" rx="20" fill="#388bfd" fill-opacity="0.15" stroke="#58a6ff" stroke-opacity="0.4"/>
+    <text x="376" y="478" text-anchor="middle" fill="#79c0ff">Dart</text>
+    <rect x="432" y="452" width="106" height="40" rx="20" fill="#388bfd" fill-opacity="0.15" stroke="#58a6ff" stroke-opacity="0.4"/>
+    <text x="485" y="478" text-anchor="middle" fill="#79c0ff">Flutter</text>
+    <rect x="550" y="452" width="96" height="40" rx="20" fill="#3fb950" fill-opacity="0.15" stroke="#3fb950" stroke-opacity="0.45"/>
+    <text x="598" y="478" text-anchor="middle" fill="#56d364">React</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="72" y="566" font-family="Segoe UI, Arial, sans-serif" font-size="21" fill="#8b949e">Free and open source · MIT</text>
+  <text x="1128" y="566" text-anchor="end" font-family="Cascadia Code, Consolas, monospace" font-size="21" fill="#58a6ff">chmuzamil.github.io/pakdatakit</text>
+
+  <!-- Code card -->
+  <g transform="translate(756 92)">
+    <rect width="372" height="364" rx="18" fill="#161b22" stroke="#58a6ff" stroke-opacity="0.35" stroke-width="2"/>
+    <circle cx="30" cy="30" r="6" fill="#f85149" fill-opacity="0.7"/>
+    <circle cx="50" cy="30" r="6" fill="#d29922" fill-opacity="0.7"/>
+    <circle cx="70" cy="30" r="6" fill="#3fb950" fill-opacity="0.7"/>
+    <line x1="0" y1="56" x2="372" y2="56" stroke="#30363d"/>
+    <g font-family="Cascadia Code, Consolas, monospace" font-size="17" xml:space="preserve">
+      <text x="24" y="96"><tspan fill="#ff7b72">import</tspan><tspan fill="#c9d1d9"> { validateCNIC }</tspan></text>
+      <text x="24" y="122"><tspan fill="#ff7b72">  from</tspan><tspan fill="#a5d6ff"> 'pakdatakit'</tspan></text>
+      <text x="24" y="172"><tspan fill="#d2a8ff">validateCNIC</tspan><tspan fill="#c9d1d9">(</tspan></text>
+      <text x="24" y="198"><tspan fill="#a5d6ff">  '35202-1234567-1'</tspan></text>
+      <text x="24" y="224" fill="#c9d1d9">)</text>
+      <text x="24" y="250" fill="#8b949e">// → true</text>
+      <text x="24" y="300"><tspan fill="#d2a8ff">getBankFromIBAN</tspan><tspan fill="#c9d1d9">(iban)</tspan></text>
+      <text x="24" y="326" fill="#8b949e">// → 'Standard Chartered…'</text>
+    </g>
+  </g>
+</svg>

@@ -964,6 +964,13 @@ const budget = formatLakh(2500000);
 - Raast QR codes
 - Public holidays with observed moon-sighting dates
 
+### v2.2 ✅
+
+- Python package on PyPI, Dart package on pub.dev
+- `pakdatakit-react` form inputs, `pakdatakit-faker` test data and
+  `pakdatakit_flutter` widgets
+- Bank details (`getBankInfo`, `getBanks`), API docs and `llms.txt`
+
 ---
 
 # Contributing

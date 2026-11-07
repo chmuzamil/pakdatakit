@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.1
+
+The district split from Swat in January 2026 is now named **Bar Swat**, as in
+the Khyber Pakhtunkhwa Board of Revenue notification of 27 January 2026,
+instead of "Upper Swat". "Upper Swat" still resolves in `getDistrictProvince` to Khyber Pakhtunkhwa.
+`dataVersion` is now `2026-11-07`.
+
 ## 2.2.0
 
 Initial Dart release, matching version 2.2.0 of the

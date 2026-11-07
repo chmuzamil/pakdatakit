@@ -1,5 +1,5 @@
 name: pakdatakit
-version: 2.2.0
+version: 2.2.1
 description: >-
   Pakistani data utilities: CNIC, phone, IBAN, postal codes, addresses, Hijri
   dates, holidays, amounts in words and Raast QR codes. Pure Dart, all platforms.

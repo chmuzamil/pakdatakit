@@ -68,7 +68,7 @@ from .text import normalize_roman_urdu, normalize_text, to_english_digits, to_ur
 from .whatsapp import create_whatsapp_link
 from .words import amount_in_words, number_to_words
 
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 
 __all__ = [
     "__version__",

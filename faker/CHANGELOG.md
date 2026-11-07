@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Generated addresses use the district name **Bar Swat** (notified January 2026) instead of "Upper Swat", matching `pakdatakit` 2.2.1.
+
 ## 0.1.1
 
 Maintenance release with no API changes.

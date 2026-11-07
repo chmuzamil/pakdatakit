@@ -47,6 +47,10 @@ const List<Object?> districtsJson = <Object?>[
     'province': 'Khyber Pakhtunkhwa',
   },
   <String, Object?>{
+    'district': 'Bar Swat',
+    'province': 'Khyber Pakhtunkhwa',
+  },
+  <String, Object?>{
     'district': 'Barkhan',
     'province': 'Balochistan',
   },
@@ -676,10 +680,6 @@ const List<Object?> districtsJson = <Object?>[
   },
   <String, Object?>{
     'district': 'Upper South Waziristan',
-    'province': 'Khyber Pakhtunkhwa',
-  },
-  <String, Object?>{
-    'district': 'Upper Swat',
     'province': 'Khyber Pakhtunkhwa',
   },
   <String, Object?>{

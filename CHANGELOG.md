@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.1
 
 ### Fixed
 
@@ -8,6 +8,12 @@
   the Board of Revenue notification, instead of "Upper Swat". `Upper Swat`
   still resolves in `getDistrictProvince`.
 - `dataVersion` is now `2026-11-07` (November data check: no other changes).
+
+### Docs
+
+- The README no longer lists planned features: NADRA publishes no CNIC
+  check-digit algorithm, and Pakistan has no public number-portability lookup.
+- The docs site has a share image and favicon.
 
 ## 2.2.0
 

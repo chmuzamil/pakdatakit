@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pakdatakit"
-version = "2.2.0"
+version = "2.2.1"
 description = "Utilities for Pakistani data: CNIC, phone, IBAN, postal codes, address parsing, Hijri dates, holidays, amounts in words and Raast QR codes"
 readme = "README.md"
 license = "MIT"

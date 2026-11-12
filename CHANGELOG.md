@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.3.0
+
+### Added
+
+- Form adapters for [Joi](https://joi.dev) (`pakdatakit/joi`),
+  [Superstruct](https://docs.superstructjs.org) (`pakdatakit/superstruct`) and
+  [class-validator](https://github.com/typestack/class-validator)
+  (`pakdatakit/class-validator`). The class-validator decorators (`IsCNIC`,
+  `IsPakPhone`, `IsPakIBAN`, `IsNTN`, `IsSTRN`, `IsPakLandline`,
+  `IsPakPassport`, `IsVehiclePlate`) work in NestJS DTOs without a NestJS
+  dependency. All three libraries are optional peer dependencies.
+- `validatePassport()` (`pakdatakit/passport`): format check for Pakistani
+  passport numbers (two letters, seven digits). DGIP does not publish the
+  format, so this checks the common shape only; see DATA.md.
+- `validateVehiclePlate()` and `parseVehiclePlate()` (`pakdatakit/vehicle`):
+  series, number and optional year of a vehicle registration number. Each
+  province sets its own format, so this accepts the shape they share (1–4
+  letters, 1–4 digits); see DATA.md.
+- `pk.passport()` and `pk.vehiclePlate()` in every form adapter.
+
+### Docs
+
+- The README's "Why PakDataKit?" section compares PakDataKit with a typical
+  hand-written regex, and the npm description and keywords cover all modules.
+
+The Python and Dart packages do not include the passport and vehicle plate
+validators yet.
+
 ## 2.2.1
 
 ### Fixed

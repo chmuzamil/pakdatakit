@@ -66,20 +66,22 @@ The Python and Dart packages are checked against the TypeScript library with ove
 
 ## Why PakDataKit?
 
-Every Pakistani application eventually needs to solve the same problems:
+Most Pakistani apps validate CNICs, mobile numbers and IBANs with a regex copied from somewhere. A regex checks the shape. PakDataKit checks what the shape can't show:
 
-- Validate CNIC numbers
-- Normalize mobile numbers
-- Detect mobile networks
-- Generate WhatsApp click-to-chat links
-- Validate Pakistani IBANs and detect banks
-- Look up postal codes and cities
-- Map cities to provinces
-- Format PKR values in Lakh and Crore conventions
+| Task              | Typical regex                | PakDataKit                                                                                      |
+| ----------------- | ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| CNIC              | 13 digits, maybe with dashes | Province code, province and gender decoding, Urdu digits                                        |
+| Mobile number     | `03` + 9 digits              | Allocated `03XX` prefixes only, `+92` / `0092` / `0` forms, original network                    |
+| IBAN              | `PK` + 22 characters         | Mod-97 checksum, bank name and type from the bank code                                          |
+| NTN / STRN        | Digit count                  | CNIC-based and business NTNs, display formats                                                   |
+| Passport, plates  | Usually not handled          | Common-shape checks, with sources and limits in [DATA.md](./DATA.md)                            |
+| Raast QR          | Not possible                 | Create, parse and check payment QR codes (CRC, IBAN, amount, expiry)                            |
+| Holidays, Hijri   | Not possible                 | Observed Eid/Ashura/Milad dates from official notifications, Hijri conversion                   |
+| Amounts, currency | Not possible                 | Lakh/crore formatting, amounts in words in English and Urdu                                     |
+| Forms             | Write each rule per library  | Ready rules for Zod, Valibot, Yup, Joi, Superstruct and class-validator (NestJS)                |
+| Other languages   | Rewrite it                   | Python and Dart packages with the core functions, checked against over 12,000 shared test cases |
 
-Most teams implement these repeatedly.
-
-PakDataKit provides a single, typed, reusable solution so you can focus on building your product instead of rebuilding common utilities.
+The npm package has no runtime dependencies, ships ESM and CommonJS with TypeScript types, and works offline: all data is bundled. Every dataset lists its sources in [DATA.md](./DATA.md).
 
 ---
 

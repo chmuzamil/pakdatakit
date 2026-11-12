@@ -23,15 +23,15 @@ public enum InputState
 public static class Input
 {
     // Characters people use between groups of digits.
-    private static readonly Regex Separators = Js.Rx("[" + Js.Ws + @"\-‐‑‒–—./()]");
-    private static readonly Regex NonDigit = Js.Rx("[^0-9]");
-    private static readonly Regex AllDigits = Js.Rx("^[0-9]+\\z");
-    private static readonly Regex PhoneShape = Js.Rx("^\\+?[0-9]*\\z");
-    private static readonly Regex NonIbanChar = Js.Rx("[^A-Z0-9]");
-    private static readonly Regex IbanSeparators = Js.Rx("[" + Js.Ws + "-]");
-    private static readonly Regex FourGroups = Js.Rx("(.{4})(?=.)");
+    private static readonly SafeRegex Separators = Js.Rx("[" + Js.Ws + @"\-‐‑‒–—./()]");
+    private static readonly SafeRegex NonDigit = Js.Rx("[^0-9]");
+    private static readonly SafeRegex AllDigits = Js.Rx("^[0-9]+\\z");
+    private static readonly SafeRegex PhoneShape = Js.Rx("^\\+?[0-9]*\\z");
+    private static readonly SafeRegex NonIbanChar = Js.Rx("[^A-Z0-9]");
+    private static readonly SafeRegex IbanSeparators = Js.Rx("[" + Js.Ws + "-]");
+    private static readonly SafeRegex FourGroups = Js.Rx("(.{4})(?=.)");
 
-    private static readonly Regex IbanShape = Js.Rx(
+    private static readonly SafeRegex IbanShape = Js.Rx(
         "^(P(K([0-9]([0-9]([A-Z]([A-Z]([A-Z]([A-Z]([A-Z0-9]{0,16})?)?)?)?)?)?)?)?)?\\z");
 
     private static readonly string[] CountryCodes = ["+92", "0092", "92"];
@@ -43,9 +43,9 @@ public static class Input
     /// </summary>
     /// <param name="value">Current input value.</param>
     /// <returns>Value to show in the input.</returns>
-    public static string FormatCnic(string value)
+    public static string FormatCnic(string? value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        value ??= "";
         var digits = NonDigit.Replace(Normalize.ToAsciiDigits(value), "");
         if (digits.Length > 13) digits = digits[..13];
         if (digits.Length <= 5) return digits;
@@ -111,9 +111,9 @@ public static class Input
     /// </summary>
     /// <param name="value">Current input value.</param>
     /// <returns>Value to show in the input.</returns>
-    public static string FormatIban(string value)
+    public static string FormatIban(string? value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        value ??= "";
         var clean = NonIbanChar.Replace(Js.ToUpper(value), "");
         if (clean.Length > 24) clean = clean[..24];
         return FourGroups.Replace(clean, "$1 ");
@@ -122,9 +122,9 @@ public static class Input
     /// <summary>Checks a Pakistani IBAN while the user is typing.</summary>
     /// <param name="value">Current input value.</param>
     /// <returns>The field state.</returns>
-    public static InputState CheckIban(string value)
+    public static InputState CheckIban(string? value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        value ??= "";
         var clean = IbanSeparators.Replace(Js.ToUpper(value), "");
         if (clean.Length == 0) return InputState.Empty;
         if (clean.Length > 24 || !IbanShape.IsMatch(clean)) return InputState.Invalid;
@@ -132,9 +132,9 @@ public static class Input
         return Iban.Validate(clean) ? InputState.Valid : InputState.Invalid;
     }
 
-    private static string Clean(string value)
+    private static string Clean(string? value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        value ??= "";
         return Separators.Replace(Normalize.ToAsciiDigits(value), "");
     }
 

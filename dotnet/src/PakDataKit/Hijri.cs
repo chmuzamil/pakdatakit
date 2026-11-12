@@ -51,6 +51,29 @@ public static class Hijri
         return new DateOnly((int)y, (int)m, (int)d);
     }
 
+    /// <summary>
+    /// Converts a Hijri date to a Gregorian date without throwing: returns
+    /// <c>false</c> where <see cref="FromHijri"/> would throw.
+    /// </summary>
+    /// <param name="hijri">Hijri date.</param>
+    /// <param name="date">The Gregorian date, when the conversion succeeds.</param>
+    /// <param name="offset">Days subtracted after converting.</param>
+    /// <returns><c>true</c> if the Hijri date is in range.</returns>
+    public static bool TryFromHijri(HijriDate? hijri, out DateOnly date, int offset = 0)
+    {
+        date = default;
+        if (hijri is null) return false;
+        try
+        {
+            date = FromHijri(hijri, offset);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+    }
+
     /// <summary>Formats a Gregorian date as a Hijri string, e.g. <c>14 Ramadan 1447</c>.</summary>
     /// <param name="date">Gregorian date.</param>
     /// <param name="offset">Days to add before converting.</param>

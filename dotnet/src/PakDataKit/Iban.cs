@@ -45,8 +45,8 @@ public sealed record BankInfo(
 /// <summary>Pakistani IBAN validation and bank lookup.</summary>
 public static class Iban
 {
-    private static readonly Regex Pattern = Js.Rx("^PK[0-9]{2}[A-Z]{4}[A-Z0-9]{16}\\z");
-    private static readonly Regex BankCode = Js.Rx("^[A-Z]{4}\\z");
+    private static readonly SafeRegex Pattern = Js.Rx("^PK[0-9]{2}[A-Z]{4}[A-Z0-9]{16}\\z");
+    private static readonly SafeRegex BankCode = Js.Rx("^[A-Z]{4}\\z");
 
     private static readonly Lazy<IReadOnlyList<BankInfo>> BankList = new(() =>
         Data.Banks.Select(e => new BankInfo(
@@ -66,9 +66,9 @@ public static class Iban
     /// </summary>
     /// <param name="iban">IBAN to validate.</param>
     /// <returns><c>true</c> if valid.</returns>
-    public static bool Validate(string iban)
+    public static bool Validate(string? iban)
     {
-        ArgumentNullException.ThrowIfNull(iban);
+        iban ??= "";
         var normalized = NormalizeIban(iban);
         if (!Pattern.IsMatch(normalized)) return false;
         var rearranged = normalized[4..] + normalized[..4];
@@ -101,9 +101,9 @@ public static class Iban
     /// </summary>
     /// <param name="ibanOrCode">An IBAN or a 4-letter bank code.</param>
     /// <returns>The bank, or <c>null</c> if the IBAN is invalid or the code unknown.</returns>
-    public static BankInfo? GetBankInfo(string ibanOrCode)
+    public static BankInfo? GetBankInfo(string? ibanOrCode)
     {
-        ArgumentNullException.ThrowIfNull(ibanOrCode);
+        ibanOrCode ??= "";
         var value = NormalizeIban(ibanOrCode);
         if (BankCode.IsMatch(value)) return BankMap.Value.GetValueOrDefault(value);
         return Validate(value) ? BankMap.Value.GetValueOrDefault(value.Substring(4, 4)) : null;

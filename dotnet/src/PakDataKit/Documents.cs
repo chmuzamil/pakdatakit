@@ -22,8 +22,8 @@ public sealed record NtnInfo(NtnType Type, string Digits, string Formatted);
 /// <summary>National Tax Number (NTN) and Sales Tax Registration Number (STRN) checks.</summary>
 public static class Tax
 {
-    private static readonly Regex BusinessNtn = Js.Rx("^([0-9]{7})(?:[-‐‑‒–— ]?([0-9]))?\\z");
-    private static readonly Regex Strn = Js.Rx("^[0-9]{13}\\z");
+    private static readonly SafeRegex BusinessNtn = Js.Rx("^([0-9]{7})(?:[-‐‑‒–— ]?([0-9]))?\\z");
+    private static readonly SafeRegex Strn = Js.Rx("^[0-9]{13}\\z");
 
     /// <summary>
     /// Analyzes a National Tax Number: a 13-digit CNIC for individuals, or 7
@@ -32,9 +32,9 @@ public static class Tax
     /// </summary>
     /// <param name="ntn">NTN in any common format.</param>
     /// <returns>The details, or <c>null</c> if the format is invalid.</returns>
-    public static NtnInfo? AnalyzeNtn(string ntn)
+    public static NtnInfo? AnalyzeNtn(string? ntn)
     {
-        ArgumentNullException.ThrowIfNull(ntn);
+        ntn ??= "";
         var trimmed = Normalize.ToAsciiDigits(Js.Trim(ntn));
         if (Cnic.Validate(trimmed))
         {
@@ -61,9 +61,9 @@ public static class Tax
     /// </summary>
     /// <param name="strn">STRN to validate.</param>
     /// <returns><c>true</c> if the format is valid.</returns>
-    public static bool ValidateStrn(string strn)
+    public static bool ValidateStrn(string? strn)
     {
-        ArgumentNullException.ThrowIfNull(strn);
+        strn ??= "";
         return Strn.IsMatch(Normalize.StripSeparators(Normalize.ToAsciiDigits(strn)));
     }
 }
@@ -71,8 +71,8 @@ public static class Tax
 /// <summary>Pakistani passport number checks.</summary>
 public static class Passport
 {
-    private static readonly Regex Separators = Js.Rx("[-‐‑‒–— ]");
-    private static readonly Regex Pattern = Js.Rx("^[A-Z]{2}[0-9]{7}\\z");
+    private static readonly SafeRegex Separators = Js.Rx("[-‐‑‒–— ]");
+    private static readonly SafeRegex Pattern = Js.Rx("^[A-Z]{2}[0-9]{7}\\z");
 
     /// <summary>
     /// Validates the format of a Pakistani passport number: two letters
@@ -83,9 +83,9 @@ public static class Passport
     /// </summary>
     /// <param name="passport">Passport number to validate.</param>
     /// <returns><c>true</c> if the format is valid.</returns>
-    public static bool Validate(string passport)
+    public static bool Validate(string? passport)
     {
-        ArgumentNullException.ThrowIfNull(passport);
+        passport ??= "";
         var compact = Separators.Replace(Js.ToUpper(Normalize.ToAsciiDigits(Js.Trim(passport))), "");
         return Pattern.IsMatch(compact);
     }
@@ -101,7 +101,7 @@ public sealed record VehiclePlateInfo(string Series, string Number, string? Year
 /// <summary>Pakistani vehicle registration number checks.</summary>
 public static class VehiclePlate
 {
-    private static readonly Regex Pattern =
+    private static readonly SafeRegex Pattern =
         Js.Rx("^([A-Z]{1,4})[-‐‑‒–— ]?([0-9]{1,4})(?:[-‐‑‒–— /]{1,3}([0-9]{2}))?\\z");
 
     /// <summary>
@@ -113,9 +113,9 @@ public static class VehiclePlate
     /// </summary>
     /// <param name="plate">Registration number as written on the plate.</param>
     /// <returns>The parts, or <c>null</c> if it does not have the common shape.</returns>
-    public static VehiclePlateInfo? Parse(string plate)
+    public static VehiclePlateInfo? Parse(string? plate)
     {
-        ArgumentNullException.ThrowIfNull(plate);
+        plate ??= "";
         var match = Pattern.Match(Js.ToUpper(Normalize.ToAsciiDigits(Js.Trim(plate))));
         if (!match.Success) return null;
         var series = match.Groups[1].Value;

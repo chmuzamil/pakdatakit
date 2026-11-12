@@ -24,8 +24,8 @@ public sealed record CnicInfo(string Digits, string Formatted, string Province, 
 public static class Cnic
 {
     // 13 digits, optionally grouped as #####-#######-# with a consistent separator.
-    private static readonly Regex Pattern = Js.Rx(@"^[1-8][0-9]{4}([-‐‑‒–—. ]?)[0-9]{7}\1[0-9]\z");
-    private static readonly Regex NonDigit = Js.Rx("[^0-9]");
+    private static readonly SafeRegex Pattern = Js.Rx(@"^[1-8][0-9]{4}([-‐‑‒–—. ]?)[0-9]{7}\1[0-9]\z");
+    private static readonly SafeRegex NonDigit = Js.Rx("[^0-9]");
 
     private static readonly Dictionary<char, string> Provinces = new()
     {
@@ -46,9 +46,9 @@ public static class Cnic
     /// </summary>
     /// <param name="cnic">CNIC to validate.</param>
     /// <returns><c>true</c> if the structure is valid.</returns>
-    public static bool Validate(string cnic)
+    public static bool Validate(string? cnic)
     {
-        ArgumentNullException.ThrowIfNull(cnic);
+        cnic ??= "";
         return Pattern.IsMatch(Normalize.ToAsciiDigits(Js.Trim(cnic)));
     }
 

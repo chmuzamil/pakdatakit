@@ -43,7 +43,7 @@ public static class Address
     ];
 
     // Words that mark a following 5-digit number as something other than a postal code.
-    private static readonly Regex NonPostalPrefix = Js.Rx(
+    private static readonly SafeRegex NonPostalPrefix = Js.Rx(
         ("(?:(?<![" + WordChar + "])(?:"
             + Js.Ci("p") + @"\.?WS*" + Js.Ci("o") + @"\.?WS*" + Js.Ci("box")
             + "|" + Js.Ci("box") + "|" + Js.Ci("house")
@@ -52,7 +52,7 @@ public static class Address
             + "|" + Js.Ci("flat") + "|" + Js.Ci("shop") + "|" + Js.Ci("office") + "|" + Js.Ci("suite")
             + "|" + Js.Ci("no") + @"\.?)|#)WS*\z").Replace("WS", "[" + Js.Ws + "]"));
 
-    private static readonly Regex PostalCandidate =
+    private static readonly SafeRegex PostalCandidate =
         Js.Rx("(?<![" + WordChar + "#/-])([1-9][0-9]{4})(?![" + WordChar + "/-])");
 
     // Longest names first so "Dera Ghazi Khan" wins over "Ghazi". OrderBy is stable.
@@ -69,9 +69,9 @@ public static class Address
     /// </summary>
     /// <param name="address">Address as written.</param>
     /// <returns>The parsed components; unknown parts are <c>null</c>.</returns>
-    public static ParsedAddress Parse(string address)
+    public static ParsedAddress Parse(string? address)
     {
-        ArgumentNullException.ThrowIfNull(address);
+        address ??= "";
         var raw = Normalize.Whitespace(address);
         if (raw.Length == 0) return new ParsedAddress { Raw = raw };
 
@@ -178,25 +178,36 @@ public static class Address
         (string, int)? result = null;
         foreach (Match match in PostalCandidate.Matches(text))
         {
-            if (!NonPostalPrefix.IsMatch(text[..match.Index])) result = (match.Groups[1].Value, match.Index);
+            // Whitespace is already collapsed, so the longest prefix ("p. o. box ")
+            // fits well inside the last 32 characters before the number.
+            var before = text[Math.Max(0, match.Index - 32)..match.Index];
+            if (!NonPostalPrefix.IsMatch(before)) result = (match.Groups[1].Value, match.Index);
         }
         return result;
     }
+
+    // Normalized keys of the option lists, computed once.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string[], string[]> OptionKeys = new();
+
+    private static string[] KeysOf(string[] options) =>
+        OptionKeys.GetOrAdd(options, list => list.Select(Normalize.Key).ToArray());
 
     private static string? MatchExact(string segment, string[] options)
     {
         var key = Normalize.Key(segment);
         if (key.Length == 0) return null;
-        return options.FirstOrDefault(option => Normalize.Key(option) == key);
+        var index = Array.IndexOf(KeysOf(options), key);
+        return index < 0 ? null : options[index];
     }
 
     private static (string Option, string Remainder)? MatchTrailing(string segment, string[] options)
     {
         var key = Normalize.Key(segment);
-        foreach (var option in options)
+        var keys = KeysOf(options);
+        for (var i = 0; i < options.Length; i++)
         {
-            if (key.EndsWith(" " + Normalize.Key(option), StringComparison.Ordinal))
-                return (option, Normalize.Whitespace(segment[..Math.Max(0, segment.Length - option.Length)]));
+            if (key.EndsWith(" " + keys[i], StringComparison.Ordinal))
+                return (options[i], Normalize.Whitespace(segment[..Math.Max(0, segment.Length - options[i].Length)]));
         }
         return null;
     }

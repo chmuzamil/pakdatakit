@@ -12,7 +12,7 @@ public static class Text
 
     // Common Roman Urdu spelling normalizations (informal to preferred). Only
     // unambiguous variants are listed.
-    private static readonly (Regex Pattern, string Replacement)[] RomanUrduReplacements = new[]
+    private static readonly (SafeRegex Pattern, string Replacement)[] RomanUrduReplacements = new[]
     {
         ("kia", "kya"),
         ("ker", "kar"),
@@ -26,14 +26,14 @@ public static class Text
         ("assalam o alaikum", "assalamualaikum"),
     }.Select(p => (Js.Rx($"(?<!{WordChar}){Js.Ci(p.Item1)}(?!{WordChar})"), p.Item2)).ToArray();
 
-    private static readonly Regex AsciiDigit = Js.Rx("[0-9]");
+    private static readonly SafeRegex AsciiDigit = Js.Rx("[0-9]");
 
     /// <summary>Trims, collapses whitespace and applies Unicode NFC.</summary>
     /// <param name="text">Text to normalize.</param>
     /// <returns>The normalized text.</returns>
-    public static string Normalize(string text)
+    public static string Normalize(string? text)
     {
-        ArgumentNullException.ThrowIfNull(text);
+        text ??= "";
         return Internal.Normalize.Whitespace(Nfc(text));
     }
 
@@ -56,9 +56,9 @@ public static class Text
     /// <summary>Converts English and Arabic-Indic digits to Urdu digits (۰–۹).</summary>
     /// <param name="text">Text to convert.</param>
     /// <returns>The text with Urdu digits.</returns>
-    public static string ToUrduDigits(string text)
+    public static string ToUrduDigits(string? text)
     {
-        ArgumentNullException.ThrowIfNull(text);
+        text ??= "";
         return AsciiDigit.Replace(
             Internal.Normalize.ToAsciiDigits(text), m => UrduDigits[m.Value[0] - '0'].ToString());
     }
@@ -66,9 +66,9 @@ public static class Text
     /// <summary>Converts Urdu and Arabic-Indic digits to English digits (0–9).</summary>
     /// <param name="text">Text to convert.</param>
     /// <returns>The text with English digits.</returns>
-    public static string ToEnglishDigits(string text)
+    public static string ToEnglishDigits(string? text)
     {
-        ArgumentNullException.ThrowIfNull(text);
+        text ??= "";
         return Internal.Normalize.ToAsciiDigits(text);
     }
 
@@ -79,7 +79,11 @@ public static class Text
         return first != Js.ToLower(first) ? Js.ToUpper(replacement[..1]) + replacement[1..] : replacement;
     }
 
-    /// <summary><c>String.prototype.normalize('NFC')</c>, which leaves unpaired surrogates alone.</summary>
+    /// <summary>
+    /// <c>String.prototype.normalize('NFC')</c>. JavaScript normalizes any
+    /// string; .NET rejects unpaired surrogates and noncharacters, so those
+    /// are left in place and the text around them is normalized.
+    /// </summary>
     private static string Nfc(string text)
     {
         try
@@ -88,23 +92,36 @@ public static class Text
         }
         catch (ArgumentException)
         {
-            // .NET rejects unpaired surrogates; normalize the text around them.
             var sb = new StringBuilder();
             var start = 0;
             for (var i = 0; i < text.Length; i++)
             {
                 var c = text[i];
                 var paired = char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]);
-                if (paired)
+                var code = paired ? char.ConvertToUtf32(c, text[i + 1]) : c;
+                var length = paired ? 2 : 1;
+                var rejected = (!paired && char.IsSurrogate(c)) || (code & 0xFFFE) == 0xFFFE
+                    || code is >= 0xFDD0 and <= 0xFDEF;
+                if (rejected)
                 {
-                    i++;
-                    continue;
+                    sb.Append(NfcOrSame(text[start..i])).Append(text, i, length);
+                    start = i + length;
                 }
-                if (!char.IsSurrogate(c)) continue;
-                sb.Append(text[start..i].Normalize(NormalizationForm.FormC)).Append(c);
-                start = i + 1;
+                i += length - 1;
             }
-            return sb.Append(text[start..].Normalize(NormalizationForm.FormC)).ToString();
+            return sb.Append(NfcOrSame(text[start..])).ToString();
+        }
+    }
+
+    private static string NfcOrSame(string text)
+    {
+        try
+        {
+            return text.Normalize(NormalizationForm.FormC);
+        }
+        catch (ArgumentException)
+        {
+            return text;
         }
     }
 }

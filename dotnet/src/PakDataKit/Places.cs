@@ -7,7 +7,7 @@ namespace PakDataKit;
 /// <summary>Pakistani postal code lookups.</summary>
 public static class Postal
 {
-    private static readonly Regex WsRun = Js.Rx("[" + Js.Ws + "]+");
+    private static readonly SafeRegex WsRun = Js.Rx("[" + Js.Ws + "]+");
 
     private static readonly Lazy<Dictionary<string, string>> ByCode = new(() =>
     {
@@ -30,9 +30,9 @@ public static class Postal
     /// <summary>Returns the city for a postal code; whitespace is ignored.</summary>
     /// <param name="postalCode">5-digit postal code.</param>
     /// <returns>The city, or <c>null</c> if the code is not in the dataset.</returns>
-    public static string? GetCity(string postalCode)
+    public static string? GetCity(string? postalCode)
     {
-        ArgumentNullException.ThrowIfNull(postalCode);
+        postalCode ??= "";
         var code = WsRun.Replace(Js.Trim(postalCode), "");
         return code.Length == 0 ? null : ByCode.Value.GetValueOrDefault(code);
     }
@@ -40,9 +40,9 @@ public static class Postal
     /// <summary>Returns the primary (GPO) postal code for a city.</summary>
     /// <param name="city">City name; case and spacing are ignored.</param>
     /// <returns>The postal code, or <c>null</c> if the city is not in the dataset.</returns>
-    public static string? GetCode(string city)
+    public static string? GetCode(string? city)
     {
-        ArgumentNullException.ThrowIfNull(city);
+        city ??= "";
         var key = Normalize.Key(city);
         return key.Length == 0 ? null : ByCity.Value.GetValueOrDefault(key);
     }
@@ -50,9 +50,9 @@ public static class Postal
     /// <summary>Returns all known postal codes for a city, sorted.</summary>
     /// <param name="city">City name; case and spacing are ignored.</param>
     /// <returns>The codes; empty if the city is not in the dataset.</returns>
-    public static IReadOnlyList<string> GetCodes(string city)
+    public static IReadOnlyList<string> GetCodes(string? city)
     {
-        ArgumentNullException.ThrowIfNull(city);
+        city ??= "";
         var key = Normalize.Key(city);
         if (key.Length == 0) return [];
         return Js.LocaleSorted(Data.Postal.Where(e => Normalize.Key(e.City) == key).Select(e => e.PostalCode));
@@ -61,9 +61,9 @@ public static class Postal
     /// <summary>Returns known area names for a city's postal entries, sorted.</summary>
     /// <param name="city">City name; case and spacing are ignored.</param>
     /// <returns>The areas; empty if none are known.</returns>
-    public static IReadOnlyList<string> GetAreas(string city)
+    public static IReadOnlyList<string> GetAreas(string? city)
     {
-        ArgumentNullException.ThrowIfNull(city);
+        city ??= "";
         var key = Normalize.Key(city);
         if (key.Length == 0) return [];
         return Js.LocaleSorted(Data.Postal
@@ -74,9 +74,9 @@ public static class Postal
     /// <summary>Searches postal entries by city name, area, or postal code prefix.</summary>
     /// <param name="query">Text to search for.</param>
     /// <returns>Matching postal codes, sorted and without duplicates.</returns>
-    public static IReadOnlyList<string> Search(string query)
+    public static IReadOnlyList<string> Search(string? query)
     {
-        ArgumentNullException.ThrowIfNull(query);
+        query ??= "";
         var normalized = Normalize.Key(query);
         if (normalized.Length == 0) return [];
         var prefix = Js.Trim(query);
@@ -122,9 +122,9 @@ public static class Geo
     /// <summary>Returns the province for a city name.</summary>
     /// <param name="city">City name; case and spacing are ignored.</param>
     /// <returns>The province, or <c>null</c> if the city is not in the dataset.</returns>
-    public static string? GetProvince(string city)
+    public static string? GetProvince(string? city)
     {
-        ArgumentNullException.ThrowIfNull(city);
+        city ??= "";
         var key = Normalize.Key(city);
         return key.Length == 0 ? null : CityMap.Value.GetValueOrDefault(key);
     }
@@ -132,9 +132,9 @@ public static class Geo
     /// <summary>Searches cities by partial, case-insensitive name.</summary>
     /// <param name="query">Text to search for.</param>
     /// <returns>Matching city names, sorted.</returns>
-    public static IReadOnlyList<string> SearchCities(string query)
+    public static IReadOnlyList<string> SearchCities(string? query)
     {
-        ArgumentNullException.ThrowIfNull(query);
+        query ??= "";
         var q = Normalize.Key(query);
         if (q.Length == 0) return [];
         return Js.LocaleSorted(Data.Cities
@@ -149,9 +149,9 @@ public static class Geo
     /// </summary>
     /// <param name="district">District name; case and spacing are ignored.</param>
     /// <returns>The province, or <c>null</c> if the district is not known.</returns>
-    public static string? GetDistrictProvince(string district)
+    public static string? GetDistrictProvince(string? district)
     {
-        ArgumentNullException.ThrowIfNull(district);
+        district ??= "";
         var key = Normalize.Key(district);
         if (key.Length == 0) return null;
         return DistrictMap.Value.GetValueOrDefault(key) ?? FormerDistricts.GetValueOrDefault(key);
@@ -160,9 +160,9 @@ public static class Geo
     /// <summary>Searches districts by partial, case-insensitive name.</summary>
     /// <param name="query">Text to search for.</param>
     /// <returns>Matching district names, sorted.</returns>
-    public static IReadOnlyList<string> SearchDistricts(string query)
+    public static IReadOnlyList<string> SearchDistricts(string? query)
     {
-        ArgumentNullException.ThrowIfNull(query);
+        query ??= "";
         var q = Normalize.Key(query);
         if (q.Length == 0) return [];
         return Js.LocaleSorted(Data.Districts
@@ -174,9 +174,9 @@ public static class Geo
     /// <summary>Returns all districts in a province, sorted.</summary>
     /// <param name="province">Province name; case and spacing are ignored.</param>
     /// <returns>The district names; empty if the province is not known.</returns>
-    public static IReadOnlyList<string> GetDistrictsByProvince(string province)
+    public static IReadOnlyList<string> GetDistrictsByProvince(string? province)
     {
-        ArgumentNullException.ThrowIfNull(province);
+        province ??= "";
         var key = Normalize.Key(province);
         if (key.Length == 0) return [];
         return Js.LocaleSorted(Data.Districts
@@ -196,12 +196,34 @@ public static class WhatsApp
     /// <param name="message">Optional message to pre-fill.</param>
     /// <returns>The link, or <c>null</c> if the number is invalid.</returns>
     /// <exception cref="ArgumentException">The message contains an unpaired surrogate.</exception>
-    public static string? CreateLink(string phone, string? message = null)
+    public static string? CreateLink(string? phone, string? message = null)
     {
+        phone ??= "";
         var digits = Phone.NormalizeDigits(phone);
         if (digits is null) return null;
         var baseUrl = "https://wa.me/" + digits;
         return string.IsNullOrEmpty(message) ? baseUrl : $"{baseUrl}?text={EncodeUriComponent(message)}";
+    }
+
+    /// <summary>
+    /// Creates a <c>wa.me</c> link without throwing: returns <c>false</c> for
+    /// an invalid number, or a message with an unpaired surrogate.
+    /// </summary>
+    /// <param name="phone">Mobile number in any accepted format.</param>
+    /// <param name="message">Optional message to pre-fill.</param>
+    /// <param name="link">The link, when one could be created.</param>
+    /// <returns><c>true</c> if a link was created.</returns>
+    public static bool TryCreateLink(string? phone, string? message, out string? link)
+    {
+        try
+        {
+            link = CreateLink(phone, message);
+        }
+        catch (ArgumentException)
+        {
+            link = null;
+        }
+        return link is not null;
     }
 
     private static string EncodeUriComponent(string text)

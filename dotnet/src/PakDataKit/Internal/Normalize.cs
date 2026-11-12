@@ -7,8 +7,8 @@ namespace PakDataKit.Internal;
 internal static class Normalize
 {
     // Whitespace, hyphens and dashes, dots, slashes and parentheses.
-    private static readonly Regex Separators = Js.Rx("[" + Js.Ws + @"\-‐‑‒–—./()]");
-    private static readonly Regex WhitespaceRun = Js.Rx("[" + Js.Ws + "]+");
+    private static readonly SafeRegex Separators = Js.Rx("[" + Js.Ws + @"\-‐‑‒–—./()]");
+    private static readonly SafeRegex WhitespaceRun = Js.Rx("[" + Js.Ws + "]+");
 
     /// <summary>Converts Urdu (Extended Arabic-Indic) and Arabic-Indic digits to ASCII digits.</summary>
     internal static string ToAsciiDigits(string value)

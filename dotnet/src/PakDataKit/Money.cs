@@ -96,7 +96,7 @@ public static class Words
         "اسی اکیاسی بیاسی تراسی چوراسی پچاسی چھیاسی ستاسی اٹھاسی نواسی " +
         "نوے اکانوے بانوے ترانوے چورانوے پچانوے چھیانوے ستانوے اٹھانوے ننانوے").Split(' ');
 
-    private static readonly Regex TitleCase = Js.Rx("(^|[" + Js.Ws + "-])([a-z])");
+    private static readonly SafeRegex TitleCase = Js.Rx("(^|[" + Js.Ws + "-])([a-z])");
 
     /// <summary>
     /// Converts a whole number to words using hundred, thousand, lakh, crore,

@@ -12,7 +12,7 @@ public sealed record PhoneAnalysis(bool Valid, string? Formatted, string Network
 /// <summary>Pakistani mobile number validation, formatting and analysis.</summary>
 public static class Phone
 {
-    private static readonly Regex Mobile = Js.Rx("^3[0-9]{9}\\z");
+    private static readonly SafeRegex Mobile = Js.Rx("^3[0-9]{9}\\z");
 
     private static readonly Lazy<HashSet<string>> Allocated = new(() =>
         new HashSet<string>(Data.Networks.Select(e => e.Prefix), StringComparer.Ordinal));
@@ -53,9 +53,9 @@ public static class Phone
     /// Normalizes a phone string to digits with country code (no plus), or
     /// <c>null</c> when it is not a mobile number on an allocated prefix.
     /// </summary>
-    internal static string? NormalizeDigits(string phone)
+    internal static string? NormalizeDigits(string? phone)
     {
-        ArgumentNullException.ThrowIfNull(phone);
+        phone ??= "";
         var digits = Normalize.StripSeparators(Normalize.ToAsciiDigits(phone));
         if (digits.StartsWith('+')) digits = digits[1..];
         else if (digits.StartsWith("00", StringComparison.Ordinal)) digits = digits[2..];

@@ -18,3 +18,9 @@ First release of the .NET packages, matching version 2.3.0 of the
 - `PakDataKit.FluentValidation`: `IsCnic()`, `IsPakPhone()`, `IsPakIban()`,
   `IsNtn()`, `IsStrn()`, `IsPakLandline()`, `IsPakPassport()` and
   `IsVehiclePlate()`.
+- No method throws for a string it is given to check: validators return
+  `false`, parsers and lookups return `null` or an empty list, including for
+  `null`, very long input and invalid Unicode. `Try*` overloads
+  (`Hijri.TryFromHijri`, `Holidays.TryGetHolidaysOn`, `WhatsApp.TryCreateLink`,
+  `RaastQr.TryCreateP2P`, `RaastQr.TryCreateMerchant`) cover the methods that
+  throw for invalid arguments. A fuzz test checks the contract.

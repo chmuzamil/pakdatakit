@@ -89,7 +89,7 @@ public sealed record HolidayOptions
 /// <summary>Pakistan's federal public holidays.</summary>
 public static class Holidays
 {
-    private static readonly Regex IsoDate = Js.Rx("^[0-9]{4}-[0-9]{2}-[0-9]{2}\\z");
+    private static readonly SafeRegex IsoDate = Js.Rx("^[0-9]{4}-[0-9]{2}-[0-9]{2}\\z");
 
     private static readonly (HolidayId Id, string Name, int Month, int Day, HolidayType Type,
         Func<int, bool>? AppliesIn, bool ChristiansOnly)[] Fixed =
@@ -186,13 +186,33 @@ public static class Holidays
     /// <summary>Returns the public holidays that fall on a date.</summary>
     /// <param name="date">Date as <c>YYYY-MM-DD</c>.</param>
     /// <param name="options">Same options as <see cref="GetHolidays"/>.</param>
-    /// <returns>Holidays on that date; empty if it is not a public holiday.</returns>
-    /// <exception cref="ArgumentException">The date is not <c>YYYY-MM-DD</c> or its year is out of range.</exception>
-    public static IReadOnlyList<Holiday> GetHolidaysOn(string date, HolidayOptions? options = null)
+    /// <returns>
+    /// Holidays on that date; empty if it is not a public holiday, or if the
+    /// text is not a usable date (see <see cref="TryGetHolidaysOn"/>).
+    /// </returns>
+    /// <exception cref="ArgumentException">An announced date in <paramref name="options"/> is not <c>YYYY-MM-DD</c>.</exception>
+    public static IReadOnlyList<Holiday> GetHolidaysOn(string? date, HolidayOptions? options = null) =>
+        TryGetHolidaysOn(date, out var holidays, options) ? holidays : [];
+
+    /// <summary>
+    /// Returns the public holidays that fall on a date, and reports whether
+    /// the date text could be used. The npm package throws for such text;
+    /// this returns <c>false</c>.
+    /// </summary>
+    /// <param name="date">Date as <c>YYYY-MM-DD</c>.</param>
+    /// <param name="holidays">Holidays on that date; empty if there are none or the text is not usable.</param>
+    /// <param name="options">Same options as <see cref="GetHolidays"/>.</param>
+    /// <returns><c>false</c> if the text is not <c>YYYY-MM-DD</c> or its year is outside 1948 to 9999.</returns>
+    /// <exception cref="ArgumentException">An announced date in <paramref name="options"/> is not <c>YYYY-MM-DD</c>.</exception>
+    public static bool TryGetHolidaysOn(
+        string? date, out IReadOnlyList<Holiday> holidays, HolidayOptions? options = null)
     {
-        AssertIsoDate(date);
+        holidays = [];
+        if (date is null || !IsoDate.IsMatch(date)) return false;
         var year = int.Parse(date.AsSpan(0, 4), NumberStyles.None, CultureInfo.InvariantCulture);
-        return GetHolidays(year, options).Where(h => h.Date == date).ToArray();
+        if (year is < 1948 or > 9999) return false;
+        holidays = GetHolidays(year, options).Where(h => h.Date == date).ToArray();
+        return true;
     }
 
     /// <summary>Returns whether a date is a Pakistani federal public holiday.</summary>
@@ -205,9 +225,9 @@ public static class Holidays
     /// <summary>Returns whether a date is a Pakistani federal public holiday.</summary>
     /// <param name="date">Date as <c>YYYY-MM-DD</c>.</param>
     /// <param name="options">Same options as <see cref="GetHolidays"/>.</param>
-    /// <returns><c>true</c> on a public holiday.</returns>
-    /// <exception cref="ArgumentException">The date is not <c>YYYY-MM-DD</c> or its year is out of range.</exception>
-    public static bool IsHoliday(string date, HolidayOptions? options = null) =>
+    /// <returns><c>true</c> on a public holiday; <c>false</c> otherwise, including for text that is not a usable date.</returns>
+    /// <exception cref="ArgumentException">An announced date in <paramref name="options"/> is not <c>YYYY-MM-DD</c>.</exception>
+    public static bool IsHoliday(string? date, HolidayOptions? options = null) =>
         GetHolidaysOn(date, options).Count > 0;
 
     private static string Iso(long year, long month, long day) => string.Create(

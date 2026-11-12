@@ -432,8 +432,18 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["isRamadan"] = (a, k) => Hijri.IsRamadan(Date(a[0]), IntOption(k, "offset", 0)),
         ["getHijriMonthName"] = (a, _) => Hijri.GetMonthName(Integer(a[0])),
         ["getPakistanHolidays"] = (a, k) => Holidays.GetHolidays(Integer(a[0]), HolidayOptionsFrom(k)),
-        ["getHolidaysOn"] = HolidayCall(Holidays.GetHolidaysOn, Holidays.GetHolidaysOn),
-        ["isPakistanHoliday"] = HolidayCall((d, o) => Holidays.IsHoliday(d, o), (t, o) => Holidays.IsHoliday(t, o)),
+        // For date text TypeScript throws on, the .NET methods return an empty
+        // list or false instead; TryGetHolidaysOn reports which case it is.
+        ["getHolidaysOn"] = HolidayCall(
+            Holidays.GetHolidaysOn,
+            (text, options) => Holidays.TryGetHolidaysOn(text, out var holidays, options)
+                ? holidays
+                : throw new ArgumentException("not a usable date")),
+        ["isPakistanHoliday"] = HolidayCall(
+            (date, options) => Holidays.IsHoliday(date, options),
+            (text, options) => Holidays.TryGetHolidaysOn(text, out var holidays, options)
+                ? holidays.Count > 0 && Holidays.IsHoliday(text, options)
+                : throw new ArgumentException("not a usable date")),
         ["numberToWords"] = (a, k) => Words.NumberToWords(Number(a[0]), Language(k.GetValueOrDefault("language"))),
         ["amountInWords"] = (a, k) => Words.AmountInWords(
             Number(a[0]), Language(k.GetValueOrDefault("language")), OptBool(k.GetValueOrDefault("cheque")) ?? false),

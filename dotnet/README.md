@@ -69,8 +69,48 @@ var payload = RaastQr.CreateP2P(new RaastP2POptions
 RaastQr.Validate(payload).Valid;             // true
 ```
 
-Functions that reject their input throw `ArgumentException`; lookups that find
-nothing return `null` or an empty list.
+### What throws and what doesn't
+
+**No method throws for a string it is given to check.** That includes
+`null`, empty or whitespace-only text, garbage, very long input and invalid
+Unicode (unpaired surrogates, noncharacters).
+
+| Methods | For input that isn't valid |
+| --- | --- |
+| `Validate*`, `Is*` (e.g. `Cnic.Validate`, `Holidays.IsHoliday(string)`) | `false` |
+| `Parse`, `Get*`, `Analyze*` returning one value (e.g. `VehiclePlate.Parse`, `Iban.GetBank`, `Tax.AnalyzeNtn`) | `null` |
+| `Search*`, `Get*` returning a list (e.g. `Geo.SearchCities`, `Holidays.GetHolidaysOn(string)`) | an empty list |
+| `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`), as in the npm package |
+| `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
+
+Every regular expression has a one-second timeout; if one is ever hit, the
+input is treated as not matching, so the method still returns `false` or
+`null`.
+
+**`ArgumentException` is thrown only for arguments and options the npm
+package rejects too:**
+
+| Method | Throws when |
+| --- | --- |
+| `Currency.FormatPkr`, `Currency.FormatLakh` | the amount is NaN or infinite |
+| `Words.NumberToWords`, `Words.AmountInWords` | the number is not a safe integer; the amount is negative, not finite or too large |
+| `Hijri.FromHijri` | the Hijri date is out of range |
+| `Holidays.GetHolidays` | the year is outside 1948 to 9999, or an announced date in the options is not `YYYY-MM-DD` |
+| `WhatsApp.CreateLink` | the message contains an unpaired surrogate |
+| `RaastQr.CreateP2P`, `RaastQr.CreateMerchant` | the IBAN is invalid, a field is missing or too long, or an amount has no expiry |
+| `Address.Format`, `Hijri.FromHijri`, `RaastQr.Create*` | a required object argument is `null` (`ArgumentNullException`) |
+
+Where that input comes from a user, use the overload that returns `false`
+instead: `Hijri.TryFromHijri`, `Holidays.TryGetHolidaysOn`,
+`WhatsApp.TryCreateLink`, `RaastQr.TryCreateP2P` and
+`RaastQr.TryCreateMerchant`.
+
+One difference from the npm package: `getHolidaysOn` and `isPakistanHoliday`
+throw for text that is not a `YYYY-MM-DD` date; `Holidays.GetHolidaysOn(string)`
+returns an empty list and `Holidays.IsHoliday(string)` returns `false`.
+
+A fuzz test (`tests/PakDataKit.Tests/FuzzTests.cs`) feeds random and hostile
+strings to every public method that takes a string and checks this contract.
 
 ### API map
 

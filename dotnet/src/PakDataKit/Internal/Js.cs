@@ -25,12 +25,12 @@ internal static class Js
     private static readonly char[] WsArray = WsChars.ToCharArray();
 
     /// <summary>
-    /// Creates a culture-invariant regex with a match timeout. Patterns use
+    /// Creates a culture-invariant regex with a match timeout that never
+    /// throws (see <see cref="SafeRegex"/>). Patterns use
     /// explicit classes (<c>[0-9]</c>, <see cref="Ws"/>) and <c>\z</c>, because
     /// .NET's <c>\d</c>, <c>\s</c>, <c>\w</c> and <c>$</c> differ from JavaScript's.
     /// </summary>
-    internal static Regex Rx(string pattern) =>
-        new(pattern, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+    internal static SafeRegex Rx(string pattern) => new(pattern);
 
     /// <summary>Turns <c>abc</c> into <c>[Aa][Bb][Cc]</c>: ASCII-only case-insensitivity.</summary>
     internal static string Ci(string letters)

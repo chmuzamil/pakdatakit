@@ -204,15 +204,15 @@ public static class RaastQr
 {
     private const string DefaultP2PScheme = "00";
 
-    private static readonly Regex PkIban = Js.Rx("^PK[0-9]{2}[A-Z]{4}[A-Z0-9]{16}\\z");
-    private static readonly Regex PlainAmount = Js.Rx("^[0-9]+(?:\\.[0-9]+)?\\z");
-    private static readonly Regex MerchantAmount = Js.Rx("^[0-9]+\\.[0-9]{2}\\z");
-    private static readonly Regex Expiry = Js.Rx("^([0-9]{2})([0-9]{2})([0-9]{4})([0-9]{2})([0-9]{2})\\z");
-    private static readonly Regex Duration = Js.Rx("^([0-9]+(?:\\.[0-9]+)?)([mhd])\\z");
-    private static readonly Regex Tag = Js.Rx("^(?:2[6-9]|[34][0-9]|5[01])\\z");
-    private static readonly Regex FourDigits = Js.Rx("^[0-9]{4}\\z");
-    private static readonly Regex TwoDigits = Js.Rx("^[0-9]{2}\\z");
-    private static readonly Regex EightDigits = Js.Rx("^[0-9]{8}\\z");
+    private static readonly SafeRegex PkIban = Js.Rx("^PK[0-9]{2}[A-Z]{4}[A-Z0-9]{16}\\z");
+    private static readonly SafeRegex PlainAmount = Js.Rx("^[0-9]+(?:\\.[0-9]+)?\\z");
+    private static readonly SafeRegex MerchantAmount = Js.Rx("^[0-9]+\\.[0-9]{2}\\z");
+    private static readonly SafeRegex Expiry = Js.Rx("^([0-9]{2})([0-9]{2})([0-9]{4})([0-9]{2})([0-9]{2})\\z");
+    private static readonly SafeRegex Duration = Js.Rx("^([0-9]+(?:\\.[0-9]+)?)([mhd])\\z");
+    private static readonly SafeRegex Tag = Js.Rx("^(?:2[6-9]|[34][0-9]|5[01])\\z");
+    private static readonly SafeRegex FourDigits = Js.Rx("^[0-9]{4}\\z");
+    private static readonly SafeRegex TwoDigits = Js.Rx("^[0-9]{2}\\z");
+    private static readonly SafeRegex EightDigits = Js.Rx("^[0-9]{8}\\z");
 
     /// <summary>
     /// Creates a Raast person-to-person QR payload (SBP P2P format <c>02</c>).
@@ -252,6 +252,50 @@ public static class RaastQr
 
         var data = payload.Append("1004").ToString();
         return data + Crc16(data);
+    }
+
+    /// <summary>
+    /// Creates a Raast person-to-person QR payload without throwing: returns
+    /// <c>false</c> where <see cref="CreateP2P"/> would throw.
+    /// </summary>
+    /// <param name="options">IBAN, and optionally amount, expiry and labels.</param>
+    /// <param name="payload">The QR payload, when it could be created.</param>
+    /// <returns><c>true</c> if the payload was created.</returns>
+    public static bool TryCreateP2P(RaastP2POptions? options, out string? payload)
+    {
+        payload = null;
+        if (options is null) return false;
+        try
+        {
+            payload = CreateP2P(options);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Creates an EMVCo merchant-presented QR payload without throwing: returns
+    /// <c>false</c> where <see cref="CreateMerchant"/> would throw.
+    /// </summary>
+    /// <param name="options">Merchant account, name, city and optional bill details.</param>
+    /// <param name="payload">The QR payload, when it could be created.</param>
+    /// <returns><c>true</c> if the payload was created.</returns>
+    public static bool TryCreateMerchant(MerchantQrOptions? options, out string? payload)
+    {
+        payload = null;
+        if (options is null) return false;
+        try
+        {
+            payload = CreateMerchant(options);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 
     /// <summary>Creates an EMVCo merchant-presented QR payload per SBP's Pakistan QR standard.</summary>
@@ -323,9 +367,9 @@ public static class RaastQr
     /// </summary>
     /// <param name="payload">Text decoded from the QR code.</param>
     /// <returns>The parsed QR, or <c>null</c> if it is not a well-formed Pakistani QR code.</returns>
-    public static ParsedRaastQr? Parse(string payload)
+    public static ParsedRaastQr? Parse(string? payload)
     {
-        ArgumentNullException.ThrowIfNull(payload);
+        payload ??= "";
         var text = Js.Trim(payload);
         var fields = ParseFields(text, nested: true);
         if (fields is null) return null;
@@ -393,7 +437,7 @@ public static class RaastQr
     /// <param name="now">The time to check the expiry against. Defaults to the current local time.</param>
     /// <param name="expiresSoonMs">How close to expiry counts as "soon", in milliseconds. Defaults to one hour.</param>
     /// <returns>Whether the QR is valid, with its errors, warnings and parsed form.</returns>
-    public static RaastQrValidation Validate(string payload, DateTime? now = null, double expiresSoonMs = 3_600_000)
+    public static RaastQrValidation Validate(string? payload, DateTime? now = null, double expiresSoonMs = 3_600_000)
     {
         var qr = Parse(payload);
         if (qr is null) return new RaastQrValidation(false, [RaastQrError.NotARaastQr], [], null);

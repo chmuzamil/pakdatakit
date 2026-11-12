@@ -120,6 +120,16 @@
         "default": "./dist/numbers.cjs"
       }
     },
+    "./passport": {
+      "import": {
+        "types": "./dist/passport.d.ts",
+        "default": "./dist/passport.js"
+      },
+      "require": {
+        "types": "./dist/passport.d.cts",
+        "default": "./dist/passport.cjs"
+      }
+    },
     "./phone": {
       "import": {
         "types": "./dist/phone.d.ts",
@@ -168,6 +178,16 @@
       "require": {
         "types": "./dist/text.d.cts",
         "default": "./dist/text.cjs"
+      }
+    },
+    "./vehicle": {
+      "import": {
+        "types": "./dist/vehicle.d.ts",
+        "default": "./dist/vehicle.js"
+      },
+      "require": {
+        "types": "./dist/vehicle.d.cts",
+        "default": "./dist/vehicle.cjs"
       }
     },
     "./whatsapp": {

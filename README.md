@@ -139,7 +139,7 @@ import { validateCNIC } from 'pakdatakit/cnic';
 const { analyzePhone } = require('pakdatakit/phone');
 ```
 
-Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot`, `yup`, `joi`, `superstruct` and `class-validator`.
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `passport`, `phone`, `postal`, `raast`, `tax`, `text`, `vehicle`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot`, `yup`, `joi`, `superstruct` and `class-validator`.
 
 ---
 
@@ -710,6 +710,38 @@ FBR does not publish its check-digit algorithms, so these check the format only.
 
 ---
 
+## Passports & Vehicle Plates
+
+### validatePassport()
+
+Checks the format of a Pakistani passport number: two letters and seven digits.
+
+```ts
+validatePassport('AB1234567'); // true
+validatePassport('ab 1234567'); // true
+validatePassport('A12345678'); // false
+```
+
+DGIP does not publish the format, so this checks the common shape only. Other passport types may differ; see [DATA.md](./DATA.md#passport-numbers).
+
+### parseVehiclePlate() / validateVehiclePlate()
+
+Splits a vehicle registration number into its series letters, number and the optional year that older Punjab plates carry.
+
+```ts
+parseVehiclePlate('lea 1234');
+// { series: 'LEA', number: '1234', year: null, formatted: 'LEA-1234' }
+
+parseVehiclePlate('LEA-1234-19');
+// { series: 'LEA', number: '1234', year: '19', formatted: 'LEA-1234' }
+
+validateVehiclePlate('ABC-123'); // true
+```
+
+Each province sets its own format and several changed in 2024–2026, so this accepts the shape they share (1–4 letters, then 1–4 digits) and does not check series letters against districts. See [DATA.md](./DATA.md#vehicle-registration-plates).
+
+---
+
 ## Raast QR Codes
 
 ### createRaastP2PQr() / createMerchantQr() / parseRaastQr()
@@ -846,7 +878,7 @@ import { pk } from 'pakdatakit/superstruct';
 const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
 ```
 
-Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()` and `pk.landline()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()` and `pk.vehiclePlate()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
 
 ### class-validator and NestJS
 
@@ -869,7 +901,7 @@ export class CreateCustomerDto {
 }
 ```
 
-Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN` and `IsPakLandline`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport` and `IsVehiclePlate`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ### As-you-type helpers
 

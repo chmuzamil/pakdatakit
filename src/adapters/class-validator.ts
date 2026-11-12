@@ -49,6 +49,8 @@ export const pk = {
   ntn: decorator('ntn'),
   strn: decorator('strn'),
   landline: decorator('landline'),
+  passport: decorator('passport'),
+  vehiclePlate: decorator('vehiclePlate'),
 };
 
 /** Validates a CNIC. See {@link pk}. */
@@ -66,3 +68,7 @@ export const IsNTN = pk.ntn;
 export const IsSTRN = pk.strn;
 /** Validates a Pakistani landline number. See {@link pk}. */
 export const IsPakLandline = pk.landline;
+/** Validates the format of a Pakistani passport number. See {@link pk}. */
+export const IsPakPassport = pk.passport;
+/** Validates the format of a vehicle registration number. See {@link pk}. */
+export const IsVehiclePlate = pk.vehiclePlate;

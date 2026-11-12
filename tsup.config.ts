@@ -12,11 +12,13 @@ export const modules = [
   'input',
   'networks',
   'numbers',
+  'passport',
   'phone',
   'postal',
   'raast',
   'tax',
   'text',
+  'vehicle',
   'whatsapp',
   'words',
 ];

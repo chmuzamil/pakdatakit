@@ -1,8 +1,10 @@
 import { validateCNIC } from '../cnic.js';
 import { validateIBAN } from '../iban.js';
 import { validateLandline } from '../numbers.js';
+import { validatePassport } from '../passport.js';
 import { validatePhone } from '../phone.js';
 import { validateNTN, validateSTRN } from '../tax.js';
+import { validateVehiclePlate } from '../vehicle.js';
 
 /** A string check shared by the form-library adapters. */
 export interface Rule {
@@ -20,6 +22,14 @@ export const RULES = {
   landline: {
     test: validateLandline,
     message: 'Invalid Pakistani landline number',
+  },
+  passport: {
+    test: validatePassport,
+    message: 'Invalid Pakistani passport number',
+  },
+  vehiclePlate: {
+    test: validateVehiclePlate,
+    message: 'Invalid vehicle registration number',
   },
 } satisfies Record<string, Rule>;
 

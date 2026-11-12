@@ -27,6 +27,8 @@ export const pk = {
   ntn: schema('ntn'),
   strn: schema('strn'),
   landline: schema('landline'),
+  passport: schema('passport'),
+  vehiclePlate: schema('vehiclePlate'),
 };
 
 export type { AdapterOptions };

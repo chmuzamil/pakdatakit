@@ -193,6 +193,54 @@ describe('class-validator adapter', () => {
   });
 });
 
+describe('passport and vehicle plate rules', () => {
+  const VALID_DOCS = { passport: 'AB1234567', plate: 'LEA-1234' };
+  const INVALID_DOCS = { passport: 'A1234', plate: 'ABC-12345' };
+  const MESSAGES = [
+    'Invalid Pakistani passport number',
+    'Invalid vehicle registration number',
+  ];
+
+  it('works in zod', () => {
+    const form = z.object({
+      passport: pkZod.passport(),
+      plate: pkZod.vehiclePlate(),
+    });
+    expect(form.safeParse(VALID_DOCS).success).toBe(true);
+    expect(
+      form.safeParse(INVALID_DOCS).error?.issues.map((i) => i.message),
+    ).toEqual(MESSAGES);
+  });
+
+  it('works in joi', () => {
+    const form = Joi.object({
+      passport: pkJoi.passport(),
+      plate: pkJoi.vehiclePlate(),
+    });
+    expect(form.validate(VALID_DOCS).error).toBeUndefined();
+    expect(
+      form
+        .validate(INVALID_DOCS, { abortEarly: false })
+        .error?.details.map((d) => d.message),
+    ).toEqual(MESSAGES);
+  });
+
+  it('works in class-validator', () => {
+    class VehicleDto {
+      passport!: string;
+      plate!: string;
+    }
+    pkClassValidator.passport()(VehicleDto.prototype, 'passport');
+    pkClassValidator.vehiclePlate()(VehicleDto.prototype, 'plate');
+    const messages = (values: object) =>
+      validateSync(Object.assign(new VehicleDto(), values)).flatMap((error) =>
+        Object.values(error.constraints ?? {}),
+      );
+    expect(messages(VALID_DOCS)).toEqual([]);
+    expect(messages(INVALID_DOCS)).toEqual(MESSAGES);
+  });
+});
+
 describe('tax and landline rules', () => {
   const form = z.object({
     ntn: pkZod.ntn(),
@@ -215,6 +263,16 @@ describe('tax and landline rules', () => {
   });
 
   it('exposes the same rules in every adapter', () => {
+    expect(Object.keys(pkZod)).toEqual([
+      'cnic',
+      'phone',
+      'iban',
+      'ntn',
+      'strn',
+      'landline',
+      'passport',
+      'vehiclePlate',
+    ]);
     for (const adapter of [
       pkValibot,
       pkYup,

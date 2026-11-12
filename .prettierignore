@@ -8,3 +8,5 @@ python/dist/
 # Dart and Flutter packages are formatted with dart format
 dart/
 flutter/
+# The .NET package is formatted by its own tooling
+dotnet/

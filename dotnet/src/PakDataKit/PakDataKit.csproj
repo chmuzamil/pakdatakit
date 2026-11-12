@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>PakDataKit</PackageId>
+    <RootNamespace>PakDataKit</RootNamespace>
+    <Description>Pakistani data utilities for .NET: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates and amounts in words. No dependencies; gives the same results as the pakdatakit npm, PyPI and pub.dev packages.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The datasets are embedded from the repository's data/ folder at build
+         time, so they are never copied by hand. -->
+    <EmbeddedResource Include="..\..\..\data\*.json"
+                      LogicalName="PakDataKit.Data.%(Filename)%(Extension)"
+                      Link="Data\%(Filename)%(Extension)" />
+    <!-- dataVersion is read from the TypeScript source, its single home. -->
+    <EmbeddedResource Include="..\..\..\src\data-version.ts"
+                      LogicalName="PakDataKit.Data.data-version.ts"
+                      Link="Data\data-version.ts" />
+    <!-- JavaScript's case mappings; regenerate with node scripts/generate-dotnet-data.mjs. -->
+    <EmbeddedResource Include="Generated\unicode-case.json"
+                      LogicalName="PakDataKit.Generated.unicode-case.json" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <InternalsVisibleTo Include="PakDataKit.Tests" />
+  </ItemGroup>
+
+</Project>

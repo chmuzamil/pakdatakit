@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>PakDataKit.DataAnnotations</PackageId>
+    <RootNamespace>PakDataKit.DataAnnotations</RootNamespace>
+    <Description>DataAnnotations validation attributes for Pakistani identifiers, built on PakDataKit: [Cnic], [PakPhone], [PakIban], [Ntn], [Strn], [PakLandline], [PakPassport] and [VehiclePlate]. For ASP.NET Core model validation, Blazor forms and anything else that uses System.ComponentModel.DataAnnotations.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageTags>$(PackageTags);dataannotations;aspnetcore;blazor</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PakDataKit\PakDataKit.csproj" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

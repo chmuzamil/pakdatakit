@@ -43,16 +43,17 @@ Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, ch
 
 ## 📦 Packages
 
-| Package                                                                           | Install                              | For                                                                                            |
-| --------------------------------------------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| [`pakdatakit`](https://www.npmjs.com/package/pakdatakit)                          | `npm install pakdatakit`             | JavaScript and TypeScript (Node, browsers, Bun, Deno)                                          |
-| [`pakdatakit` (Python)](https://github.com/chmuzamil/pakdatakit/tree/main/python) | `pip install pakdatakit`             | Python 3.9+, same functions in snake_case, same data                                           |
-| [`pakdatakit-react`](https://github.com/chmuzamil/pakdatakit/tree/main/react)     | `npm install pakdatakit-react`       | React inputs that format as you type, and a Raast QR component                                 |
-| [`pakdatakit-faker`](https://github.com/chmuzamil/pakdatakit/tree/main/faker)     | `npm install -D pakdatakit-faker`    | Seeded mock data: CNICs, phones, IBANs, addresses and whole personas that pass every validator |
-| [`pakdatakit` (Dart)](https://github.com/chmuzamil/pakdatakit/tree/main/dart)     | `dart pub add pakdatakit`            | Dart and Flutter (including web), same functions and data                                      |
-| [`pakdatakit_flutter`](https://github.com/chmuzamil/pakdatakit/tree/main/flutter) | `flutter pub add pakdatakit_flutter` | Flutter input formatters, form fields and a Raast QR widget                                    |
+| Package                                                                           | Install                                 | For                                                                                            |
+| --------------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [`pakdatakit`](https://www.npmjs.com/package/pakdatakit)                          | `npm install pakdatakit`                | JavaScript and TypeScript (Node, browsers, Bun, Deno)                                          |
+| [`pakdatakit` (Python)](https://github.com/chmuzamil/pakdatakit/tree/main/python) | `pip install pakdatakit`                | Python 3.9+, same functions in snake_case, same data                                           |
+| [`pakdatakit-react`](https://github.com/chmuzamil/pakdatakit/tree/main/react)     | `npm install pakdatakit-react`          | React inputs that format as you type, and a Raast QR component                                 |
+| [`pakdatakit-faker`](https://github.com/chmuzamil/pakdatakit/tree/main/faker)     | `npm install -D pakdatakit-faker`       | Seeded mock data: CNICs, phones, IBANs, addresses and whole personas that pass every validator |
+| [`pakdatakit` (Dart)](https://github.com/chmuzamil/pakdatakit/tree/main/dart)     | `dart pub add pakdatakit`               | Dart and Flutter (including web), same functions and data                                      |
+| [`pakdatakit_flutter`](https://github.com/chmuzamil/pakdatakit/tree/main/flutter) | `flutter pub add pakdatakit_flutter`    | Flutter input formatters, form fields and a Raast QR widget                                    |
+| [`PakDataKit` (.NET)](https://github.com/chmuzamil/pakdatakit/tree/main/dotnet)   | Build from `dotnet/` (not on NuGet yet) | .NET 8, same functions and data, with DataAnnotations and FluentValidation packages            |
 
-The Python and Dart packages are checked against the TypeScript library with over 12,000 shared test cases, so all three give the same results.
+The Python, Dart and .NET packages are checked against the TypeScript library with over 12,000 shared test cases, so all four give the same results.
 
 ---
 

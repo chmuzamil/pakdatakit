@@ -203,3 +203,48 @@ jobs:
 
       - run: flutter pub get && flutter analyze --fatal-infos
         working-directory: flutter/example
+
+  dotnet:
+    name: dotnet (PakDataKit, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      # The case-mapping table embeds data from Node's ICU, so pin Node to the
+      # version it was generated with (the same pin as the dart job).
+      - uses: actions/setup-node@v7
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          node-version: 24.15.0
+
+      - name: Check generated .NET data is up to date
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          node scripts/generate-dotnet-data.mjs
+          git diff --exit-code -- dotnet/src/PakDataKit/Generated
+
+      - run: dotnet build -c Release
+        working-directory: dotnet
+
+      # Runs the 12,000+ shared test vectors from test-vectors/.
+      - run: dotnet test -c Release --no-build
+        working-directory: dotnet
+
+      # Builds the NuGet packages; nothing is pushed.
+      - run: dotnet pack -c Release --no-build -o artifacts
+        working-directory: dotnet
+
+      - uses: actions/upload-artifact@v7
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: nuget-packages
+          path: dotnet/artifacts/*.nupkg
+          if-no-files-found: error

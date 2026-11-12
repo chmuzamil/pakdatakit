@@ -35,12 +35,42 @@ The Dart package is tested against the same shared test vectors as Python, and
 its data is generated from `data/*.json` by `node scripts/generate-dart-data.mjs`
 (CI fails if it is out of date).
 
+## .NET packages (`dotnet/`)
+
+`PakDataKit`, `PakDataKit.DataAnnotations` and `PakDataKit.FluentValidation`
+share one version, set in `dotnet/Directory.Build.props`, and use the same
+version number as `pakdatakit` on npm. They are not on NuGet yet and have no
+release workflow: CI builds, tests and packs them (the `dotnet` job uploads
+the `.nupkg` files as an artifact) but pushes nothing.
+
+- The datasets are embedded from `data/*.json` when the project is built, so
+  a data change needs no extra step for .NET.
+- `dataVersion` is read from `src/data-version.ts` at build time.
+- The tests run the shared vectors in `test-vectors/`, like Python and Dart.
+- `dotnet/src/PakDataKit/Generated/unicode-case.json` comes from
+  `node scripts/generate-dotnet-data.mjs` (CI fails if it is out of date).
+  Regenerate it only when the pinned Node version in `ci.yml` changes.
+
+To release by hand, once the NuGet package IDs are reserved:
+
+```bash
+cd dotnet
+dotnet test -c Release
+dotnet pack -c Release -o artifacts
+dotnet nuget push "artifacts/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key <key>
+```
+
+Publish `PakDataKit` first; the two adapter packages depend on the same
+version of it. Add a `## x.y.z` section to `dotnet/CHANGELOG.md` and set
+`<Version>` in `dotnet/Directory.Build.props` as part of the release branch.
+
 ## Release a new version
 
 1. On a branch:
    - update `CHANGELOG.md` with a `## x.y.z` section;
    - set the version in `package.json` (`npm version x.y.z --no-git-tag-version`),
      and in `python/pyproject.toml` and `python/src/pakdatakit/__init__.py`;
+   - set `<Version>` in `dotnet/Directory.Build.props`;
    - if data changed, update `dataVersion` in `src/data-version.ts` and
      `python/src/pakdatakit/data_version.py`, and the date in `DATA.md`;
    - run `npm run build && node scripts/generate-test-vectors.mjs` and commit

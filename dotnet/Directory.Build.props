@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- Same version as the npm, PyPI and pub.dev packages. -->
+    <Version>2.3.0</Version>
+    <Authors>Muzamil Chaudhery</Authors>
+    <Copyright>Copyright (c) Muzamil Chaudhery</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://chmuzamil.github.io/pakdatakit/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/chmuzamil/pakdatakit</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>https://github.com/chmuzamil/pakdatakit/blob/main/dotnet/CHANGELOG.md</PackageReleaseNotes>
+    <PackageTags>pakistan;cnic;iban;phone;raast;qr;validation;ntn;strn;hijri;holidays;urdu</PackageTags>
+  </PropertyGroup>
+</Project>

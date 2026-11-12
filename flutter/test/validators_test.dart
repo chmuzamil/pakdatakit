@@ -51,6 +51,20 @@ void main() {
       expect(validate('0300-1234567'), PakValidators.defaultLandlineMessage);
     });
 
+    test('passport', () {
+      final validate = PakValidators.passport();
+      expect(validate('AB1234567'), isNull);
+      expect(validate('ab 1234567'), isNull);
+      expect(validate('A12345678'), PakValidators.defaultPassportMessage);
+    });
+
+    test('vehiclePlate', () {
+      final validate = PakValidators.vehiclePlate(message: 'Galat number');
+      expect(validate('LEA-1234'), isNull);
+      expect(validate('abc 123'), isNull);
+      expect(validate('ABC-12345'), 'Galat number');
+    });
+
     test('empty values depend on required', () {
       final validators = [
         PakValidators.cnic,
@@ -59,6 +73,8 @@ void main() {
         PakValidators.ntn,
         PakValidators.strn,
         PakValidators.landline,
+        PakValidators.passport,
+        PakValidators.vehiclePlate,
       ];
       for (final create in validators) {
         final required = create(message: null, required: true);

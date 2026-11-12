@@ -34,6 +34,13 @@ abstract final class PakValidators {
   /// Default message for an invalid landline number.
   static const String defaultLandlineMessage = 'Enter a valid landline number';
 
+  /// Default message for an invalid passport number.
+  static const String defaultPassportMessage = 'Enter a valid passport number';
+
+  /// Default message for an invalid vehicle registration number.
+  static const String defaultVehiclePlateMessage =
+      'Enter a valid registration number';
+
   static FormFieldValidator<String> _build(
     bool Function(String value) isValid,
     String message,
@@ -125,6 +132,36 @@ abstract final class PakValidators {
       _build(
         validateLandline,
         message ?? defaultLandlineMessage,
+        required,
+        requiredMessage,
+      );
+
+  /// Checks the format of a Pakistani passport number (two letters, seven
+  /// digits), using `validatePassport`. The format is not published by DGIP,
+  /// so this checks the common shape only.
+  static FormFieldValidator<String> passport({
+    String? message,
+    bool required = true,
+    String? requiredMessage,
+  }) =>
+      _build(
+        validatePassport,
+        message ?? defaultPassportMessage,
+        required,
+        requiredMessage,
+      );
+
+  /// Checks the format of a vehicle registration number (`LEA-1234`,
+  /// `ABC 123`), using `validateVehiclePlate`. Provinces use different
+  /// formats, so this checks the shape they share only.
+  static FormFieldValidator<String> vehiclePlate({
+    String? message,
+    bool required = true,
+    String? requiredMessage,
+  }) =>
+      _build(
+        validateVehiclePlate,
+        message ?? defaultVehiclePlateMessage,
         required,
         requiredMessage,
       );

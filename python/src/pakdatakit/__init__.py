@@ -2,7 +2,8 @@
 
 CNIC, phone, networks, WhatsApp, IBAN, postal codes, geography, address
 parsing, Roman Urdu, Hijri dates, holidays, currency formatting, amounts in
-words, tax numbers, landlines and Raast QR codes.
+words, tax numbers, landlines, Raast QR codes, and passport and vehicle
+registration number formats.
 
 A Python port of the ``pakdatakit`` npm package: it ships the same datasets and
 is tested against shared test vectors, so both give identical results.
@@ -45,6 +46,7 @@ from .numbers import (
     get_number_type,
     validate_landline,
 )
+from .passport import validate_passport
 from .phone import PhoneAnalysis, analyze_phone, format_phone, validate_phone
 from .postal import (
     get_city_by_postal_code,
@@ -65,10 +67,11 @@ from .raast import (
 )
 from .tax import NTNInfo, analyze_ntn, validate_ntn, validate_strn
 from .text import normalize_roman_urdu, normalize_text, to_english_digits, to_urdu_digits
+from .vehicle import VehiclePlate, parse_vehicle_plate, validate_vehicle_plate
 from .whatsapp import create_whatsapp_link
 from .words import amount_in_words, number_to_words
 
-__version__ = "2.2.1"
+__version__ = "2.3.0"
 
 __all__ = [
     "__version__",
@@ -129,6 +132,11 @@ __all__ = [
     "analyze_ntn",
     "validate_ntn",
     "validate_strn",
+    # passport / vehicle
+    "validate_passport",
+    "VehiclePlate",
+    "parse_vehicle_plate",
+    "validate_vehicle_plate",
     # numbers
     "NumberInfo",
     "analyze_number",

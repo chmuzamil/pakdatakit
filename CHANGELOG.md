@@ -25,8 +25,8 @@
 - The README's "Why PakDataKit?" section compares PakDataKit with a typical
   hand-written regex, and the npm description and keywords cover all modules.
 
-The Python and Dart packages do not include the passport and vehicle plate
-validators yet.
+The Python and Dart packages get the same passport and vehicle plate
+functions in 2.3.0, checked against the shared test vectors.
 
 ## 2.2.1
 

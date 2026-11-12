@@ -139,7 +139,7 @@ import { validateCNIC } from 'pakdatakit/cnic';
 const { analyzePhone } = require('pakdatakit/phone');
 ```
 
-Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot` and `yup`.
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot`, `yup`, `joi`, `superstruct` and `class-validator`.
 
 ---
 
@@ -802,7 +802,7 @@ Fixed holidays follow the year they applied in: Iqbal Day was restored in 2022 a
 
 ## Form Validation
 
-Ready-made schemas for [Zod](https://zod.dev), [Valibot](https://valibot.dev) and [Yup](https://github.com/jquense/yup). Install the library you use; PakDataKit does not depend on any of them.
+Ready-made schemas for [Zod](https://zod.dev), [Valibot](https://valibot.dev), [Yup](https://github.com/jquense/yup), [Joi](https://joi.dev) and [Superstruct](https://docs.superstructjs.org), and decorators for [class-validator](https://github.com/typestack/class-validator) (and so NestJS). Install the library you use; PakDataKit does not depend on any of them.
 
 ```ts
 import { z } from 'zod';
@@ -829,7 +829,47 @@ import { pk } from 'pakdatakit/yup';
 const CheckoutForm = object({ cnic: pk.cnic().required(), phone: pk.phone() });
 ```
 
+```ts
+import Joi from 'joi';
+import { pk } from 'pakdatakit/joi';
+
+const CheckoutForm = Joi.object({
+  cnic: pk.cnic().required(),
+  phone: pk.phone(),
+});
+```
+
+```ts
+import { object, optional } from 'superstruct';
+import { pk } from 'pakdatakit/superstruct';
+
+const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
+```
+
 Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()` and `pk.landline()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+
+### class-validator and NestJS
+
+Decorators for DTOs, checked by NestJS's `ValidationPipe` like any other class-validator rule. No NestJS package is needed.
+
+```ts
+import { IsOptional } from 'class-validator';
+import { IsCNIC, IsPakIBAN, IsPakPhone } from 'pakdatakit/class-validator';
+
+export class CreateCustomerDto {
+  @IsCNIC()
+  cnic!: string;
+
+  @IsOptional()
+  @IsPakPhone({ message: 'Enter a Pakistani mobile number' })
+  phone?: string;
+
+  @IsPakIBAN()
+  iban!: string;
+}
+```
+
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN` and `IsPakLandline`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ### As-you-type helpers
 

@@ -20,6 +20,13 @@
   letters, 1–4 digits); see DATA.md.
 - `pk.passport()` and `pk.vehiclePlate()` in every form adapter.
 
+### Fixed
+
+- Subpath imports such as `pakdatakit/zod` or `pakdatakit/class-validator`
+  now get their types under TypeScript's older `moduleResolution: "node"`,
+  the default for `"module": "commonjs"` projects (including many NestJS
+  apps). They only resolved with `node16`, `nodenext` or `bundler` before.
+
 ### Docs
 
 - The README's "Why PakDataKit?" section compares PakDataKit with a typical

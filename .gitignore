@@ -8,3 +8,8 @@ Thumbs.db
 .env.*
 *.tsbuildinfo
 docs-site/
+
+# .NET build output
+dotnet/**/bin/
+dotnet/**/obj/
+dotnet/artifacts/

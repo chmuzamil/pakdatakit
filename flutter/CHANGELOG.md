@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `PakValidators.passport()` and `PakValidators.vehiclePlate()`, using
+  `validatePassport` and `validateVehiclePlate` from `pakdatakit` 2.3.0.
+- Requires `pakdatakit` ^2.3.0.
+
 ## 0.1.0
 
 Initial release, built on [`pakdatakit`](https://pub.dev/packages/pakdatakit)

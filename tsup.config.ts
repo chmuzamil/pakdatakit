@@ -12,17 +12,26 @@ export const modules = [
   'input',
   'networks',
   'numbers',
+  'passport',
   'phone',
   'postal',
   'raast',
   'tax',
   'text',
+  'vehicle',
   'whatsapp',
   'words',
 ];
 
 /** Form-library adapters; each is exposed as a subpath (e.g. `pakdatakit/zod`). */
-export const adapters = ['valibot', 'yup', 'zod'];
+export const adapters = [
+  'class-validator',
+  'joi',
+  'superstruct',
+  'valibot',
+  'yup',
+  'zod',
+];
 
 const libraryEntries = Object.fromEntries([
   ['index', 'src/index.ts'],

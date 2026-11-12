@@ -1,5 +1,8 @@
 import 'dart:ui' as ui;
 
+// material.dart is deprecated from Flutter 3.47 in favour of the material_ui
+// package; it is kept so the package still supports older Flutter versions.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pakdatakit/pakdatakit.dart' show createRaastP2PQr;

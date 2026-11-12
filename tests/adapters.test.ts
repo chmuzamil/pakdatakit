@@ -1,7 +1,18 @@
+import { validateSync } from 'class-validator';
+import Joi from 'joi';
+import * as s from 'superstruct';
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 import { object } from 'yup';
 import { z } from 'zod';
+import {
+  IsCNIC,
+  IsPakIBAN,
+  IsPakPhone,
+  pk as pkClassValidator,
+} from '../src/adapters/class-validator.js';
+import { pk as pkJoi } from '../src/adapters/joi.js';
+import { pk as pkSuperstruct } from '../src/adapters/superstruct.js';
 import { pk as pkValibot } from '../src/adapters/valibot.js';
 import { pk as pkYup } from '../src/adapters/yup.js';
 import { pk as pkZod } from '../src/adapters/zod.js';
@@ -89,6 +100,147 @@ describe('yup adapter', () => {
   });
 });
 
+describe('joi adapter', () => {
+  const form = Joi.object({
+    cnic: pkJoi.cnic().required(),
+    phone: pkJoi.phone(),
+    iban: pkJoi.iban({ message: 'Bad IBAN' }),
+  });
+
+  it('accepts valid values', () => {
+    expect(form.validate(VALID).error).toBeUndefined();
+  });
+
+  it('lets optional fields be missing', () => {
+    expect(form.validate({ cnic: VALID.cnic }).error).toBeUndefined();
+  });
+
+  it('rejects invalid values with messages', () => {
+    const { error } = form.validate(INVALID, { abortEarly: false });
+    expect(error?.details.map((d) => d.message)).toEqual([
+      'Invalid CNIC number',
+      'Invalid Pakistani mobile number',
+      'Bad IBAN',
+    ]);
+  });
+});
+
+describe('superstruct adapter', () => {
+  const form = s.object({
+    cnic: pkSuperstruct.cnic(),
+    phone: s.optional(pkSuperstruct.phone()),
+    iban: pkSuperstruct.iban({ message: 'Bad IBAN' }),
+  });
+
+  it('accepts valid values', () => {
+    expect(s.is(VALID, form)).toBe(true);
+    expect(s.is({ cnic: VALID.cnic, iban: VALID.iban }, form)).toBe(true);
+  });
+
+  it('rejects invalid values with messages', () => {
+    const [error] = s.validate(INVALID, form);
+    expect(error?.failures().map((f) => f.message)).toEqual([
+      'Invalid CNIC number',
+      'Invalid Pakistani mobile number',
+      'Bad IBAN',
+    ]);
+  });
+});
+
+describe('class-validator adapter', () => {
+  // Decorators are applied by hand so the tests do not need decorator syntax.
+  class CustomerDto {
+    cnic!: string;
+    phone?: string;
+    iban!: string;
+  }
+  IsCNIC()(CustomerDto.prototype, 'cnic');
+  IsPakPhone()(CustomerDto.prototype, 'phone');
+  IsPakIBAN({ message: 'Bad IBAN' })(CustomerDto.prototype, 'iban');
+
+  const messages = (values: Partial<CustomerDto>) =>
+    validateSync(Object.assign(new CustomerDto(), values)).flatMap((error) =>
+      Object.values(error.constraints ?? {}),
+    );
+
+  it('accepts valid values', () => {
+    expect(messages(VALID)).toEqual([]);
+  });
+
+  it('rejects invalid values with messages', () => {
+    expect(messages(INVALID)).toEqual([
+      'Invalid CNIC number',
+      'Invalid Pakistani mobile number',
+      'Bad IBAN',
+    ]);
+  });
+
+  it('rejects values that are not strings', () => {
+    expect(
+      messages({ cnic: 3520212345671 as unknown as string, iban: VALID.iban }),
+    ).toEqual(['Invalid CNIC number', 'Invalid Pakistani mobile number']);
+  });
+
+  it('validates every item of an array with `each`', () => {
+    class ContactsDto {
+      phones!: string[];
+    }
+    pkClassValidator.phone({ each: true })(ContactsDto.prototype, 'phones');
+    const errors = (phones: string[]) =>
+      validateSync(Object.assign(new ContactsDto(), { phones })).length;
+    expect(errors(['03001234567', '03211234567'])).toBe(0);
+    expect(errors(['03001234567', '03601234567'])).toBe(1);
+  });
+});
+
+describe('passport and vehicle plate rules', () => {
+  const VALID_DOCS = { passport: 'AB1234567', plate: 'LEA-1234' };
+  const INVALID_DOCS = { passport: 'A1234', plate: 'ABC-12345' };
+  const MESSAGES = [
+    'Invalid Pakistani passport number',
+    'Invalid vehicle registration number',
+  ];
+
+  it('works in zod', () => {
+    const form = z.object({
+      passport: pkZod.passport(),
+      plate: pkZod.vehiclePlate(),
+    });
+    expect(form.safeParse(VALID_DOCS).success).toBe(true);
+    expect(
+      form.safeParse(INVALID_DOCS).error?.issues.map((i) => i.message),
+    ).toEqual(MESSAGES);
+  });
+
+  it('works in joi', () => {
+    const form = Joi.object({
+      passport: pkJoi.passport(),
+      plate: pkJoi.vehiclePlate(),
+    });
+    expect(form.validate(VALID_DOCS).error).toBeUndefined();
+    expect(
+      form
+        .validate(INVALID_DOCS, { abortEarly: false })
+        .error?.details.map((d) => d.message),
+    ).toEqual(MESSAGES);
+  });
+
+  it('works in class-validator', () => {
+    class VehicleDto {
+      passport!: string;
+      plate!: string;
+    }
+    pkClassValidator.passport()(VehicleDto.prototype, 'passport');
+    pkClassValidator.vehiclePlate()(VehicleDto.prototype, 'plate');
+    const messages = (values: object) =>
+      validateSync(Object.assign(new VehicleDto(), values)).flatMap((error) =>
+        Object.values(error.constraints ?? {}),
+      );
+    expect(messages(VALID_DOCS)).toEqual([]);
+    expect(messages(INVALID_DOCS)).toEqual(MESSAGES);
+  });
+});
+
 describe('tax and landline rules', () => {
   const form = z.object({
     ntn: pkZod.ntn(),
@@ -111,7 +263,24 @@ describe('tax and landline rules', () => {
   });
 
   it('exposes the same rules in every adapter', () => {
-    expect(Object.keys(pkValibot)).toEqual(Object.keys(pkZod));
-    expect(Object.keys(pkYup)).toEqual(Object.keys(pkZod));
+    expect(Object.keys(pkZod)).toEqual([
+      'cnic',
+      'phone',
+      'iban',
+      'ntn',
+      'strn',
+      'landline',
+      'passport',
+      'vehiclePlate',
+    ]);
+    for (const adapter of [
+      pkValibot,
+      pkYup,
+      pkJoi,
+      pkSuperstruct,
+      pkClassValidator,
+    ]) {
+      expect(Object.keys(adapter)).toEqual(Object.keys(pkZod));
+    }
   });
 });

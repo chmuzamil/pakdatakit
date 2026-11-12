@@ -66,20 +66,22 @@ The Python and Dart packages are checked against the TypeScript library with ove
 
 ## Why PakDataKit?
 
-Every Pakistani application eventually needs to solve the same problems:
+Most Pakistani apps validate CNICs, mobile numbers and IBANs with a regex copied from somewhere. A regex checks the shape. PakDataKit checks what the shape can't show:
 
-- Validate CNIC numbers
-- Normalize mobile numbers
-- Detect mobile networks
-- Generate WhatsApp click-to-chat links
-- Validate Pakistani IBANs and detect banks
-- Look up postal codes and cities
-- Map cities to provinces
-- Format PKR values in Lakh and Crore conventions
+| Task              | Typical regex                | PakDataKit                                                                                      |
+| ----------------- | ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| CNIC              | 13 digits, maybe with dashes | Province code, province and gender decoding, Urdu digits                                        |
+| Mobile number     | `03` + 9 digits              | Allocated `03XX` prefixes only, `+92` / `0092` / `0` forms, original network                    |
+| IBAN              | `PK` + 22 characters         | Mod-97 checksum, bank name and type from the bank code                                          |
+| NTN / STRN        | Digit count                  | CNIC-based and business NTNs, display formats                                                   |
+| Passport, plates  | Usually not handled          | Common-shape checks, with sources and limits in [DATA.md](./DATA.md)                            |
+| Raast QR          | Not possible                 | Create, parse and check payment QR codes (CRC, IBAN, amount, expiry)                            |
+| Holidays, Hijri   | Not possible                 | Observed Eid/Ashura/Milad dates from official notifications, Hijri conversion                   |
+| Amounts, currency | Not possible                 | Lakh/crore formatting, amounts in words in English and Urdu                                     |
+| Forms             | Write each rule per library  | Ready rules for Zod, Valibot, Yup, Joi, Superstruct and class-validator (NestJS)                |
+| Other languages   | Rewrite it                   | Python and Dart packages with the core functions, checked against over 12,000 shared test cases |
 
-Most teams implement these repeatedly.
-
-PakDataKit provides a single, typed, reusable solution so you can focus on building your product instead of rebuilding common utilities.
+The npm package has no runtime dependencies, ships ESM and CommonJS with TypeScript types, and works offline: all data is bundled. Every dataset lists its sources in [DATA.md](./DATA.md).
 
 ---
 
@@ -139,7 +141,7 @@ import { validateCNIC } from 'pakdatakit/cnic';
 const { analyzePhone } = require('pakdatakit/phone');
 ```
 
-Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot` and `yup`.
+Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `passport`, `phone`, `postal`, `raast`, `tax`, `text`, `vehicle`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot`, `yup`, `joi`, `superstruct` and `class-validator`.
 
 ---
 
@@ -710,6 +712,38 @@ FBR does not publish its check-digit algorithms, so these check the format only.
 
 ---
 
+## Passports & Vehicle Plates
+
+### validatePassport()
+
+Checks the format of a Pakistani passport number: two letters and seven digits.
+
+```ts
+validatePassport('AB1234567'); // true
+validatePassport('ab 1234567'); // true
+validatePassport('A12345678'); // false
+```
+
+DGIP does not publish the format, so this checks the common shape only. Other passport types may differ; see [DATA.md](./DATA.md#passport-numbers).
+
+### parseVehiclePlate() / validateVehiclePlate()
+
+Splits a vehicle registration number into its series letters, number and the optional year that older Punjab plates carry.
+
+```ts
+parseVehiclePlate('lea 1234');
+// { series: 'LEA', number: '1234', year: null, formatted: 'LEA-1234' }
+
+parseVehiclePlate('LEA-1234-19');
+// { series: 'LEA', number: '1234', year: '19', formatted: 'LEA-1234' }
+
+validateVehiclePlate('ABC-123'); // true
+```
+
+Each province sets its own format and several changed in 2024–2026, so this accepts the shape they share (1–4 letters, then 1–4 digits) and does not check series letters against districts. See [DATA.md](./DATA.md#vehicle-registration-plates).
+
+---
+
 ## Raast QR Codes
 
 ### createRaastP2PQr() / createMerchantQr() / parseRaastQr()
@@ -802,7 +836,7 @@ Fixed holidays follow the year they applied in: Iqbal Day was restored in 2022 a
 
 ## Form Validation
 
-Ready-made schemas for [Zod](https://zod.dev), [Valibot](https://valibot.dev) and [Yup](https://github.com/jquense/yup). Install the library you use; PakDataKit does not depend on any of them.
+Ready-made schemas for [Zod](https://zod.dev), [Valibot](https://valibot.dev), [Yup](https://github.com/jquense/yup), [Joi](https://joi.dev) and [Superstruct](https://docs.superstructjs.org), and decorators for [class-validator](https://github.com/typestack/class-validator) (and so NestJS). Install the library you use; PakDataKit does not depend on any of them.
 
 ```ts
 import { z } from 'zod';
@@ -829,7 +863,47 @@ import { pk } from 'pakdatakit/yup';
 const CheckoutForm = object({ cnic: pk.cnic().required(), phone: pk.phone() });
 ```
 
-Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()` and `pk.landline()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+```ts
+import Joi from 'joi';
+import { pk } from 'pakdatakit/joi';
+
+const CheckoutForm = Joi.object({
+  cnic: pk.cnic().required(),
+  phone: pk.phone(),
+});
+```
+
+```ts
+import { object, optional } from 'superstruct';
+import { pk } from 'pakdatakit/superstruct';
+
+const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
+```
+
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()` and `pk.vehiclePlate()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+
+### class-validator and NestJS
+
+Decorators for DTOs, checked by NestJS's `ValidationPipe` like any other class-validator rule. No NestJS package is needed.
+
+```ts
+import { IsOptional } from 'class-validator';
+import { IsCNIC, IsPakIBAN, IsPakPhone } from 'pakdatakit/class-validator';
+
+export class CreateCustomerDto {
+  @IsCNIC()
+  cnic!: string;
+
+  @IsOptional()
+  @IsPakPhone({ message: 'Enter a Pakistani mobile number' })
+  phone?: string;
+
+  @IsPakIBAN()
+  iban!: string;
+}
+```
+
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport` and `IsVehiclePlate`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ### As-you-type helpers
 

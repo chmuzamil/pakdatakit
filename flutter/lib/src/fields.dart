@@ -1,3 +1,6 @@
+// material.dart is deprecated from Flutter 3.47 in favour of the material_ui
+// package; it is kept so the package still supports older Flutter versions.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';

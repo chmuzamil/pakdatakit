@@ -22,7 +22,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  pakdatakit: ^2.2.0
+  pakdatakit: ^2.3.0
   qr: ^3.0.2
 
 dev_dependencies:

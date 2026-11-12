@@ -102,4 +102,10 @@ export {
   checkIBANInput,
   type InputState,
 } from './input.js';
+export { validatePassport } from './passport.js';
+export {
+  validateVehiclePlate,
+  parseVehiclePlate,
+  type VehiclePlate,
+} from './vehicle.js';
 export { dataVersion } from './data-version.js';

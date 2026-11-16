@@ -64,17 +64,89 @@ Publish `PakDataKit` first; the two adapter packages depend on the same
 version of it. Add a `## x.y.z` section to `dotnet/CHANGELOG.md` and set
 `<Version>` in `dotnet/Directory.Build.props` as part of the release branch.
 
+## PHP package (`php/`)
+
+`chmuzamil/pakdatakit` uses the same version number as `pakdatakit` on npm.
+`php/composer.json` has no `version` field: the tag gives the version, and
+`PakData::PACKAGE_VERSION` must say the same. CI (the `php` job) checks the
+generated data and runs the tests on PHP 8.2 and 8.4 without the `intl`
+extension.
+
+- `php/data/*.php` is generated from `data/*.json` and from JavaScript's
+  Unicode tables by `node scripts/generate-php-data.mjs` (CI fails if it is
+  out of date). After a data change, run it and commit `php/data/`.
+- The tests run the shared vectors in `test-vectors/`, like the other ports.
+
+Packagist reads `composer.json` from the root of a repository, so it cannot
+use this monorepo. `.github/workflows/split-php.yml` copies `php/` to the
+read-only mirror **`chmuzamil/pakdatakit-php`** when a `php-v*` tag is pushed
+and tags the mirror `vx.y.z`. This repository stays the source of truth; never
+commit to the mirror by hand.
+
+### One-time setup
+
+1. Create an empty public repository `chmuzamil/pakdatakit-php` (no README,
+   licence or .gitignore). Give it a description such as "Read-only mirror of
+   pakdatakit/php. Send issues and pull requests to chmuzamil/pakdatakit" and
+   turn off Issues.
+2. Create a fine-grained personal access token: resource owner `chmuzamil`,
+   repository access **only** `pakdatakit-php`, permission **Contents: Read
+   and write**. Note the expiry date; the split fails once it expires.
+3. In `chmuzamil/pakdatakit` → Settings → Secrets and variables → Actions,
+   add a repository secret named **`PHP_SPLIT_TOKEN`** with that token.
+   Without the secret the workflow runs and does nothing.
+4. Push the first tag (see "Release" below) and check that the mirror has
+   the files at its root and a `v2.3.0` tag.
+5. Sign in at https://packagist.org with GitHub, choose **Submit**, and enter
+   `https://github.com/chmuzamil/pakdatakit-php`. The package name comes from
+   `composer.json` (`chmuzamil/pakdatakit`).
+6. Let Packagist install its GitHub hook when it asks (or add it from the
+   package page), so new tags appear without a manual update.
+
+### Release
+
+```bash
+git checkout main && git pull
+git tag php-vx.y.z && git push origin php-vx.y.z
+```
+
+The workflow fails if the tag does not match `PakData::PACKAGE_VERSION`. Then
+check the mirror for the `vx.y.z` tag and Packagist for the new version.
+
+## Vue and Angular packages (`vue/`, `angular/`)
+
+`pakdatakit-vue` and `pakdatakit-angular` have their own versions (in
+`vue/package.json` and `angular/package.json`), like `pakdatakit-react`. They
+are not on npm yet and have no release workflows; CI lints, type-checks,
+tests and builds them.
+
+- Both declare `pakdatakit` as a peer dependency, so release them after the
+  `pakdatakit` version they need is on npm.
+- `pakdatakit-vue`: `npm run build` in `vue/`, then publish from `vue/`.
+- `pakdatakit-angular`: `npm run build` in `angular/` writes the Angular
+  package format to `angular/dist`; publish from **`angular/dist`**, not from
+  `angular/`. It is built with Angular 17, the oldest version it supports.
+  CI tests it on Angular 17, 18, 19 and the latest major (the `angular`
+  matrix in `ci.yml`). When a new major is released, add it to the matrix
+  and, if it passes, raise the upper bound of the peer range.
+- The first release of each is published by hand (as for `pakdatakit-react`);
+  add a `release-vue.yml` / `release-angular.yml` workflow and an npm trusted
+  publisher before automating later ones.
+
 ## Release a new version
 
 1. On a branch:
    - update `CHANGELOG.md` with a `## x.y.z` section;
    - set the version in `package.json` (`npm version x.y.z --no-git-tag-version`),
      and in `python/pyproject.toml` and `python/src/pakdatakit/__init__.py`;
-   - set `<Version>` in `dotnet/Directory.Build.props`;
+   - set `<Version>` in `dotnet/Directory.Build.props`, and
+     `PakData::PACKAGE_VERSION` in `php/src/PakData.php`;
    - if data changed, update `dataVersion` in `src/data-version.ts` and
      `python/src/pakdatakit/data_version.py`, and the date in `DATA.md`;
    - run `npm run build && node scripts/generate-test-vectors.mjs` and commit
-     the updated `test-vectors/` and `python/src/pakdatakit/data/`.
+     the updated `test-vectors/` and `python/src/pakdatakit/data/`; if data
+     changed, also run `node scripts/generate-dart-data.mjs` and
+     `node scripts/generate-php-data.mjs`.
 2. Open a pull request, let CI pass, and merge it into `main`.
 3. Tag the merge commit and push the tags, in the order above:
 

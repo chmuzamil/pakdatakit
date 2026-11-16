@@ -248,3 +248,144 @@ jobs:
           name: nuget-packages
           path: dotnet/artifacts/*.nupkg
           if-no-files-found: error
+
+  php:
+    name: php ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.4']
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # The generated PHP data embeds tables from Node's ICU, so pin Node to
+      # the version it was generated with (the same pin as the dart job).
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.15.0
+
+      # The embedded data must match data/*.json.
+      - name: Check generated PHP data is up to date
+        run: |
+          node scripts/generate-php-data.mjs
+          git diff --exit-code -- php/data
+
+      # Without intl, to prove the package does not rely on it.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, :intl
+          coverage: none
+
+      - run: composer install --no-interaction --no-progress
+        working-directory: php
+
+      # Runs the 12,000+ shared test vectors from test-vectors/, the fuzz
+      # tests and the Laravel bridge tests.
+      - run: composer test
+        working-directory: php
+
+  vue:
+    name: vue (pakdatakit-vue)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            vue/package-lock.json
+
+      # pakdatakit-vue develops against the repo's own build of pakdatakit.
+      - run: npm ci && npm run build
+
+      - run: npm ci
+        working-directory: vue
+
+      - run: npm run lint
+        working-directory: vue
+
+      - run: npm run typecheck
+        working-directory: vue
+
+      - run: npm test
+        working-directory: vue
+
+      - run: npm run build
+        working-directory: vue
+
+  angular:
+    name: angular ${{ matrix.angular }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # 17 is what angular/package.json develops and builds against; the
+        # others are installed over it. Each needs its own TypeScript and
+        # zone.js. Raise the last row (and the peer range) when a new major
+        # is released.
+        include:
+          - angular: 17
+          - angular: 18
+            typescript: '5.5'
+            zone: '0.14'
+          - angular: 19
+            typescript: '5.8'
+            zone: '0.15'
+          - angular: 22
+            typescript: '6.0'
+            zone: '0.16'
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            angular/package-lock.json
+
+      # pakdatakit-angular develops against the repo's own build of pakdatakit.
+      - run: npm ci && npm run build
+
+      - run: npm ci
+        working-directory: angular
+
+      - name: Install Angular ${{ matrix.angular }}
+        if: matrix.angular != 17
+        working-directory: angular
+        env:
+          NG: ${{ matrix.angular }}
+          TS: ${{ matrix.typescript }}
+          ZONE: ${{ matrix.zone }}
+        run: >
+          npm install --no-save --no-audit --no-fund --legacy-peer-deps
+          @angular/common@$NG @angular/compiler@$NG @angular/compiler-cli@$NG
+          @angular/core@$NG @angular/forms@$NG @angular/platform-browser@$NG
+          @angular/platform-browser-dynamic@$NG ng-packagr@$NG
+          typescript@$TS zone.js@$ZONE
+
+      - run: node -p "'Angular ' + require('@angular/core/package.json').version + ', TypeScript ' + require('typescript/package.json').version"
+        working-directory: angular
+
+      - run: npm run lint
+        if: matrix.angular == 17
+        working-directory: angular
+
+      - run: npm run typecheck
+        working-directory: angular
+
+      - run: npm test
+        working-directory: angular
+
+      # Builds the Angular package format with ng-packagr.
+      - run: npm run build
+        working-directory: angular

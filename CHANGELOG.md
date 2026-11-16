@@ -19,6 +19,12 @@
   province sets its own format, so this accepts the shape they share (1–4
   letters, 1–4 digits); see DATA.md.
 - `pk.passport()` and `pk.vehiclePlate()` in every form adapter.
+- Divisions and tehsils from the 2023 census (`pakdatakit/geo`):
+  `getDivisions(province?)`, `getDivisionOfDistrict(district)`,
+  `getTehsils(district)` and `getTehsilDistrict(tehsil, province?)`. The data
+  is the census's 30 divisions and 591 tehsils, talukas and sub-divisions.
+  Each tehsil is recorded under its 2023 census district; for districts
+  created since, see the census-district note in the README and DATA.md.
 
 ### Data
 
@@ -40,6 +46,29 @@ November 2026 audit against official sources (see AUDIT.md and DATA.md).
 - **Holidays:** seven `source` links for 2024 to 2026 now point to the
   Cabinet Division notification or State Bank circular instead of a news
   report. No dates changed.
+- **Postal codes, full directory:** `postal-codes.json` now holds Pakistan
+  Post's whole directory of delivery post offices: 2,560 codes instead of 110.
+  Existing lookups give the same answers as before. What is new:
+  `getCityByPostalCode` knows every code (a code outside the listed cities
+  returns the post office's own town or village); `getPostalCode` now has a
+  code for 63 more cities; `getPostalCodes`, `getPostalAreas` and
+  `searchPostalCodes` return more results for cities with several offices
+  (Lahore 5 → 50, Karachi 11 → 58, Islamabad 1 → 46); and `parseAddress` can
+  fill in the city from any of these codes. Entries also carry `province`
+  and, for district headquarters, `district`.
+- **Area codes:** 41 more landline area codes from the numbering plan PTA
+  filed with the ITU: 18 in Balochistan, 8 in Khyber Pakhtunkhwa and the 15
+  four-digit codes of Azad Jammu and Kashmir and Gilgit-Baltistan (`05822`
+  Muzaffarabad, `05811` Gilgit). Numbers in these codes already validated;
+  `analyzeNumber` now also returns their area code and district, and
+  `getAreaCode` finds them.
+- **Bank types:** new type `public-sector` for the State Bank's "public
+  sector commercial banks": National Bank of Pakistan (`NBPA`, `NBPB`), Sindh
+  Bank, The Bank of Khyber and The Bank of Punjab. They were `commercial`
+  before; filter on both if you list commercial banks.
+- **SME Bank** (`SMES`) is now "SME Bank Limited (in liquidation)" with
+  `active: false`: the State Bank cancelled its licence and de-scheduled it in
+  March 2025.
 
 ### Fixed
 

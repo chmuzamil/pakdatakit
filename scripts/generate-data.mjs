@@ -2,7 +2,7 @@
  * Generates expanded PakDataKit data files.
  * Run: node scripts/generate-data.mjs
  */
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -747,6 +747,198 @@ const cities = [...citiesMap.entries()]
   .sort((a, b) => a.city.localeCompare(b.city));
 
 /**
+ * Pakistan Post's "Post Code Directory of Delivery Post Offices" (Part I),
+ * extracted to data/sources/pakpost-delivery-post-offices.csv (see DATA.md).
+ * The hand-checked entries in POSTAL_CODES come first and keep their city and
+ * primary flag; every other office in the directory is added after them.
+ */
+const DIRECTORY = readFileSync(
+  join(dataDir, 'sources', 'pakpost-delivery-post-offices.csv'),
+  'utf8',
+)
+  .trim()
+  .split('\n')
+  .slice(1)
+  .map((line) => {
+    // Only the office name can contain a comma, and then it is quoted.
+    const match = /^(?:"((?:[^"]|"")*)"|([^,]*)),(\d{5}),([^,]*),([^,]*)$/.exec(
+      line,
+    );
+    if (!match) throw new Error(`Bad directory line: ${line}`);
+    return {
+      office: (match[1]?.replaceAll('""', '"') ?? match[2]).trim(),
+      postalCode: match[3],
+      accountOffice: match[4],
+      province: match[5],
+    };
+  });
+
+/** Account offices inside a large city: their offices belong to that city. */
+const METRO_ACCOUNT_OFFICES = {
+  'Karachi GPO': 'Karachi',
+  'Karachi City GPO': 'Karachi',
+  'Karachi Saddar GPO': 'Karachi',
+  'Karachi Alhydri GPO': 'Karachi',
+  'Korangi GPO': 'Karachi',
+  'New Town GPO': 'Karachi',
+  'Lahore GPO': 'Lahore',
+  'Lahore Cantt GPO': 'Lahore',
+  'Islamabad GPO': 'Islamabad',
+};
+
+/** Account offices whose name is not simply "<city> GPO". */
+const ACCOUNT_OFFICE_CITY = {
+  ...METRO_ACCOUNT_OFFICES,
+  'T.T Singh GPO': 'Toba Tek Singh',
+  'Bahawal Nagar GPO': 'Bahawalnagar',
+  'Rahimyar Khan GPO': 'Rahim Yar Khan',
+  'Qila Sheikhupura GPO': 'Sheikhupura',
+  'Saidu Sharif GPO': 'Swat',
+  'Wah Cantt GPO': 'Wah Cantonment',
+};
+
+const ACRONYMS = new Set(
+  (
+    'GPO PAF PMA POF PIA GHQ UET PTCL WAPDA KDA PECHS DHA NPO HMC PNS PARC ' +
+    'NIH II III IV VI VII VIII IX XI GB JB RB EB WB SB NB ML TDA KB GD DB ' +
+    'DNB AJK PAEC KRL'
+  ).split(' '),
+);
+
+/** "ABBOTTABAD PUBLIC SCHOOL" -> "Abbottabad Public School". */
+function titleCase(name) {
+  return name
+    .split(' ')
+    .map((word) =>
+      word
+        .split(/(?=[-/(,])|(?<=[-/(,])/)
+        .map((part) =>
+          ACRONYMS.has(part) ||
+          /\d/.test(part) ||
+          /^([A-Z]\.)+[A-Z]?$/.test(part)
+            ? part
+            : part.charAt(0) + part.slice(1).toLowerCase(),
+        )
+        .join(''),
+    )
+    .join(' ');
+}
+
+const placeKey = (name) =>
+  name
+    .toUpperCase()
+    .replace(/[^A-Z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const cityByKey = new Map(cities.map((c) => [placeKey(c.city), c]));
+const districtKeys = new Set(
+  districts.map((d) => `${d.district}|${d.province}`),
+);
+
+function accountOfficeCity(accountOffice) {
+  return (
+    ACCOUNT_OFFICE_CITY[accountOffice] ??
+    cityByKey.get(placeKey(accountOffice.replace(/ GPO$/, '')))?.city ??
+    null
+  );
+}
+
+/** The city an office belongs to, or `null` when it is its own locality. */
+function officeCity({ office, accountOffice, province }) {
+  const key = placeKey(office).replace(/ GPO$/, '');
+  const exact = cityByKey.get(key);
+  if (exact && exact.province === province) return exact.city;
+  const metro = METRO_ACCOUNT_OFFICES[accountOffice];
+  if (metro) return metro;
+  // "ABBOTTABAD PUBLIC SCHOOL" or "GULISTAN COLONY, FAISALABAD", when the
+  // office is also accounted under that city's GPO.
+  const home = accountOfficeCity(accountOffice);
+  if (home) {
+    const homeKey = placeKey(home);
+    if (key.startsWith(`${homeKey} `) || key.endsWith(` ${homeKey}`)) {
+      return home;
+    }
+  }
+  return null;
+}
+
+/** Adds the district (when the city is a district's namesake) and province. */
+const withPlace = (entry, province) => ({
+  ...entry,
+  ...(districtKeys.has(`${entry.city}|${province}`)
+    ? { district: entry.city }
+    : {}),
+  province,
+});
+
+const directoryCodes = new Set(DIRECTORY.map((row) => row.postalCode));
+const curatedPostal = POSTAL_CODES.map((entry) => {
+  if (!directoryCodes.has(entry.postalCode)) {
+    throw new Error(`${entry.postalCode} is not in Pakistan Post's directory`);
+  }
+  return withPlace(entry, citiesMap.get(entry.city));
+});
+const curatedCodes = new Set(POSTAL_CODES.map((entry) => entry.postalCode));
+const curatedCities = new Set(POSTAL_CODES.map((entry) => entry.city));
+
+// The directory lists four codes twice (the same place under two spellings);
+// the first row is kept so that every code appears once.
+const seenCodes = new Set(curatedCodes);
+const bulkPostal = DIRECTORY.filter((row) => {
+  if (seenCodes.has(row.postalCode)) return false;
+  seenCodes.add(row.postalCode);
+  return true;
+}).map((row) => {
+  const area = titleCase(row.office);
+  const city = officeCity(row);
+  // A locality that shares its name with a city in another province (Thatta
+  // in Attock district) is told apart by its account office.
+  const namesake = cityByKey.get(placeKey(area));
+  const locality =
+    namesake && namesake.province !== row.province
+      ? `${area} (${row.accountOffice.replace(/ GPO$/, '')})`
+      : area;
+  return {
+    office: row.office,
+    isCity: city !== null,
+    entry: withPlace(
+      { city: city ?? locality, postalCode: row.postalCode, area },
+      row.province,
+    ),
+  };
+});
+
+// A city with no hand-checked entry gets its own office as the primary one:
+// "<CITY> GPO" if the directory has it, else the office named after the city.
+const primaryFor = new Map();
+for (const { office, entry, isCity } of bulkPostal) {
+  if (!isCity || curatedCities.has(entry.city)) continue;
+  const key = placeKey(office);
+  const cityKey = placeKey(entry.city);
+  const rank = key === `${cityKey} GPO` ? 2 : key === cityKey ? 1 : 0;
+  if (rank > (primaryFor.get(entry.city)?.rank ?? 0)) {
+    primaryFor.set(entry.city, { rank, code: entry.postalCode });
+  }
+}
+
+const postalCodes = [
+  ...curatedPostal,
+  ...bulkPostal
+    .map(({ entry }) => {
+      const { city, postalCode, area, ...rest } = entry;
+      return primaryFor.get(city)?.code === postalCode
+        ? { city, postalCode, area, primary: true, ...rest }
+        : entry;
+    })
+    .sort(
+      (a, b) =>
+        a.postalCode.localeCompare(b.postalCode) ||
+        a.area.localeCompare(b.area),
+    ),
+];
+
+/**
  * Pakistani IBAN bank codes (characters 5-8 of the IBAN). SBP does not publish
  * a master list, and IBAN codes do not always match SWIFT BIC prefixes, so
  * entries should be confirmed against real IBANs before being added.
@@ -780,7 +972,7 @@ const BANKS = [
   { code: 'MSHQ', name: 'Mashreq Bank Pakistan Limited' },
   { code: 'RQMI', name: 'Raqami Islamic Digital Bank Limited' },
   { code: 'BKCH', name: 'Bank of China Limited' },
-  { code: 'SMES', name: 'SME Bank Limited' },
+  { code: 'SMES', name: 'SME Bank Limited (in liquidation)' },
   { code: 'SAUD', name: 'Silkbank Limited (merged into United Bank Limited)' },
   { code: 'CITI', name: 'Citibank N.A. Pakistan' },
   { code: 'ICBK', name: 'Industrial and Commercial Bank of China' },
@@ -831,16 +1023,165 @@ function writeJson(name, data) {
   );
 }
 
+/**
+ * Divisions and tehsils from the 2023 census (PBS Table 1), extracted to
+ * data/sources/census-2023-admin-units.csv: one row per tehsil-level unit with
+ * its province, division and district as the census printed them.
+ */
+const CENSUS_UNITS = readFileSync(
+  join(dataDir, 'sources', 'census-2023-admin-units.csv'),
+  'utf8',
+)
+  .trim()
+  .split('\n')
+  .slice(1)
+  .map((line) => {
+    const [province, division, district, unit, type] = line.split(',');
+    return { province, division, district, unit, type };
+  });
+
+/** Census spellings that differ from the district names in districts.json. */
+const CENSUS_DISTRICT_NAMES = {
+  'KAMBAR SHAHDAD KOT': 'Qambar Shahdadkot',
+  'SHAHEED BENAZIRABAD': 'Shaheed Benazir Abad',
+  'UMER KOT': 'Umerkot',
+  'KOLAI PALAS KOHISTAN': 'Kolai-Palas',
+  TORGHAR: 'Tor Ghar',
+  SHERANI: 'Sheerani',
+  // Split since the census; these names are no longer districts.
+  'SOUTH WAZIRISTAN': 'South Waziristan',
+  QUETTA: 'Quetta',
+  'DERA BUGTI': 'Dera Bugti',
+};
+
+/** "KOH-E-SULEMAN" -> "Koh-e-Suleman", "18-HAZARI" -> "18-Hazari". */
+const unitName = (name) =>
+  titleCase(name)
+    .replace(/-E-/g, '-e-')
+    .replace(/\bF\.r\b/g, 'F.R')
+    .replace('(S.f.rahu)', '(S.F. Rahu)');
+
+const districtByKey = new Map(
+  districts.map((d) => [`${placeKey(d.district)}|${d.province}`, d.district]),
+);
+const censusDistrictName = (district, province) => {
+  const name =
+    CENSUS_DISTRICT_NAMES[district] ??
+    districtByKey.get(`${placeKey(district)}|${province}`);
+  if (!name) throw new Error(`Unknown census district "${district}"`);
+  return name;
+};
+
+/**
+ * Districts created or split after the census, and the census district each
+ * came from. A tehsil in one of the parent districts may have moved, so its
+ * current district is recorded only when an official source confirms it
+ * (CONFIRMED_CURRENT_DISTRICT); otherwise it is null.
+ */
+const POST_CENSUS_DISTRICTS = {
+  Murree: 'Rawalpindi',
+  Talagang: 'Chakwal',
+  Wazirabad: 'Gujranwala',
+  'Kot Addu': 'Muzaffargarh',
+  Taunsa: 'Dera Ghazi Khan',
+  'Lower South Waziristan': 'South Waziristan',
+  'Upper South Waziristan': 'South Waziristan',
+  'Central Dir': 'Upper Dir',
+  Allai: 'Batagram',
+  Paharpur: 'Dera Ismail Khan',
+  'Bar Swat': 'Swat',
+  Hub: 'Lasbela',
+  'Usta Muhammad': 'Jaffarabad',
+  'Quetta East': 'Quetta',
+  'Quetta West': 'Quetta',
+  'North Dera Bugti': 'Dera Bugti',
+  'South Dera Bugti': 'Dera Bugti',
+  Barshore: 'Pishin',
+  Tump: 'Kech',
+  Wadh: 'Khuzdar',
+};
+const SPLIT_PARENTS = new Set(Object.values(POST_CENSUS_DISTRICTS));
+
+/**
+ * `"<census district>|<tehsil>"` -> current district, each from an official
+ * source listed in DATA.md.
+ */
+const CONFIRMED_CURRENT_DISTRICT = {/*CONFIRMED*/};
+
+const tehsils = CENSUS_UNITS.map((row) => {
+  const censusDistrict = censusDistrictName(row.district, row.province);
+  const tehsil = unitName(row.unit);
+  const confirmed = CONFIRMED_CURRENT_DISTRICT[`${censusDistrict}|${tehsil}`];
+  if (
+    confirmed &&
+    !districtByKey.has(`${placeKey(confirmed)}|${row.province}`)
+  ) {
+    throw new Error(`Unknown current district "${confirmed}"`);
+  }
+  return {
+    tehsil,
+    type: row.type,
+    censusDistrict,
+    currentDistrict:
+      confirmed ?? (SPLIT_PARENTS.has(censusDistrict) ? null : censusDistrict),
+    province: row.province,
+  };
+}).sort(
+  (a, b) =>
+    a.province.localeCompare(b.province) ||
+    a.censusDistrict.localeCompare(b.censusDistrict) ||
+    a.tehsil.localeCompare(b.tehsil),
+);
+for (const key of Object.keys(CONFIRMED_CURRENT_DISTRICT)) {
+  const [district, name] = key.split('|');
+  if (
+    !tehsils.some((t) => t.censusDistrict === district && t.tehsil === name)
+  ) {
+    throw new Error(`No census tehsil "${key}"`);
+  }
+}
+
+const divisionMap = new Map();
+for (const row of CENSUS_UNITS) {
+  if (row.division === '') continue; // Islamabad has no division
+  const key = `${row.division}|${row.province}`;
+  if (!divisionMap.has(key)) {
+    divisionMap.set(key, {
+      division: unitName(row.division),
+      province: row.province,
+      districts: new Set(),
+    });
+  }
+  divisionMap
+    .get(key)
+    .districts.add(censusDistrictName(row.district, row.province));
+}
+const divisions = [...divisionMap.values()]
+  .map((d) => ({
+    ...d,
+    districts: [...d.districts].sort((a, b) => a.localeCompare(b)),
+  }))
+  .sort(
+    (a, b) =>
+      a.province.localeCompare(b.province) ||
+      a.division.localeCompare(b.division),
+  );
+
+writeJson('divisions.json', divisions);
+writeJson('tehsils.json', tehsils);
+
 writeJson('districts.json', districts);
 writeJson('cities.json', cities);
-writeJson('postal-codes.json', POSTAL_CODES);
+writeJson('postal-codes.json', postalCodes);
 /**
- * Bank category, following SBP's grouping of scheduled banks: full-fledged
- * Islamic banks, microfinance banks, digital banks, electronic money
- * institutions (EMIs), branches of foreign banks, specialized banks and the
- * central bank. Everything else is a commercial bank.
+ * Bank category, following SBP's grouping of scheduled banks: public sector
+ * commercial banks, full-fledged Islamic banks, microfinance banks, digital
+ * banks, electronic money institutions (EMIs), branches of foreign banks,
+ * specialized banks and the central bank. Everything else is a commercial
+ * bank (SBP's "local private banks").
  */
 const BANK_TYPES = {
+  'public-sector': ['BPUN', 'KHYB', 'NBPA', 'NBPB', 'SIND'],
   islamic: ['AIIN', 'BKIP', 'DUIB', 'FAYS', 'MCIB', 'MEZN'],
   microfinance: [
     'APNA',
@@ -863,6 +1204,9 @@ const BANK_TYPES = {
 /** Banks that no longer exist, and the bank (code) that took them over. */
 const MERGED_INTO = { NIBP: 'MUCB', SAUD: 'UNIL' };
 
+/** Banks that have closed without a successor (SME Bank: de-scheduled 2025). */
+const CLOSED = new Set(['SMES']);
+
 /** Older codes still found on live accounts, and the bank's main code. */
 const ALIAS_OF = { MCBL: 'MUCB', NBPB: 'NBPA', TAMW: 'TMFB', WMBL: 'JCMA' };
 
@@ -876,6 +1220,7 @@ writeJson(
     code,
     name,
     type: bankType(code),
+    ...(CLOSED.has(code) ? { active: false } : {}),
     ...(MERGED_INTO[code] ? { mergedInto: MERGED_INTO[code] } : {}),
     ...(ALIAS_OF[code] ? { aliasOf: ALIAS_OF[code] } : {}),
   })),
@@ -884,5 +1229,5 @@ writeJson(
 console.log(`\nSummary:`);
 console.log(`  Districts: ${districts.length}`);
 console.log(`  Cities: ${cities.length}`);
-console.log(`  Postal codes: ${POSTAL_CODES.length}`);
+console.log(`  Postal codes: ${postalCodes.length}`);
 console.log(`  Banks: ${BANKS.length}`);

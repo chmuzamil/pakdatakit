@@ -13,6 +13,10 @@ export {
   getDistrictProvince,
   searchDistricts,
   getDistrictsByProvince,
+  getDivisions,
+  getDivisionOfDistrict,
+  getTehsils,
+  getTehsilDistrict,
 } from './geo.js';
 export { formatPKR, formatLakh } from './format.js';
 export { createWhatsAppLink } from './whatsapp.js';

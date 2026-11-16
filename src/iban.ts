@@ -6,6 +6,7 @@ const PK_IBAN_PATTERN = /^PK\d{2}[A-Z]{4}[A-Z0-9]{16}$/;
 /** Kind of institution, following the State Bank of Pakistan's grouping. */
 export type BankType =
   | 'commercial'
+  | 'public-sector'
   | 'islamic'
   | 'microfinance'
   | 'digital'
@@ -20,13 +21,15 @@ export interface BankInfo {
   code: string;
   name: string;
   /**
-   * `commercial`, `islamic` (full-fledged Islamic bank), `microfinance`,
-   * `digital` (digital retail bank), `emi` (electronic money institution such
-   * as a wallet), `foreign` (branch of a foreign bank), `specialized` or
-   * `central` (State Bank of Pakistan).
+   * `commercial` (a private commercial bank), `public-sector` (a public
+   * sector commercial bank, such as National Bank of Pakistan), `islamic`
+   * (full-fledged Islamic bank), `microfinance`, `digital` (digital retail
+   * bank), `emi` (electronic money institution such as a wallet), `foreign`
+   * (branch of a foreign bank), `specialized` or `central` (State Bank of
+   * Pakistan). The groups are the State Bank's.
    */
   type: BankType;
-  /** `false` for banks that merged into another and no longer exist. */
+  /** `false` for banks that merged into another or have closed. */
   active: boolean;
   /** Code of the bank this one merged into, if it no longer exists. */
   mergedInto: string | null;
@@ -39,6 +42,7 @@ interface BankEntry {
   name: string;
   type: BankType;
   mergedInto?: string;
+  active?: boolean;
   aliasOf?: string;
 }
 
@@ -47,7 +51,7 @@ const banks = lazy((): BankInfo[] =>
     code: entry.code,
     name: entry.name,
     type: entry.type,
-    active: entry.mergedInto === undefined,
+    active: entry.mergedInto === undefined && entry.active !== false,
     mergedInto: entry.mergedInto ?? null,
     aliasOf: entry.aliasOf ?? null,
   })),

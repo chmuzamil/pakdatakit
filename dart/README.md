@@ -43,6 +43,10 @@ getBankFromIBAN('PK36SCBL0000001123456702');   // 'Standard Chartered Bank (Paki
 getBankInfo('MEZN')?.type;                     // BankType.islamic
 
 getProvince('Lahore');                       // 'Punjab'
+getDivisions('Sindh');                       // ['Hyderabad', 'Karachi', 'Larkana', ...]
+getDivisionOfDistrict('Lahore');             // 'Lahore'
+getTehsils('Rawalpindi');                    // tehsils of the district, sorted
+getTehsilDistrict('Murree');                 // 'Rawalpindi'
 parseAddress('House 12, Street 5, Model Town Lahore 54000').postalCode; // '54000'
 
 formatPKR(150000);                           // 'Rs. 150,000'
@@ -93,6 +97,15 @@ In Dart:
   with a `.value` holding the npm string, e.g. `NumberType.tollFree.value ==
   'toll-free'`.
 - **`null` where the npm package returns `null`**.
+- **Divisions and tehsils** (`getDivisions`, `getDivisionOfDistrict`,
+  `getTehsils`, `getTehsilDistrict`) use the 2023 census: each tehsil is
+  recorded under the district it was in then, and districts created since the
+  census have no division. `getDivisions` and `getTehsilDistrict` take the
+  province as an optional positional argument.
+- `BankType` has the State Bank's groups, including `BankType.publicSector`
+  (`'public-sector'`) for public sector commercial banks such as National Bank
+  of Pakistan; `BankInfo.active` is `false` for banks that merged into another
+  or have closed.
 - **An `ArgumentError` where the npm package throws a `RangeError`**, e.g.
   `formatPKR(double.nan)` or a Raast QR with an amount but no expiry.
 - **Dates are local `DateTime`s**; only the calendar date (or, for Raast

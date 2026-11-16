@@ -96,7 +96,7 @@ final class Iban
                     code: $entry['code'],
                     name: $entry['name'],
                     type: $entry['type'],
-                    active: !isset($entry['mergedInto']),
+                    active: !isset($entry['mergedInto']) && ($entry['active'] ?? true) !== false,
                     mergedInto: $entry['mergedInto'] ?? null,
                     aliasOf: $entry['aliasOf'] ?? null,
                 );

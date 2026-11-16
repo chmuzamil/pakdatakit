@@ -45,7 +45,7 @@ const List<Object?> banksJson = <Object?>[
   <String, Object?>{
     'code': 'BPUN',
     'name': 'The Bank of Punjab',
-    'type': 'commercial',
+    'type': 'public-sector',
   },
   <String, Object?>{
     'code': 'CITI',
@@ -110,7 +110,7 @@ const List<Object?> banksJson = <Object?>[
   <String, Object?>{
     'code': 'KHYB',
     'name': 'The Bank of Khyber',
-    'type': 'commercial',
+    'type': 'public-sector',
   },
   <String, Object?>{
     'code': 'MCBL',
@@ -151,12 +151,12 @@ const List<Object?> banksJson = <Object?>[
   <String, Object?>{
     'code': 'NBPA',
     'name': 'National Bank of Pakistan',
-    'type': 'commercial',
+    'type': 'public-sector',
   },
   <String, Object?>{
     'code': 'NBPB',
     'name': 'National Bank of Pakistan',
-    'type': 'commercial',
+    'type': 'public-sector',
     'aliasOf': 'NBPA',
   },
   <String, Object?>{
@@ -204,12 +204,13 @@ const List<Object?> banksJson = <Object?>[
   <String, Object?>{
     'code': 'SIND',
     'name': 'Sindh Bank Limited',
-    'type': 'commercial',
+    'type': 'public-sector',
   },
   <String, Object?>{
     'code': 'SMES',
-    'name': 'SME Bank Limited',
+    'name': 'SME Bank Limited (in liquidation)',
     'type': 'specialized',
+    'active': false,
   },
   <String, Object?>{
     'code': 'SMFB',

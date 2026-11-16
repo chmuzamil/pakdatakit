@@ -35,6 +35,10 @@ pdk.get_bank_from_iban("PK36SCBL0000001123456702")       # 'Standard Chartered B
 pdk.get_bank_info("MEZN").type                           # 'islamic'
 
 pdk.get_province("Lahore")                    # 'Punjab'
+pdk.get_divisions("Sindh")                    # ['Hyderabad', 'Karachi', 'Larkana', ...]
+pdk.get_division_of_district("Kasur")         # 'Lahore'
+pdk.get_tehsils("Rawalpindi")                 # ['Gujar Khan', 'Kahuta', ..., 'Murree', ...]
+pdk.get_tehsil_district("Murree")             # 'Rawalpindi'
 pdk.parse_address("House 12, Street 5, Model Town Lahore 54000")
 
 pdk.format_pkr(150000)                        # 'Rs. 150,000'
@@ -60,6 +64,31 @@ Option objects become keyword arguments (`{ expiresIn: '1d' }` →
 `expires_in="1d"`), structured results are frozen dataclasses with snake_case
 fields, `null` is `None`, and a `RangeError` is a `ValueError`. Dates are
 `datetime.date` / naive local `datetime.datetime`.
+
+Geography:
+
+| Function | Returns |
+| --- | --- |
+| `get_province(city)` | Province of a city, or `None` |
+| `search_cities(query)` | Matching city names, sorted |
+| `get_district_province(district)` | Province of a district, or `None` |
+| `search_districts(query)` | Matching district names, sorted |
+| `get_districts_by_province(province)` | Districts of a province, sorted |
+| `get_divisions(province=None)` | The 30 divisions of the 2023 census, or those of one province, sorted |
+| `get_division_of_district(district)` | Division of a 2023 census district, or `None` |
+| `get_tehsils(district)` | Tehsils (talukas, sub-divisions) of a district, sorted |
+| `get_tehsil_district(tehsil, province=None)` | Census district of a tehsil, or `None` if unknown or ambiguous |
+
+Divisions and tehsils come from the 2023 census. Each of the 591 tehsils is
+recorded under the district it was in at the census, so `get_tehsils` and
+`get_tehsil_district` use census districts (`Rawalpindi` still lists Murree,
+and a tehsil of `Quetta` is reported under `Quetta`). Districts created after
+the census have no division and may have no tehsils. Azad Jammu and Kashmir
+and Gilgit-Baltistan are not covered.
+
+`BankInfo.type` is one of `commercial`, `public-sector`, `islamic`,
+`microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
+`BankInfo.active` is `False` for a bank that merged into another or has closed.
 
 `DATA_VERSION` gives the date the datasets were last checked, and
 `__version__` the package version.

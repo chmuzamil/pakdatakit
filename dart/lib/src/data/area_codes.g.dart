@@ -146,6 +146,66 @@ const List<Object?> areaCodesJson = <Object?>[
     'cities': <Object?>['Attock'],
   },
   <String, Object?>{
+    'code': '5811',
+    'cities': <Object?>['Gilgit'],
+  },
+  <String, Object?>{
+    'code': '5812',
+    'cities': <Object?>['Diamer'],
+  },
+  <String, Object?>{
+    'code': '5813',
+    'cities': <Object?>['Hunza'],
+  },
+  <String, Object?>{
+    'code': '5814',
+    'cities': <Object?>['Ghizer'],
+  },
+  <String, Object?>{
+    'code': '5815',
+    'cities': <Object?>['Skardu'],
+  },
+  <String, Object?>{
+    'code': '5816',
+    'cities': <Object?>['Ghanche'],
+  },
+  <String, Object?>{
+    'code': '5817',
+    'cities': <Object?>['Astore'],
+  },
+  <String, Object?>{
+    'code': '5821',
+    'cities': <Object?>['Neelum'],
+  },
+  <String, Object?>{
+    'code': '5822',
+    'cities': <Object?>['Muzaffarabad'],
+  },
+  <String, Object?>{
+    'code': '5823',
+    'cities': <Object?>['Bagh'],
+  },
+  <String, Object?>{
+    'code': '5824',
+    'cities': <Object?>['Poonch'],
+  },
+  <String, Object?>{
+    'code': '5825',
+    'cities': <Object?>['Sudhnoti'],
+  },
+  <String, Object?>{
+    'code': '5826',
+    'cities': <Object?>['Kotli'],
+  },
+  <String, Object?>{
+    'code': '5827',
+    'cities': <Object?>['Mirpur'],
+  },
+  <String, Object?>{
+    'code': '5828',
+    'cities': <Object?>['Bhimber'],
+  },
+  <String, Object?>{
     'code': '604',
     'cities': <Object?>['Rajanpur'],
   },
@@ -214,12 +274,99 @@ const List<Object?> areaCodesJson = <Object?>[
     'cities': <Object?>['Quetta'],
   },
   <String, Object?>{
+    'code': '822',
+    'cities': <Object?>['Zhob'],
+  },
+  <String, Object?>{
+    'code': '823',
+    'cities': <Object?>['Killa Saifullah'],
+  },
+  <String, Object?>{
+    'code': '824',
+    'cities': <Object?>['Loralai'],
+  },
+  <String, Object?>{
+    'code': '825',
+    'cities': <Object?>['Chagai'],
+  },
+  <String, Object?>{
+    'code': '826',
+    'cities': <Object?>[
+      'Killa Abdullah',
+      'Pishin',
+    ],
+  },
+  <String, Object?>{
+    'code': '828',
+    'cities': <Object?>['Musakhel'],
+  },
+  <String, Object?>{
+    'code': '829',
+    'cities': <Object?>[
+      'Barkhan',
+      'Kohlu',
+    ],
+  },
+  <String, Object?>{
+    'code': '832',
+    'cities': <Object?>[
+      'Kachhi',
+      'Bolan',
+    ],
+  },
+  <String, Object?>{
+    'code': '833',
+    'cities': <Object?>[
+      'Sibi',
+      'Ziarat',
+    ],
+  },
+  <String, Object?>{
+    'code': '835',
+    'cities': <Object?>['Dera Bugti'],
+  },
+  <String, Object?>{
+    'code': '837',
+    'cities': <Object?>['Jhal Magsi'],
+  },
+  <String, Object?>{
+    'code': '838',
+    'cities': <Object?>[
+      'Jaffarabad',
+      'Nasirabad',
+    ],
+  },
+  <String, Object?>{
+    'code': '843',
+    'cities': <Object?>['Mastung'],
+  },
+  <String, Object?>{
+    'code': '844',
+    'cities': <Object?>['Kalat'],
+  },
+  <String, Object?>{
+    'code': '847',
+    'cities': <Object?>['Kharan'],
+  },
+  <String, Object?>{
     'code': '848',
     'cities': <Object?>['Khuzdar'],
   },
   <String, Object?>{
     'code': '852',
     'cities': <Object?>['Turbat'],
+  },
+  <String, Object?>{
+    'code': '853',
+    'cities': <Object?>['Lasbela'],
+  },
+  <String, Object?>{
+    'code': '855',
+    'cities': <Object?>['Panjgur'],
+  },
+  <String, Object?>{
+    'code': '856',
+    'cities': <Object?>['Awaran'],
   },
   <String, Object?>{
     'code': '86',
@@ -241,6 +388,13 @@ const List<Object?> areaCodesJson = <Object?>[
     'cities': <Object?>['Nowshera'],
   },
   <String, Object?>{
+    'code': '924',
+    'cities': <Object?>[
+      'Khyber',
+      'Mohmand',
+    ],
+  },
+  <String, Object?>{
     'code': '925',
     'cities': <Object?>['Hangu'],
   },
@@ -257,6 +411,10 @@ const List<Object?> areaCodesJson = <Object?>[
     'cities': <Object?>['Bannu'],
   },
   <String, Object?>{
+    'code': '932',
+    'cities': <Object?>['Malakand'],
+  },
+  <String, Object?>{
     'code': '937',
     'cities': <Object?>['Mardan'],
   },
@@ -265,8 +423,24 @@ const List<Object?> areaCodesJson = <Object?>[
     'cities': <Object?>['Swabi'],
   },
   <String, Object?>{
+    'code': '939',
+    'cities': <Object?>['Buner'],
+  },
+  <String, Object?>{
+    'code': '942',
+    'cities': <Object?>['Bajaur'],
+  },
+  <String, Object?>{
     'code': '943',
     'cities': <Object?>['Chitral'],
+  },
+  <String, Object?>{
+    'code': '944',
+    'cities': <Object?>['Upper Dir'],
+  },
+  <String, Object?>{
+    'code': '945',
+    'cities': <Object?>['Lower Dir'],
   },
   <String, Object?>{
     'code': '946',
@@ -278,6 +452,10 @@ const List<Object?> areaCodesJson = <Object?>[
   <String, Object?>{
     'code': '963',
     'cities': <Object?>['Tank'],
+  },
+  <String, Object?>{
+    'code': '965',
+    'cities': <Object?>['South Waziristan'],
   },
   <String, Object?>{
     'code': '966',
@@ -294,6 +472,10 @@ const List<Object?> areaCodesJson = <Object?>[
   <String, Object?>{
     'code': '995',
     'cities': <Object?>['Haripur'],
+  },
+  <String, Object?>{
+    'code': '996',
+    'cities': <Object?>['Shangla'],
   },
   <String, Object?>{
     'code': '997',

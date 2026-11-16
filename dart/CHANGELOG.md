@@ -19,6 +19,21 @@ Bank) added; `TMFB`/`TAMW` renamed "Easypaisa Bank Limited" and `JCMA`/`WMBL`
 Pakistan Post's directory (Gilgit, Dera Ismail Khan, Tank, Badin, Thatta,
 Sujawal, Matiari, Taxila) and Wah Cantonment `47040` added; holiday `source`
 links for 2024 to 2026 now point to official notifications.
+
+Data depth:
+
+- `getDivisions()`, `getDivisionOfDistrict()`, `getTehsils()` and
+  `getTehsilDistrict()`: division and tehsil lookups from the 2023 census
+  (30 divisions, 591 tehsils). Each tehsil is recorded under its census
+  district, so districts created since the census may list few or no tehsils
+  and have no division.
+- Postal codes now cover the full Pakistan Post directory (about 2,560 post
+  codes, up from 110).
+- 41 more landline area codes.
+- `BankType.publicSector` (`'public-sector'`) for public sector commercial
+  banks; `BankType.commercial` now means private commercial banks.
+- SME Bank (`SMES`) is reported as inactive (`active: false`).
+
 `dataVersion` is now `2026-11-16`.
 
 ## 2.2.1

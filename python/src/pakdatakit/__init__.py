@@ -16,7 +16,11 @@ from .format import format_lakh, format_pkr
 from .geo import (
     get_district_province,
     get_districts_by_province,
+    get_division_of_district,
+    get_divisions,
     get_province,
+    get_tehsil_district,
+    get_tehsils,
     search_cities,
     search_districts,
 )
@@ -106,6 +110,10 @@ __all__ = [
     "get_district_province",
     "search_districts",
     "get_districts_by_province",
+    "get_divisions",
+    "get_division_of_district",
+    "get_tehsils",
+    "get_tehsil_district",
     # address
     "ParsedAddress",
     "parse_address",

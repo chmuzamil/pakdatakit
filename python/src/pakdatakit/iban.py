@@ -22,11 +22,13 @@ class BankInfo:
     #: 4-letter IBAN bank code (characters 5-8 of the IBAN).
     code: str
     name: str
-    #: ``commercial``, ``islamic``, ``microfinance``, ``digital``, ``emi``
-    #: (electronic money institution such as a wallet), ``foreign``,
-    #: ``specialized`` or ``central`` (State Bank of Pakistan).
+    #: ``commercial`` (a private commercial bank), ``public-sector`` (a public
+    #: sector commercial bank, such as National Bank of Pakistan), ``islamic``,
+    #: ``microfinance``, ``digital``, ``emi`` (electronic money institution
+    #: such as a wallet), ``foreign``, ``specialized`` or ``central`` (State
+    #: Bank of Pakistan). The groups are the State Bank's.
     type: str
-    #: ``False`` for banks that merged into another and no longer exist.
+    #: ``False`` for banks that merged into another or have closed.
     active: bool
     #: Code of the bank this one merged into, if it no longer exists.
     merged_into: Optional[str] = None
@@ -46,7 +48,7 @@ def _banks() -> List[BankInfo]:
                 code=entry["code"],
                 name=entry["name"],
                 type=entry["type"],
-                active="mergedInto" not in entry,
+                active="mergedInto" not in entry and entry.get("active") is not False,
                 merged_into=entry.get("mergedInto"),
                 alias_of=entry.get("aliasOf"),
             )

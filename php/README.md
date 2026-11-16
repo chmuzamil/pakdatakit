@@ -79,6 +79,8 @@ package; call `->toArray()` for an array.
 | `parseVehiclePlate`, `validateVehiclePlate`            | `VehiclePlate::parse`, `VehiclePlate::validate`                            |
 | `getCityByPostalCode`, `getPostalCode`, …              | `Postal::getCity`, `Postal::getCode`, `Postal::getCodes`, `Postal::search` |
 | `getProvince`, `searchCities`, `searchDistricts`, …    | `Geo::getProvince`, `Geo::searchCities`, `Geo::searchDistricts`, …         |
+| `getDivisions`, `getDivisionOfDistrict`                | `Geo::getDivisions`, `Geo::getDivisionOfDistrict`                          |
+| `getTehsils`, `getTehsilDistrict`                      | `Geo::getTehsils`, `Geo::getTehsilDistrict`                                |
 | `createWhatsAppLink`                                   | `WhatsApp::createLink`                                                     |
 | `formatPKR`, `formatLakh`                              | `Currency::formatPkr`, `Currency::formatLakh`                              |
 | `numberToWords`, `amountInWords`                       | `Words::numberToWords`, `Words::amountInWords`                             |
@@ -90,6 +92,19 @@ package; call `->toArray()` for an array.
 | `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr::createP2P`, `RaastQr::createMerchant`, `RaastQr::parse`          |
 | `validateRaastQr`                                      | `RaastQr::validate`                                                        |
 | `dataVersion`                                          | `PakData::version()`                                                       |
+
+Divisions and tehsils come from the 2023 census (30 divisions, 591 tehsils).
+Each tehsil is recorded under the district it was in at the census, so
+`Geo::getTehsils('Rawalpindi')` still lists Murree and
+`Geo::getTehsilDistrict()` returns the census district. Districts created
+after the census have no division. `Geo::getDivisions()` with no argument
+lists every division; `Geo::getTehsilDistrict($tehsil, $province)` takes an
+optional province for names shared by several districts.
+
+`BankInfo::$type` is one of `commercial`, `public-sector`, `islamic`,
+`microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
+`BankInfo::$active` is `false` for a bank that merged into another or is no
+longer operating (SME Bank, `SMES`).
 
 ## Laravel
 

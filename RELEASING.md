@@ -146,7 +146,11 @@ tests and builds them.
    - run `npm run build && node scripts/generate-test-vectors.mjs` and commit
      the updated `test-vectors/` and `python/src/pakdatakit/data/`; if data
      changed, also run `node scripts/generate-dart-data.mjs` and
-     `node scripts/generate-php-data.mjs`.
+     `node scripts/generate-php-data.mjs`;
+   - do **not** copy new data into `faker/src/snapshot/`. `pakdatakit-faker`
+     picks from its own frozen lists so that a seed keeps giving the same
+     output; replacing them changes seeded output for every user and needs a
+     new minor version of the faker with a changelog note.
 2. Open a pull request, let CI pass, and merge it into `main`.
 3. Tag the merge commit and push the tags, in the order above:
 

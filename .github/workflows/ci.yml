@@ -3,8 +3,8 @@ name: CI
 on:
   push:
     branches: [main, master]
+  # Any base branch, so that a pull request stacked on another one is tested.
   pull_request:
-    branches: [main, master]
 
 jobs:
   ci:

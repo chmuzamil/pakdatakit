@@ -34,4 +34,4 @@ Also added: division and tehsil lookups from the 2023 census (30 divisions,
 591 tehsils; each tehsil is recorded under its census district), the full
 Pakistan Post directory (about 2,560 post codes), 41 more landline area
 codes, the bank type `public-sector`, and SME Bank is reported as inactive.
-`PakData::version()` is now `2026-11-16`.
+`PakData::version()` is now `2026-11-17`.

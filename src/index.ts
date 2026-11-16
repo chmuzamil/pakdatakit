@@ -35,6 +35,11 @@ export {
   getPostalAreas,
   searchPostalCodes,
 } from './postal.js';
+export {
+  getPostOffice,
+  searchPostOffices,
+  type PostOffice,
+} from './post-offices.js';
 export { parseAddress, formatAddress, type ParsedAddress } from './address.js';
 export {
   normalizeText,

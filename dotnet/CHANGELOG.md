@@ -38,4 +38,4 @@ divisions and 591 tehsils, each tehsil recorded under its census district.
 Postal codes now cover the full Pakistan Post directory (about 2,560 post
 codes). 41 more landline area codes. New bank type `public-sector`
 (`BankType.PublicSector`). SME Bank (`SMES`) is reported as inactive.
-`PakData.Version` is now `2026-11-16`.
+`PakData.Version` is now `2026-11-17`.

@@ -297,6 +297,7 @@
     "lint": "eslint src tests",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "size": "node scripts/check-size.mjs",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build",
     "docs": "typedoc && node scripts/generate-llms.mjs"

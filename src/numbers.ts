@@ -42,9 +42,9 @@ const TOLL_FREE = /^800(\d{5}(?:\d{3})?)$/;
 const PREMIUM = /^900(\d{5})$/;
 const PERSONAL = /^122(\d{6})$/;
 
-const areaCodes = lazy(() => areaCodesData as AreaCodeEntry[]);
+const areaCodes = /* @__PURE__ */ lazy(() => areaCodesData as AreaCodeEntry[]);
 
-const areaCodeMap = lazy(
+const areaCodeMap = /* @__PURE__ */ lazy(
   () => new Map(areaCodes().map((entry) => [entry.code, entry.cities])),
 );
 

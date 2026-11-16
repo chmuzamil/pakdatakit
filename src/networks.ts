@@ -17,7 +17,7 @@ interface NetworkEntry {
   network: NetworkName;
 }
 
-const prefixMap = lazy(
+const prefixMap = /* @__PURE__ */ lazy(
   () =>
     new Map<string, NetworkName>(
       (networksData as NetworkEntry[]).map((entry) => [

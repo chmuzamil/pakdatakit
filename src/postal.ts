@@ -2,10 +2,9 @@ import postalData from '../data/postal-codes.json';
 import { lazy, normalizeKey } from './internal/normalize.js';
 
 /**
- * One delivery post office from Pakistan Post's directory. `city` is the city
- * the office belongs to when that is known (a city's own offices, and every
- * office in Karachi, Lahore and Islamabad); for other offices it is the
- * office's own town or village. `area` is the office name.
+ * A post office in one of the cities in pakdatakit's city list, from Pakistan
+ * Post's directory. `area` is the office name. Offices in other towns and
+ * villages are in `post-offices.json` (see `getPostOffice`).
  */
 interface PostalEntry {
   city: string;
@@ -18,14 +17,14 @@ interface PostalEntry {
 
 const POSTAL_ENTRIES = postalData as PostalEntry[];
 
-const postalByCode = lazy(
+const postalByCode = /* @__PURE__ */ lazy(
   () =>
     new Map<string, string>(
       POSTAL_ENTRIES.map((entry) => [entry.postalCode, entry.city]),
     ),
 );
 
-const postalByCity = lazy(() => {
+const postalByCity = /* @__PURE__ */ lazy(() => {
   const map = new Map<string, string>();
   for (const entry of POSTAL_ENTRIES) {
     const key = normalizeKey(entry.city);
@@ -37,14 +36,14 @@ const postalByCity = lazy(() => {
 });
 
 /**
- * Returns the city, town or village for a Pakistani postal code.
+ * Returns the city for a Pakistani postal code.
  *
- * The data is Pakistan Post's directory of about 2,560 delivery post offices.
- * A code inside a city returns the city (`54660` → `Lahore`); a code for a
- * post office elsewhere returns that office's own town or village.
+ * Only codes of post offices in a city on pakdatakit's city list return a
+ * city (`54660` → `Lahore`). The code of a post office in a town or village
+ * that is not on the list returns `null`; use `getPostOffice` for those.
  *
  * @param postalCode - Postal code to look up (whitespace is ignored)
- * @returns City, town or village name, or `null` if not found
+ * @returns City name or `null` if not found
  */
 export function getCityByPostalCode(postalCode: string): string | null {
   const code = stripPostalCode(postalCode);
@@ -58,8 +57,7 @@ export function getCityByPostalCode(postalCode: string): string | null {
  * Returns the primary postal code for a Pakistani city.
  *
  * Matching is case-insensitive and whitespace-tolerant.
- * When multiple postal codes exist, returns the primary GPO code. Towns and
- * villages with their own post office also work.
+ * When multiple postal codes exist, returns the primary GPO code.
  *
  * @param city - City name to look up
  * @returns Postal code or `null` if not found
@@ -136,3 +134,6 @@ export function getPostalAreas(city: string): string[] {
 function stripPostalCode(postalCode: string): string {
   return postalCode.trim().replace(/\s+/g, '');
 }
+
+export { getPostOffice, searchPostOffices } from './post-offices.js';
+export type { PostOffice } from './post-offices.js';

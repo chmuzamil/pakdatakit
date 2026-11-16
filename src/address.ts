@@ -23,11 +23,11 @@ function byLengthDesc(a: string, b: string): number {
   return b.length - a.length;
 }
 
-const cityNames = lazy(() =>
+const cityNames = /* @__PURE__ */ lazy(() =>
   (citiesData as CityEntry[]).map((entry) => entry.city).sort(byLengthDesc),
 );
 
-const districtNames = lazy(() =>
+const districtNames = /* @__PURE__ */ lazy(() =>
   (districtsData as DistrictEntry[])
     .map((entry) => entry.district)
     .sort(byLengthDesc),

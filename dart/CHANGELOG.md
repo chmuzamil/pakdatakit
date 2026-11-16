@@ -34,7 +34,7 @@ Data depth:
   banks; `BankType.commercial` now means private commercial banks.
 - SME Bank (`SMES`) is reported as inactive (`active: false`).
 
-`dataVersion` is now `2026-11-16`.
+`dataVersion` is now `2026-11-17`.
 
 ## 2.2.1
 

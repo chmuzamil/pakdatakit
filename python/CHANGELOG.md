@@ -30,7 +30,7 @@ Data depth:
 - 41 more landline area codes.
 - New bank type `public-sector`. SME Bank (`SMES`) is reported as inactive.
 
-`DATA_VERSION` is now `2026-11-16`.
+`DATA_VERSION` is now `2026-11-17`.
 
 ## 2.2.1
 

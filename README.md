@@ -410,7 +410,7 @@ Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SAD
 
 ### getCityByPostalCode()
 
-Returns the city, town or village for a Pakistani postal code. The data is Pakistan Post's directory of about 2,560 delivery post offices. A code inside a city returns the city; a code for a post office elsewhere returns that office's own town or village.
+Returns the city for a Pakistani postal code. Only codes of post offices in a city on pakdatakit's city list return a city; codes of offices in other towns and villages return `null` (use `getPostOffice()` for those).
 
 ```ts
 getCityByPostalCode(postalCode: string): string | null
@@ -426,7 +426,7 @@ getCityByPostalCode('54660');
 // "Lahore"
 
 getCityByPostalCode('48330');
-// "Dulmial" (a village post office in Chakwal district)
+// null (a village post office; see getPostOffice)
 
 getCityByPostalCode('99999');
 // null
@@ -451,6 +451,30 @@ getPostalCode('Multan');
 getPostalCode('karachi');
 // "74200"
 ```
+
+---
+
+### getPostOffice() / searchPostOffices()
+
+Every delivery post office in Pakistan Post's directory (about 2,560), including those in towns and villages.
+
+```ts
+getPostOffice(code: string): PostOffice | null
+searchPostOffices(query: string): PostOffice[] // by office name, town or code prefix
+```
+
+```ts
+getPostOffice('48330');
+// { code: "48330", office: "Dulmial", town: "Dulmial", district: null, province: "Punjab" }
+
+getPostOffice('54660');
+// { code: "54660", office: "Lahore Gulberg Colony", town: "Lahore", district: "Lahore", province: "Punjab" }
+
+searchPostOffices('dulmial');
+// [{ code: "48330", office: "Dulmial", ... }]
+```
+
+`town` is the city the office belongs to when that is known, and otherwise the office's own name, which is usually its town or village. `district` is only given for offices in a district's headquarters town; the directory has no district column. The directory is a separate data file (about 32 kB gzipped), so it is only bundled when you call these functions.
 
 ---
 

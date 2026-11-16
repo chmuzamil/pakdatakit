@@ -2,6 +2,16 @@
 
 ## 2.3.0
 
+### Breaking for TypeScript exhaustive switches
+
+- `BankType` has a new member, `'public-sector'` (see Data below). Code that
+  switches over every `BankType` and checks exhaustiveness (for example with
+  a `never` default, or `@typescript-eslint/switch-exhaustiveness-check`)
+  stops compiling until it handles the new value. Nothing else changes at
+  runtime for such code, but National Bank of Pakistan, Sindh Bank, The Bank
+  of Khyber and The Bank of Punjab now report `'public-sector'` instead of
+  `'commercial'`.
+
 ### Added
 
 - Form adapters for [Joi](https://joi.dev) (`pakdatakit/joi`),
@@ -19,6 +29,12 @@
   province sets its own format, so this accepts the shape they share (1–4
   letters, 1–4 digits); see DATA.md.
 - `pk.passport()` and `pk.vehiclePlate()` in every form adapter.
+- `getPostOffice(code)` and `searchPostOffices(query)` (`pakdatakit/postal`):
+  every delivery post office in Pakistan Post's directory (about 2,560), as
+  `{ code, office, town, district, province }`, including offices in towns
+  and villages that `getCityByPostalCode` does not cover. The directory is in
+  its own data file, so it only lands in bundles that call these two
+  functions.
 - Divisions and tehsils from the 2023 census (`pakdatakit/geo`):
   `getDivisions(province?)`, `getDivisionOfDistrict(district)`,
   `getTehsils(district)` and `getTehsilDistrict(tehsil, province?)`. The data
@@ -29,7 +45,7 @@
 ### Data
 
 November 2026 audit against official sources (see AUDIT.md and DATA.md).
-`dataVersion` is now `2026-11-16`.
+`dataVersion` is now `2026-11-17`.
 
 - **Banks:** added `ZTBL` (Zarai Taraqiati Bank Limited) and `SMFB` (Sindh
   Microfinance Bank), both from IBANs printed by the State Bank. `TMFB` and
@@ -46,16 +62,21 @@ November 2026 audit against official sources (see AUDIT.md and DATA.md).
 - **Holidays:** seven `source` links for 2024 to 2026 now point to the
   Cabinet Division notification or State Bank circular instead of a news
   report. No dates changed.
-- **Postal codes, full directory:** `postal-codes.json` now holds Pakistan
-  Post's whole directory of delivery post offices: 2,560 codes instead of 110.
-  Existing lookups give the same answers as before. What is new:
-  `getCityByPostalCode` knows every code (a code outside the listed cities
-  returns the post office's own town or village); `getPostalCode` now has a
-  code for 63 more cities; `getPostalCodes`, `getPostalAreas` and
-  `searchPostalCodes` return more results for cities with several offices
-  (Lahore 5 → 50, Karachi 11 → 58, Islamabad 1 → 46); and `parseAddress` can
-  fill in the city from any of these codes. Entries also carry `province`
-  and, for district headquarters, `district`.
+- **Postal codes from Pakistan Post's directory:** `postal-codes.json` now
+  holds every office in the directory that belongs to a city on
+  pakdatakit's city list: 457 codes instead of 110. `getCityByPostalCode`
+  keeps its meaning (a city, or `null`) and now knows 355 more codes;
+  `getPostalCode` has a code for 63 more cities; `getPostalCodes`,
+  `getPostalAreas` and `searchPostalCodes` return more for cities with
+  several offices (Lahore 5 → 50, Karachi 11 → 58, Islamabad 1 → 46); and
+  `parseAddress` can fill in the city from these codes. Entries also carry
+  `province` and, for district headquarters, `district`. Offices in other
+  towns and villages are in the new `post-offices.json` (`getPostOffice`).
+  Compared with 2.2.1, `getCityByPostalCode` gives a different answer for
+  eight codes, all corrected in this release: `47040` is Wah Cantonment (was
+  Taxila), and `15700`, `29120`, `29430`, `70100`, `72220`, `73020` and
+  `73220`, which were given as the main code of a city but belong to a
+  village office nearby, now return `null`.
 - **Area codes:** 41 more landline area codes from the numbering plan PTA
   filed with the ITU: 18 in Balochistan, 8 in Khyber Pakhtunkhwa and the 15
   four-digit codes of Azad Jammu and Kashmir and Gilgit-Baltistan (`05822`

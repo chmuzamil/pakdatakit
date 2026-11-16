@@ -7,7 +7,7 @@ extracted CSV files in `data/sources/` and read by the generator: Pakistan
 Post's post code directory and the 2023 census's administrative units. The exported `dataVersion` is the
 date the data was last checked.
 
-**Data version: 2026-11-16**
+**Data version: 2026-11-17**
 
 The datasets were audited against official sources on 16 November 2026;
 [AUDIT.md](AUDIT.md) has the findings, the fixes made and what is still open.
@@ -137,6 +137,16 @@ plan with the same districts.
 177 districts as of October 2026: Punjab 41, Sindh 30, Khyber Pakhtunkhwa 40,
 Balochistan 41, Gilgit-Baltistan 14, Azad Jammu and Kashmir 10, Islamabad 1.
 
+> **Unverified: Central Dir, Allai and Paharpur** (Khyber Pakhtunkhwa). They
+> rest on a news report of January 2026, not on a notification. Official
+> pages updated in November 2026 do not show them: Malakand Division lists
+> 10 districts without Central Dir (cmd.kp.gov.pk), Hazara Division lists 8
+> without Allai (chd.kp.gov.pk), and the KP Bureau of Statistics'
+> Development Statistics 2026 has Allai as a tehsil of Batagram and Paharpur
+> as a tehsil of Dera Ismail Khan (all retrieved 2026-11-16). They are kept
+> until a notification settles it either way. Nine more districts are also
+> not confirmed on an official page; see the end of this section.
+
 - **Khyber Pakhtunkhwa** (APP, January 2026: "increased to 40"): Lower and Upper
   South Waziristan (2022), Central Dir and Allai (January 2023), Paharpur
   (November 2025), Bar Swat (January 2026; reported as "Upper Swat" before
@@ -173,18 +183,27 @@ Balochistan 41, Gilgit-Baltistan 14, Azad Jammu and Kashmir 10, Islamabad 1.
 District headquarters and major towns, plus every city that has a postal code
 in `postal-codes.json`, each mapped to its province.
 
-## Postal codes (`postal-codes.json`)
+## Postal codes (`postal-codes.json`, `post-offices.json`)
 
-2,560 codes: every office in Pakistan Post's "Post Code Directory of Delivery
-Post Offices" (Part I), a 45-page PDF dated February 2021
+Both files come from Pakistan Post's "Post Code Directory of Delivery Post
+Offices" (Part I), a 45-page PDF dated February 2021
 (https://www.pakpost.gov.pk/images/national%20post%20code%20directory.pdf,
-retrieved 2026-11-16). The office name, code, account office and province
+retrieved 2026-11-16). Its office name, code, account office and province
 columns are extracted to `data/sources/pakpost-delivery-post-offices.csv`
-(2,564 rows), and `scripts/generate-data.mjs` builds the dataset from it.
+(2,564 rows), and `scripts/generate-data.mjs` builds both files from it.
 
-- **Entry:** `postalCode`, `area` (the office name), `city`, `province`, and
-  `district` and `primary` where they apply.
-- **City.** The directory has no city column. `city` is set like this:
+- **`post-offices.json`** (2,560 entries, for `getPostOffice` and
+  `searchPostOffices`): every office, as `code`, `office` (the directory's
+  name in title case), `town`, `district` and `province`. The directory
+  lists four codes twice, for the same place under two spellings (`22190`,
+  `40520`, `56320`, `63050`); the first row is kept.
+- **`postal-codes.json`** (457 entries, for `getCityByPostalCode`,
+  `getPostalCode`, `getPostalCodes`, `getPostalAreas` and
+  `searchPostalCodes`): only the offices that belong to a city in
+  `cities.json`, as `city`, `postalCode`, `area` (the office name),
+  `province`, and `district` and `primary` where they apply.
+- **Which city an office belongs to.** The directory has no city column, so
+  this is worked out:
   1. the 110 entries checked by hand before the import keep their city
      (including the eight codes corrected in November 2026);
   2. an office named after a city in `cities.json`, in the same province,
@@ -192,35 +211,29 @@ columns are extracted to `data/sources/pakpost-delivery-post-offices.csv`
   3. every office under the Karachi, Lahore and Islamabad account offices
      belongs to that city;
   4. an office whose name starts or ends with the city of its own account
-     office belongs to that city ("GULISTAN COLONY, FAISALABAD");
-  5. any other office is its own town or village, and `city` is the office
-     name ("Dulmial"). This is about 2,100 of the entries.
-- **District** is given only where the city is the headquarters a district
-  is named after (349 entries). The directory has no district column, and an
-  account office can serve several districts, so it is not used to guess one.
+     office belongs to that city ("GULISTAN COLONY, FAISALABAD").
+
+  Any other office is in a town or village that is not on the city list. It
+  is only in `post-offices.json`, where `town` is the office's own name
+  ("Dulmial"); `getCityByPostalCode` returns `null` for it.
+
+- **District** is given only where the town is the headquarters a district
+  is named after (349 offices). An account office can serve several
+  districts, so it is not used to guess one.
 - **Province** is the directory's, with its spelling normalised ("Azad
   Kashmir" → Azad Jammu and Kashmir, "Federal Capital" → Islamabad Capital
   Territory, and the misprints "Punjba" and "SIndh").
 - **Primary.** `getPostalCode(city)` returns the hand-checked code for the 95
   cities that had one. For 63 more cities it returns the code of the office
   named "<city> GPO", or else the office named after the city.
-- **Not unique by name.** Village names repeat across the country ("Kalri"
-  is in both Punjab and Azad Jammu and Kashmir), so `getPostalCodes` for
-  such a name returns each of them. A locality that shares its name with a
-  listed city in another province is named with its account office: the
-  Thatta in Attock district is "Thatta (Attock)".
-- **Duplicates.** The directory lists four codes twice, for the same place
-  under two spellings (`22190`, `40520`, `56320`, `63050`); the first row is
-  kept.
 - **Names** are converted from the directory's capitals to title case; its
   spellings are kept, including misprints ("Islamabad Primr Minister
   Sectt.").
 - **Not included:** the 740 or so non-delivery post offices of Part II
-  (https://www.pakpost.gov.pk/images/LIST%20OF%20NON%20DELIVERY%20POs.pdf),
-  whose codes belong to counters and sub-offices rather than delivery areas.
+  (https://www.pakpost.gov.pk/images/LIST%20OF%20NON%20DELIVERY%20POs.pdf).
 - The directory is dated 2021. Pakistan Post's web table
-  (https://www.pakpost.gov.pk/postcodes.php) was used as a cross-check; it
-  is missing many offices, so it is not the source.
+  (https://www.pakpost.gov.pk/postcodes.php) is missing many offices, so it
+  is not the source; it was used for the spot-check below.
 
 ## Divisions and tehsils (`divisions.json`, `tehsils.json`)
 
@@ -278,10 +291,17 @@ Balochistan 158, Islamabad 1).
   have no rows for them, and no official list of their tehsils was found.
 - **Spelling** is the census's, in title case, with district names changed
   to ours ("UMER KOT" → Umerkot, "KAMBAR SHAHDAD KOT" → Qambar Shahdadkot,
-  "TORGHAR" → Tor Ghar). The census PDFs lose the letters "LLA" in four
-  names, which are restored: Allai (printed "AI"), Kallar Kahar ("KAR
-  KAHAR"), Kallar Sayaddan ("KAR SAYADDAN") and Tando Allahyar ("TANDO
-  AHYAR"; the province table prints it correctly).
+  "TORGHAR" → Tor Ghar).
+- **Repaired by hand.** The letters "LLA" are missing from four names in the
+  district tables' text (the PDF prints them, but they do not come out of
+  it). They are restored in `data/sources/census-2023-admin-units.csv`:
+
+  | Census text    | Restored to     | Evidence                                                 |
+  | -------------- | --------------- | -------------------------------------------------------- |
+  | `AI`           | Allai           | Allai tehsil of Batagram; KP Development Statistics 2026 |
+  | `KAR KAHAR`    | Kallar Kahar    | Punjab Board of Revenue tehsil list ("Kalar Kahar")      |
+  | `KAR SAYADDAN` | Kallar Sayaddan | Punjab Board of Revenue tehsil list ("Kallar Syedan")    |
+  | `TANDO AHYAR`  | Tando Allahyar  | The census's own province table prints "TANDO ALLAHYAR"  |
 
 ## Public holidays (`holidays.json`)
 

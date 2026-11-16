@@ -46,7 +46,7 @@ interface BankEntry {
   aliasOf?: string;
 }
 
-const banks = lazy((): BankInfo[] =>
+const banks = /* @__PURE__ */ lazy((): BankInfo[] =>
   (banksData as BankEntry[]).map((entry) => ({
     code: entry.code,
     name: entry.name,
@@ -57,7 +57,7 @@ const banks = lazy((): BankInfo[] =>
   })),
 );
 
-const bankByCode = lazy(
+const bankByCode = /* @__PURE__ */ lazy(
   () => new Map(banks().map((bank) => [bank.code, bank])),
 );
 

@@ -17,14 +17,14 @@ interface DistrictEntry {
 const CITIES = citiesData as CityEntry[];
 const DISTRICTS = districtsData as DistrictEntry[];
 
-const cityLookup = lazy(
+const cityLookup = /* @__PURE__ */ lazy(
   () =>
     new Map<string, string>(
       CITIES.map((entry) => [normalizeKey(entry.city), entry.province]),
     ),
 );
 
-const districtLookup = lazy(
+const districtLookup = /* @__PURE__ */ lazy(
   () =>
     new Map<string, string>(
       DISTRICTS.map((entry) => [normalizeKey(entry.district), entry.province]),
@@ -157,7 +157,7 @@ interface TehsilEntry {
 const DIVISIONS = divisionsData as DivisionEntry[];
 const TEHSILS = tehsilsData as TehsilEntry[];
 
-const divisionOfDistrict = lazy(() => {
+const divisionOfDistrict = /* @__PURE__ */ lazy(() => {
   const map = new Map<string, string>();
   for (const entry of DIVISIONS) {
     for (const district of entry.districts) {
@@ -167,7 +167,7 @@ const divisionOfDistrict = lazy(() => {
   return map;
 });
 
-const censusDistrictKeys = lazy(
+const censusDistrictKeys = /* @__PURE__ */ lazy(
   () => new Set(TEHSILS.map((entry) => normalizeKey(entry.censusDistrict))),
 );
 

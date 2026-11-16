@@ -879,41 +879,60 @@ const curatedPostal = POSTAL_CODES.map((entry) => {
   }
   return withPlace(entry, citiesMap.get(entry.city));
 });
-const curatedCodes = new Set(POSTAL_CODES.map((entry) => entry.postalCode));
 const curatedCities = new Set(POSTAL_CODES.map((entry) => entry.city));
 
 // The directory lists four codes twice (the same place under two spellings);
 // the first row is kept so that every code appears once.
-const seenCodes = new Set(curatedCodes);
-const bulkPostal = DIRECTORY.filter((row) => {
+const seenCodes = new Set();
+const directoryRows = DIRECTORY.filter((row) => {
   if (seenCodes.has(row.postalCode)) return false;
   seenCodes.add(row.postalCode);
   return true;
-}).map((row) => {
-  const area = titleCase(row.office);
-  const city = officeCity(row);
-  // A locality that shares its name with a city in another province (Thatta
-  // in Attock district) is told apart by its account office.
-  const namesake = cityByKey.get(placeKey(area));
-  const locality =
-    namesake && namesake.province !== row.province
-      ? `${area} (${row.accountOffice.replace(/ GPO$/, '')})`
-      : area;
-  return {
+});
+const curatedByCode = new Map(
+  POSTAL_CODES.map((entry) => [entry.postalCode, entry]),
+);
+
+// Every office in the directory, for getPostOffice and searchPostOffices.
+// `town` is the listed city the office belongs to when that is known, and
+// otherwise the office's own name (for most offices, its town or village).
+const postOffices = directoryRows
+  .map((row) => {
+    const curated = curatedByCode.get(row.postalCode);
+    const office = titleCase(row.office);
+    const city = curated ? curated.city : officeCity(row);
+    const province = curated ? citiesMap.get(curated.city) : row.province;
+    const town = city ?? office;
+    return {
+      code: row.postalCode,
+      office,
+      town,
+      district: districtKeys.has(`${town}|${province}`) ? town : null,
+      province,
+    };
+  })
+  .sort((a, b) => a.code.localeCompare(b.code));
+
+// The city lookups (getCityByPostalCode, getPostalCode, ...) cover the offices
+// that belong to a city in cities.json: the hand-checked entries plus every
+// directory office the rules in officeCity() place in a listed city.
+const bulkPostal = directoryRows
+  .filter((row) => !curatedByCode.has(row.postalCode))
+  .map((row) => ({ row, city: officeCity(row) }))
+  .filter(({ city }) => city !== null)
+  .map(({ row, city }) => ({
     office: row.office,
-    isCity: city !== null,
     entry: withPlace(
-      { city: city ?? locality, postalCode: row.postalCode, area },
+      { city, postalCode: row.postalCode, area: titleCase(row.office) },
       row.province,
     ),
-  };
-});
+  }));
 
 // A city with no hand-checked entry gets its own office as the primary one:
 // "<CITY> GPO" if the directory has it, else the office named after the city.
 const primaryFor = new Map();
-for (const { office, entry, isCity } of bulkPostal) {
-  if (!isCity || curatedCities.has(entry.city)) continue;
+for (const { office, entry } of bulkPostal) {
+  if (curatedCities.has(entry.city)) continue;
   const key = placeKey(office);
   const cityKey = placeKey(entry.city);
   const rank = key === `${cityKey} GPO` ? 2 : key === cityKey ? 1 : 0;
@@ -1202,6 +1221,7 @@ writeJson('tehsils.json', tehsils);
 writeJson('districts.json', districts);
 writeJson('cities.json', cities);
 writeJson('postal-codes.json', postalCodes);
+writeJson('post-offices.json', postOffices);
 /**
  * Bank category, following SBP's grouping of scheduled banks: public sector
  * commercial banks, full-fledged Islamic banks, microfinance banks, digital
@@ -1259,4 +1279,5 @@ console.log(`\nSummary:`);
 console.log(`  Districts: ${districts.length}`);
 console.log(`  Cities: ${cities.length}`);
 console.log(`  Postal codes: ${postalCodes.length}`);
+console.log(`  Post offices: ${postOffices.length}`);
 console.log(`  Banks: ${BANKS.length}`);

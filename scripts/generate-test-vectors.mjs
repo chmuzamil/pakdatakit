@@ -51,6 +51,7 @@ const readData = (name) =>
 const cities = readData('cities.json');
 const districts = readData('districts.json');
 const postal = readData('postal-codes.json');
+const postOffices = readData('post-offices.json');
 const networks = readData('networks.json');
 const banks = readData('banks.json');
 const areaCodes = readData('area-codes.json');
@@ -349,18 +350,13 @@ each(
 call('iban', 'getBanks', []);
 
 // Postal --------------------------------------------------------------------
-const postalCodes = unique(postal.map((e) => e.postalCode));
-// The directory has about 2,560 offices. Every code is checked; for the
-// lookups by name, every city in cities.json is checked plus every tenth of
-// the other towns and villages, which keeps the vector files a sensible size.
-const knownCities = new Set(cities.map((e) => e.city));
-const postalLocalities = unique(
-  postal.filter((e) => !knownCities.has(e.city)).map((e) => e.city),
-);
-const postalCities = unique([
-  ...postal.filter((e) => knownCities.has(e.city)).map((e) => e.city),
-  ...postalLocalities.filter((_, index) => index % 10 === 0),
+// Every code in Pakistan Post's directory: those of listed cities return the
+// city, the rest (towns and villages) return null.
+const postalCodes = unique([
+  ...postal.map((e) => e.postalCode),
+  ...postOffices.map((o) => o.code),
 ]);
+const postalCities = unique(postal.map((e) => e.city));
 each(
   'postal',
   ['getCityByPostalCode'],
@@ -416,10 +412,56 @@ each(
     'abc123',
     ...'abcdefghijklmnopqrstuvwxyz'.split(''),
     ...postalCities,
-    ...postal
-      .filter((e) => e.area)
-      .map((e) => e.area)
-      .filter((_, index) => index < 110 || index % 15 === 0),
+    ...postal.filter((e) => e.area).map((e) => e.area),
+  ]),
+);
+// Post offices: every fifth code (plus edge cases) and a set of searches.
+each(
+  'postal',
+  ['getPostOffice'],
+  [
+    ...postOffices.filter((_, index) => index % 5 === 0).map((o) => o.code),
+    '48330',
+    ' 48330 ',
+    '48 330',
+    '54000',
+    '99999',
+    '',
+    ' ',
+    'abc',
+    '4833',
+    '483300',
+  ],
+);
+each(
+  'postal',
+  ['searchPostOffices'],
+  unique([
+    'dulmial',
+    'DULMIAL',
+    'Gulberg',
+    'model town',
+    'chak 9',
+    'gpo',
+    'cantt',
+    'karachi',
+    'thatta',
+    'kalri',
+    'jamshoro',
+    '483',
+    '4833',
+    '48330',
+    ' 48330 ',
+    '1',
+    'zz',
+    'qq',
+    '',
+    ' ',
+    'abc123',
+    'D.I Khan',
+    'Islamabad G-9',
+    'Muzaffarabad',
+    'Skardu',
   ]),
 );
 

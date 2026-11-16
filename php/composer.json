@@ -1,0 +1,67 @@
+{
+  "name": "chmuzamil/pakdatakit",
+  "description": "Pakistani data utilities for PHP and Laravel: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates and amounts in words. No dependencies; gives the same results as the pakdatakit npm package.",
+  "version": "2.3.0",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "pakistan",
+    "cnic",
+    "iban",
+    "phone",
+    "raast",
+    "qr",
+    "validation",
+    "ntn",
+    "strn",
+    "hijri",
+    "holidays",
+    "urdu",
+    "laravel"
+  ],
+  "homepage": "https://github.com/chmuzamil/pakdatakit/tree/main/php",
+  "support": {
+    "issues": "https://github.com/chmuzamil/pakdatakit/issues",
+    "source": "https://github.com/chmuzamil/pakdatakit",
+    "docs": "https://chmuzamil.github.io/pakdatakit/"
+  },
+  "authors": [
+    {
+      "name": "Muzamil Chaudhery"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "ext-mbstring": "*"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^9.0 || ^10.0",
+    "phpunit/phpunit": "^11.0"
+  },
+  "suggest": {
+    "laravel/framework": "For the validation rules, rule objects and Eloquent casts (Laravel 11 or 12)."
+  },
+  "autoload": {
+    "psr-4": {
+      "PakDataKit\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "PakDataKit\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "PakDataKit\\Laravel\\PakDataKitServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

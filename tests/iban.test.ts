@@ -88,8 +88,8 @@ describe('getBankFromIBAN e-money issuers', () => {
 describe('getBankFromIBAN codes confirmed from real IBANs (2026)', () => {
   it.each([
     ['KHBL', 'Khushhali Microfinance Bank'],
-    ['JCMA', 'Mobilink Bank (JazzCash)'],
-    ['WMBL', 'Mobilink Bank (JazzCash)'],
+    ['JCMA', 'Mobilink Microfinance Bank (JazzCash)'],
+    ['WMBL', 'Mobilink Microfinance Bank (JazzCash)'],
     ['NAYA', 'NayaPay'],
     ['BKCH', 'Bank of China Limited'],
     ['SMES', 'SME Bank Limited'],

@@ -419,7 +419,13 @@ const POSTAL_CODES = [
   },
   { city: 'Rawalpindi', postalCode: '46300', area: 'Satellite Town' },
   { city: 'Murree', postalCode: '47150', area: 'Murree GPO', primary: true },
-  { city: 'Taxila', postalCode: '47040', area: 'Taxila GPO', primary: true },
+  { city: 'Taxila', postalCode: '47080', area: 'Taxila', primary: true },
+  {
+    city: 'Wah Cantonment',
+    postalCode: '47040',
+    area: 'Wah Cantt GPO',
+    primary: true,
+  },
   // Punjab major
   { city: 'Lahore', postalCode: '54000', area: 'Lahore GPO', primary: true },
   { city: 'Lahore', postalCode: '54660', area: 'Gulberg' },
@@ -455,7 +461,7 @@ const POSTAL_CODES = [
   {
     city: 'Sheikhupura',
     postalCode: '39350',
-    area: 'Sheikhupura GPO',
+    area: 'Qila Sheikhupura GPO',
     primary: true,
   },
   { city: 'Gujrat', postalCode: '50700', area: 'Gujrat GPO', primary: true },
@@ -608,18 +614,18 @@ const POSTAL_CODES = [
     primary: true,
   },
   { city: 'Dadu', postalCode: '76200', area: 'Dadu GPO', primary: true },
-  { city: 'Badin', postalCode: '72220', area: 'Badin GPO', primary: true },
-  { city: 'Thatta', postalCode: '73020', area: 'Thatta GPO', primary: true },
+  { city: 'Badin', postalCode: '72200', area: 'Badin', primary: true },
+  { city: 'Thatta', postalCode: '73130', area: 'Thatta', primary: true },
   { city: 'Sanghar', postalCode: '68100', area: 'Sanghar GPO', primary: true },
   { city: 'Umerkot', postalCode: '69100', area: 'Umerkot GPO', primary: true },
   { city: 'Tharparkar', postalCode: '69230', area: 'Mithi GPO', primary: true },
   {
     city: 'Jamshoro',
     postalCode: '76080',
-    area: 'Jamshoro GPO',
+    area: 'University New Campus, Jamshoro',
     primary: true,
   },
-  { city: 'Matiari', postalCode: '70100', area: 'Matiari GPO', primary: true },
+  { city: 'Matiari', postalCode: '70150', area: 'Matiari', primary: true },
   {
     city: 'Khairpur',
     postalCode: '66020',
@@ -633,7 +639,7 @@ const POSTAL_CODES = [
     area: 'Kashmore GPO',
     primary: true,
   },
-  { city: 'Sujawal', postalCode: '73220', area: 'Sujawal GPO', primary: true },
+  { city: 'Sujawal', postalCode: '73050', area: 'Sujawal', primary: true },
   // KPK
   {
     city: 'Peshawar',
@@ -650,7 +656,12 @@ const POSTAL_CODES = [
   },
   { city: 'Kohat', postalCode: '26000', area: 'Kohat GPO', primary: true },
   { city: 'Bannu', postalCode: '28100', area: 'Bannu GPO', primary: true },
-  { city: 'Swat', postalCode: '19200', area: 'Mingora GPO', primary: true },
+  {
+    city: 'Swat',
+    postalCode: '19200',
+    area: 'Saidu Sharif GPO',
+    primary: true,
+  },
   {
     city: 'Mansehra',
     postalCode: '21300',
@@ -659,8 +670,8 @@ const POSTAL_CODES = [
   },
   {
     city: 'Dera Ismail Khan',
-    postalCode: '29120',
-    area: 'DI Khan GPO',
+    postalCode: '29050',
+    area: 'Dera Ismail Khan GPO',
     primary: true,
   },
   {
@@ -679,7 +690,7 @@ const POSTAL_CODES = [
   { city: 'Haripur', postalCode: '22620', area: 'Haripur GPO', primary: true },
   { city: 'Hangu', postalCode: '26190', area: 'Hangu GPO', primary: true },
   { city: 'Karak', postalCode: '27200', area: 'Karak GPO', primary: true },
-  { city: 'Tank', postalCode: '29430', area: 'Tank GPO', primary: true },
+  { city: 'Tank', postalCode: '29400', area: 'Tank GPO', primary: true },
   {
     city: 'Lakki Marwat',
     postalCode: '28420',
@@ -712,7 +723,7 @@ const POSTAL_CODES = [
     primary: true,
   },
   { city: 'Bagh', postalCode: '12500', area: 'Bagh GPO', primary: true },
-  { city: 'Gilgit', postalCode: '15700', area: 'Gilgit GPO', primary: true },
+  { city: 'Gilgit', postalCode: '15100', area: 'Gilgit GPO', primary: true },
   { city: 'Skardu', postalCode: '16100', area: 'Skardu GPO', primary: true },
 ];
 
@@ -777,10 +788,12 @@ const BANKS = [
   { code: 'SBPP', name: 'State Bank of Pakistan' },
   {
     code: 'TMFB',
-    name: 'easypaisa Digital Bank (formerly Telenor Microfinance Bank)',
+    name: 'Easypaisa Bank Limited (formerly Telenor Microfinance Bank)',
   },
-  { code: 'JCMA', name: 'Mobilink Bank (JazzCash)' },
-  { code: 'WMBL', name: 'Mobilink Bank (JazzCash)' },
+  { code: 'JCMA', name: 'Mobilink Microfinance Bank (JazzCash)' },
+  { code: 'WMBL', name: 'Mobilink Microfinance Bank (JazzCash)' },
+  { code: 'SMFB', name: 'Sindh Microfinance Bank' },
+  { code: 'ZTBL', name: 'Zarai Taraqiati Bank Limited' },
   { code: 'NRSP', name: 'NRSP Microfinance Bank' },
   {
     code: 'FMFB',
@@ -795,7 +808,7 @@ const BANKS = [
   { code: 'UMBL', name: 'U Microfinance Bank' },
   {
     code: 'TAMW',
-    name: 'easypaisa Digital Bank (formerly Tameer Microfinance Bank)',
+    name: 'Easypaisa Bank Limited (formerly Tameer Microfinance Bank)',
   },
   { code: 'SIND', name: 'Sindh Bank Limited' },
   { code: 'SONE', name: 'Soneri Bank Limited' },
@@ -836,13 +849,14 @@ const BANK_TYPES = {
     'JCMA',
     'KHBL',
     'NRSP',
+    'SMFB',
     'UMBL',
     'WMBL',
   ],
   digital: ['MSHQ', 'RQMI', 'TAMW', 'TMFB'],
   emi: ['NAYA', 'SADA'],
   foreign: ['BKCH', 'CITI', 'DEUT', 'ICBK'],
-  specialized: ['SMES'],
+  specialized: ['SMES', 'ZTBL'],
   central: ['SBPP'],
 };
 

@@ -79,11 +79,11 @@ return [
     '2024' => [
         'eidUlFitr' => [
             'dates' => ['2024-04-10', '2024-04-11', '2024-04-12'],
-            'source' => 'https://thefridaytimes.com/04-Apr-2024/govt-announces-eidul-fitr-holidays-from-april-10',
+            'source' => 'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-08-of-2024',
         ],
         'eidUlAdha' => [
             'dates' => ['2024-06-17', '2024-06-18', '2024-06-19'],
-            'source' => 'https://english.aaj.tv/news/330364828/govt-announces-eid-ul-adha-hoildays',
+            'source' => 'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-11-of-2024',
         ],
         'ashura' => [
             'dates' => ['2024-07-16', '2024-07-17'],
@@ -97,7 +97,7 @@ return [
     '2025' => [
         'eidUlFitr' => [
             'dates' => ['2025-03-31', '2025-04-01', '2025-04-02'],
-            'source' => 'https://arynews.tv/eidul-fitr-2025-holidays-announcement-pakistan/',
+            'source' => 'https://cabinet.gov.pk/SiteImage/Misc/files/Holidays/Eid-ul-Fitr%202025%20Holidays%20-%2019-03-2025.pdf',
         ],
         'eidUlAdha' => [
             'dates' => ['2025-06-06', '2025-06-07', '2025-06-08', '2025-06-09'],
@@ -105,7 +105,7 @@ return [
         ],
         'ashura' => [
             'dates' => ['2025-07-05', '2025-07-06'],
-            'source' => 'https://tribune.com.pk/story/2554016/govt-announces-july-5-6-holidays-on-account-of-ashura',
+            'source' => 'https://cabinet.gov.pk/SiteImage/Misc/files/Press%20Release/Ashura-Holidays-2025.pdf',
         ],
         'eidMiladUnNabi' => [
             'dates' => ['2025-09-06'],
@@ -115,15 +115,15 @@ return [
     '2026' => [
         'eidUlFitr' => [
             'dates' => ['2026-03-20', '2026-03-21'],
-            'source' => 'https://www.app.com.pk/?p=1180682',
+            'source' => 'https://cabinet.gov.pk/SiteImage/Misc/files/Holidays/EidulFitr%202026.pdf',
         ],
         'eidUlAdha' => [
             'dates' => ['2026-05-26', '2026-05-27', '2026-05-28'],
-            'source' => 'https://pkrevenue.com/pakistan-declares-three-day-eid-ul-adha-2026-holidays/',
+            'source' => 'https://cabinet.gov.pk/SiteImage/Misc/files/Holidays/2026/Eid-ul-Azha-holidays-Notification-20_05_2026.pdf',
         ],
         'ashura' => [
             'dates' => ['2026-06-25', '2026-06-26'],
-            'source' => 'https://en.dailypakistan.com.pk/22-Jun-2026/ashura-holidays-notification-june-2026',
+            'source' => 'https://cabinet.gov.pk/SiteImage/Misc/files/Press%20Release/Notification_Ashura%20Public%20Holiday%2C%202026.pdf',
         ],
         'eidMiladUnNabi' => [
             'dates' => ['2026-08-26'],

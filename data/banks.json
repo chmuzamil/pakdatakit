@@ -91,7 +91,7 @@
   },
   {
     "code": "JCMA",
-    "name": "Mobilink Bank (JazzCash)",
+    "name": "Mobilink Microfinance Bank (JazzCash)",
     "type": "microfinance"
   },
   {
@@ -209,6 +209,11 @@
     "type": "specialized"
   },
   {
+    "code": "SMFB",
+    "name": "Sindh Microfinance Bank",
+    "type": "microfinance"
+  },
+  {
     "code": "SONE",
     "name": "Soneri Bank Limited",
     "type": "commercial"
@@ -220,13 +225,13 @@
   },
   {
     "code": "TAMW",
-    "name": "easypaisa Digital Bank (formerly Tameer Microfinance Bank)",
+    "name": "Easypaisa Bank Limited (formerly Tameer Microfinance Bank)",
     "type": "digital",
     "aliasOf": "TMFB"
   },
   {
     "code": "TMFB",
-    "name": "easypaisa Digital Bank (formerly Telenor Microfinance Bank)",
+    "name": "Easypaisa Bank Limited (formerly Telenor Microfinance Bank)",
     "type": "digital"
   },
   {
@@ -241,8 +246,13 @@
   },
   {
     "code": "WMBL",
-    "name": "Mobilink Bank (JazzCash)",
+    "name": "Mobilink Microfinance Bank (JazzCash)",
     "type": "microfinance",
     "aliasOf": "JCMA"
+  },
+  {
+    "code": "ZTBL",
+    "name": "Zarai Taraqiati Bank Limited",
+    "type": "specialized"
   }
 ]

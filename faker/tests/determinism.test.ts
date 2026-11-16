@@ -47,9 +47,9 @@ describe('determinism', () => {
         "address": "113-B, Mohallah Bilal Ganj, Swat 19200",
         "business": {
           "address": "67-D, Mohallah Noorpur, Dalbandin",
-          "bank": "Soneri Bank Limited",
+          "bank": "Bank Makramah Limited (formerly Summit Bank)",
           "city": "Dalbandin",
-          "iban": "PK95SONE1271577384459688",
+          "iban": "PK59SUMB1271577384459688",
           "landline": "0852-348003",
           "name": "Al-Ameen Enterprises",
           "ntn": "9327996-0",
@@ -60,7 +60,7 @@ describe('determinism', () => {
           "uan": null,
         },
         "cnic": "68707-6932604-0",
-        "iban": "PK44MEZN5165216300839683",
+        "iban": "PK98MPBL5165216300839683",
         "name": "Rehana Tanoli",
         "person": {
           "address": "House # 383, Street # 3, Civil Lines, Lakki Marwat 28420",

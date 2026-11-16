@@ -12,6 +12,15 @@
 - Both are checked against the shared test vectors. See DATA.md in the
   repository for sources and limits.
 
+Data (November 2026 audit, see AUDIT.md and DATA.md in the repository):
+banks `ZTBL` (Zarai Taraqiati Bank Limited) and `SMFB` (Sindh Microfinance
+Bank) added; `TMFB`/`TAMW` renamed "Easypaisa Bank Limited" and `JCMA`/`WMBL`
+"Mobilink Microfinance Bank (JazzCash)"; eight postal codes corrected from
+Pakistan Post's directory (Gilgit, Dera Ismail Khan, Tank, Badin, Thatta,
+Sujawal, Matiari, Taxila) and Wah Cantonment `47040` added; holiday `source`
+links for 2024 to 2026 now point to official notifications.
+`dataVersion` is now `2026-11-16`.
+
 ## 2.2.1
 
 The district split from Swat in January 2026 is now named **Bar Swat**, as in

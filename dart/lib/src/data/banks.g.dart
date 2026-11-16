@@ -94,7 +94,7 @@ const List<Object?> banksJson = <Object?>[
   },
   <String, Object?>{
     'code': 'JCMA',
-    'name': 'Mobilink Bank (JazzCash)',
+    'name': 'Mobilink Microfinance Bank (JazzCash)',
     'type': 'microfinance',
   },
   <String, Object?>{
@@ -212,6 +212,11 @@ const List<Object?> banksJson = <Object?>[
     'type': 'specialized',
   },
   <String, Object?>{
+    'code': 'SMFB',
+    'name': 'Sindh Microfinance Bank',
+    'type': 'microfinance',
+  },
+  <String, Object?>{
     'code': 'SONE',
     'name': 'Soneri Bank Limited',
     'type': 'commercial',
@@ -223,13 +228,13 @@ const List<Object?> banksJson = <Object?>[
   },
   <String, Object?>{
     'code': 'TAMW',
-    'name': 'easypaisa Digital Bank (formerly Tameer Microfinance Bank)',
+    'name': 'Easypaisa Bank Limited (formerly Tameer Microfinance Bank)',
     'type': 'digital',
     'aliasOf': 'TMFB',
   },
   <String, Object?>{
     'code': 'TMFB',
-    'name': 'easypaisa Digital Bank (formerly Telenor Microfinance Bank)',
+    'name': 'Easypaisa Bank Limited (formerly Telenor Microfinance Bank)',
     'type': 'digital',
   },
   <String, Object?>{
@@ -244,8 +249,13 @@ const List<Object?> banksJson = <Object?>[
   },
   <String, Object?>{
     'code': 'WMBL',
-    'name': 'Mobilink Bank (JazzCash)',
+    'name': 'Mobilink Microfinance Bank (JazzCash)',
     'type': 'microfinance',
     'aliasOf': 'JCMA',
+  },
+  <String, Object?>{
+    'code': 'ZTBL',
+    'name': 'Zarai Taraqiati Bank Limited',
+    'type': 'specialized',
   },
 ];

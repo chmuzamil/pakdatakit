@@ -22,3 +22,12 @@ First release of the PHP package, matching version 2.3.0 of the
   `pk_iban`, `pk_ntn`, `pk_strn`, `pk_landline`, `pk_passport` and
   `pk_vehicle_plate` rules, matching rule objects, `CnicCast`, `PhoneCast` and
   `IbanCast` Eloquent casts, and English and Urdu messages.
+
+Data (November 2026 audit, see AUDIT.md and DATA.md in the repository):
+banks `ZTBL` (Zarai Taraqiati Bank Limited) and `SMFB` (Sindh Microfinance
+Bank) added; `TMFB`/`TAMW` renamed "Easypaisa Bank Limited" and `JCMA`/`WMBL`
+"Mobilink Microfinance Bank (JazzCash)"; eight postal codes corrected from
+Pakistan Post's directory (Gilgit, Dera Ismail Khan, Tank, Badin, Thatta,
+Sujawal, Matiari, Taxila) and Wah Cantonment `47040` added; holiday `source`
+links for 2024 to 2026 now point to official notifications.
+`PakData::version()` is now `2026-11-16`.

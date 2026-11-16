@@ -20,6 +20,27 @@
   letters, 1–4 digits); see DATA.md.
 - `pk.passport()` and `pk.vehiclePlate()` in every form adapter.
 
+### Data
+
+November 2026 audit against official sources (see AUDIT.md and DATA.md).
+`dataVersion` is now `2026-11-16`.
+
+- **Banks:** added `ZTBL` (Zarai Taraqiati Bank Limited) and `SMFB` (Sindh
+  Microfinance Bank), both from IBANs printed by the State Bank. `TMFB` and
+  `TAMW` are now named "Easypaisa Bank Limited" and `JCMA` and `WMBL`
+  "Mobilink Microfinance Bank (JazzCash)", the names on the State Bank's
+  lists.
+- **Postal codes:** eight codes were a nearby office's, not the city's own,
+  and are corrected from Pakistan Post's directory: Gilgit `15100`, Dera
+  Ismail Khan `29050`, Tank `29400`, Badin `72200`, Thatta `73130`, Sujawal
+  `73050`, Matiari `70150` and Taxila `47080`. `47040`, which was listed for
+  Taxila, is Wah Cantt GPO and now returns Wah Cantonment. Three office names
+  are corrected (Saidu Sharif GPO, Qila Sheikhupura GPO, University New
+  Campus Jamshoro).
+- **Holidays:** seven `source` links for 2024 to 2026 now point to the
+  Cabinet Division notification or State Bank circular instead of a news
+  report. No dates changed.
+
 ### Fixed
 
 - Subpath imports such as `pakdatakit/zod` or `pakdatakit/class-validator`

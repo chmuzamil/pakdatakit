@@ -27,8 +27,14 @@ const List<Object?> postalCodesJson = <Object?>[
   },
   <String, Object?>{
     'city': 'Taxila',
+    'postalCode': '47080',
+    'area': 'Taxila',
+    'primary': true,
+  },
+  <String, Object?>{
+    'city': 'Wah Cantonment',
     'postalCode': '47040',
-    'area': 'Taxila GPO',
+    'area': 'Wah Cantt GPO',
     'primary': true,
   },
   <String, Object?>{
@@ -96,7 +102,7 @@ const List<Object?> postalCodesJson = <Object?>[
   <String, Object?>{
     'city': 'Sheikhupura',
     'postalCode': '39350',
-    'area': 'Sheikhupura GPO',
+    'area': 'Qila Sheikhupura GPO',
     'primary': true,
   },
   <String, Object?>{
@@ -385,14 +391,14 @@ const List<Object?> postalCodesJson = <Object?>[
   },
   <String, Object?>{
     'city': 'Badin',
-    'postalCode': '72220',
-    'area': 'Badin GPO',
+    'postalCode': '72200',
+    'area': 'Badin',
     'primary': true,
   },
   <String, Object?>{
     'city': 'Thatta',
-    'postalCode': '73020',
-    'area': 'Thatta GPO',
+    'postalCode': '73130',
+    'area': 'Thatta',
     'primary': true,
   },
   <String, Object?>{
@@ -416,13 +422,13 @@ const List<Object?> postalCodesJson = <Object?>[
   <String, Object?>{
     'city': 'Jamshoro',
     'postalCode': '76080',
-    'area': 'Jamshoro GPO',
+    'area': 'University New Campus, Jamshoro',
     'primary': true,
   },
   <String, Object?>{
     'city': 'Matiari',
-    'postalCode': '70100',
-    'area': 'Matiari GPO',
+    'postalCode': '70150',
+    'area': 'Matiari',
     'primary': true,
   },
   <String, Object?>{
@@ -445,8 +451,8 @@ const List<Object?> postalCodesJson = <Object?>[
   },
   <String, Object?>{
     'city': 'Sujawal',
-    'postalCode': '73220',
-    'area': 'Sujawal GPO',
+    'postalCode': '73050',
+    'area': 'Sujawal',
     'primary': true,
   },
   <String, Object?>{
@@ -482,7 +488,7 @@ const List<Object?> postalCodesJson = <Object?>[
   <String, Object?>{
     'city': 'Swat',
     'postalCode': '19200',
-    'area': 'Mingora GPO',
+    'area': 'Saidu Sharif GPO',
     'primary': true,
   },
   <String, Object?>{
@@ -493,8 +499,8 @@ const List<Object?> postalCodesJson = <Object?>[
   },
   <String, Object?>{
     'city': 'Dera Ismail Khan',
-    'postalCode': '29120',
-    'area': 'DI Khan GPO',
+    'postalCode': '29050',
+    'area': 'Dera Ismail Khan GPO',
     'primary': true,
   },
   <String, Object?>{
@@ -535,7 +541,7 @@ const List<Object?> postalCodesJson = <Object?>[
   },
   <String, Object?>{
     'city': 'Tank',
-    'postalCode': '29430',
+    'postalCode': '29400',
     'area': 'Tank GPO',
     'primary': true,
   },
@@ -631,7 +637,7 @@ const List<Object?> postalCodesJson = <Object?>[
   },
   <String, Object?>{
     'city': 'Gilgit',
-    'postalCode': '15700',
+    'postalCode': '15100',
     'area': 'Gilgit GPO',
     'primary': true,
   },

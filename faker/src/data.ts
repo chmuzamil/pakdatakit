@@ -1,14 +1,19 @@
 /*
- * Datasets shared with pakdatakit. They are imported straight from the
- * repository's data/ folder and bundled into dist by tsup, so the generated
- * values always agree with the validators of the same release.
+ * The faker's own frozen copy of pakdatakit's datasets (src/snapshot/). The
+ * generators pick values by position in these lists, so they must not change
+ * when pakdatakit's data/ folder does: the same seed has to give the same
+ * output across data updates. Everything in the snapshot is also in the live
+ * data, so generated values still pass pakdatakit's validators.
+ *
+ * Do not edit or regenerate the snapshot as part of a data update. Replacing
+ * it changes seeded output for every user and needs a new minor version.
  */
-import areaCodesData from '../../data/area-codes.json';
-import banksData from '../../data/banks.json';
-import citiesData from '../../data/cities.json';
-import districtsData from '../../data/districts.json';
-import networksData from '../../data/networks.json';
-import postalCodesData from '../../data/postal-codes.json';
+import areaCodesData from './snapshot/area-codes.json';
+import banksData from './snapshot/banks.json';
+import citiesData from './snapshot/cities.json';
+import districtsData from './snapshot/districts.json';
+import networksData from './snapshot/networks.json';
+import postalCodesData from './snapshot/postal-codes.json';
 
 /** A province or territory, spelt as pakdatakit returns it. */
 export type Province =

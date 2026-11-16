@@ -90,15 +90,21 @@ Warid (now Jazz), 33 Ufone, 34 Telenor, 35 SCO, 36 Instaphone, and 37 to 39
 libphonenumber and operator announcements.
 
 - `0329` (Jazz) and `0355` (SCO) included.
-- `0370`–`0371` (Zong) included, from libphonenumber and Zong only: no PTA
-  document found gives 037x to an operator. `0372`–`0379` are **not**
+- `0370`–`0371` (Zong) included, from libphonenumber only. **Unverified:**
+  two searches in November 2026 (PTA's annual reports for 2021 to 2024, its
+  numbering documents and licensee list, the ITU page for Pakistan and
+  zong.com.pk) found no official document that gives 037x to an operator. `0372`–`0379` are **not**
   included, as no allocation or use was found.
 - `0364` (Instaphone, licence cancelled in 2008) is not included.
-- `034x` is labelled Telenor, the original allocation. PTCL bought Telenor
-  Pakistan on 31 December 2025, and PTA approved its merger into PTML (Ufone)
-  on 18 March 2026; whether the merger has completed could not be confirmed
-  from an official source. With number portability, the current operator can
-  differ for any prefix.
+- `034x` is labelled Telenor, the original allocation. Telenor Pakistan was
+  merged into PTML (Ufone) in July 2026: PTCL announced the "successful
+  completion of the amalgamation" on 2 July 2026
+  (https://ptcl.com.pk/Home/PressReleaseDetail/?ItemId=934&linkId=130,
+  retrieved 2026-11-16). The label is kept because the dataset records the
+  operator a prefix was allocated to, no new brand has been announced
+  officially (PTCL still writes "Ufone 5G"), and PTA's own pages still list
+  Telenor Pakistan. With number portability, the current operator can differ
+  for any prefix.
 
 ## Landline area codes (`area-codes.json`)
 
@@ -147,6 +153,20 @@ Balochistan 41, Gilgit-Baltistan 14, Azad Jammu and Kashmir 10, Islamabad 1.
   so current names are kept.
 - Former names (Quetta, Dera Bugti, Upper Dera Bugti, South Waziristan, Upper
   Swat) still resolve in `getDistrictProvince`.
+- **Official confirmation, checked 2026-11-16** (details in AUDIT.md,
+  section 9). Confirmed on official pages: Murree, Talagang, Wazirabad, Kot
+  Addu and Taunsa (Punjab Board of Revenue list); Lower and Upper South
+  Waziristan and Hub (Election Commission delimitation report, 2023); Bar
+  Swat (Malakand Division's website); Usta Muhammad, Barshore and Tump
+  (Balochistan budget documents, June 2026). **Not confirmed on any official
+  page that could be read:** Central Dir, Allai and Paharpur (Khyber
+  Pakhtunkhwa's divisional websites and its Development Statistics 2026
+  still show Allai and Paharpur as tehsils and list no Central Dir); Quetta
+  East and West, North and South Dera Bugti and Wadh (Balochistan); and
+  Darel, Tangir, Gupis-Yasin and Roundu (Gilgit-Baltistan's 2024-25
+  development programme treats them as sub-divisions). These stay in the
+  dataset on the strength of the notifications and reports cited above, and
+  are the entries most likely to need correcting.
 
 ## Cities (`cities.json`)
 
@@ -234,7 +254,22 @@ Balochistan 158, Islamabad 1).
   Batagram, Dera Ismail Khan, Swat, Lasbela, Jaffarabad, Quetta, Dera Bugti,
   Pishin, Kech and Khuzdar) it is set only where an official
   source confirms where the tehsil is now, and is `null` otherwise.
-  /*CURRENT*/
+  - **Confirmed (Punjab, all 25 tehsils of the five parent districts):**
+    Murree and Kotli Sattian are in Murree district; Talagang and Lawa in
+    Talagang; Wazirabad in Wazirabad; Kot Addu and Chowk Sarwar Shaheed in
+    Kot Addu; Taunsa and Koh-e-Suleman in Taunsa; the others stay in
+    Rawalpindi, Chakwal, Gujranwala, Muzaffargarh and Dera Ghazi Khan.
+    Source: the Board of Revenue's list of tehsils by district as on 31
+    December 2023, in the Punjab Bureau of Statistics' Statistical Pocket
+    Book 2025
+    (https://bos.punjab.gov.pk/system/files/Statistical%20Pocket%20Book%202025%20Final.pdf,
+    retrieved 2026-11-16). That list also has tehsils created since the
+    census (Vehova, Alipur Chatha and others), which are not in this data.
+  - **Not confirmed, so `null` (78 tehsils):** the tehsils of Swat, Upper
+    Dir, Batagram, Dera Ismail Khan and South Waziristan (Khyber
+    Pakhtunkhwa) and of Quetta, Dera Bugti, Pishin, Kech, Khuzdar, Lasbela
+    and Jaffarabad (Balochistan). No official list of tehsils by district
+    for today's districts could be read for either province.
 - **Divisions** are the census's 30. Divisions created since (Gujrat in
   Punjab, listed on punjab.gov.pk) are not included, and districts created
   since the census have no division here.
@@ -251,10 +286,10 @@ Balochistan 158, Islamabad 1).
 ## Public holidays (`holidays.json`)
 
 Eid ul Fitr, Eid ul Adha, Ashura and Eid Milad un Nabi dates actually observed
-in 2020–2026; each entry has a `source` URL. For 2024–2026 every source is a
-Cabinet Division notification or an SBP circular (checked 2026-11-16). For
-2020–2023 the dates are the same, but 7 of the 16 sources are still news
-reports of the notification. Later years are estimated from the tabular Hijri calendar
+in 2020–2026; each entry has a `source` URL, and every source is a Cabinet
+Division notification or an SBP circular letter (checked 2026-11-16; the last
+seven news links, for 2020–2023, were replaced that day with the SBP circular
+that states the same dates). Later years are estimated from the tabular Hijri calendar
 and marked `estimated: true`. Fixed-date holidays follow the years they applied
 in (e.g. Iqbal Day restored in 2022, Youm-e-Takbeer from 2024).
 

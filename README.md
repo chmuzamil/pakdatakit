@@ -599,7 +599,7 @@ getTehsilDistrict('Khanpur', 'Sindh'); // "Shikarpur"
 **Census districts.** Every tehsil is recorded under the district it was in at the 2023 census, which had 136 districts. Districts created or split since then (Murree, Talagang, Quetta East and West, and others) are handled like this:
 
 - `getTehsils('Rawalpindi')` still lists Murree, as the census did.
-- `getTehsils('Murree')` lists only tehsils that an official source places in the new district, so it can be empty.
+- `getTehsils('Murree')` lists only the tehsils an official source places in the new district (Kotli Sattian and Murree). Where no official list could be found, as for `Quetta East`, it is empty.
 - `getTehsilDistrict()` and `getDivisionOfDistrict()` answer with census names: `Quetta`, not Quetta East or Quetta West.
 
 Azad Jammu and Kashmir and Gilgit-Baltistan are not in the census tables, so they have no divisions or tehsils here. See [DATA.md](./DATA.md).

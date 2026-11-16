@@ -1106,7 +1106,36 @@ const SPLIT_PARENTS = new Set(Object.values(POST_CENSUS_DISTRICTS));
  * `"<census district>|<tehsil>"` -> current district, each from an official
  * source listed in DATA.md.
  */
-const CONFIRMED_CURRENT_DISTRICT = {/*CONFIRMED*/};
+const CONFIRMED_CURRENT_DISTRICT = {
+  // Punjab: Board of Revenue list of tehsils by district as on 31 December
+  // 2023 (Punjab Bureau of Statistics, Statistical Pocket Book 2025).
+  'Rawalpindi|Gujar Khan': 'Rawalpindi',
+  'Rawalpindi|Kahuta': 'Rawalpindi',
+  'Rawalpindi|Kallar Sayaddan': 'Rawalpindi',
+  'Rawalpindi|Rawalpindi': 'Rawalpindi',
+  'Rawalpindi|Taxila': 'Rawalpindi',
+  'Rawalpindi|Murree': 'Murree',
+  'Rawalpindi|Kotli Sattian': 'Murree',
+  'Chakwal|Chakwal': 'Chakwal',
+  'Chakwal|Choa Saidan Shah': 'Chakwal',
+  'Chakwal|Kallar Kahar': 'Chakwal',
+  'Chakwal|Tala Gang': 'Talagang',
+  'Chakwal|Lawa': 'Talagang',
+  'Gujranwala|Gujranwala City': 'Gujranwala',
+  'Gujranwala|Gujranwala Saddar': 'Gujranwala',
+  'Gujranwala|Kamoke': 'Gujranwala',
+  'Gujranwala|Nowshera Virkan': 'Gujranwala',
+  'Gujranwala|Wazirabad': 'Wazirabad',
+  'Muzaffargarh|Alipur': 'Muzaffargarh',
+  'Muzaffargarh|Jatoi': 'Muzaffargarh',
+  'Muzaffargarh|Muzaffargarh': 'Muzaffargarh',
+  'Muzaffargarh|Kot Addu': 'Kot Addu',
+  'Muzaffargarh|Chowk Sarwar Shaheed': 'Kot Addu',
+  'Dera Ghazi Khan|Dera Ghazi Khan': 'Dera Ghazi Khan',
+  'Dera Ghazi Khan|Kot Chhutta': 'Dera Ghazi Khan',
+  'Dera Ghazi Khan|Taunsa': 'Taunsa',
+  'Dera Ghazi Khan|Koh-e-Suleman': 'Taunsa',
+};
 
 const tehsils = CENSUS_UNITS.map((row) => {
   const censusDistrict = censusDistrictName(row.district, row.province);

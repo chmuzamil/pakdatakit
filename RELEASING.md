@@ -64,17 +64,54 @@ Publish `PakDataKit` first; the two adapter packages depend on the same
 version of it. Add a `## x.y.z` section to `dotnet/CHANGELOG.md` and set
 `<Version>` in `dotnet/Directory.Build.props` as part of the release branch.
 
+## PHP package (`php/`)
+
+`chmuzamil/pakdatakit` uses the same version number as `pakdatakit` on npm,
+set in `php/composer.json` and `PakData::PACKAGE_VERSION`. It is not on
+Packagist yet and has no release workflow: CI (the `php` job) checks the
+generated data and runs the tests on PHP 8.2 and 8.4 without the `intl`
+extension.
+
+- `php/data/*.php` is generated from `data/*.json` and from JavaScript's
+  Unicode tables by `node scripts/generate-php-data.mjs` (CI fails if it is
+  out of date). After a data change, run it and commit `php/data/`.
+- The tests run the shared vectors in `test-vectors/`, like the other ports.
+- Packagist reads `composer.json` from the root of a repository, so the
+  `php/` folder has to be published from its own repository (for example a
+  read-only split of `php/`, tagged `v2.3.0`), submitted once at
+  packagist.org. The copy in this repository stays the source of truth.
+
+## Vue and Angular packages (`vue/`, `angular/`)
+
+`pakdatakit-vue` and `pakdatakit-angular` have their own versions (in
+`vue/package.json` and `angular/package.json`), like `pakdatakit-react`. They
+are not on npm yet and have no release workflows; CI lints, type-checks,
+tests and builds them.
+
+- Both declare `pakdatakit` as a peer dependency, so release them after the
+  `pakdatakit` version they need is on npm.
+- `pakdatakit-vue`: `npm run build` in `vue/`, then publish from `vue/`.
+- `pakdatakit-angular`: `npm run build` in `angular/` writes the Angular
+  package format to `angular/dist`; publish from **`angular/dist`**, not from
+  `angular/`. It is built with Angular 17, the oldest version it supports.
+- The first release of each is published by hand (as for `pakdatakit-react`);
+  add a `release-vue.yml` / `release-angular.yml` workflow and an npm trusted
+  publisher before automating later ones.
+
 ## Release a new version
 
 1. On a branch:
    - update `CHANGELOG.md` with a `## x.y.z` section;
    - set the version in `package.json` (`npm version x.y.z --no-git-tag-version`),
      and in `python/pyproject.toml` and `python/src/pakdatakit/__init__.py`;
-   - set `<Version>` in `dotnet/Directory.Build.props`;
+   - set `<Version>` in `dotnet/Directory.Build.props`, and `version` in
+     `php/composer.json` with `PakData::PACKAGE_VERSION`;
    - if data changed, update `dataVersion` in `src/data-version.ts` and
      `python/src/pakdatakit/data_version.py`, and the date in `DATA.md`;
    - run `npm run build && node scripts/generate-test-vectors.mjs` and commit
-     the updated `test-vectors/` and `python/src/pakdatakit/data/`.
+     the updated `test-vectors/` and `python/src/pakdatakit/data/`; if data
+     changed, also run `node scripts/generate-dart-data.mjs` and
+     `node scripts/generate-php-data.mjs`.
 2. Open a pull request, let CI pass, and merge it into `main`.
 3. Tag the merge commit and push the tags, in the order above:
 

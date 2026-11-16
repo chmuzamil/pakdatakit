@@ -10,3 +10,9 @@ dart/
 flutter/
 # The .NET package is formatted by its own tooling
 dotnet/
+# Generated or third-party files in the newer packages
+php/data/
+php/vendor/
+php/build/
+angular/dist/
+angular/.angular/

@@ -320,8 +320,27 @@ jobs:
         working-directory: vue
 
   angular:
-    name: angular (pakdatakit-angular)
+    name: angular ${{ matrix.angular }}
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # 17 is what angular/package.json develops and builds against; the
+        # others are installed over it. Each needs its own TypeScript and
+        # zone.js. Raise the last row (and the peer range) when a new major
+        # is released.
+        include:
+          - angular: 17
+          - angular: 18
+            typescript: '5.5'
+            zone: '0.14'
+          - angular: 19
+            typescript: '5.8'
+            zone: '0.15'
+          - angular: 22
+            typescript: '6.0'
+            zone: '0.16'
 
     steps:
       - uses: actions/checkout@v7
@@ -340,7 +359,25 @@ jobs:
       - run: npm ci
         working-directory: angular
 
+      - name: Install Angular ${{ matrix.angular }}
+        if: matrix.angular != 17
+        working-directory: angular
+        env:
+          NG: ${{ matrix.angular }}
+          TS: ${{ matrix.typescript }}
+          ZONE: ${{ matrix.zone }}
+        run: >
+          npm install --no-save --no-audit --no-fund --legacy-peer-deps
+          @angular/common@$NG @angular/compiler@$NG @angular/compiler-cli@$NG
+          @angular/core@$NG @angular/forms@$NG @angular/platform-browser@$NG
+          @angular/platform-browser-dynamic@$NG ng-packagr@$NG
+          typescript@$TS zone.js@$ZONE
+
+      - run: npm ls @angular/core typescript
+        working-directory: angular
+
       - run: npm run lint
+        if: matrix.angular == 17
         working-directory: angular
 
       - run: npm run typecheck

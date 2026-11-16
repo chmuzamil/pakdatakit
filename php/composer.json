@@ -1,7 +1,6 @@
 {
   "name": "chmuzamil/pakdatakit",
   "description": "Pakistani data utilities for PHP and Laravel: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates and amounts in words. No dependencies; gives the same results as the pakdatakit npm package.",
-  "version": "2.3.0",
   "type": "library",
   "license": "MIT",
   "keywords": [

@@ -15,7 +15,9 @@ Angular directives, pipes and form validators for Pakistani **CNIC**, **mobile n
 npm install pakdatakit-angular pakdatakit
 ```
 
-Requires Angular 17 or later (`@angular/core` and `@angular/forms`) and `pakdatakit` 2.3 or later. All three are peer dependencies.
+Requires Angular 17 to 22 (`@angular/core` and `@angular/forms`) and `pakdatakit` 2.3 or later. All three are peer dependencies.
+
+CI runs the tests and the build on Angular 17, 18, 19 and 22. The package is built with Angular 17 in partial-compilation mode, so one build works on all of them. Angular 20 and 21 are inside the supported range but are not in the CI matrix.
 
 ## Input directives
 

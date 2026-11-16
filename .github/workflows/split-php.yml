@@ -1,0 +1,67 @@
+name: Split PHP package
+
+# Mirrors php/ to the read-only repository chmuzamil/pakdatakit-php when a tag
+# like php-v2.3.0 is pushed, and tags the mirror v2.3.0. Packagist reads
+# composer.json from the root of a repository, so it follows the mirror; this
+# repository stays the source of truth (see RELEASING.md).
+#
+# Needs a secret named PHP_SPLIT_TOKEN that can push to the mirror. Without it
+# the workflow does nothing.
+
+on:
+  push:
+    tags: ['php-v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: split-php
+  cancel-in-progress: false
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+
+    env:
+      PHP_SPLIT_TOKEN: ${{ secrets.PHP_SPLIT_TOKEN }}
+
+    steps:
+      - name: Check for the token
+        id: token
+        run: |
+          if [ -z "$PHP_SPLIT_TOKEN" ]; then
+            echo "PHP_SPLIT_TOKEN is not set; skipping the split." >> "$GITHUB_STEP_SUMMARY"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.token.outputs.present == 'true'
+
+      # The tag must match the version the package reports.
+      - name: Check the version
+        if: steps.token.outputs.present == 'true'
+        id: version
+        run: |
+          version="${GITHUB_REF_NAME#php-v}"
+          if ! grep -q "PACKAGE_VERSION = '$version'" php/src/PakData.php; then
+            echo "Tag $GITHUB_REF_NAME does not match PakData::PACKAGE_VERSION" >&2
+            exit 1
+          fi
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Push php/ to chmuzamil/pakdatakit-php
+        if: steps.token.outputs.present == 'true'
+        uses: danharrin/monorepo-split-github-action@v2.4.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.PHP_SPLIT_TOKEN }}
+        with:
+          package_directory: php
+          repository_organization: chmuzamil
+          repository_name: pakdatakit-php
+          branch: main
+          tag: ${{ steps.version.outputs.tag }}
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com

@@ -408,6 +408,8 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["getPostalCodes"] = One(Postal.GetCodes),
         ["getPostalAreas"] = One(Postal.GetAreas),
         ["searchPostalCodes"] = One(Postal.Search),
+        ["getPostOffice"] = One(Postal.GetPostOffice),
+        ["searchPostOffices"] = One(Postal.SearchPostOffices),
         ["parseAddress"] = One(Address.Parse),
         ["formatAddress"] = (_, k) => Address.Format(new ParsedAddress
         {

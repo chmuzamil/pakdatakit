@@ -96,6 +96,7 @@ public sealed class FuzzTests
             "Networks.GetNetwork", "Numbers.Analyze", "Numbers.ValidateLandline", "Iban.Validate",
             "Iban.GetBank", "Iban.GetBankInfo", "Tax.AnalyzeNtn", "Tax.ValidateNtn", "Tax.ValidateStrn",
             "Passport.Validate", "VehiclePlate.Parse", "VehiclePlate.Validate", "Postal.GetCity", "Postal.Search",
+            "Postal.GetPostOffice", "Postal.SearchPostOffices",
             "Geo.GetProvince", "Geo.SearchCities", "Geo.GetDivisions", "Geo.GetDivisionOfDistrict", "Geo.GetTehsils",
             "Geo.GetTehsilDistrict", "WhatsApp.CreateLink", "WhatsApp.TryCreateLink", "Text.Normalize",
             "Text.NormalizeRomanUrdu", "Address.Parse", "Input.FormatCnic", "Input.CheckIban", "RaastQr.Parse",

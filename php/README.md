@@ -45,6 +45,7 @@ Passport::validate('AB1234567');              // true
 VehiclePlate::parse('lea 1234')->formatted;   // 'LEA-1234'
 
 Postal::getCity('54000');                     // 'Lahore'
+Postal::getPostOffice('48330')->office;       // 'Dulmial'
 Geo::getProvince('Multan');                   // 'Punjab'
 
 Currency::formatPkr(150000);                  // 'Rs. 150,000'
@@ -78,6 +79,7 @@ package; call `->toArray()` for an array.
 | `validatePassport`                                     | `Passport::validate`                                                       |
 | `parseVehiclePlate`, `validateVehiclePlate`            | `VehiclePlate::parse`, `VehiclePlate::validate`                            |
 | `getCityByPostalCode`, `getPostalCode`, …              | `Postal::getCity`, `Postal::getCode`, `Postal::getCodes`, `Postal::search` |
+| `getPostOffice`, `searchPostOffices`                   | `Postal::getPostOffice`, `Postal::searchPostOffices`                       |
 | `getProvince`, `searchCities`, `searchDistricts`, …    | `Geo::getProvince`, `Geo::searchCities`, `Geo::searchDistricts`, …         |
 | `getDivisions`, `getDivisionOfDistrict`                | `Geo::getDivisions`, `Geo::getDivisionOfDistrict`                          |
 | `getTehsils`, `getTehsilDistrict`                      | `Geo::getTehsils`, `Geo::getTehsilDistrict`                                |

@@ -2,6 +2,18 @@
 
 ## 2.3.0
 
+### Breaking for exhaustive switches
+
+- `BankType` has a new value, `BankType.publicSector` (`'public-sector'`; see
+  Data depth below). Dart 3 checks `switch` statements and expressions over
+  an enum for exhaustiveness, so a `switch` over `BankType` without a default
+  (`_`) case stops compiling until it handles the new value. Nothing else
+  changes at runtime for such code, but National Bank of Pakistan, Sindh Bank,
+  The Bank of Khyber and The Bank of Punjab now report `BankType.publicSector`
+  instead of `BankType.commercial`.
+
+### Added
+
 - `validatePassport()`: format check for Pakistani passport numbers (two
   letters, seven digits). DGIP does not publish the format, so this checks
   the common shape only. Also as `package:pakdatakit/passport.dart`.
@@ -9,7 +21,14 @@
   optional year of a vehicle registration number (1–4 letters, 1–4 digits).
   Provinces use different formats, so this checks the shape they share. Also
   as `package:pakdatakit/vehicle.dart`.
-- Both are checked against the shared test vectors. See DATA.md in the
+- `getPostOffice()` and `searchPostOffices()` (also in
+  `package:pakdatakit/postal.dart`): every delivery post office in Pakistan
+  Post's directory (about 2,560), as `PostOffice` values (`code`, `office`,
+  `town`, `district`, `province`), including offices in towns and villages
+  that `getCityByPostalCode` does not cover. The directory is in its own
+  source file and only these two functions reference it, so release builds
+  that do not call them leave it out.
+- All of these are checked against the shared test vectors. See DATA.md in the
   repository for sources and limits.
 
 Data (November 2026 audit, see AUDIT.md and DATA.md in the repository):
@@ -27,8 +46,14 @@ Data depth:
   (30 divisions, 591 tehsils). Each tehsil is recorded under its census
   district, so districts created since the census may list few or no tehsils
   and have no division.
-- Postal codes now cover the full Pakistan Post directory (about 2,560 post
-  codes, up from 110).
+- Postal codes now hold every office in Pakistan Post's directory that
+  belongs to a listed city: 457 codes, up from 110. `getCityByPostalCode`
+  still returns a listed city or `null`, so a village office's code returns
+  `null` (use `getPostOffice` for those). Compared with 2.2.1 it gives a
+  different answer for eight codes: `47040` is Wah Cantonment (was Taxila),
+  and `15700`, `29120`, `29430`, `70100`, `72220`, `73020` and `73220`, which
+  were given as the main code of a city but belong to a village office
+  nearby, now return `null`.
 - 41 more landline area codes.
 - `BankType.publicSector` (`'public-sector'`) for public sector commercial
   banks; `BankType.commercial` now means private commercial banks.

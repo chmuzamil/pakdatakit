@@ -51,6 +51,7 @@ Passport.Validate("AB1234567");              // true
 VehiclePlate.Parse("lea 1234");              // Series = LEA, Number = 1234, Formatted = LEA-1234
 
 Postal.GetCity("54000");                     // "Lahore"
+Postal.GetPostOffice("48330");               // Office = Dulmial, Town = Dulmial, Province = Punjab
 Geo.GetProvince("Multan");                   // "Punjab"
 
 Currency.FormatPkr(150000);                  // "Rs. 150,000"
@@ -125,6 +126,7 @@ strings to every public method that takes a string and checks this contract.
 | `validatePassport`                                     | `Passport.Validate`                                                     |
 | `parseVehiclePlate`, `validateVehiclePlate`            | `VehiclePlate.Parse`, `VehiclePlate.Validate`                           |
 | `getCityByPostalCode`, `getPostalCode`, …              | `Postal.GetCity`, `Postal.GetCode`, `Postal.GetCodes`, `Postal.Search`  |
+| `getPostOffice`, `searchPostOffices`                   | `Postal.GetPostOffice`, `Postal.SearchPostOffices`                      |
 | `getProvince`, `searchCities`, `searchDistricts`, …    | `Geo.GetProvince`, `Geo.SearchCities`, `Geo.SearchDistricts`, …         |
 | `getDivisions`, `getDivisionOfDistrict`                | `Geo.GetDivisions`, `Geo.GetDivisionOfDistrict`                         |
 | `getTehsils`, `getTehsilDistrict`                      | `Geo.GetTehsils`, `Geo.GetTehsilDistrict`                               |

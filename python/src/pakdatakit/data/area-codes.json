@@ -169,7 +169,7 @@
   },
   {
     "code": "5821",
-    "cities": ["Neelum"]
+    "cities": ["Neelam"]
   },
   {
     "code": "5822",
@@ -185,7 +185,7 @@
   },
   {
     "code": "5825",
-    "cities": ["Sudhnoti"]
+    "cities": ["Sudhnuti"]
   },
   {
     "code": "5826",
@@ -305,7 +305,7 @@
   },
   {
     "code": "835",
-    "cities": ["Dera Bugti"]
+    "cities": ["Dera Bugti", "North Dera Bugti", "South Dera Bugti"]
   },
   {
     "code": "837",
@@ -425,7 +425,11 @@
   },
   {
     "code": "965",
-    "cities": ["South Waziristan"]
+    "cities": [
+      "South Waziristan",
+      "Lower South Waziristan",
+      "Upper South Waziristan"
+    ]
   },
   {
     "code": "966",

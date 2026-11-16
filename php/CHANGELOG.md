@@ -22,6 +22,18 @@ First release of the PHP package, matching version 2.3.0 of the
   `pk_iban`, `pk_ntn`, `pk_strn`, `pk_landline`, `pk_passport` and
   `pk_vehicle_plate` rules, matching rule objects, `CnicCast`, `PhoneCast` and
   `IbanCast` Eloquent casts, and English and Urdu messages.
+- `Postal::getPostOffice()` and `Postal::searchPostOffices()`: every delivery
+  post office in Pakistan Post's directory (about 2,560) as a `PostOffice`
+  (`code`, `office`, `town`, `district`, `province`), including offices in
+  towns and villages. The directory is in its own data file, loaded only when
+  these two methods are called.
+- `Postal::getCity()` and the other `Postal` methods cover only the post
+  offices of the cities the package lists; a village code returns `null`
+  from `getCity()` (use `getPostOffice()`). Compared with npm 2.2.1,
+  `getCity()` gives a different answer for eight codes: `47040` is Wah
+  Cantonment (was Taxila), and `15700`, `29120`, `29430`, `70100`, `72220`,
+  `73020` and `73220`, which were given as the main code of a city but belong
+  to a village office nearby, now return `null`.
 
 Data (November 2026 audit, see AUDIT.md and DATA.md in the repository):
 banks `ZTBL` (Zarai Taraqiati Bank Limited) and `SMFB` (Sindh Microfinance

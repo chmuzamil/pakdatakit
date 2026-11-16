@@ -13,6 +13,11 @@ First release of the .NET packages, matching version 2.3.0 of the
   also used by the Python and Dart ports, so all four give the same results.
 - The datasets are embedded from the repository's `data/` folder at build
   time.
+- `Postal.GetPostOffice(code)` and `Postal.SearchPostOffices(query)`: every
+  delivery post office in Pakistan Post's directory (about 2,560), as a
+  `PostOffice` record (`Code`, `Office`, `Town`, `District`, `Province`),
+  including offices in towns and villages that `Postal.GetCity` does not
+  cover. The directory is parsed on first use only.
 - `PakDataKit.DataAnnotations`: `[Cnic]`, `[PakPhone]`, `[PakIban]`, `[Ntn]`,
   `[Strn]`, `[PakLandline]`, `[PakPassport]` and `[VehiclePlate]`.
 - `PakDataKit.FluentValidation`: `IsCnic()`, `IsPakPhone()`, `IsPakIban()`,
@@ -35,7 +40,18 @@ links for 2024 to 2026 now point to official notifications.
 Division and tehsil lookups from the 2023 census added (`Geo.GetDivisions`,
 `Geo.GetDivisionOfDistrict`, `Geo.GetTehsils`, `Geo.GetTehsilDistrict`): 30
 divisions and 591 tehsils, each tehsil recorded under its census district.
-Postal codes now cover the full Pakistan Post directory (about 2,560 post
-codes). 41 more landline area codes. New bank type `public-sector`
-(`BankType.PublicSector`). SME Bank (`SMES`) is reported as inactive.
+`Postal.GetCity` and the other `Postal` lookups now cover every office in
+Pakistan Post's directory that belongs to a city on pakdatakit's city list
+(457 codes instead of 110) and still return only listed cities; offices in
+other towns and villages are answered by `Postal.GetPostOffice`. Compared
+with npm 2.2.1, `Postal.GetCity` gives a different answer for eight codes:
+`47040` is Wah Cantonment (was Taxila), and `15700`, `29120`, `29430`,
+`70100`, `72220`, `73020` and `73220`, which were given as the main code of
+a city but belong to a village office nearby, now return `null`. 41 more
+landline area codes. New bank type `public-sector`
+(`BankType.PublicSector`): National Bank of Pakistan, Sindh Bank, The Bank
+of Khyber and The Bank of Punjab now report it instead of `Commercial`, and
+a `switch` expression over `BankType` without a discard arm now gets an
+exhaustiveness warning (CS8509) until it handles the new value. SME Bank
+(`SMES`) is reported as inactive.
 `PakData.Version` is now `2026-11-17`.

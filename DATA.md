@@ -121,8 +121,14 @@ plan with the same districts.
   Dir, `965` South Waziristan, `996` Shangla), 7 in Gilgit-Baltistan (`5811`
   Gilgit to `5817` Astore) and 8 in Azad Jammu and Kashmir (`5821` Neelum to
   `5828` Bhimber).
-- Names are the districts the plan gives. `832` is listed there as Bolan,
-  the former name of Kachhi district; both names find it.
+- Names are the districts the plan gives, spelt as in `districts.json` so
+  that `getAreaCode` finds them: the plan writes "Neelum", "Sudonthi",
+  "Bhimer" and "K.Abdullah / Pishin" for Neelam, Sudhnuti, Bhimber and Killa
+  Abdullah and Pishin. `832` is listed there as Bolan, the former name of
+  Kachhi district; both names find it. For the two districts split since
+  2021, the successors are listed with the plan's name: `835` Dera Bugti,
+  North Dera Bugti and South Dera Bugti; `965` South Waziristan, Lower South
+  Waziristan and Upper South Waziristan.
 - PTCL's own list differs for Azad Jammu and Kashmir (Muzaffarabad "58",
   Kotli "574") and has no Mirpur or Gilgit entry. The ITU plan is the newer
   list from PTA, so it is followed.

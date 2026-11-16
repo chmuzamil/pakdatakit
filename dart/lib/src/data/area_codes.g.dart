@@ -175,7 +175,7 @@ const List<Object?> areaCodesJson = <Object?>[
   },
   <String, Object?>{
     'code': '5821',
-    'cities': <Object?>['Neelum'],
+    'cities': <Object?>['Neelam'],
   },
   <String, Object?>{
     'code': '5822',
@@ -191,7 +191,7 @@ const List<Object?> areaCodesJson = <Object?>[
   },
   <String, Object?>{
     'code': '5825',
-    'cities': <Object?>['Sudhnoti'],
+    'cities': <Object?>['Sudhnuti'],
   },
   <String, Object?>{
     'code': '5826',
@@ -323,7 +323,11 @@ const List<Object?> areaCodesJson = <Object?>[
   },
   <String, Object?>{
     'code': '835',
-    'cities': <Object?>['Dera Bugti'],
+    'cities': <Object?>[
+      'Dera Bugti',
+      'North Dera Bugti',
+      'South Dera Bugti',
+    ],
   },
   <String, Object?>{
     'code': '837',
@@ -455,7 +459,11 @@ const List<Object?> areaCodesJson = <Object?>[
   },
   <String, Object?>{
     'code': '965',
-    'cities': <Object?>['South Waziristan'],
+    'cities': <Object?>[
+      'South Waziristan',
+      'Lower South Waziristan',
+      'Upper South Waziristan',
+    ],
   },
   <String, Object?>{
     'code': '966',

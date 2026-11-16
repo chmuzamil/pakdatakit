@@ -281,6 +281,8 @@ final Map<String, Call> functions = {
   'getPostalCodes': one(getPostalCodes),
   'getPostalAreas': one(getPostalAreas),
   'searchPostalCodes': one(searchPostalCodes),
+  'getPostOffice': one(getPostOffice),
+  'searchPostOffices': one(searchPostOffices),
   'parseAddress': one(parseAddress),
   'formatAddress': (a, k) => formatAddress(
         raw: optStr(k['raw']),

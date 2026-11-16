@@ -41,6 +41,10 @@ pdk.get_tehsils("Rawalpindi")                 # ['Gujar Khan', 'Kahuta', ..., 'M
 pdk.get_tehsil_district("Murree")             # 'Rawalpindi'
 pdk.parse_address("House 12, Street 5, Model Town Lahore 54000")
 
+pdk.get_city_by_postal_code("54660")          # 'Lahore'
+pdk.get_post_office("48330")
+# PostOffice(code='48330', office='Dulmial', town='Dulmial', district=None, province='Punjab')
+
 pdk.format_pkr(150000)                        # 'Rs. 150,000'
 pdk.format_lakh(2500000)                      # '25 Lakh'
 pdk.amount_in_words(125000, cheque=True)      # 'Rupees One Lakh Twenty-Five Thousand Only'
@@ -85,6 +89,26 @@ recorded under the district it was in at the census, so `get_tehsils` and
 and a tehsil of `Quetta` is reported under `Quetta`). Districts created after
 the census have no division and may have no tehsils. Azad Jammu and Kashmir
 and Gilgit-Baltistan are not covered.
+
+Postal codes:
+
+| Function                        | Returns                                                                                                  |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `get_city_by_postal_code(code)` | City of a post code, or `None` (only cities on pakdatakit's city list)                                   |
+| `get_postal_code(city)`         | Primary (GPO) post code of a city, or `None`                                                             |
+| `get_postal_codes(city)`        | All post codes of a city, sorted                                                                         |
+| `get_postal_areas(city)`        | Post office names of a city, sorted                                                                      |
+| `search_postal_codes(query)`    | City post codes matching a city, office name or code prefix, sorted                                      |
+| `get_post_office(code)`         | `PostOffice` for any delivery post office, or `None`                                                     |
+| `search_post_offices(query)`    | `PostOffice`s whose office name or town contains the query, or whose code starts with it, sorted by code |
+
+`get_city_by_postal_code` only answers for post offices in a city on
+pakdatakit's city list (`54660` is Lahore); the code of an office in another
+town or village returns `None`. `get_post_office` and `search_post_offices`
+cover every delivery office in Pakistan Post's directory (about 2,560),
+including towns and villages, as `PostOffice(code, office, town, district,
+province)`. `district` is set only when the town is the headquarters a
+district is named after.
 
 `BankInfo.type` is one of `commercial`, `public-sector`, `islamic`,
 `microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.

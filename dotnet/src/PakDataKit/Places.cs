@@ -4,6 +4,21 @@ using PakDataKit.Internal;
 
 namespace PakDataKit;
 
+/// <summary>A delivery post office from Pakistan Post's post code directory.</summary>
+/// <param name="Code">5-digit post code, e.g. <c>48330</c>.</param>
+/// <param name="Office">Office name as the directory gives it, in title case, e.g. <c>Dulmial</c>.</param>
+/// <param name="Town">
+/// The city the office belongs to when that is known (<c>Lahore</c> for an
+/// office in Lahore); otherwise the office's own name, which for most offices
+/// is its town or village.
+/// </param>
+/// <param name="District">
+/// The district, when the town is the headquarters a district is named after;
+/// otherwise <c>null</c>. The directory has no district column.
+/// </param>
+/// <param name="Province">Province or territory.</param>
+public sealed record PostOffice(string Code, string Office, string Town, string? District, string Province);
+
 /// <summary>Pakistani postal code lookups.</summary>
 public static class Postal
 {
@@ -35,6 +50,55 @@ public static class Postal
         postalCode ??= "";
         var code = WsRun.Replace(Js.Trim(postalCode), "");
         return code.Length == 0 ? null : ByCode.Value.GetValueOrDefault(code);
+    }
+
+    private static readonly Lazy<Dictionary<string, PostOffice>> OfficeByCode = new(() =>
+    {
+        var map = new Dictionary<string, PostOffice>(StringComparer.Ordinal);
+        foreach (var office in Data.PostOffices) map[office.Code] = office;
+        return map;
+    });
+
+    /// <summary>
+    /// Returns the delivery post office for a post code, from Pakistan Post's
+    /// directory of about 2,560 offices.
+    /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="GetCity"/>, which only answers for codes in the cities
+    /// pakdatakit lists, this knows every delivery office, including those in
+    /// towns and villages.
+    /// <code>
+    /// Postal.GetPostOffice("48330");
+    /// // PostOffice { Code = 48330, Office = Dulmial, Town = Dulmial, District = , Province = Punjab }
+    /// </code>
+    /// </remarks>
+    /// <param name="code">Post code; whitespace is ignored.</param>
+    /// <returns>The post office, or <c>null</c> if the code is not in the directory.</returns>
+    public static PostOffice? GetPostOffice(string? code)
+    {
+        code ??= "";
+        var key = WsRun.Replace(Js.Trim(code), "");
+        return key.Length == 0 ? null : OfficeByCode.Value.GetValueOrDefault(key);
+    }
+
+    /// <summary>Searches Pakistan Post's directory by office name, town or post code.</summary>
+    /// <remarks>
+    /// Matching is case-insensitive: an office matches when its name or town
+    /// contains the query, or its code starts with it.
+    /// </remarks>
+    /// <param name="query">Partial office name, town or post code.</param>
+    /// <returns>Matching post offices, sorted by post code; empty if none match.</returns>
+    public static IReadOnlyList<PostOffice> SearchPostOffices(string? query)
+    {
+        query ??= "";
+        var key = Normalize.Key(query);
+        if (key.Length == 0) return [];
+        var prefix = Js.Trim(query);
+        return Data.PostOffices
+            .Where(o => Normalize.Key(o.Office).Contains(key, StringComparison.Ordinal)
+                || Normalize.Key(o.Town).Contains(key, StringComparison.Ordinal)
+                || o.Code.StartsWith(prefix, StringComparison.Ordinal))
+            .ToArray();
     }
 
     /// <summary>Returns the primary (GPO) postal code for a city.</summary>

@@ -598,9 +598,12 @@ area code and district that `analyzeNumber` returns. The number length for
 the four-digit `58xx` codes is libphonenumber's (ten digits in all); it was
 not confirmed from the ITU plan.
 
-**P3.** See DATA.md for how each office is given a city. No lookup that
-worked before gives a different answer. The 740 non-delivery offices of Part
-II are not imported.
+**P3.** All 2,560 offices are in `post-offices.json`, for the new
+`getPostOffice` and `searchPostOffices`. The 457 that belong to a listed city
+are also in `postal-codes.json`, so `getCityByPostalCode` still returns only
+cities (or `null`). See DATA.md for how each office is given a city. No
+lookup that worked before gives a different answer. The 740 non-delivery
+offices of Part II are not imported.
 
 **P4.** Searched: SBP's flood relief (2022) and Türkiye–Syria relief (2023)
 IBAN lists, the dam fund list, and each institution's own website. No printed
@@ -661,6 +664,25 @@ Limited (PTML), operating as Ufone 5G"
 corrects section 4, which called it not verified. `034x` is still labelled
 Telenor: the dataset records the operator a prefix was allocated to, and no
 new brand has been announced officially.
+
+### Spot-check, 17 November 2026
+
+Random samples (seed 20261117) compared with the downloaded official files.
+The files were read with a different extractor (MuPDF) from the one used to
+build the data, and the post codes against Pakistan Post's web table where
+an office is in it.
+
+| Sample                 | Checked | Result                                                                                                                                 |
+| ---------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Post offices           | 50      | 50 match (code, office name and province)                                                                                              |
+| Tehsils                | 20      | 20 match (name, census district, type). One looked wrong only because the census prints "KOLAI PALAS KOHISTAN / DISTRICT" on two lines |
+| Area codes added in 3b | 41      | All 41 codes and districts match. Four names differed from our own district names and were fixed (below)                               |
+
+Area-code names fixed, so that `getAreaCode` finds them by the names
+`districts.json` uses: `5821` Neelum → Neelam, `5825` Sudhnoti → Sudhnuti,
+`835` Dera Bugti now also lists North and South Dera Bugti, and `965` South
+Waziristan also lists Lower and Upper South Waziristan. The ITU plan's own
+spellings ("Sudonthi", "Bhimer", "K.Abdullah") are recorded in DATA.md.
 
 ### Still open
 

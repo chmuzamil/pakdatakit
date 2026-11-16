@@ -57,6 +57,10 @@ internal static class Data
             Str(e, "city")!, Str(e, "postalCode")!, Str(e, "area"),
             e.TryGetProperty("primary", out var p) && p.ValueKind == JsonValueKind.True)));
 
+    private static readonly Lazy<IReadOnlyList<PostOffice>> PostOfficesLazy = new(() =>
+        Array("post-offices.json", e => new PostOffice(
+            Str(e, "code")!, Str(e, "office")!, Str(e, "town")!, Str(e, "district"), Str(e, "province")!)));
+
     private static readonly Lazy<IReadOnlyDictionary<string, IReadOnlyDictionary<string, ObservedHoliday>>>
         HolidaysLazy = new(() =>
         {
@@ -95,6 +99,8 @@ internal static class Data
     internal static IReadOnlyList<TehsilEntry> Tehsils => TehsilsLazy.Value;
 
     internal static IReadOnlyList<PostalEntry> Postal => PostalLazy.Value;
+
+    internal static IReadOnlyList<PostOffice> PostOffices => PostOfficesLazy.Value;
 
     internal static IReadOnlyDictionary<string, IReadOnlyDictionary<string, ObservedHoliday>> Holidays =>
         HolidaysLazy.Value;

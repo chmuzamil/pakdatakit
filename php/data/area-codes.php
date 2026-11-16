@@ -174,7 +174,7 @@ return [
     ],
     [
         'code' => '5821',
-        'cities' => ['Neelum'],
+        'cities' => ['Neelam'],
     ],
     [
         'code' => '5822',
@@ -190,7 +190,7 @@ return [
     ],
     [
         'code' => '5825',
-        'cities' => ['Sudhnoti'],
+        'cities' => ['Sudhnuti'],
     ],
     [
         'code' => '5826',
@@ -310,7 +310,7 @@ return [
     ],
     [
         'code' => '835',
-        'cities' => ['Dera Bugti'],
+        'cities' => ['Dera Bugti', 'North Dera Bugti', 'South Dera Bugti'],
     ],
     [
         'code' => '837',
@@ -430,7 +430,7 @@ return [
     ],
     [
         'code' => '965',
-        'cities' => ['South Waziristan'],
+        'cities' => ['South Waziristan', 'Lower South Waziristan', 'Upper South Waziristan'],
     ],
     [
         'code' => '966',

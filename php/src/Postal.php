@@ -21,6 +21,12 @@ final class Postal
     /** @var list<array{key: string, areaKey: string, postalCode: string, area: ?string}>|null */
     private static ?array $entries = null;
 
+    /** @var list<array{office: PostOffice, officeKey: string, townKey: string}>|null */
+    private static ?array $offices = null;
+
+    /** @var array<string, PostOffice> */
+    private static array $officeByCode = [];
+
     /** Returns the city for a postal code (whitespace is ignored), or null. */
     public static function getCity(?string $postalCode): ?string
     {
@@ -119,6 +125,72 @@ final class Postal
             }
         }
         return Js::localeSorted(array_map('strval', array_keys($matches)));
+    }
+
+    /**
+     * Returns the delivery post office for a post code (whitespace is
+     * ignored), from Pakistan Post's directory of about 2,560 offices, or
+     * null. Unlike getCity(), this knows offices in towns and villages too.
+     */
+    public static function getPostOffice(?string $code): ?PostOffice
+    {
+        $key = Js::replace('/[' . Js::WS . ']+/u', '', Js::trim($code ?? ''));
+        if ($key === '') {
+            return null;
+        }
+        self::offices();
+        return self::$officeByCode[$key] ?? null;
+    }
+
+    /**
+     * Searches Pakistan Post's directory: an office matches when its name or
+     * town contains the query (case-insensitive), or its code starts with it.
+     *
+     * @return list<PostOffice> Matching offices, sorted by post code.
+     */
+    public static function searchPostOffices(?string $query): array
+    {
+        $key = Js::normalizeKey($query ?? '');
+        if ($key === '') {
+            return [];
+        }
+        $prefix = Js::trim($query ?? '');
+        $matches = [];
+        foreach (self::offices() as $office) {
+            if (
+                str_contains($office['officeKey'], $key)
+                || str_contains($office['townKey'], $key)
+                || str_starts_with($office['office']->code, $prefix)
+            ) {
+                $matches[] = $office['office'];
+            }
+        }
+        return $matches;
+    }
+
+    /** @return list<array{office: PostOffice, officeKey: string, townKey: string}> */
+    private static function offices(): array
+    {
+        if (self::$offices === null) {
+            self::$offices = [];
+            self::$officeByCode = [];
+            foreach (Data::load('post-offices') as $entry) {
+                $office = new PostOffice(
+                    code: $entry['code'],
+                    office: $entry['office'],
+                    town: $entry['town'],
+                    district: $entry['district'] ?? null,
+                    province: $entry['province'],
+                );
+                self::$officeByCode[$office->code] = $office;
+                self::$offices[] = [
+                    'office' => $office,
+                    'officeKey' => Js::normalizeKey($entry['office']),
+                    'townKey' => Js::normalizeKey($entry['town']),
+                ];
+            }
+        }
+        return self::$offices;
     }
 
     /** @return list<array{key: string, areaKey: string, postalCode: string, area: ?string}> */

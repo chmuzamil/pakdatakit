@@ -386,6 +386,8 @@ final class VectorTest extends TestCase
             'getPostalCodes' => $one(Postal::getCodes(...)),
             'getPostalAreas' => $one(Postal::getAreas(...)),
             'searchPostalCodes' => $one(Postal::search(...)),
+            'getPostOffice' => $one(Postal::getPostOffice(...)),
+            'searchPostOffices' => $one(Postal::searchPostOffices(...)),
             'parseAddress' => $one(Address::parse(...)),
             'formatAddress' => static fn (array $a, array $k): mixed => Address::format($k),
             'normalizeText' => $one(Text::normalize(...)),

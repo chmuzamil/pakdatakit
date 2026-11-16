@@ -53,10 +53,13 @@ from .numbers import (
 from .passport import validate_passport
 from .phone import PhoneAnalysis, analyze_phone, format_phone, validate_phone
 from .postal import (
+    PostOffice,
     get_city_by_postal_code,
+    get_post_office,
     get_postal_areas,
     get_postal_code,
     get_postal_codes,
+    search_post_offices,
     search_postal_codes,
 )
 from .raast import (
@@ -104,6 +107,9 @@ __all__ = [
     "get_postal_codes",
     "get_postal_areas",
     "search_postal_codes",
+    "PostOffice",
+    "get_post_office",
+    "search_post_offices",
     # geo
     "get_province",
     "search_cities",

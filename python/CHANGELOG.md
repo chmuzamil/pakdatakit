@@ -25,8 +25,20 @@ Data depth:
   `get_tehsil_district()`: division and tehsil lookups from the 2023 census
   (30 divisions, 591 tehsils). Each tehsil is recorded under its census
   district.
-- Postal codes now cover the full Pakistan Post directory (about 2,560 post
-  codes).
+- `get_post_office()` and `search_post_offices()`: every delivery post office
+  in Pakistan Post's directory (about 2,560), as `PostOffice(code, office,
+town, district, province)`, including offices in towns and villages.
+- `get_city_by_postal_code()` still returns a city or `None`, and only for
+  post offices in a city on pakdatakit's city list: 457 codes instead of 110.
+  The code of an office in another town or village returns `None`; use
+  `get_post_office()` for those. `get_postal_code()`, `get_postal_codes()`,
+  `get_postal_areas()` and `search_postal_codes()` return more for cities
+  with several offices.
+- Compared with 2.2.1, `get_city_by_postal_code()` gives a different answer
+  for eight codes: `47040` is Wah Cantonment (was Taxila), and `15700`,
+  `29120`, `29430`, `70100`, `72220`, `73020` and `73220`, which were given
+  as the main code of a city but belong to a village office nearby, now
+  return `None`.
 - 41 more landline area codes.
 - New bank type `public-sector`. SME Bank (`SMES`) is reported as inactive.
 

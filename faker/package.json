@@ -62,7 +62,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "pakdatakit": "^2.2.0"
+    "pakdatakit": "^2.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

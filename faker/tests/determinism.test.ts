@@ -60,7 +60,7 @@ describe('determinism', () => {
           "uan": null,
         },
         "cnic": "68707-6932604-0",
-        "iban": "PK98MPBL5165216300839683",
+        "iban": "PK44MEZN5165216300839683",
         "name": "Rehana Tanoli",
         "person": {
           "address": "House # 383, Street # 3, Civil Lines, Lakki Marwat 28420",

@@ -99,9 +99,11 @@ describe('frozen datasets', () => {
   });
 
   it('every frozen entry is still in the live data', () => {
-    const liveBank = new Map(liveBanks.map((bank) => [bank.code, bank]));
+    // Names may be updated in the live data (a rename, "in liquidation");
+    // the codes must still be there so that generated IBANs stay valid.
+    const liveBankCodes = new Set(liveBanks.map((bank) => bank.code));
     for (const bank of BANKS) {
-      expect(liveBank.get(bank.code)?.name, bank.code).toBe(bank.name);
+      expect(liveBankCodes.has(bank.code), bank.code).toBe(true);
     }
 
     const liveCity = new Map(liveCities.map((c) => [c.city, c.province]));

@@ -34,6 +34,7 @@ export type Network = 'Jazz' | 'Zong' | 'Telenor' | 'Ufone' | 'SCO';
 /** Kind of institution, as in pakdatakit's `BankType`. */
 export type BankType =
   | 'commercial'
+  | 'public-sector'
   | 'islamic'
   | 'microfinance'
   | 'digital'
@@ -60,6 +61,8 @@ export interface BankEntry {
   type: BankType;
   mergedInto?: string;
   aliasOf?: string;
+  /** `false` for a bank that has closed without a successor. */
+  active?: boolean;
 }
 
 export interface AreaCodeEntry {

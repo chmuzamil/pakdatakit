@@ -6,12 +6,15 @@
   updates.** Until now the generators picked banks, cities, postal codes, area
   codes and mobile prefixes from pakdatakit's live datasets, so adding a bank
   there changed what a seed produced. The faker now has its own frozen copy of
-  those lists (`src/snapshot/`), taken at pakdatakit's data version
-  2026-11-16. That copy has two more banks (Zarai Taraqiati Bank and Sindh
-  Microfinance Bank), two updated bank names and eight corrected postal codes
-  compared with 0.1.2, which is why values for a given seed differ from 0.1.2.
-  From this release on, the same seed gives the same output whatever
-  pakdatakit version is installed.
+  those lists (`src/snapshot/`), taken from pakdatakit 2.3.0. Compared with
+  0.1.2 that copy has two more banks (Zarai Taraqiati Bank and Sindh
+  Microfinance Bank), leaves out SME Bank (closed in 2025), and has two
+  updated bank names and eight corrected postal codes, which is why values
+  for a given seed differ from 0.1.2. From this release on, the same seed
+  gives the same output whatever pakdatakit version is installed.
+- `iban({ type })` accepts `public-sector`, the type pakdatakit 2.3.0 gives
+  National Bank of Pakistan, Sindh Bank, The Bank of Khyber and The Bank of
+  Punjab. They are no longer returned for `type: 'commercial'`.
 - Generated values still pass pakdatakit's validators; a test checks every
   entry of the frozen lists against the live data.
 

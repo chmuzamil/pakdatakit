@@ -373,7 +373,7 @@ jobs:
           @angular/platform-browser-dynamic@$NG ng-packagr@$NG
           typescript@$TS zone.js@$ZONE
 
-      - run: npm ls @angular/core typescript
+      - run: node -p "'Angular ' + require('@angular/core/package.json').version + ', TypeScript ' + require('typescript/package.json').version"
         working-directory: angular
 
       - run: npm run lint

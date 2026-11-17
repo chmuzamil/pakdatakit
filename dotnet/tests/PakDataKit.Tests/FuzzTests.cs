@@ -102,7 +102,7 @@ public sealed class FuzzTests
             "Text.NormalizeRomanUrdu", "Address.Parse", "Input.FormatCnic", "Input.CheckIban", "RaastQr.Parse",
             "RaastQr.Validate", "Holidays.IsHoliday", "Holidays.GetHolidaysOn", "Holidays.TryGetHolidaysOn",
             "Quality.ScoreAddress", "Quality.PhoneRiskSignals", "Bills.ParseElectricityRef",
-            "Bills.ValidateElectricityRef",
+            "Bills.ValidateElectricityRef", "Courier.MapStatus", "Courier.NormalizeCity",
         })
         {
             Assert.Contains(expected, names);
@@ -269,6 +269,34 @@ public sealed class FuzzTests
         Assert.True(Bills.ValidateGasConsumerNumber("123-4567-8901", GasCompany.Sngpl));
         Assert.True(Bills.ValidateGasConsumerNumber("۱۲۳۴۵۶۷۸۹۰", GasCompany.Ssgc));
         Assert.False(Bills.ValidateGasConsumerNumber("12345678901", (GasCompany)99));
+    }
+
+    [Fact]
+    public void CourierHandlesHostileInput()
+    {
+        // The reflection test passes hostile couriers; this one passes hostile statuses.
+        var random = new Random(StableSeed("Courier.MapStatus"));
+        foreach (var courier in new[] { "PostEx", "Leopards", "TCS", null, "constructor", "__proto__" })
+        {
+            foreach (var input in Hostile) Assert.Null(Courier.MapStatus(courier, input));
+            for (var i = 0; i < 400; i++) Courier.MapStatus(courier, RandomString(random));
+            foreach (var n in new[]
+            {
+                double.NaN, double.PositiveInfinity, double.NegativeInfinity, -1, -0.0, 1.5, 1e21, 1e300,
+                double.MaxValue, double.Epsilon, 9007199254740993d,
+            })
+            {
+                Courier.MapStatus(courier, n);
+            }
+        }
+        Assert.Equal(CourierStatus.Delivered, Courier.MapStatus("PostEx", 5.0));
+        Assert.Null(Courier.MapStatus("PostEx", 5.5));
+        Assert.Null(Courier.MapStatus("PostEx", "hasOwnProperty"));
+        Assert.Equal(CourierStatus.Attempted, Courier.MapStatus("postex", "Attempt Made: no answer"));
+        Assert.Null(Courier.MapStatus("PostEx", "attempt mades"));
+        Assert.Null(Courier.NormalizeCity("constructor"));
+        Assert.Null(Courier.NormalizeCity(" city"));
+        Assert.Equal("Karachi", Courier.NormalizeCity("Karachi City"));
     }
 
     private static object? Invoke(string name, MethodInfo method, string? input)

@@ -184,6 +184,37 @@ pdk.validate_electricity_ref("12345")                 # False
 pdk.validate_gas_consumer_number("12345678901", "SNGPL")  # True
 ```
 
+Couriers:
+
+| Function                            | Returns                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| `map_courier_status(courier, raw)`  | A courier's status as one `CourierStatus`, or `None`                      |
+| `normalize_city_for_courier(input)` | The city-list name for how a customer or courier writes a city, or `None` |
+
+`CourierStatus` is one of `pending`, `booked`, `picked-up`, `in-transit`,
+`out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`,
+`returned` or `cancelled`. `courier` is `TCS`, `Leopards`, `PostEx`, `M&P`,
+`Trax` or `BlueEx` (any case; `LCS`, `MnP` and `Blue Ex` are accepted), and
+`raw` is the courier's status name, code or a non-negative integer ID (`5`,
+`5.0` and `"5"` are the same). Only statuses a courier documents publicly are
+mapped: every order status and tracking code in PostEx's merchant API guide
+(v4.1.9), and Leopards' "Returned to Shipper". TCS, M&P, Trax and BlueEx
+publish no status list, so they return `None`, as does any unknown status.
+`normalize_city_for_courier` accepts the name in any case, short forms
+(`LHR`, `Khi`, `Pindi`, `Isb`, `FSD`), the old name Lyallpur, a trailing
+"city" and the main cities in Urdu script. No API is called, and neither
+raises.
+
+```python
+pdk.map_courier_status("PostEx", "Out For Delivery")   # 'out-for-delivery'
+pdk.map_courier_status("PostEx", 5)                    # 'delivered'
+pdk.map_courier_status("PostEx", "Attempt Made: Customer not available")  # 'attempted'
+pdk.map_courier_status("TCS", "Delivered")             # None
+pdk.normalize_city_for_courier("LHR")                  # 'Lahore'
+pdk.normalize_city_for_courier("Karachi City")         # 'Karachi'
+pdk.normalize_city_for_courier("Atlantis")             # None
+```
+
 `BankInfo.type` is one of `commercial`, `public-sector`, `islamic`,
 `microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
 `BankInfo.active` is `False` for a bank that merged into another or has closed.

@@ -91,6 +91,12 @@ const CASES = [
     allowed: [],
   },
   {
+    name: "mapCourierStatus from 'pakdatakit/courier'",
+    code: "import { mapCourierStatus } from 'pakdatakit/courier'; console.log(mapCourierStatus('PostEx', 5));",
+    limit: 4 * 1024,
+    allowed: [],
+  },
+  {
     // Every rule of the adapter; zod itself is the app's own dependency.
     name: "pk from 'pakdatakit/zod' (zod external)",
     code: "import { pk } from 'pakdatakit/zod'; console.log(pk.cnic());",

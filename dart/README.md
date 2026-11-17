@@ -155,6 +155,18 @@ In Dart:
   `GasCompany.sngpl.value`; any other company gives `false`. Spaces, dashes,
   dots and Urdu digits are accepted. Only the format is checked. They never
   throw.
+- **Couriers:** `mapCourierStatus(courier, raw)` maps a courier's own status
+  (name, numeric ID or code) to a `CourierStatus` (`pending`, `booked`,
+  `pickedUp`, `inTransit`, `outForDelivery`, `attempted`, `underReview`,
+  `delivered`, `returning`, `returned`, `cancelled`; `.value` holds the npm
+  string, e.g. `'out-for-delivery'`) or `null`. `courier` is a string such as
+  `'PostEx'`, `'LCS'` or `Courier.mAndP.value` (any case); `raw` is a
+  `String` or a non-negative whole number (`5` and `5.0` both match `'5'`).
+  Only documented statuses are mapped (PostEx's merchant API guide and
+  Leopards' "Returned to Shipper"), so TCS, M&P, Trax and BlueEx give `null`.
+  `normalizeCityForCourier(input)` maps `'LHR'`, `'Khi'`, `'Pindi'`,
+  `'Lyallpur'`, `'Karachi City'` or `'لاہور'` to the city list's name, or
+  `null`. No API is called, and they never throw.
 - **An `ArgumentError` where the npm package throws a `RangeError`**, e.g.
   `formatPKR(double.nan)` or a Raast QR with an amount but no expiry.
 - **Dates are local `DateTime`s**; only the calendar date (or, for Raast

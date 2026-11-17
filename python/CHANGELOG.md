@@ -22,6 +22,12 @@
 formatted, urban_rural, disco)`. `validate_gas_consumer_number()` checks an
   SNGPL (11 digits) or SSGC (10 digits) consumer number. Formats only; no
   check digit is published.
+- `map_courier_status()`: maps a courier's own status name, code or numeric
+  ID to one `CourierStatus` vocabulary (`pending` ... `cancelled`), for the
+  statuses couriers document publicly (PostEx's merchant API guide and
+  Leopards' "Returned to Shipper"). `normalize_city_for_courier()`: maps short
+  forms (`LHR`, `Khi`, `Pindi`), the old name Lyallpur, a trailing "city" and
+  Urdu-script names to the city list.
 
 ### Changed
 

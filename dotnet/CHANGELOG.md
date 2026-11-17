@@ -32,6 +32,15 @@
   `Bills.ValidateGasConsumerNumber(input, company)` checks an 11-digit
   `GasCompany.Sngpl` or 10-digit `GasCompany.Ssgc` consumer number. Format
   checks only; separators and Urdu digits are accepted.
+- `Courier.MapStatus(courier, raw)`: maps a courier's own status text, or a
+  numeric status ID through the `double` overload, to a `CourierStatus`
+  (`Pending`, `Booked`, `PickedUp`, `InTransit`, `OutForDelivery`,
+  `Attempted`, `UnderReview`, `Delivered`, `Returning`, `Returned`,
+  `Cancelled`). Only publicly documented statuses are mapped (PostEx's
+  merchant API guide and Leopards' "Returned to Shipper"); anything else
+  returns `null`. `Courier.NormalizeCity(input)` maps short forms (`LHR`,
+  `Khi`, `Pindi`), the old name Lyallpur, a trailing "city" and Urdu script to
+  a city in the city list. Neither throws.
 
 ### Changed
 

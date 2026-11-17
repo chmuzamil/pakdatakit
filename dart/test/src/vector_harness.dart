@@ -415,6 +415,9 @@ final Map<String, Call> functions = {
   'validateElectricityRef': one(validateElectricityRef),
   'validateGasConsumerNumber': (a, k) =>
       validateGasConsumerNumber(str(a[0]), str(a[1])),
+  // `raw` is a String or a number, as in TypeScript.
+  'mapCourierStatus': (a, k) => mapCourierStatus(str(a[0]), a[1]),
+  'normalizeCityForCourier': one(normalizeCityForCourier),
 };
 
 const Map<String, Object> constants = {'dataVersion': dataVersion};

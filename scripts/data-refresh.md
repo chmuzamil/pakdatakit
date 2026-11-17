@@ -163,6 +163,10 @@ No datasets, but each follows an official document that can change.
       still ask for the same lengths? Has any of them published which digits
       belong to which DISCO, or a check digit? Update `src/bills.ts` and DATA.md.
 
+- [ ] Couriers: has PostEx published a newer merchant API guide than v4.1.9, or
+      have TCS, Leopards, M&P, Trax or BlueEx published their statuses or
+      tracking number formats? Update `src/courier.ts` and DATA.md.
+
 ## Also
 
 - [ ] Raast QR: any change in the QR format that banking apps generate

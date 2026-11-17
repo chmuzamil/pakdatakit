@@ -906,6 +906,42 @@ Sources are in [DATA.md](DATA.md#electricity-and-gas-bill-numbers).
 
 ---
 
+## Couriers
+
+`import { mapCourierStatus, normalizeCityForCourier } from 'pakdatakit/courier'`
+
+Helpers for orders shipped with Pakistani couriers. There are no API clients: nothing is sent anywhere.
+
+### mapCourierStatus()
+
+Maps a courier's own status (name, numeric ID or code) to one vocabulary: `pending`, `booked`, `picked-up`, `in-transit`, `out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`, `returned` or `cancelled`.
+
+```ts
+mapCourierStatus('PostEx', 'Out For Delivery'); // "out-for-delivery"
+mapCourierStatus('PostEx', 5); // "delivered"
+mapCourierStatus('PostEx', 'Attempt Made: Customer not available'); // "attempted"
+mapCourierStatus('Leopards', 'Returned to Shipper'); // "returned"
+mapCourierStatus('TCS', 'Delivered'); // null
+```
+
+Only statuses a courier documents publicly are mapped: every order status and tracking code in PostEx's merchant API guide (v4.1.9), and Leopards' "Returned to Shipper". TCS, M&P, Trax and BlueEx publish no status list outside their merchant portals, so they return `null` for now, as does any status not in the list. No courier documents its tracking number format, so there is no tracking-number detection. Details are in [DATA.md](DATA.md#couriers).
+
+### normalizeCityForCourier()
+
+Maps how a customer or a courier writes a city to its name in the city list, so orders can be matched against a courier's service list.
+
+```ts
+normalizeCityForCourier('LHR'); // "Lahore"
+normalizeCityForCourier('Khi'); // "Karachi"
+normalizeCityForCourier('Pindi'); // "Rawalpindi"
+normalizeCityForCourier('lyallpur'); // "Faisalabad"
+normalizeCityForCourier('Karachi City'); // "Karachi"
+normalizeCityForCourier('لاہور'); // "Lahore"
+normalizeCityForCourier('Atlantis'); // null
+```
+
+---
+
 ## Passports & Vehicle Plates
 
 ### validatePassport()

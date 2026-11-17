@@ -25,6 +25,12 @@
   `disco`). `validateGasConsumerNumber()` checks an SNGPL (11-digit) or SSGC
   (10-digit) consumer number (`GasCompany`). Format checks only; no utility
   publishes a check digit. Also as `package:pakdatakit/bills.dart`.
+- `mapCourierStatus()`: maps a courier's own status (name, numeric ID or
+  code) to one vocabulary, `CourierStatus`, from PostEx's merchant API guide
+  and Leopards' "Returned to Shipper" (`Courier` names the couriers).
+  `normalizeCityForCourier()` maps short forms (`LHR`, `Khi`, `Pindi`), the
+  old name Lyallpur, a trailing "city" and Urdu script to the city list. No
+  API is called. Also as `package:pakdatakit/courier.dart`.
 
 ### Changed
 

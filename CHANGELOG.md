@@ -23,6 +23,12 @@
   and SSGC consumer numbers, in the formats the utilities' bill pages ask for.
   `disco` is `null` for DISCO bills, as no official source maps the digits to a
   company.
+- `mapCourierStatus()` and `normalizeCityForCourier()` (`pakdatakit/courier`):
+  one status vocabulary for courier statuses, mapping only publicly documented
+  statuses (PostEx's API guide v4.1.9 and Leopards' "Returned to Shipper"; TCS,
+  M&P, Trax and BlueEx publish none), and city short forms (`LHR`, `Khi`,
+  `Pindi`, `Isb`, Lyallpur, Urdu names) mapped to the city list. No API clients
+  and no tracking-number detection, as no courier documents its format.
 
 ### Changed
 

@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use PakDataKit\Address;
 use PakDataKit\Bills;
 use PakDataKit\Cnic;
+use PakDataKit\Courier;
 use PakDataKit\Currency;
 use PakDataKit\Geo;
 use PakDataKit\Hijri;
@@ -460,6 +461,8 @@ final class VectorTest extends TestCase
                 self::str($a[0]),
                 self::str($a[1]),
             ),
+            'mapCourierStatus' => static fn (array $a, array $k): mixed => Courier::mapStatus($a[0], $a[1]),
+            'normalizeCityForCourier' => $one(Courier::normalizeCity(...)),
         ];
     }
 }

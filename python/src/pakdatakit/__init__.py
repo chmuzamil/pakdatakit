@@ -19,6 +19,7 @@ from .bills import (
     validate_gas_consumer_number,
 )
 from .cnic import CNICInfo, get_cnic_info, validate_cnic
+from .courier import Courier, CourierStatus, map_courier_status, normalize_city_for_courier
 from .data_version import DATA_VERSION, data_version
 from .format import format_lakh, format_pkr
 from .geo import (
@@ -148,6 +149,11 @@ __all__ = [
     "ParsedAddress",
     "parse_address",
     "format_address",
+    # courier
+    "Courier",
+    "CourierStatus",
+    "map_courier_status",
+    "normalize_city_for_courier",
     # quality
     "AddressPart",
     "AddressScore",

@@ -571,6 +571,14 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["parseElectricityRef"] = One(Bills.ParseElectricityRef),
         ["validateElectricityRef"] = One(v => Bills.ValidateElectricityRef(v)),
         ["validateGasConsumerNumber"] = (a, _) => Bills.ValidateGasConsumerNumber(Str(a[0]), Gas(a[1])),
+        // A number (5, 5.0, 1.5, -1, NaN) goes to the numeric overload.
+        ["mapCourierStatus"] = (a, _) => a[1] switch
+        {
+            double raw => Courier.MapStatus(Str(a[0]), raw),
+            string or null => Courier.MapStatus(Str(a[0]), (string?)a[1]),
+            _ => throw new Unrepresentable($"{Describe(a[1])} is not a string or number"),
+        },
+        ["normalizeCityForCourier"] = One(Courier.NormalizeCity),
     };
 
     private static string FindVectorsDir()

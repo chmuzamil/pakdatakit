@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use PakDataKit\Address;
 use PakDataKit\Bills;
 use PakDataKit\Cnic;
+use PakDataKit\Courier;
 use PakDataKit\Currency;
 use PakDataKit\Geo;
 use PakDataKit\Hijri;
@@ -43,7 +44,7 @@ use Throwable;
 final class FuzzTest extends TestCase
 {
     private const CLASSES = [
-        Address::class, Bills::class, Cnic::class, Geo::class, Holidays::class, Iban::class, Input::class,
+        Address::class, Bills::class, Cnic::class, Courier::class, Geo::class, Holidays::class, Iban::class, Input::class,
         Networks::class, Numbers::class, Passport::class, Phone::class, Postal::class, Quality::class, RaastQr::class,
         Tax::class, Text::class, VehiclePlate::class, WhatsApp::class,
     ];
@@ -146,7 +147,7 @@ final class FuzzTest extends TestCase
             'Text::normalizeRomanUrdu', 'Address::parse', 'Input::formatCnic', 'Input::checkIban',
             'RaastQr::parse', 'RaastQr::validate', 'Holidays::isHoliday', 'Holidays::getHolidaysOn',
             'Holidays::tryGetHolidaysOn', 'Quality::scoreAddress', 'Quality::phoneRiskSignals',
-            'Bills::parseElectricityRef', 'Bills::validateElectricityRef',
+            'Bills::parseElectricityRef', 'Bills::validateElectricityRef', 'Courier::normalizeCity',
         ] as $expected) {
             self::assertContains($expected, $names);
         }
@@ -313,6 +314,49 @@ final class FuzzTest extends TestCase
         self::assertSame(15, SalesTax::getRate(['kind' => 'services', 'province' => ' ict ', 'date' => ' 2026-11-18 '])?->rate);
         self::assertNull(SalesTax::getRate(['kind' => 'goods', 'date' => '2023-02-29']));
         self::assertNotNull(SalesTax::getRate(['kind' => 'goods']));
+    }
+
+    public function testCourierStatusHandlesHostileInput(): void
+    {
+        $values = [
+            null, true, false, [], ['PostEx'], new \stdClass(), NAN, INF, -INF, -0.0, -1, -1.0, 1.5, 0.5,
+            PHP_INT_MAX, PHP_INT_MIN, 1e300, -1e300, 'constructor', '__proto__', 'hasOwnProperty', 'toString',
+        ];
+        foreach ([...$values, ...self::hostile()] as $value) {
+            try {
+                Courier::mapStatus($value, 'Delivered');
+                Courier::mapStatus('PostEx', $value);
+                Courier::mapStatus($value, $value);
+            } catch (Throwable $e) {
+                self::fail('Courier::mapStatus threw ' . $e::class . ' for ' . var_export($value, true) . ': ' . $e->getMessage());
+            }
+        }
+        foreach ([...$values, ...self::hostile()] as $value) {
+            self::assertNull(Courier::mapStatus($value, 'Delivered'));
+        }
+        foreach (self::hostile() as $input) {
+            self::assertNull(Courier::mapStatus('PostEx', $input), 'Courier::mapStatus(PostEx, ' . self::describe($input) . ')');
+        }
+        foreach (['constructor', '__proto__', 'hasOwnProperty', true, null, [], NAN, INF, -1, -1.0, 1.5, 1e300] as $raw) {
+            self::assertNull(Courier::mapStatus('PostEx', $raw));
+        }
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', 5));
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', 5.0));
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', '5'));
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', '0005'));
+        self::assertSame(Courier::PENDING, Courier::mapStatus(' postex ', 1));
+        self::assertNull(Courier::mapStatus('PostEx', 0));
+        self::assertNull(Courier::mapStatus('PostEx', -0.0));
+        self::assertSame(Courier::ATTEMPTED, Courier::mapStatus('PostEx', 'Attempt Made: Customer not available'));
+        self::assertNull(Courier::mapStatus('PostEx', 'Attempt Madel'));
+        self::assertSame(Courier::RETURNED, Courier::mapStatus('LCS', 'Returned to Shipper'));
+        self::assertNull(Courier::mapStatus('TCS', 'Delivered'));
+        foreach (['constructor', '__proto__', 'hasOwnProperty', 'toString'] as $name) {
+            self::assertNull(Courier::normalizeCity($name));
+            self::assertNull(Courier::normalizeCity($name . ' city'));
+        }
+        self::assertSame('Karachi', Courier::normalizeCity('Karachi City'));
+        self::assertSame('Lahore', Courier::normalizeCity('لاہور'));
     }
 
     private static function describe(?string $input): string

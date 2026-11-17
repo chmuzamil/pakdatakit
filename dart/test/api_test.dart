@@ -2,6 +2,7 @@
 // checks the JavaScript semantics used by Flutter web).
 import 'package:pakdatakit/bills.dart' as bills;
 import 'package:pakdatakit/cnic.dart' as cnic;
+import 'package:pakdatakit/courier.dart' as courier;
 import 'package:pakdatakit/pakdatakit.dart';
 import 'package:pakdatakit/phone.dart' as phone;
 import 'package:pakdatakit/salestax.dart' as salestax;
@@ -358,6 +359,97 @@ void main() {
       expect(validateGasConsumerNumber('12345678901', 'constructor'), isFalse);
     });
 
+    test('couriers', () {
+      expect(mapCourierStatus('PostEx', 'Delivered'), CourierStatus.delivered);
+      expect(
+        mapCourierStatus('postex', 'OUT FOR DELIVERY'),
+        CourierStatus.outForDelivery,
+      );
+      expect(mapCourierStatus('PostEx', 15), CourierStatus.pickedUp);
+      expect(mapCourierStatus('PostEx', 15.0), CourierStatus.pickedUp);
+      expect(mapCourierStatus('PostEx', '16'), CourierStatus.returning);
+      expect(mapCourierStatus('PostEx', '0005'), CourierStatus.delivered);
+      expect(mapCourierStatus('PostEx', 5), CourierStatus.delivered);
+      expect(mapCourierStatus('PostEx', 13), isNull);
+      expect(
+        mapCourierStatus('PostEx', 'At Merchant’s Warehouse'),
+        CourierStatus.booked,
+      );
+      expect(
+        mapCourierStatus('PostEx', 'Attempt Made: Customer not available'),
+        CourierStatus.attempted,
+      );
+      expect(mapCourierStatus('PostEx', 'attempt madeX'), isNull);
+      expect(
+        mapCourierStatus('LCS', 'returned  to shipper'),
+        CourierStatus.returned,
+      );
+      expect(mapCourierStatus(Courier.tcs.value, 'Delivered'), isNull);
+      expect(mapCourierStatus('PostEx', 1.5), isNull);
+      expect(mapCourierStatus('PostEx', -1), isNull);
+      expect(mapCourierStatus('PostEx', double.nan), isNull);
+      expect(mapCourierStatus('PostEx', true), isNull);
+      expect(mapCourierStatus('PostEx', null), isNull);
+      expect(CourierStatus.underReview.value, 'under-review');
+      expect(Courier.mAndP.toJson(), 'M&P');
+
+      expect(normalizeCityForCourier('LHR'), 'Lahore');
+      expect(normalizeCityForCourier('D.G. Khan'), 'Dera Ghazi Khan');
+      expect(normalizeCityForCourier('لاہور'), 'Lahore');
+      expect(normalizeCityForCourier('lhr city'), 'Lahore');
+      expect(normalizeCityForCourier('Karachi City'), 'Karachi');
+      expect(normalizeCityForCourier('city'), isNull);
+      expect(normalizeCityForCourier('Atlantis'), isNull);
+    });
+
+    test('courier functions never throw', () {
+      final strings = [
+        '',
+        ' ',
+        '\uD800',
+        '\uDC00 near \uD83D',
+        'constructor',
+        '__proto__',
+        'hasOwnProperty',
+        'toString',
+        'ß' * 14,
+        'İ city city',
+        ' city',
+        '${'x' * 100000} city',
+        '\u0000\u202E\uFEFF',
+        'Attempt Made\uD800',
+      ];
+      final raws = <Object?>[
+        ...strings,
+        null,
+        true,
+        0,
+        -0.0,
+        5,
+        5.0,
+        1.5,
+        -1,
+        double.nan,
+        double.infinity,
+        1e300,
+        9007199254740992,
+        <String>[],
+      ];
+      for (final input in strings) {
+        expect(() => normalizeCityForCourier(input), returnsNormally);
+        for (final name in [...strings, 'PostEx', 'lcs']) {
+          for (final raw in raws) {
+            expect(() => mapCourierStatus(name, raw), returnsNormally);
+          }
+        }
+      }
+      for (final key in ['constructor', '__proto__', 'hasOwnProperty']) {
+        expect(mapCourierStatus(key, 'x'), isNull);
+        expect(mapCourierStatus('PostEx', key), isNull);
+        expect(normalizeCityForCourier(key), isNull);
+      }
+    });
+
     test('Raast QR round trip', () {
       final payload = createRaastP2PQr(
         iban: 'PK36 SCBL 0000 0011 2345 6702',
@@ -397,5 +489,6 @@ void main() {
     expect(dataVersion, '2026-11-17');
     expect(salestax.splitInclusive(1180, 18)?.net, 1000);
     expect(bills.validateElectricityRef('0400012345678'), isTrue);
+    expect(courier.normalizeCityForCourier('Isb'), 'Islamabad');
   });
 }

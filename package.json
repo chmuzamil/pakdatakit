@@ -60,6 +60,16 @@
         "default": "./dist/cnic.cjs"
       }
     },
+    "./courier": {
+      "import": {
+        "types": "./dist/courier.d.ts",
+        "default": "./dist/courier.js"
+      },
+      "require": {
+        "types": "./dist/courier.d.cts",
+        "default": "./dist/courier.cjs"
+      }
+    },
     "./format": {
       "import": {
         "types": "./dist/format.d.ts",

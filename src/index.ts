@@ -143,4 +143,10 @@ export {
   type ElectricityRefType,
   type GasCompany,
 } from './bills.js';
+export {
+  mapCourierStatus,
+  normalizeCityForCourier,
+  type Courier,
+  type CourierStatus,
+} from './courier.js';
 export { dataVersion } from './data-version.js';

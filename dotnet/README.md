@@ -77,6 +77,15 @@ Quality.ScoreAddress("Lahore").Missing;      // [HouseNumber, Street, Area, Post
 Quality.PhoneRiskSignals("0301-2945716");    // [] (a courier can call it)
 Quality.PhoneRiskSignals("03001234567");     // [SequentialDigits, TestNumber]
 
+Courier.MapStatus("PostEx", "Out For Delivery");  // CourierStatus.OutForDelivery
+Courier.MapStatus("PostEx", 5);                   // CourierStatus.Delivered
+Courier.MapStatus("PostEx", "Attempt Made: Customer not available"); // CourierStatus.Attempted
+Courier.MapStatus("Leopards", "Returned to Shipper"); // CourierStatus.Returned
+Courier.MapStatus("TCS", "Delivered");            // null (TCS publishes no status list)
+Courier.NormalizeCity("LHR");                // "Lahore"
+Courier.NormalizeCity("Karachi City");       // "Karachi"
+Courier.NormalizeCity("لاہور");              // "Lahore"
+
 var payload = RaastQr.CreateP2P(new RaastP2POptions
 {
     Iban = "PK36SCBL0000001123456702",
@@ -100,6 +109,7 @@ Unicode (unpaired surrogates, noncharacters).
 | `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
 | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`, `Bills.ValidateGasConsumerNumber` | `null` / `false` (also for an undefined `GasCompany` value) |
 | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive` | `null` (also for NaN, infinite, negative or too large amounts and rates, and `null` options) |
+| `Courier.MapStatus`, `Courier.NormalizeCity` | `null` (also for an unknown courier, and a numeric status that is negative, fractional, NaN or infinite) |
 | `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
 
 Every regular expression has a one-second timeout; if one is ever hit, the
@@ -159,6 +169,7 @@ strings to every public method that takes a string and checks this contract.
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays.GetHolidays`, `Holidays.GetHolidaysOn`, `Holidays.IsHoliday`  |
 | `parseAddress`, `formatAddress`                        | `Address.Parse`, `Address.Format`                                       |
 | `scoreAddress`, `phoneRiskSignals`, `ADDRESS_WEIGHTS`  | `Quality.ScoreAddress`, `Quality.PhoneRiskSignals`, `Quality.AddressWeights` |
+| `mapCourierStatus`, `normalizeCityForCourier`          | `Courier.MapStatus`, `Courier.NormalizeCity`                            |
 | `formatCNICInput`, `checkCNICInput`, …                 | `Input.FormatCnic`, `Input.CheckCnic`, `Input.FormatPhone`, …           |
 | `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr.CreateP2P`, `RaastQr.CreateMerchant`, `RaastQr.Parse`          |
 | `validateRaastQr`                                      | `RaastQr.Validate`                                                      |
@@ -272,6 +283,20 @@ FluentValidation 11 and 12.
   `Bills.ValidateGasConsumerNumber` takes a `GasCompany` (`Sngpl`, 11 digits;
   `Ssgc`, 10 digits). Spaces, dashes and dots are ignored and Urdu digits are
   accepted. No utility publishes a check digit, so only the format is checked.
+- **Couriers.** `Courier.MapStatus(courier, raw)` maps a courier's own
+  status to a `CourierStatus`: `Pending`, `Booked`, `PickedUp`, `InTransit`,
+  `OutForDelivery`, `Attempted`, `UnderReview`, `Delivered`, `Returning`,
+  `Returned` or `Cancelled` (`picked-up`, `out-for-delivery` and so on in the
+  npm package). The courier is a string (`TCS`, `Leopards`, `PostEx`, `M&P`,
+  `Trax`, `BlueEx`, case-insensitive; `LCS`, `MnP` and `Blue Ex` work too);
+  `raw` is the status text or, through the `double` overload, a numeric ID,
+  which must be a non-negative whole number and is matched as its decimal
+  text (`5` matches `"5"`, not `"0005"`). Only statuses a courier documents
+  publicly are mapped: PostEx's merchant API guide (v4.1.9) and Leopards'
+  "Returned to Shipper". TCS, M&P, Trax and BlueEx publish no list, so they
+  return `null`, as does any other status. `Courier.NormalizeCity` maps how a
+  city is written (`LHR`, `Khi`, `Pindi`, `lyallpur`, `Karachi City`, Urdu
+  script) to its name in the city list, or `null`. No API is called.
 - **Sorting** of search results follows the same order as the npm package for
   the names in the datasets.
 

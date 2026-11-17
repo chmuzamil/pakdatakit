@@ -5,6 +5,7 @@ export const modules = [
   'address',
   'bills',
   'cnic',
+  'courier',
   'format',
   'geo',
   'hijri',

@@ -295,3 +295,38 @@ def test_sales_tax_never_raises() -> None:
             pdk.calculate_sales_tax(value, rate=other)
             pdk.calculate_sales_tax(1000, province=value, kind=other, inclusive=True)
             pdk.calculate_sales_tax(value, province="Sindh", date=other, inclusive=value)
+
+
+def test_courier() -> None:
+    assert pdk.map_courier_status("PostEx", "Out For Delivery") == "out-for-delivery"
+    assert pdk.map_courier_status("postex", 5) == "delivered"
+    assert pdk.map_courier_status("PostEx", 5.0) == "delivered"
+    assert pdk.map_courier_status("PostEx", "5") == "delivered"
+    assert pdk.map_courier_status("PostEx", 5.5) is None
+    assert pdk.map_courier_status("PostEx", -1) is None
+    assert pdk.map_courier_status("PostEx", True) is None
+    assert pdk.map_courier_status("PostEx", "At Merchant’s Warehouse") == "booked"
+    assert pdk.map_courier_status("PostEx", "Attempt Made: Customer not available") == "attempted"
+    assert pdk.map_courier_status("PostEx", "attempt madez") is None
+    assert pdk.map_courier_status("LCS", "Returned to Shipper") == "returned"
+    assert pdk.map_courier_status("TCS", "Delivered") is None
+    assert pdk.map_courier_status("constructor", "1") is None
+    assert pdk.map_courier_status("PostEx", "__proto__") is None
+    assert pdk.normalize_city_for_courier("LHR") == "Lahore"
+    assert pdk.normalize_city_for_courier("lyallpur") == "Faisalabad"
+    assert pdk.normalize_city_for_courier("Karachi City") == "Karachi"
+    assert pdk.normalize_city_for_courier("D.G. Khan") == "Dera Ghazi Khan"
+    assert pdk.normalize_city_for_courier("لاہور") == "Lahore"
+    assert pdk.normalize_city_for_courier("hasOwnProperty") is None
+    assert pdk.normalize_city_for_courier("Atlantis") is None
+
+
+def test_courier_never_raises() -> None:
+    values = HOSTILE_INPUTS + [True, -1, 1.5, float("nan"), float("inf"), 1e300, 10**40, [], {}, "PostEx"]
+    for value in values:
+        result = pdk.normalize_city_for_courier(value)  # type: ignore[arg-type]
+        assert result is None or isinstance(result, str)
+        for other in values:
+            status = pdk.map_courier_status(value, other)  # type: ignore[arg-type]
+            assert status is None or isinstance(status, str)
+            pdk.map_courier_status("PostEx", other)

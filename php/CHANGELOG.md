@@ -13,6 +13,7 @@
   passes only when there are no flags, with English and Urdu messages.
 - `SalesTax::getRate()`, `SalesTax::calculate()` and `SalesTax::splitInclusive()`: standard sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) from 1 July 2019, with the law and source of each, and exact sales tax amounts in whole paisa (`SalesTaxRate`, `SalesTaxAmounts`). They return `null` for any invalid input and never throw.
 - `Bills::parseElectricityRef()`, `Bills::validateElectricityRef()` and `Bills::validateGasConsumerNumber()`: electricity bill identifiers (14-digit DISCO reference numbers with optional U/R, DISCO customer IDs and K-Electric account numbers) as an `ElectricityRef`, and SNGPL (11 digits) and SSGC (10 digits) gas consumer numbers. New Laravel rule `pk_electricity_ref` (and `Rules\ElectricityRef`), with English and Urdu messages.
+- `Courier::mapStatus()` and `Courier::normalizeCity()`: maps a courier's own status (PostEx's documented order statuses and tracking codes, and Leopards' "Returned to Shipper") to one vocabulary (`Courier::PENDING` … `Courier::CANCELLED`), and maps short forms, old names and Urdu spellings of cities (`LHR`, `Pindi`, `Lyallpur`, `Karachi City`, `لاہور`) to the city list. No API is called; both return `null` for anything unknown and never throw.
 
 ## 2.3.0
 

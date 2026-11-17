@@ -98,6 +98,7 @@ package; call `->toArray()` for an array.
 | `validateRaastQr`                                      | `RaastQr::validate`                                                        |
 | `getSalesTaxRate`, `calculateSalesTax`                 | `SalesTax::getRate`, `SalesTax::calculate`                                 |
 | `splitInclusive`                                       | `SalesTax::splitInclusive`                                                 |
+| `mapCourierStatus`, `normalizeCityForCourier`          | `Courier::mapStatus`, `Courier::normalizeCity`                             |
 | `dataVersion`                                          | `PakData::version()`                                                       |
 
 Divisions and tehsils come from the 2023 census (30 divisions, 591 tehsils).
@@ -213,6 +214,47 @@ inclusive amount the value is rounded and the tax is the rest, so `net + tax`
 always equals `gross`. Amounts from 0 to one trillion rupees and rates from 0
 to 100 with at most two decimals are accepted; anything else, including a
 string or boolean, returns `null`, never an exception.
+
+### Couriers
+
+Helpers for orders shipped with Pakistani couriers. There are no API clients:
+nothing is sent anywhere.
+
+```php
+use PakDataKit\Courier;
+
+Courier::mapStatus('PostEx', 'Out For Delivery');                       // 'out-for-delivery'
+Courier::mapStatus('PostEx', 5);                                        // 'delivered'
+Courier::mapStatus('PostEx', 'Attempt Made: Customer not available');  // 'attempted'
+Courier::mapStatus('Leopards', 'Returned to Shipper');                  // 'returned'
+Courier::mapStatus('TCS', 'Delivered');                                 // null
+
+Courier::normalizeCity('LHR');           // 'Lahore'
+Courier::normalizeCity('Pindi');         // 'Rawalpindi'
+Courier::normalizeCity('lyallpur');      // 'Faisalabad'
+Courier::normalizeCity('Karachi City');  // 'Karachi'
+Courier::normalizeCity('لاہور');         // 'Lahore'
+Courier::normalizeCity('Atlantis');      // null
+```
+
+`Courier::mapStatus()` maps a courier's own status (name, numeric ID or code)
+to one vocabulary: `pending`, `booked`, `picked-up`, `in-transit`,
+`out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`,
+`returned` or `cancelled` (also `Courier::PENDING` … `Courier::CANCELLED`).
+The courier is `TCS`, `Leopards`, `PostEx`, `M&P`, `Trax` or `BlueEx` (also
+`Courier::TCS` … `Courier::BLUEEX`), in any case; `LCS`, `MnP` and `Blue Ex`
+are accepted. Matching ignores case and extra spaces. A numeric status may be
+a string or a non-negative whole number (`5` and `5.0` are the same; `'0005'`
+is a different code). Only statuses a courier documents publicly are mapped:
+every order status and tracking code in PostEx's merchant API guide (v4.1.9),
+and Leopards' "Returned to Shipper". TCS, M&P, Trax and BlueEx publish no
+status list, so they return `null` for now, as does any unknown courier or
+status, or a value that is not a string or number.
+
+`Courier::normalizeCity()` maps how a customer or a courier writes a city to
+its name in the city list, so orders can be matched against a courier's
+service list: the name in any case, short forms (`LHR`, `Khi`, `Isb`, `FSD`),
+the old name Lyallpur, a trailing "city", and the main cities in Urdu script.
 
 ## Laravel
 

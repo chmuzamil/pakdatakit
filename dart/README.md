@@ -7,7 +7,7 @@ NTN/STRN, sales tax, landlines, electricity and gas bill numbers, Raast QR
 codes, and form-field helpers that format as the user types.
 
 This is the Dart port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
-It ships **the same datasets** and is tested against **the same 12,000+ test
+It ships **the same datasets** and is tested against **the same 25,000+ test
 vectors** generated from the TypeScript library (also used by the Python
 port), so all three give identical results.
 
@@ -212,7 +212,7 @@ for where each dataset comes from.
 The datasets in `lib/src/data/` are generated from the repository's shared
 `data/*.json`, and the package is tested against the shared
 [`test-vectors/`](https://github.com/chmuzamil/pakdatakit/tree/main/test-vectors),
-produced by running the TypeScript library over 12,080 inputs. The tests pass
+produced by running the TypeScript library over 25,000 inputs. The tests pass
 both on the Dart VM and compiled to JavaScript.
 
 JavaScript behaviours that differ in Dart are reproduced exactly: whitespace

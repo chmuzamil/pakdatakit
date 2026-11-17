@@ -7,7 +7,7 @@ extracted CSV files in `data/sources/` and read by the generator: Pakistan
 Post's post code directory and the 2023 census's administrative units. The exported `dataVersion` is the
 date the data was last checked.
 
-**Data version: 2026-11-17**
+**Data version: 2026-11-18**
 
 The datasets were audited against official sources on 16 November 2026;
 [AUDIT.md](AUDIT.md) has the findings, the fixes made and what is still open.

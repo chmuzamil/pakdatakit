@@ -7,7 +7,7 @@ Hijri dates, public holidays, address parsing, delivery-quality checks for
 addresses and phone numbers, as-you-type form helpers and Raast QR codes.
 
 This is the .NET port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
-It ships **the same datasets** and is tested against **the same 12,000+ test
+It ships **the same datasets** and is tested against **the same 25,000+ test
 vectors** generated from the TypeScript library (also used by the Python and
 Dart ports), so all four give identical results.
 

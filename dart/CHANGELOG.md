@@ -47,6 +47,7 @@
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,
   licence and author agree across ports (`npm run check:metadata`).
+- `dataVersion` is now `2026-11-18` (new dataset: sales tax rates).
 
 ## 2.3.0
 

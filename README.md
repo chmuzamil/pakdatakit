@@ -56,7 +56,7 @@ Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, ch
 | [`pakdatakit-vue`](https://github.com/chmuzamil/pakdatakit/tree/main/vue)             | Build from `vue/` (not on npm yet)       | Vue 3 composables and a `v-pak-input` directive that format as you type                        |
 | [`pakdatakit-angular`](https://github.com/chmuzamil/pakdatakit/tree/main/angular)     | Build from `angular/` (not on npm yet)   | Angular directives, pipes and form validators                                                  |
 
-The Python, Dart, .NET and PHP packages are checked against the TypeScript library with over 12,000 shared test cases, so all five give the same results.
+The Python, Dart, .NET and PHP packages are checked against the TypeScript library with over 25,000 shared test cases, so all five give the same results.
 
 ---
 
@@ -83,7 +83,7 @@ Most Pakistani apps validate CNICs, mobile numbers and IBANs with a regex copied
 | Holidays, Hijri   | Not possible                 | Observed Eid/Ashura/Milad dates from official notifications, Hijri conversion                   |
 | Amounts, currency | Not possible                 | Lakh/crore formatting, amounts in words in English and Urdu                                     |
 | Forms             | Write each rule per library  | Ready rules for Zod, Valibot, Yup, Joi, Superstruct and class-validator (NestJS)                |
-| Other languages   | Rewrite it                   | Python and Dart packages with the core functions, checked against over 12,000 shared test cases |
+| Other languages   | Rewrite it                   | Python and Dart packages with the core functions, checked against over 25,000 shared test cases |
 
 The npm package has no runtime dependencies, ships ESM and CommonJS with TypeScript types, and works offline: all data is bundled. Every dataset lists its sources in [DATA.md](./DATA.md).
 

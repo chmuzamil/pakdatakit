@@ -16,6 +16,10 @@
 - `Courier::mapStatus()` and `Courier::normalizeCity()`: maps a courier's own status (PostEx's documented order statuses and tracking codes, and Leopards' "Returned to Shipper") to one vocabulary (`Courier::PENDING` … `Courier::CANCELLED`), and maps short forms, old names and Urdu spellings of cities (`LHR`, `Pindi`, `Lyallpur`, `Karachi City`, `لاہور`) to the city list. No API is called; both return `null` for anything unknown and never throw.
 - `FbrInvoice::build()`, `FbrInvoice::validate()` and `FbrInvoice::expectedSalesTax()`: FBR Digital Invoicing (PRAL's DI API specification v1.12, `FbrInvoice::SPEC_VERSION`). `build()` works out each line's sales tax (`N%` and `Rs.N` rates), fills FBR's defaults and adds up the columns; `validate()` checks an invoice (array or decoded JSON object) offline and returns every problem with FBR's error code as an `FbrInvoiceValidation` of `FbrInvoiceError`s. No HTTP client or tokens; they never throw.
 
+### Changed
+
+- `PakData::version()` is now `2026-11-18` (new dataset: sales tax rates).
+
 ## 2.3.0
 
 First release of the PHP package, matching version 2.3.0 of the

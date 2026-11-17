@@ -61,6 +61,7 @@
   licence and author agree across ports (`npm run check:metadata`).
 - `PackageProjectUrl` points to the .NET README and `Copyright` matches the
   licence file.
+- `PakData.Version` is now `2026-11-18` (new dataset: sales tax rates).
 
 ## 2.3.0
 

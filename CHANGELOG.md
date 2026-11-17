@@ -46,6 +46,7 @@
   attribution" section in the README.
 - `test-vectors/README.md` documents the shared test vectors;
   `npm run test:ports` regenerates them and runs every port against them.
+- `dataVersion` is now `2026-11-18` (new dataset: sales tax rates).
 
 ## 2.3.0
 

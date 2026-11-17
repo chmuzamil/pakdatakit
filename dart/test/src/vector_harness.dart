@@ -411,6 +411,10 @@ final Map<String, Call> functions = {
         inclusive: optBool(k['inclusive']) ?? false,
       ),
   'splitInclusive': (a, k) => splitInclusive(number(a[0]), number(a[1])),
+  'parseElectricityRef': one(parseElectricityRef),
+  'validateElectricityRef': one(validateElectricityRef),
+  'validateGasConsumerNumber': (a, k) =>
+      validateGasConsumerNumber(str(a[0]), str(a[1])),
 };
 
 const Map<String, Object> constants = {'dataVersion': dataVersion};

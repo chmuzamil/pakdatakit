@@ -101,7 +101,8 @@ public sealed class FuzzTests
             "Geo.GetTehsilDistrict", "WhatsApp.CreateLink", "WhatsApp.TryCreateLink", "Text.Normalize",
             "Text.NormalizeRomanUrdu", "Address.Parse", "Input.FormatCnic", "Input.CheckIban", "RaastQr.Parse",
             "RaastQr.Validate", "Holidays.IsHoliday", "Holidays.GetHolidaysOn", "Holidays.TryGetHolidaysOn",
-            "Quality.ScoreAddress", "Quality.PhoneRiskSignals",
+            "Quality.ScoreAddress", "Quality.PhoneRiskSignals", "Bills.ParseElectricityRef",
+            "Bills.ValidateElectricityRef",
         })
         {
             Assert.Contains(expected, names);
@@ -253,6 +254,21 @@ public sealed class FuzzTests
                 Assert.Null(SalesTax.Calculate(100, new SalesTaxOptions { Kind = kind, Date = input ?? "", Inclusive = true }));
             }
         }
+    }
+
+    [Fact]
+    public void GasConsumerNumberHandlesHostileInput()
+    {
+        GasCompany[] companies = [GasCompany.Sngpl, GasCompany.Ssgc, (GasCompany)(-1), (GasCompany)99];
+        var random = new Random(StableSeed("Bills.ValidateGasConsumerNumber"));
+        foreach (var company in companies)
+        {
+            foreach (var input in Hostile) Assert.False(Bills.ValidateGasConsumerNumber(input, company));
+            for (var i = 0; i < 400; i++) Bills.ValidateGasConsumerNumber(RandomString(random), company);
+        }
+        Assert.True(Bills.ValidateGasConsumerNumber("123-4567-8901", GasCompany.Sngpl));
+        Assert.True(Bills.ValidateGasConsumerNumber("۱۲۳۴۵۶۷۸۹۰", GasCompany.Ssgc));
+        Assert.False(Bills.ValidateGasConsumerNumber("12345678901", (GasCompany)99));
     }
 
     private static object? Invoke(string name, MethodInfo method, string? input)

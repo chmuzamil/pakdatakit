@@ -12,6 +12,7 @@
   placeholder numbers. New Laravel rule `pk_cod_phone` (and `Rules\CodPhone`)
   passes only when there are no flags, with English and Urdu messages.
 - `SalesTax::getRate()`, `SalesTax::calculate()` and `SalesTax::splitInclusive()`: standard sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) from 1 July 2019, with the law and source of each, and exact sales tax amounts in whole paisa (`SalesTaxRate`, `SalesTaxAmounts`). They return `null` for any invalid input and never throw.
+- `Bills::parseElectricityRef()`, `Bills::validateElectricityRef()` and `Bills::validateGasConsumerNumber()`: electricity bill identifiers (14-digit DISCO reference numbers with optional U/R, DISCO customer IDs and K-Electric account numbers) as an `ElectricityRef`, and SNGPL (11 digits) and SSGC (10 digits) gas consumer numbers. New Laravel rule `pk_electricity_ref` (and `Rules\ElectricityRef`), with English and Urdu messages.
 
 ## 2.3.0
 

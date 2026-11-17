@@ -23,6 +23,15 @@
   `SalesTax.SplitInclusive(gross, rate)` splits a tax-inclusive amount, both
   returning `SalesTaxAmounts` (`Net`, `Tax`, `Gross`, `Rate`) rounded half up
   to the paisa in exact integer arithmetic. Invalid input returns `null`.
+- `Bills.ParseElectricityRef(input)`: reads a DISCO (WAPDA) reference number
+  (14 digits, optional `U`/`R`), a DISCO customer ID (10 or 11 digits) or a
+  K-Electric account number (13 digits starting `04000`), as an
+  `ElectricityRef` (`Type` as `ElectricityRefType.Reference`, `CustomerId` or
+  `KElectric`, `Digits`, `Formatted`, `UrbanRural`, `Disco`), or `null`.
+  `Bills.ValidateElectricityRef(input)` checks the same formats, and
+  `Bills.ValidateGasConsumerNumber(input, company)` checks an 11-digit
+  `GasCompany.Sngpl` or 10-digit `GasCompany.Ssgc` consumer number. Format
+  checks only; separators and Urdu digits are accepted.
 
 ### Changed
 

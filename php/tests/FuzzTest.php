@@ -6,6 +6,7 @@ namespace PakDataKit\Tests;
 
 use DateTimeImmutable;
 use PakDataKit\Address;
+use PakDataKit\Bills;
 use PakDataKit\Cnic;
 use PakDataKit\Currency;
 use PakDataKit\Geo;
@@ -42,9 +43,9 @@ use Throwable;
 final class FuzzTest extends TestCase
 {
     private const CLASSES = [
-        Address::class, Cnic::class, Geo::class, Holidays::class, Iban::class, Input::class, Networks::class,
-        Numbers::class, Passport::class, Phone::class, Postal::class, Quality::class, RaastQr::class, Tax::class,
-        Text::class, VehiclePlate::class, WhatsApp::class,
+        Address::class, Bills::class, Cnic::class, Geo::class, Holidays::class, Iban::class, Input::class,
+        Networks::class, Numbers::class, Passport::class, Phone::class, Postal::class, Quality::class, RaastQr::class,
+        Tax::class, Text::class, VehiclePlate::class, WhatsApp::class,
     ];
 
     /** @return list<string|null> Inputs that can never be valid for any validator or parser. */
@@ -145,6 +146,7 @@ final class FuzzTest extends TestCase
             'Text::normalizeRomanUrdu', 'Address::parse', 'Input::formatCnic', 'Input::checkIban',
             'RaastQr::parse', 'RaastQr::validate', 'Holidays::isHoliday', 'Holidays::getHolidaysOn',
             'Holidays::tryGetHolidaysOn', 'Quality::scoreAddress', 'Quality::phoneRiskSignals',
+            'Bills::parseElectricityRef', 'Bills::validateElectricityRef',
         ] as $expected) {
             self::assertContains($expected, $names);
         }
@@ -229,6 +231,28 @@ final class FuzzTest extends TestCase
         // The npm package throws for a message with an unpaired surrogate.
         self::assertNull(WhatsApp::createLink('0300 1234567', "hi \xed\xa0\x80"));
         self::assertSame('https://wa.me/923001234567?text=hi', WhatsApp::createLink('0300 1234567', 'hi'));
+    }
+
+    public function testGasConsumerNumberHandlesHostileInput(): void
+    {
+        $companies = [null, '', 'SNGPL', 'SSGC', 'sngpl', 'ssgc', '__proto__', 'constructor', 'toString', "ÿ", 'ßgc'];
+        foreach (self::hostile() as $input) {
+            foreach ([...$companies, $input] as $company) {
+                try {
+                    $result = Bills::validateGasConsumerNumber($input, $company);
+                } catch (Throwable $e) {
+                    self::fail('Bills::validateGasConsumerNumber(' . self::describe($input) . ', ' . self::describe($company)
+                        . ') threw ' . $e::class . ': ' . $e->getMessage());
+                }
+                self::assertFalse($result, self::describe($input) . ', ' . self::describe($company));
+            }
+        }
+        mt_srand(crc32('Bills::validateGasConsumerNumber'));
+        for ($i = 0; $i < 300; $i++) {
+            Bills::validateGasConsumerNumber(self::randomString(), self::randomString());
+            Bills::validateGasConsumerNumber(self::randomString(), 'SSGC');
+        }
+        self::assertTrue(Bills::validateGasConsumerNumber('1234567890', 'ßgc')); // 'ß'.toUpperCase() is 'SS'
     }
 
     public function testAddressFormatHandlesHostileInput(): void

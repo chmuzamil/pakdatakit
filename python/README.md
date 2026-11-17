@@ -159,6 +159,31 @@ pdk.calculate_sales_tax(1150, province="Sindh", inclusive=True).net  # 1000.0
 pdk.split_inclusive(99.99, 18)            # SalesTaxAmounts(net=84.74, tax=15.25, gross=99.99, rate=18.0)
 ```
 
+Utility bills:
+
+| Function                                        | Returns                                                                       |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| `parse_electricity_ref(ref)`                    | `ElectricityRef(type, digits, formatted, urban_rural, disco)`, or `None`      |
+| `validate_electricity_ref(ref)`                 | Whether the input is an electricity bill reference, customer ID or KE account |
+| `validate_gas_consumer_number(number, company)` | Whether the input is an SNGPL (11 digits) or SSGC (10 digits) consumer number |
+
+`type` is `reference` (DISCO reference number: 14 digits, optionally followed
+by `U` or `R`), `customer-id` (DISCO customer ID: 10 digits, 11 for LESCO) or
+`k-electric` (13 digits starting `04000`). Spaces, dashes and dots are ignored
+and Urdu digits are accepted. `disco` is `K-Electric` for a K-Electric account
+and `None` otherwise: no official source maps DISCO digits to a distribution
+company. No utility publishes a check digit, so only the format is checked.
+`company` is `SNGPL` or `SSGC` (any case); anything else returns `False`.
+None of these raise.
+
+```python
+pdk.parse_electricity_ref("02-12624-0045901 R")
+# ElectricityRef(type='reference', digits='02126240045901', formatted='02 12624 0045901 R', urban_rural='R', disco=None)
+pdk.parse_electricity_ref("0400012345678").disco      # 'K-Electric'
+pdk.validate_electricity_ref("12345")                 # False
+pdk.validate_gas_consumer_number("12345678901", "SNGPL")  # True
+```
+
 `BankInfo.type` is one of `commercial`, `public-sector`, `islamic`,
 `microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
 `BankInfo.active` is `False` for a bank that merged into another or has closed.

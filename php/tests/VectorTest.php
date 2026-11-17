@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
 use PakDataKit\Address;
+use PakDataKit\Bills;
 use PakDataKit\Cnic;
 use PakDataKit\Currency;
 use PakDataKit\Geo;
@@ -453,6 +454,12 @@ final class VectorTest extends TestCase
             'getSalesTaxRate' => static fn (array $a, array $k): mixed => SalesTax::getRate($k),
             'calculateSalesTax' => static fn (array $a, array $k): mixed => SalesTax::calculate($a[0], $k),
             'splitInclusive' => static fn (array $a, array $k): mixed => SalesTax::splitInclusive($a[0], $a[1]),
+            'parseElectricityRef' => $one(Bills::parseElectricityRef(...)),
+            'validateElectricityRef' => $one(Bills::validateElectricityRef(...)),
+            'validateGasConsumerNumber' => static fn (array $a, array $k): mixed => Bills::validateGasConsumerNumber(
+                self::str($a[0]),
+                self::str($a[1]),
+            ),
         ];
     }
 }

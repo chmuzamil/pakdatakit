@@ -12,5 +12,6 @@ return [
     'pk_landline' => 'The :attribute field must be a valid Pakistani landline number.',
     'pk_passport' => 'The :attribute field must be a valid Pakistani passport number.',
     'pk_vehicle_plate' => 'The :attribute field must be a valid vehicle registration number.',
+    'pk_electricity_ref' => 'The :attribute field must be a valid electricity bill reference number.',
     'pk_cod_phone' => 'The :attribute field must be a mobile number a courier can call.',
 ];

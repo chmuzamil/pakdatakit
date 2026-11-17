@@ -153,6 +153,16 @@ Checklist:
 - [ ] Rates still marked uncertain in DATA.md (Balochistan 2025-26 onwards,
       ICT after June 2025): is the official document out now?
 
+## Bill, courier and FBR invoice formats
+
+No datasets, but each follows an official document that can change.
+
+- [ ] Electricity and gas bill numbers: do PITC's bill pages
+      (https://bill.pitc.com.pk), K-Electric (https://ke.com.pk/bills-e-payments/),
+      SNGPL (https://www.sngpl.com.pk) and SSGC (https://viewbill.ssgc.com.pk/web/)
+      still ask for the same lengths? Has any of them published which digits
+      belong to which DISCO, or a check digit? Update `src/bills.ts` and DATA.md.
+
 ## Also
 
 - [ ] Raast QR: any change in the QR format that banking apps generate

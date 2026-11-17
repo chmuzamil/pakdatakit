@@ -85,6 +85,12 @@ const CASES = [
     allowed: ['sales tax rates'],
   },
   {
+    name: "validateElectricityRef from 'pakdatakit/bills'",
+    code: "import { validateElectricityRef } from 'pakdatakit/bills'; console.log(validateElectricityRef('01141111234567'));",
+    limit: 2 * 1024,
+    allowed: [],
+  },
+  {
     // Every rule of the adapter; zod itself is the app's own dependency.
     name: "pk from 'pakdatakit/zod' (zod external)",
     code: "import { pk } from 'pakdatakit/zod'; console.log(pk.cnic());",

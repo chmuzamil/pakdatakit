@@ -869,6 +869,43 @@ Amounts are rounded half up to the paisa, reading the number as written (`1.005`
 
 ---
 
+## Utility Bills
+
+`import { parseElectricityRef, validateElectricityRef, validateGasConsumerNumber } from 'pakdatakit/bills'`
+
+### parseElectricityRef() / validateElectricityRef()
+
+Reads the identifiers printed on electricity bills, in the formats the utilities' own bill pages ask for:
+
+| `type`        | Format                                                     | Example              |
+| ------------- | ---------------------------------------------------------- | -------------------- |
+| `reference`   | DISCO (WAPDA) reference number: 14 digits, optional U or R | `02 12624 0045901 R` |
+| `customer-id` | DISCO customer ID: 10 digits (11 for LESCO)                | `1234567890`         |
+| `k-electric`  | K-Electric account number: 13 digits starting `04000`      | `0400012345678`      |
+
+```ts
+parseElectricityRef('02-12624-0045901 R');
+// { type: "reference", digits: "02126240045901", formatted: "02 12624 0045901 R", urbanRural: "R", disco: null }
+
+parseElectricityRef('0400012345678');
+// { type: "k-electric", digits: "0400012345678", formatted: "0400012345678", urbanRural: null, disco: "K-Electric" }
+
+validateElectricityRef('12345'); // false
+```
+
+Spaces, dashes and dots are ignored, and Urdu digits are accepted. `disco` is `null` for DISCO bills: no official source maps reference or customer ID digits to a distribution company, so the library does not guess. No utility publishes a check digit, so only the format is checked; a well-formed number may still not exist.
+
+### validateGasConsumerNumber()
+
+```ts
+validateGasConsumerNumber('12345678901', 'SNGPL'); // true (11 digits)
+validateGasConsumerNumber('1234567890', 'SSGC'); // true (10 digits)
+```
+
+Sources are in [DATA.md](DATA.md#electricity-and-gas-bill-numbers).
+
+---
+
 ## Passports & Vehicle Plates
 
 ### validatePassport()

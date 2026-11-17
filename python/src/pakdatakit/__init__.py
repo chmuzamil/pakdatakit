@@ -3,13 +3,21 @@
 CNIC, phone, networks, WhatsApp, IBAN, postal codes, geography, address
 parsing, Roman Urdu, Hijri dates, holidays, currency formatting, amounts in
 words, tax numbers, sales tax, landlines, Raast QR codes, and passport and vehicle
-registration number formats.
+registration number formats, and electricity and gas bill numbers.
 
 A Python port of the ``pakdatakit`` npm package: it ships the same datasets and
 is tested against shared test vectors, so both give identical results.
 """
 
 from .address import ParsedAddress, format_address, parse_address
+from .bills import (
+    ElectricityRef,
+    ElectricityRefType,
+    GasCompany,
+    parse_electricity_ref,
+    validate_electricity_ref,
+    validate_gas_consumer_number,
+)
 from .cnic import CNICInfo, get_cnic_info, validate_cnic
 from .data_version import DATA_VERSION, data_version
 from .format import format_lakh, format_pkr
@@ -181,6 +189,13 @@ __all__ = [
     "VehiclePlate",
     "parse_vehicle_plate",
     "validate_vehicle_plate",
+    # bills
+    "ElectricityRef",
+    "ElectricityRefType",
+    "GasCompany",
+    "parse_electricity_ref",
+    "validate_electricity_ref",
+    "validate_gas_consumer_number",
     # numbers
     "NumberInfo",
     "analyze_number",

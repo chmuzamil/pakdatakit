@@ -135,4 +135,12 @@ export {
   type SalesTaxAmounts,
   type SalesTaxOptions,
 } from './salestax.js';
+export {
+  parseElectricityRef,
+  validateElectricityRef,
+  validateGasConsumerNumber,
+  type ElectricityRef,
+  type ElectricityRefType,
+  type GasCompany,
+} from './bills.js';
 export { dataVersion } from './data-version.js';

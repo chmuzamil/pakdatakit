@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using PakDataKit.Internal;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -345,6 +346,23 @@ public sealed class VectorTests(ITestOutputHelper output)
         };
     }
 
+    /// <summary>
+    /// TypeScript upper-cases the company name, so "sngpl" is SNGPL. Any other
+    /// string ("OGDCL", "__proto__") is an unknown company, for which TypeScript
+    /// returns false: it maps to an undefined enum value, which the .NET method
+    /// also rejects with false.
+    /// </summary>
+    private static GasCompany Gas(object? value) => value switch
+    {
+        string s => Js.ToUpper(s) switch
+        {
+            "SNGPL" => GasCompany.Sngpl,
+            "SSGC" => GasCompany.Ssgc,
+            _ => (GasCompany)(-1),
+        },
+        _ => throw new Unrepresentable($"{Describe(value)} is not a GasCompany"),
+    };
+
     private static SalesTaxKind Kind(object? value, string? option = null) => value switch
     {
         "goods" => SalesTaxKind.Goods,
@@ -550,6 +568,9 @@ public sealed class VectorTests(ITestOutputHelper output)
             });
         },
         ["splitInclusive"] = (a, _) => SalesTax.SplitInclusive(Number(a[0]), Number(a[1])),
+        ["parseElectricityRef"] = One(Bills.ParseElectricityRef),
+        ["validateElectricityRef"] = One(v => Bills.ValidateElectricityRef(v)),
+        ["validateGasConsumerNumber"] = (a, _) => Bills.ValidateGasConsumerNumber(Str(a[0]), Gas(a[1])),
     };
 
     private static string FindVectorsDir()

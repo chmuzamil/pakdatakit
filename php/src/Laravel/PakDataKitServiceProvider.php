@@ -24,6 +24,7 @@ final class PakDataKitServiceProvider extends ServiceProvider
         'pk_landline' => [\PakDataKit\Numbers::class, 'validateLandline'],
         'pk_passport' => [\PakDataKit\Passport::class, 'validate'],
         'pk_vehicle_plate' => [\PakDataKit\VehiclePlate::class, 'validate'],
+        'pk_electricity_ref' => [\PakDataKit\Bills::class, 'validateElectricityRef'],
         'pk_cod_phone' => [self::class, 'isCodPhone'],
     ];
 

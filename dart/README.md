@@ -3,8 +3,8 @@
 Utilities for Pakistani data: CNIC, mobile numbers and networks, WhatsApp
 links, IBAN and banks, postal codes, cities and districts, address parsing,
 Roman Urdu, Hijri dates, public holidays, rupee formatting, amounts in words,
-NTN/STRN, sales tax, landlines, Raast QR codes, and form-field helpers that format as the
-user types.
+NTN/STRN, sales tax, landlines, electricity and gas bill numbers, Raast QR
+codes, and form-field helpers that format as the user types.
 
 This is the Dart port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
 It ships **the same datasets** and is tested against **the same 12,000+ test
@@ -73,6 +73,10 @@ getSalesTaxRate(kind: SalesTaxKind.goods)?.rate; // 18 (today)
 calculateSalesTax(1000, rate: 18)?.gross;    // 1180
 splitInclusive(99.99, 18)?.net;              // 84.74
 
+parseElectricityRef('02-12624-0045901 R')?.formatted; // '02 12624 0045901 R'
+parseElectricityRef('0400012345678')?.disco; // 'K-Electric'
+validateGasConsumerNumber('12345678901', 'SNGPL'); // true
+
 formatCNICInput('3520212');                  // '35202-12'
 checkPhoneInput('0300 12');                  // InputState.incomplete
 ```
@@ -84,7 +88,7 @@ import 'package:pakdatakit/cnic.dart';
 import 'package:pakdatakit/raast.dart';
 ```
 
-Available: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`,
+Available: `address`, `bills`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`,
 `input`, `networks`, `numbers`, `phone`, `postal`, `quality`, `raast`,
 `salestax`, `tax`, `text`, `whatsapp` and `words`.
 
@@ -140,6 +144,17 @@ In Dart:
   to today. Amounts are rounded half up to the paisa from the number as
   written (`1.005` is Rs 1.01), computed exactly with `BigInt` on every
   platform. They never throw.
+- **Utility bills:** `parseElectricityRef(input)` returns an
+  `ElectricityRef` (`type`, an `ElectricityRefType`: `reference`,
+  `customerId` (`'customer-id'`) or `kElectric` (`'k-electric'`); `digits`;
+  `formatted`, e.g. `'02 12624 0045901 R'`; `urbanRural`, `'U'`, `'R'` or
+  `null`; `disco`, `'K-Electric'` or `null`) or `null`;
+  `validateElectricityRef(input)` is `true` when it parses.
+  `validateGasConsumerNumber(input, company)` takes the company as a string,
+  `'SNGPL'` (11 digits) or `'SSGC'` (10 digits) in any case, e.g.
+  `GasCompany.sngpl.value`; any other company gives `false`. Spaces, dashes,
+  dots and Urdu digits are accepted. Only the format is checked. They never
+  throw.
 - **An `ArgumentError` where the npm package throws a `RangeError`**, e.g.
   `formatPKR(double.nan)` or a Raast QR with an amount but no expiry.
 - **Dates are local `DateTime`s**; only the calendar date (or, for Raast

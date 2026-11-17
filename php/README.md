@@ -1,10 +1,10 @@
 # PakDataKit for PHP and Laravel
 
 Utilities for Pakistani data: CNIC, mobile numbers and networks, landlines,
-IBAN and banks, NTN/STRN, passport and vehicle numbers, postal codes, cities
-and districts, WhatsApp links, rupee formatting, amounts in words, Roman Urdu,
-Hijri dates, public holidays, address parsing, as-you-type form helpers and
-Raast QR codes. Includes a Laravel bridge: validation rules, rule objects and
+IBAN and banks, NTN/STRN, passport and vehicle numbers, electricity and gas
+bill numbers, postal codes, cities and districts, WhatsApp links, rupee
+formatting, amounts in words, Roman Urdu, Hijri dates, public holidays, address
+parsing, as-you-type form helpers and Raast QR codes. Includes a Laravel bridge: validation rules, rule objects and
 Eloquent casts, with English and Urdu messages.
 
 This is the PHP port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
@@ -78,6 +78,8 @@ package; call `->toArray()` for an array.
 | `analyzeNTN`, `validateNTN`, `validateSTRN`            | `Tax::analyzeNtn`, `Tax::validateNtn`, `Tax::validateStrn`                 |
 | `validatePassport`                                     | `Passport::validate`                                                       |
 | `parseVehiclePlate`, `validateVehiclePlate`            | `VehiclePlate::parse`, `VehiclePlate::validate`                            |
+| `parseElectricityRef`, `validateElectricityRef`        | `Bills::parseElectricityRef`, `Bills::validateElectricityRef`              |
+| `validateGasConsumerNumber`                            | `Bills::validateGasConsumerNumber`                                         |
 | `getCityByPostalCode`, `getPostalCode`, …              | `Postal::getCity`, `Postal::getCode`, `Postal::getCodes`, `Postal::search` |
 | `getPostOffice`, `searchPostOffices`                   | `Postal::getPostOffice`, `Postal::searchPostOffices`                       |
 | `getProvince`, `searchCities`, `searchDistricts`, …    | `Geo::getProvince`, `Geo::searchCities`, `Geo::searchDistricts`, …         |
@@ -110,6 +112,34 @@ optional province for names shared by several districts.
 `microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
 `BankInfo::$active` is `false` for a bank that merged into another or is no
 longer operating (SME Bank, `SMES`).
+
+### Utility bills
+
+```php
+use PakDataKit\Bills;
+
+Bills::parseElectricityRef('02-12624-0045901 R');
+// ElectricityRef { type: 'reference', digits: '02126240045901', formatted: '02 12624 0045901 R', urbanRural: 'R', disco: null }
+Bills::parseElectricityRef('0400012345678');
+// ElectricityRef { type: 'k-electric', digits: '0400012345678', formatted: '0400012345678', urbanRural: null, disco: 'K-Electric' }
+Bills::validateElectricityRef('12345');                       // false
+
+Bills::validateGasConsumerNumber('12345678901', 'SNGPL');     // true (11 digits)
+Bills::validateGasConsumerNumber('1234567890', Bills::SSGC);  // true (10 digits)
+```
+
+`Bills::parseElectricityRef()` reads the identifiers printed on electricity
+bills, in the formats the utilities' own bill pages ask for. `type` is
+`reference` (a DISCO reference number: 14 digits, optionally followed by `U`
+or `R`), `customer-id` (a DISCO customer ID: 10 digits, 11 for LESCO) or
+`k-electric` (a K-Electric account number: 13 digits starting `04000`), also
+`Bills::REFERENCE`, `Bills::CUSTOMER_ID` and `Bills::K_ELECTRIC`. Spaces,
+dashes and dots are ignored, and Urdu digits are accepted. `disco` is `null`
+for DISCO bills: no official source maps the digits to a distribution
+company. `Bills::validateGasConsumerNumber()` takes `SNGPL` or `SSGC` in any
+case; any other company returns `false`. No utility publishes a check digit,
+so only the format is checked; a well-formed number may still not exist. The
+`pk_electricity_ref` Laravel rule uses `Bills::validateElectricityRef()`.
 
 ### Delivery quality
 
@@ -199,9 +229,10 @@ $request->validate([
 ```
 
 Rules: `pk_cnic`, `pk_phone`, `pk_iban`, `pk_ntn`, `pk_strn`, `pk_landline`,
-`pk_passport`, `pk_vehicle_plate` and `pk_cod_phone` (a mobile number a
-courier can call: no `Quality::phoneRiskSignals()` flags). As with Laravel's
-own rules, empty values are skipped unless the field is `required`. Values
+`pk_passport`, `pk_vehicle_plate`, `pk_electricity_ref` (an electricity bill
+reference number, customer ID or K-Electric account number) and
+`pk_cod_phone` (a mobile number a courier can call: no
+`Quality::phoneRiskSignals()` flags). As with Laravel's own rules, empty values are skipped unless the field is `required`. Values
 that are not strings fail.
 
 The same checks are available as rule objects:
@@ -216,7 +247,8 @@ $request->validate([
 ```
 
 `Rules\Cnic`, `Rules\Phone`, `Rules\Iban`, `Rules\Ntn`, `Rules\Strn`,
-`Rules\Landline`, `Rules\Passport`, `Rules\VehiclePlate` and `Rules\CodPhone`.
+`Rules\Landline`, `Rules\Passport`, `Rules\VehiclePlate`,
+`Rules\ElectricityRef` and `Rules\CodPhone`.
 
 ### Messages
 

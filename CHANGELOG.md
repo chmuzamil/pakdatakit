@@ -17,6 +17,12 @@
   Sindh, Khyber Pakhtunkhwa, Balochistan and Islamabad Capital Territory, each
   with its law and official source (new dataset `sales-tax-rates.json`).
   Amounts are rounded half up to the paisa.
+- `parseElectricityRef()`, `validateElectricityRef()` and
+  `validateGasConsumerNumber()` (`pakdatakit/bills`): DISCO 14-digit reference
+  numbers (with U/R), DISCO customer IDs, K-Electric account numbers, and SNGPL
+  and SSGC consumer numbers, in the formats the utilities' bill pages ask for.
+  `disco` is `null` for DISCO bills, as no official source maps the digits to a
+  company.
 
 ### Changed
 

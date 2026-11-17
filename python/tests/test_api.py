@@ -224,6 +224,30 @@ def test_quality_never_raises() -> None:
     assert pdk.phone_risk_signals(None) == ["invalid"]  # type: ignore[arg-type]
 
 
+def test_bills() -> None:
+    ref = pdk.parse_electricity_ref("02-12624-0045901 r")
+    assert ref == pdk.ElectricityRef("reference", "02126240045901", "02 12624 0045901 R", "R", None)
+    assert pdk.parse_electricity_ref("۰۴۰۰۰۱۲۳۴۵۶۷۸") == pdk.ElectricityRef(
+        "k-electric", "0400012345678", "0400012345678", None, "K-Electric"
+    )
+    assert pdk.parse_electricity_ref("12345678901").type == "customer-id"  # type: ignore[union-attr]
+    assert pdk.parse_electricity_ref("1234567890U") is None
+    assert not pdk.validate_electricity_ref("12345")
+    assert pdk.validate_gas_consumer_number("123-4567-8901", "sngpl")
+    assert pdk.validate_gas_consumer_number("1234567890", "SSGC")
+    assert not pdk.validate_gas_consumer_number("1234567890", "SNGPL")
+    assert not pdk.validate_gas_consumer_number("1234567890", "__proto__")  # type: ignore[arg-type]
+
+
+def test_bills_never_raise() -> None:
+    for value in HOSTILE_INPUTS:
+        result = pdk.parse_electricity_ref(value)  # type: ignore[arg-type]
+        assert result is None or isinstance(result, pdk.ElectricityRef)
+        assert isinstance(pdk.validate_electricity_ref(value), bool)  # type: ignore[arg-type]
+        for company in HOSTILE_INPUTS + ["SNGPL", "ssgc", "constructor"]:
+            assert isinstance(pdk.validate_gas_consumer_number(value, company), bool)  # type: ignore[arg-type]
+
+
 def test_sales_tax() -> None:
     rate = pdk.get_sales_tax_rate(kind="services", province="Sindh", date="2024-06-30")
     assert rate is not None and rate.rate == 13 and rate.authority == "SRB"

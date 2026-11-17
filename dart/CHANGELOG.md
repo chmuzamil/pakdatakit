@@ -18,6 +18,13 @@
   out with `inclusive: true`; `splitInclusive()` splits a tax-inclusive amount.
   Both return `SalesTaxAmounts`, rounded half up to the paisa, exactly on
   every platform. Also as `package:pakdatakit/salestax.dart`.
+- `parseElectricityRef()` and `validateElectricityRef()`: a DISCO (WAPDA)
+  14-digit reference number with optional U/R, a DISCO customer ID (10 or 11
+  digits) or a 13-digit K-Electric account number, as an `ElectricityRef`
+  (`type` as an `ElectricityRefType`, `digits`, `formatted`, `urbanRural`,
+  `disco`). `validateGasConsumerNumber()` checks an SNGPL (11-digit) or SSGC
+  (10-digit) consumer number (`GasCompany`). Format checks only; no utility
+  publishes a check digit. Also as `package:pakdatakit/bills.dart`.
 
 ### Changed
 

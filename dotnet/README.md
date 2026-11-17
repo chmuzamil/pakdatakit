@@ -64,6 +64,11 @@ SalesTax.Calculate(1150, new SalesTaxOptions { Province = "Sindh", Date = "2026-
 // Net = 1000, Tax = 150, Gross = 1150, Rate = 15
 SalesTax.SplitInclusive(99.99, 18);          // Net = 84.74, Tax = 15.25, Gross = 99.99, Rate = 18
 
+Bills.ParseElectricityRef("02-12624-0045901 R");
+// Type = Reference, Digits = 02126240045901, Formatted = 02 12624 0045901 R, UrbanRural = R, Disco = null
+Bills.ValidateElectricityRef("0400012345678");                  // true (K-Electric)
+Bills.ValidateGasConsumerNumber("12345678901", GasCompany.Sngpl); // true (11 digits)
+
 Hijri.Format(new DateOnly(2026, 3, 4));      // "15 Ramadan 1447"
 Holidays.IsHoliday(new DateOnly(2026, 8, 14)); // true
 
@@ -93,6 +98,7 @@ Unicode (unpaired surrogates, noncharacters).
 | `Parse`, `Get*`, `Analyze*` returning one value (e.g. `VehiclePlate.Parse`, `Iban.GetBank`, `Tax.AnalyzeNtn`) | `null` |
 | `Search*`, `Get*` returning a list (e.g. `Geo.SearchCities`, `Holidays.GetHolidaysOn(string)`) | an empty list |
 | `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
+| `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`, `Bills.ValidateGasConsumerNumber` | `null` / `false` (also for an undefined `GasCompany` value) |
 | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive` | `null` (also for NaN, infinite, negative or too large amounts and rates, and `null` options) |
 | `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
 
@@ -146,6 +152,8 @@ strings to every public method that takes a string and checks this contract.
 | `formatPKR`, `formatLakh`                              | `Currency.FormatPkr`, `Currency.FormatLakh`                             |
 | `numberToWords`, `amountInWords`                       | `Words.NumberToWords`, `Words.AmountInWords`                            |
 | `getSalesTaxRate`, `calculateSalesTax`, `splitInclusive` | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive`   |
+| `parseElectricityRef`, `validateElectricityRef`        | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`            |
+| `validateGasConsumerNumber`                            | `Bills.ValidateGasConsumerNumber`                                       |
 | `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text.Normalize`, `Text.NormalizeRomanUrdu`, `Text.ToUrduDigits`        |
 | `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri.ToHijri`, `Hijri.FromHijri`, `Hijri.Format`, `Hijri.IsRamadan`   |
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays.GetHolidays`, `Holidays.GetHolidaysOn`, `Holidays.IsHoliday`  |
@@ -253,6 +261,17 @@ FluentValidation 11 and 12.
   an inclusive amount the value is rounded and the tax is the rest, so
   `Net + Tax` always equals `Gross`. Amounts from 0 to one trillion rupees and
   rates from 0 to 100 with at most two decimals are accepted.
+- **Utility bills.** `Bills.ParseElectricityRef` reads a DISCO (WAPDA)
+  reference number (14 digits, optional `U` or `R`), a DISCO customer ID (10
+  digits, 11 for LESCO) or a K-Electric account number (13 digits starting
+  `04000`), as an `ElectricityRef` (`Type` is an `ElectricityRefType`:
+  `Reference`, `CustomerId` or `KElectric`; `customer-id` and `k-electric` in
+  the npm package). A reference is formatted 2 + 5 + 7 digits, plus the
+  letter. `Disco` is `"K-Electric"` for a K-Electric account and `null`
+  otherwise: no official source maps the digits to a distribution company.
+  `Bills.ValidateGasConsumerNumber` takes a `GasCompany` (`Sngpl`, 11 digits;
+  `Ssgc`, 10 digits). Spaces, dashes and dots are ignored and Urdu digits are
+  accepted. No utility publishes a check digit, so only the format is checked.
 - **Sorting** of search results follows the same order as the npm package for
   the names in the datasets.
 

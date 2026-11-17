@@ -40,6 +40,16 @@
         "default": "./dist/address.cjs"
       }
     },
+    "./bills": {
+      "import": {
+        "types": "./dist/bills.d.ts",
+        "default": "./dist/bills.js"
+      },
+      "require": {
+        "types": "./dist/bills.d.cts",
+        "default": "./dist/bills.cjs"
+      }
+    },
     "./cnic": {
       "import": {
         "types": "./dist/cnic.d.ts",

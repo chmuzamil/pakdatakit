@@ -1,5 +1,6 @@
 // Idiomatic-API tests. These run on every platform (`dart test -p node`
 // checks the JavaScript semantics used by Flutter web).
+import 'package:pakdatakit/bills.dart' as bills;
 import 'package:pakdatakit/cnic.dart' as cnic;
 import 'package:pakdatakit/pakdatakit.dart';
 import 'package:pakdatakit/phone.dart' as phone;
@@ -293,6 +294,70 @@ void main() {
       expect(calculateSalesTax(100), isNull);
     });
 
+    test('utility bills', () {
+      expect(
+        parseElectricityRef('02-12624-0045901 r'),
+        const ElectricityRef(
+          type: ElectricityRefType.reference,
+          digits: '02126240045901',
+          formatted: '02 12624 0045901 R',
+          urbanRural: 'R',
+          disco: null,
+        ),
+      );
+      expect(parseElectricityRef('۰۴۰۰۰۱۲۳۴۵۶۷۸')?.toJson(), {
+        'type': 'k-electric',
+        'digits': '0400012345678',
+        'formatted': '0400012345678',
+        'urbanRural': null,
+        'disco': 'K-Electric',
+      });
+      expect(
+        parseElectricityRef('12345 67890')?.type,
+        ElectricityRefType.customerId,
+      );
+      expect(ElectricityRefType.customerId.value, 'customer-id');
+      expect(validateElectricityRef('1234567890 U'), isFalse);
+      expect(validateElectricityRef('12345'), isFalse);
+      expect(validateGasConsumerNumber('12345678901', 'SNGPL'), isTrue);
+      expect(validateGasConsumerNumber('1234567890', 'ssgc'), isTrue);
+      expect(
+        validateGasConsumerNumber('1234567890', GasCompany.ssgc.value),
+        isTrue,
+      );
+      expect(validateGasConsumerNumber('1234567890', 'SNGPL'), isFalse);
+    });
+
+    test('utility bill functions never throw', () {
+      final strings = [
+        '',
+        ' ',
+        '\uD800',
+        '\uDC00 near \uD83D',
+        'constructor',
+        '__proto__',
+        'toString',
+        'ß' * 14,
+        'ﬃ',
+        '۰۴۰۰۰۱۲۳۴۵۶۷۸',
+        '1' * 100000,
+        '\u0000\u202E\uFEFF',
+        '02126240045901\uD800',
+      ];
+      for (final input in strings) {
+        expect(() => parseElectricityRef(input), returnsNormally);
+        expect(() => validateElectricityRef(input), returnsNormally);
+        for (final company in [...strings, 'SNGPL', 'sSgC']) {
+          expect(
+            () => validateGasConsumerNumber(input, company),
+            returnsNormally,
+          );
+        }
+      }
+      expect(validateGasConsumerNumber('12345678901', '__proto__'), isFalse);
+      expect(validateGasConsumerNumber('12345678901', 'constructor'), isFalse);
+    });
+
     test('Raast QR round trip', () {
       final payload = createRaastP2PQr(
         iban: 'PK36 SCBL 0000 0011 2345 6702',
@@ -331,5 +396,6 @@ void main() {
     expect(phone.getPhonePrefix('+923451234567'), '0345');
     expect(dataVersion, '2026-11-17');
     expect(salestax.splitInclusive(1180, 18)?.net, 1000);
+    expect(bills.validateElectricityRef('0400012345678'), isTrue);
   });
 }

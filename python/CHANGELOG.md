@@ -15,6 +15,13 @@
   to an amount (or splits it out with `inclusive=True`) and
   `split_inclusive()` splits a tax-inclusive amount, rounding half up to the
   paisa exactly, as `SalesTaxAmounts(net, tax, gross, rate)`.
+- `parse_electricity_ref()` / `validate_electricity_ref()`: reads an
+  electricity bill identifier, a DISCO 14-digit reference number (with an
+  optional `U`/`R`), a DISCO customer ID (10 digits, 11 for LESCO) or a
+  K-Electric 13-digit account number, as `ElectricityRef(type, digits,
+formatted, urban_rural, disco)`. `validate_gas_consumer_number()` checks an
+  SNGPL (11 digits) or SSGC (10 digits) consumer number. Formats only; no
+  check digit is published.
 
 ### Changed
 

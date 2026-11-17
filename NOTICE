@@ -1,0 +1,17 @@
+PakDataKit
+https://github.com/chmuzamil/pakdatakit
+
+Origin
+- The first commit to the repository, bdc426a ("feat: initial release of
+  PakDataKit v0.1"), was made by Muzamil Chaudhery on 29 May 2026 at
+  20:52:18 UTC (git history).
+- The first release on npm, pakdatakit 1.0.0, was published on 29 May 2026
+  at 20:50:45 UTC (npm registry publish time).
+
+Licence and reuse
+PakDataKit is released under the MIT licence (see LICENSE). This covers the
+code of every port, the datasets in data/ and the shared test vectors in
+test-vectors/. Anyone who copies or adapts any substantial part of it, in
+any language, must keep this copyright notice and the licence text:
+
+  Copyright (c) 2026 PakDataKit Contributors

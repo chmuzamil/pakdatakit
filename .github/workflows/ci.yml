@@ -26,6 +26,10 @@ jobs:
 
       - run: npm run format:check
 
+      # Versions, repository URL, licence and author agree across the npm,
+      # PyPI, pub.dev, NuGet and Packagist manifests (scripts/check-metadata.mjs).
+      - run: npm run check:metadata
+
       - run: npm run lint
 
       - run: npm run typecheck

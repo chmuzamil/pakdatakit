@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Package metadata: the description, keywords and homepage now follow the same
+  style in every registry, and CI checks that the version, repository URL,
+  licence and author agree across ports (`npm run check:metadata`).
+- `bin` and `repository.url` in `package.json` are written in the form npm
+  publishes, so `npm publish` no longer warns that it corrected them.
+- New `NOTICE` file (included in the npm package) and an "Origin and
+  attribution" section in the README.
+- `test-vectors/README.md` documents the shared test vectors;
+  `npm run test:ports` regenerates them and runs every port against them.
+
 ## 2.3.0
 
 ### Breaking for TypeScript exhaustive switches

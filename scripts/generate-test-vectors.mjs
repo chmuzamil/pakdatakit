@@ -1782,6 +1782,30 @@ for (const [module, list] of [...vectors.entries()].sort(([a], [b]) =>
   total += list.length;
   console.log(`${module.padEnd(14)} ${list.length}`);
 }
+
+// Keep the count in test-vectors/README.md current.
+const readmePath = join(outDir, 'README.md');
+const n = (value) => value.toLocaleString('en-US');
+const countBlock = [
+  '<!-- vectors:count -->',
+  '',
+  `${n(total)} vectors in ${vectors.size} files:`,
+  '',
+  ...[...vectors.keys()]
+    .sort()
+    .map((module) => `- \`${module}.json\`: ${n(vectors.get(module).length)}`),
+  '',
+  '<!-- /vectors:count -->',
+].join('\n');
+const readme = readFileSync(readmePath, 'utf8');
+writeFileSync(
+  readmePath,
+  readme.replace(
+    /<!-- vectors:count -->[\s\S]*<!-- \/vectors:count -->/,
+    countBlock,
+  ),
+);
+
 console.log(
   `Copied ${dataFiles.length} data files; wrote ${total} vectors to test-vectors/`,
 );

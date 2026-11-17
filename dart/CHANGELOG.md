@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Package metadata: the description, keywords and homepage now follow the same
+  style in every registry, and CI checks that the version, repository URL,
+  licence and author agree across ports (`npm run check:metadata`).
+
 ## 2.3.0
 
 ### Breaking for exhaustive switches

@@ -222,3 +222,52 @@ def test_quality_never_raises() -> None:
     assert pdk.score_address("").score == 0
     assert pdk.score_address(None).score == 0  # type: ignore[arg-type]
     assert pdk.phone_risk_signals(None) == ["invalid"]  # type: ignore[arg-type]
+
+
+def test_sales_tax() -> None:
+    rate = pdk.get_sales_tax_rate(kind="services", province="Sindh", date="2024-06-30")
+    assert rate is not None and rate.rate == 13 and rate.authority == "SRB"
+    goods = pdk.get_sales_tax_rate(kind="goods", date=dt.date(2026, 11, 18))
+    assert goods is not None and goods.rate == 18 and goods.from_ == "2023-02-23" and goods.to is None
+    assert pdk.get_sales_tax_rate(kind="goods", date=dt.datetime(2026, 11, 18, 23, 59)) == goods
+    assert pdk.get_sales_tax_rate(kind="services", province="ICT") is not None  # today
+    assert pdk.get_sales_tax_rate(kind="goods", province="AJK", date="2026-11-18") is None
+    assert pdk.get_sales_tax_rate(kind="services", date="2026-11-18") is None
+
+    assert pdk.calculate_sales_tax(1000, rate=18) == pdk.SalesTaxAmounts(1000, 180, 1180, 18)
+    assert pdk.calculate_sales_tax(1000, province="Punjab", date="2026-11-18").tax == 160  # type: ignore[union-attr]
+    split = pdk.calculate_sales_tax(1150, province="Sindh", date="2026-11-18", inclusive=True)
+    assert split == pdk.SalesTaxAmounts(1000, 150, 1150, 15)
+    assert pdk.split_inclusive(99.99, 18) == pdk.SalesTaxAmounts(84.74, 15.25, 99.99, 18)
+    assert pdk.calculate_sales_tax(1.005, rate=0).net == 1.01  # type: ignore[union-attr]
+    assert pdk.calculate_sales_tax(1000) is None
+    assert pdk.calculate_sales_tax(1000, rate=16.666) is None
+    assert pdk.calculate_sales_tax(10**12 + 1, rate=18) is None
+
+
+def test_sales_tax_never_raises() -> None:
+    values = HOSTILE_INPUTS + [
+        True,
+        -1,
+        float("nan"),
+        float("inf"),
+        1e300,
+        10**40,
+        1e-7,
+        [],
+        {},
+        dt.date(1, 1, 1),
+        dt.datetime(9999, 12, 31, 23, 59),
+        "goods",
+        "services",
+        "2026-11-18",
+        "Sindh",
+    ]
+    for value in values:
+        for other in values:
+            pdk.get_sales_tax_rate(kind=value, province=other, date="2026-11-18")
+            pdk.get_sales_tax_rate(kind="services", province=value, date=other)
+            pdk.split_inclusive(value, other)
+            pdk.calculate_sales_tax(value, rate=other)
+            pdk.calculate_sales_tax(1000, province=value, kind=other, inclusive=True)
+            pdk.calculate_sales_tax(value, province="Sindh", date=other, inclusive=value)

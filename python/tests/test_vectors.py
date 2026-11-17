@@ -42,7 +42,8 @@ def snake(name: str) -> str:
 
 
 def camel(name: str) -> str:
-    head, *rest = name.split("_")
+    # A trailing underscore avoids a Python keyword (``from_`` is ``from``).
+    head, *rest = name.rstrip("_").split("_")
     return head + "".join(part[:1].upper() + part[1:] for part in rest)
 
 

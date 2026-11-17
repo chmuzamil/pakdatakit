@@ -67,6 +67,7 @@ const OPTIONS_ONLY = new Set([
   'createRaastP2PQr',
   'createMerchantQr',
   'formatAddress',
+  'getSalesTaxRate',
 ]);
 
 /** A date argument: 'YYYY-MM-DD' or 'YYYY-MM-DDTHH:mm[:ss]' (local time). */
@@ -1799,6 +1800,126 @@ each(
     '111-825-888',
   ]),
 );
+
+// Sales tax ------------------------------------------------------------------
+// Every case passes a date, so nothing depends on when vectors are made.
+const taxDates = [
+  '2019-06-30',
+  '2019-07-01',
+  '2022-06-30',
+  '2022-07-01',
+  '2023-02-22',
+  '2023-02-23',
+  '2024-06-30',
+  '2024-07-01',
+  '2026-11-18',
+  '2099-12-31',
+  '2024-02-29',
+  '2023-02-29',
+  '2026-13-01',
+  '2026-1-1',
+  ' 2026-11-18 ',
+  '',
+  'today',
+];
+const taxProvinces = [
+  undefined,
+  'Punjab',
+  'punjab',
+  'Sindh',
+  'SINDH',
+  'Khyber Pakhtunkhwa',
+  'KP',
+  'kpk',
+  'Balochistan',
+  'Baluchistan',
+  'Islamabad Capital Territory',
+  'ICT',
+  'Islamabad',
+  'Azad Jammu and Kashmir',
+  'AJK',
+  'Gilgit-Baltistan',
+  'GB',
+  'Lahore',
+  '',
+  'constructor',
+];
+for (const kind of ['goods', 'services', 'food']) {
+  for (const province of taxProvinces) {
+    for (const date of taxDates) {
+      call('salestax', 'getSalesTaxRate', [], {
+        kind,
+        ...(province === undefined ? {} : { province }),
+        date,
+      });
+    }
+  }
+}
+const taxAmounts = [
+  0,
+  0.01,
+  0.25,
+  1,
+  1.005,
+  1.004,
+  0.125,
+  99.99,
+  100,
+  1000,
+  1234,
+  1180,
+  1150,
+  123456789.99,
+  1e-7,
+  1e12,
+  1e12 + 1,
+  -1,
+  -0.01,
+  NUM('NaN'),
+  NUM('Infinity'),
+];
+const taxRates = [
+  0,
+  1,
+  1.43,
+  5,
+  13,
+  15,
+  16,
+  17,
+  18,
+  19.5,
+  100,
+  100.01,
+  -1,
+  16.666,
+  0.001,
+  NUM('NaN'),
+];
+for (const amount of taxAmounts) {
+  for (const rate of taxRates) {
+    call('salestax', 'calculateSalesTax', [amount], { rate });
+    call('salestax', 'splitInclusive', [amount, rate]);
+  }
+  for (const options of [
+    { province: 'Punjab', date: '2026-11-18' },
+    { province: 'Sindh', date: '2024-06-30' },
+    { province: 'Sindh', date: '2026-11-18', inclusive: true },
+    { province: 'ICT', date: '2022-06-30', inclusive: true },
+    { kind: 'goods', date: '2022-01-01' },
+    { kind: 'goods', date: '2026-11-18', inclusive: true },
+    { kind: 'goods', province: 'AJK', date: '2026-11-18' },
+    { kind: 'services', date: '2026-11-18' },
+    { province: 'Mars', date: '2026-11-18' },
+    { province: 'Punjab', date: '2019-01-01' },
+    { rate: 18, province: 'Punjab', date: '2026-11-18' },
+    { rate: 18, inclusive: true },
+    { rate: 18, inclusive: false },
+    {},
+  ]) {
+    call('salestax', 'calculateSalesTax', [amount], options);
+  }
+}
 
 // Data version --------------------------------------------------------------
 vectors.set('data-version', [

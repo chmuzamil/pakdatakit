@@ -11,6 +11,7 @@
   invalid, landline and service numbers, and repeated, sequential and
   placeholder numbers. New Laravel rule `pk_cod_phone` (and `Rules\CodPhone`)
   passes only when there are no flags, with English and Urdu messages.
+- `SalesTax::getRate()`, `SalesTax::calculate()` and `SalesTax::splitInclusive()`: standard sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) from 1 July 2019, with the law and source of each, and exact sales tax amounts in whole paisa (`SalesTaxRate`, `SalesTaxAmounts`). They return `null` for any invalid input and never throw.
 
 ## 2.3.0
 

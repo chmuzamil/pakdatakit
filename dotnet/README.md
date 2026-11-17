@@ -58,6 +58,12 @@ Currency.FormatPkr(150000);                  // "Rs. 150,000"
 Currency.FormatLakh(2500000);                // "25 Lakh"
 Words.AmountInWords(125000, cheque: true);   // "Rupees One Lakh Twenty-Five Thousand Only"
 
+SalesTax.GetRate(new SalesTaxRateQuery { Kind = SalesTaxKind.Services, Province = "Sindh", Date = "2024-06-30" })?.Rate; // 13
+SalesTax.Calculate(1000, new SalesTaxOptions { Rate = 18 });          // Net = 1000, Tax = 180, Gross = 1180, Rate = 18
+SalesTax.Calculate(1150, new SalesTaxOptions { Province = "Sindh", Date = "2026-11-18", Inclusive = true });
+// Net = 1000, Tax = 150, Gross = 1150, Rate = 15
+SalesTax.SplitInclusive(99.99, 18);          // Net = 84.74, Tax = 15.25, Gross = 99.99, Rate = 18
+
 Hijri.Format(new DateOnly(2026, 3, 4));      // "15 Ramadan 1447"
 Holidays.IsHoliday(new DateOnly(2026, 8, 14)); // true
 
@@ -87,6 +93,7 @@ Unicode (unpaired surrogates, noncharacters).
 | `Parse`, `Get*`, `Analyze*` returning one value (e.g. `VehiclePlate.Parse`, `Iban.GetBank`, `Tax.AnalyzeNtn`) | `null` |
 | `Search*`, `Get*` returning a list (e.g. `Geo.SearchCities`, `Holidays.GetHolidaysOn(string)`) | an empty list |
 | `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
+| `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive` | `null` (also for NaN, infinite, negative or too large amounts and rates, and `null` options) |
 | `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
 
 Every regular expression has a one-second timeout; if one is ever hit, the
@@ -138,6 +145,7 @@ strings to every public method that takes a string and checks this contract.
 | `createWhatsAppLink`                                   | `WhatsApp.CreateLink`                                                   |
 | `formatPKR`, `formatLakh`                              | `Currency.FormatPkr`, `Currency.FormatLakh`                             |
 | `numberToWords`, `amountInWords`                       | `Words.NumberToWords`, `Words.AmountInWords`                            |
+| `getSalesTaxRate`, `calculateSalesTax`, `splitInclusive` | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive`   |
 | `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text.Normalize`, `Text.NormalizeRomanUrdu`, `Text.ToUrduDigits`        |
 | `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri.ToHijri`, `Hijri.FromHijri`, `Hijri.Format`, `Hijri.IsRamadan`   |
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays.GetHolidays`, `Holidays.GetHolidaysOn`, `Holidays.IsHoliday`  |
@@ -229,6 +237,22 @@ FluentValidation 11 and 12.
   `RepeatedDigits`, `SequentialDigits`, `TestNumber`; `not-mobile` and so on
   in the npm package). Both are heuristics on the text alone: they say how
   much an address or number tells a courier, not whether it exists.
+- **Sales tax.** `SalesTax.GetRate` returns the standard rate (a
+  `SalesTaxRate` with its `Authority`, `Law` and `Source`) for
+  `SalesTaxKind.Goods` (federal, FBR) or `SalesTaxKind.Services` in Punjab,
+  Sindh, Khyber Pakhtunkhwa (`KP`, `KPK`), Balochistan or Islamabad Capital
+  Territory (`ICT`, `Islamabad`), from 1 July 2019. Reduced, higher and sector
+  rates are not included. Give the date as `Date` (`YYYY-MM-DD`) or `OnDate`
+  (a `DateOnly`); it defaults to today's local date. It returns `null` for a
+  date before 1 July 2019, an invalid date, an unknown province, services
+  without a province, or goods in Azad Jammu and Kashmir or Gilgit-Baltistan.
+  `SalesTax.Calculate` takes a `SalesTaxOptions` with a `Rate`, or a
+  `Province` (and `Kind`, default services) to look one up; `Inclusive = true`
+  splits the tax out. Amounts are rounded half up to the paisa in exact
+  integer arithmetic, reading the number as written (`1.005` is Rs 1.01); for
+  an inclusive amount the value is rounded and the tax is the rest, so
+  `Net + Tax` always equals `Gross`. Amounts from 0 to one trillion rupees and
+  rates from 0 to 100 with at most two decimals are accepted.
 - **Sorting** of search results follows the same order as the npm package for
   the names in the datasets.
 

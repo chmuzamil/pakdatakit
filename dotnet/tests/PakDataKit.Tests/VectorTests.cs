@@ -345,6 +345,13 @@ public sealed class VectorTests(ITestOutputHelper output)
         };
     }
 
+    private static SalesTaxKind Kind(object? value, string? option = null) => value switch
+    {
+        "goods" => SalesTaxKind.Goods,
+        "services" => SalesTaxKind.Services,
+        _ => throw new Unrepresentable($"{Describe(value)} is not a SalesTaxKind", option),
+    };
+
     private delegate object? Call(List<object?> a, Dictionary<string, object?> k);
 
     private static Call One(Func<string, object?> fn) => (a, _) => fn(Str(a[0]));
@@ -377,6 +384,8 @@ public sealed class VectorTests(ITestOutputHelper output)
         ],
         // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
         ["formatAddress"] = ["raw", "street", "area", "city", "district", "province", "postalCode", "warnings"],
+        ["getSalesTaxRate"] = ["kind", "province", "date"],
+        ["calculateSalesTax"] = ["rate", "province", "kind", "date", "inclusive"],
     };
 
     private static readonly Dictionary<string, Call> Functions = new()
@@ -516,6 +525,31 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["checkIBANInput"] = One(v => Input.CheckIban(v)),
         ["scoreAddress"] = One(Quality.ScoreAddress),
         ["phoneRiskSignals"] = One(Quality.PhoneRiskSignals),
+        ["getSalesTaxRate"] = (_, k) =>
+        {
+            var date = k.GetValueOrDefault("date");
+            return SalesTax.GetRate(new SalesTaxRateQuery
+            {
+                Kind = Kind(k.GetValueOrDefault("kind")),
+                Province = OptStr(k.GetValueOrDefault("province")),
+                Date = date as string ?? (date is null or DateTime ? null : Str(date)),
+                OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,
+            });
+        },
+        ["calculateSalesTax"] = (a, k) =>
+        {
+            var date = k.GetValueOrDefault("date");
+            return SalesTax.Calculate(Number(a[0]), new SalesTaxOptions
+            {
+                Rate = OptNumber(k.GetValueOrDefault("rate")),
+                Province = OptStr(k.GetValueOrDefault("province")),
+                Kind = k.GetValueOrDefault("kind") is { } kind ? Kind(kind, "kind") : null,
+                Date = date as string ?? (date is null or DateTime ? null : Str(date)),
+                OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,
+                Inclusive = OptBool(k.GetValueOrDefault("inclusive")) ?? false,
+            });
+        },
+        ["splitInclusive"] = (a, _) => SalesTax.SplitInclusive(Number(a[0]), Number(a[1])),
     };
 
     private static string FindVectorsDir()

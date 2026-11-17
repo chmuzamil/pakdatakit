@@ -3,6 +3,7 @@
 import 'package:pakdatakit/cnic.dart' as cnic;
 import 'package:pakdatakit/pakdatakit.dart';
 import 'package:pakdatakit/phone.dart' as phone;
+import 'package:pakdatakit/salestax.dart' as salestax;
 import 'package:test/test.dart';
 
 void main() {
@@ -168,6 +169,130 @@ void main() {
       }
     });
 
+    test('sales tax', () {
+      expect(
+        getSalesTaxRate(kind: SalesTaxKind.goods, date: '2026-11-18')?.rate,
+        18,
+      );
+      expect(
+        getSalesTaxRate(
+          kind: SalesTaxKind.services,
+          province: 'Sindh',
+          date: '2024-06-30',
+        )?.rate,
+        13,
+      );
+      expect(
+        getSalesTaxRate(kind: SalesTaxKind.goods, date: DateTime(2020, 1, 15))
+            ?.rate,
+        17,
+      );
+      expect(getSalesTaxRate(kind: SalesTaxKind.goods)?.rate, 18);
+      expect(
+        getSalesTaxRate(kind: SalesTaxKind.goods, date: '2026-02-30'),
+        isNull,
+      );
+      expect(SalesTaxKind.services.value, 'services');
+      expect(
+        calculateSalesTax(1000, rate: 18),
+        const SalesTaxAmounts(net: 1000, tax: 180, gross: 1180, rate: 18),
+      );
+      expect(calculateSalesTax(1234, rate: 18)?.tax, 222.12);
+      expect(calculateSalesTax(0.25, rate: 18)?.tax, 0.05);
+      expect(calculateSalesTax(1.005, rate: 0)?.net, 1.01);
+      expect(
+        calculateSalesTax(1000, province: 'Punjab', date: '2026-11-18')?.tax,
+        160,
+      );
+      expect(
+        calculateSalesTax(
+          1150,
+          province: 'Sindh',
+          date: '2026-11-18',
+          inclusive: true,
+        ),
+        const SalesTaxAmounts(net: 1000, tax: 150, gross: 1150, rate: 15),
+      );
+      expect(
+        splitInclusive(99.99, 18),
+        const SalesTaxAmounts(net: 84.74, tax: 15.25, gross: 99.99, rate: 18),
+      );
+      // Exact on every platform: 10^14 paisa x 10^4 is beyond 2^53.
+      expect(
+        splitInclusive(999999999999.99, 0.01)?.net,
+        999900009998.99,
+      );
+      expect(calculateSalesTax(999999999999.99, rate: 99.99)?.tax,
+          999899999999.99);
+    });
+
+    test('sales tax functions never throw', () {
+      final numbers = <num>[
+        0,
+        -1,
+        -0.0,
+        1e-7,
+        5e-324,
+        0.005,
+        1e12,
+        1e12 + 0.01,
+        1e13,
+        double.nan,
+        double.infinity,
+        double.negativeInfinity,
+        double.maxFinite,
+        16.666,
+        100.000001,
+      ];
+      final strings = [
+        '',
+        ' ',
+        '\uD800',
+        '\uDC00 near \uD83D',
+        'constructor',
+        '__proto__',
+        '۲۰۲۶-۱۱-۱۸',
+        '2026-1-1',
+        '0000-00-00',
+        '9999-12-31',
+        'x' * 100000,
+        '\u0000\u202E\uFEFF',
+      ];
+      final dates = <Object?>[
+        null,
+        ...strings,
+        DateTime(-5),
+        DateTime(275000),
+        42,
+        true,
+      ];
+      for (final kind in SalesTaxKind.values) {
+        for (final province in [null, ...strings]) {
+          for (final date in dates) {
+            expect(
+              () => getSalesTaxRate(kind: kind, province: province, date: date),
+              returnsNormally,
+            );
+            expect(
+              () => calculateSalesTax(100,
+                  kind: kind, province: province, date: date),
+              returnsNormally,
+            );
+          }
+        }
+      }
+      for (final amount in numbers) {
+        for (final rate in numbers) {
+          expect(() => splitInclusive(amount, rate), returnsNormally);
+          expect(() => calculateSalesTax(amount, rate: rate), returnsNormally);
+        }
+      }
+      expect(splitInclusive(double.nan, 18), isNull);
+      expect(calculateSalesTax(1e13, rate: 18), isNull);
+      expect(calculateSalesTax(100, rate: 16.666), isNull);
+      expect(calculateSalesTax(100), isNull);
+    });
+
     test('Raast QR round trip', () {
       final payload = createRaastP2PQr(
         iban: 'PK36 SCBL 0000 0011 2345 6702',
@@ -205,5 +330,6 @@ void main() {
     expect(phone.normalizePhoneDigits('0300-1234567'), '923001234567');
     expect(phone.getPhonePrefix('+923451234567'), '0345');
     expect(dataVersion, '2026-11-17');
+    expect(salestax.splitInclusive(1180, 18)?.net, 1000);
   });
 }

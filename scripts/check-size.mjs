@@ -26,6 +26,7 @@ const DATASETS = {
   tehsils: 'sub-tehsil',
   divisions: 'Mekran',
   'area codes': 'Naushero Feroze',
+  'sales tax rates': 'authority:"',
 };
 
 const CASES = [
@@ -76,6 +77,12 @@ const CASES = [
     code: "import { scoreAddress } from 'pakdatakit/quality'; console.log(scoreAddress('House 1, Lahore 54660'));",
     limit: 64 * 1024,
     allowed: ['post offices', 'postal codes'],
+  },
+  {
+    name: "calculateSalesTax from 'pakdatakit/salestax'",
+    code: "import { calculateSalesTax } from 'pakdatakit/salestax'; console.log(calculateSalesTax(1000, { rate: 18 }));",
+    limit: 4 * 1024,
+    allowed: ['sales tax rates'],
   },
   {
     // Every rule of the adapter; zod itself is the app's own dependency.

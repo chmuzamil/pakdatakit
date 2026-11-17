@@ -172,6 +172,13 @@ Map<HolidayId, List<String>>? announced(Object? value) {
   };
 }
 
+SalesTaxKind? salesTaxKind(Object? value) => switch (value) {
+      null => null,
+      'goods' => SalesTaxKind.goods,
+      'services' => SalesTaxKind.services,
+      _ => throw Unrepresentable('$value is not a SalesTaxKind'),
+    };
+
 typedef Call = Object? Function(List<Object?> a, Map<String, Object?> k);
 
 Call one(Object? Function(String) fn) => (a, k) => fn(str(a[0]));
@@ -235,6 +242,8 @@ const Map<String, Set<String>> allowedKwargs = {
     'dueDate',
     'amountAfterDueDate',
   },
+  'getSalesTaxRate': {'kind', 'province', 'date'},
+  'calculateSalesTax': {'rate', 'province', 'kind', 'date', 'inclusive'},
   // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
   'formatAddress': {
     'raw',
@@ -384,6 +393,24 @@ final Map<String, Call> functions = {
   'checkIBANInput': one(checkIBANInput),
   'scoreAddress': one(scoreAddress),
   'phoneRiskSignals': one(phoneRiskSignals),
+  'getSalesTaxRate': (a, k) {
+    final kind = salesTaxKind(k['kind']);
+    if (kind == null) throw Unrepresentable('kind is required');
+    return getSalesTaxRate(
+      kind: kind,
+      province: optStr(k['province']),
+      date: k['date'],
+    );
+  },
+  'calculateSalesTax': (a, k) => calculateSalesTax(
+        number(a[0]),
+        rate: optNumber(k['rate']),
+        province: optStr(k['province']),
+        kind: salesTaxKind(k['kind']),
+        date: k['date'],
+        inclusive: optBool(k['inclusive']) ?? false,
+      ),
+  'splitInclusive': (a, k) => splitInclusive(number(a[0]), number(a[1])),
 };
 
 const Map<String, Object> constants = {'dataVersion': dataVersion};

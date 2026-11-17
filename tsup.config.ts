@@ -17,6 +17,7 @@ export const modules = [
   'postal',
   'quality',
   'raast',
+  'salestax',
   'tax',
   'text',
   'vehicle',

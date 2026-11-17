@@ -180,6 +180,16 @@
         "default": "./dist/raast.cjs"
       }
     },
+    "./salestax": {
+      "import": {
+        "types": "./dist/salestax.d.ts",
+        "default": "./dist/salestax.js"
+      },
+      "require": {
+        "types": "./dist/salestax.d.cts",
+        "default": "./dist/salestax.cjs"
+      }
+    },
     "./tax": {
       "import": {
         "types": "./dist/tax.d.ts",

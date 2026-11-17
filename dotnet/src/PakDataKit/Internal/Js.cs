@@ -78,7 +78,7 @@ internal static class Js
     /// Shortest round-trip decimal digits of a positive finite double, and the
     /// position <c>n</c> of the decimal point (value = 0.digits × 10^n).
     /// </summary>
-    private static (string Digits, int N) ShortestDigits(double positive)
+    internal static (string Digits, int N) ShortestDigits(double positive)
     {
         // "R" gives the shortest string that round-trips.
         var text = positive.ToString("R", CultureInfo.InvariantCulture);

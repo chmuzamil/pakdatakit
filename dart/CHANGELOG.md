@@ -11,6 +11,13 @@
   reach or that looks made up (landline, service number, repeated or
   sequential digits, placeholder numbers). Also `addressWeights`, and as
   `package:pakdatakit/quality.dart`.
+- `getSalesTaxRate()`: the standard sales tax rate on goods (FBR) or on
+  services in a province or Islamabad Capital Territory on a date, from 1 July
+  2019, with the authority, law and source (`SalesTaxRate`, `SalesTaxKind`).
+  `calculateSalesTax()` adds tax at a rate or a looked-up rate, or splits it
+  out with `inclusive: true`; `splitInclusive()` splits a tax-inclusive amount.
+  Both return `SalesTaxAmounts`, rounded half up to the paisa, exactly on
+  every platform. Also as `package:pakdatakit/salestax.dart`.
 
 ### Changed
 

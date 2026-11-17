@@ -11,6 +11,12 @@
   missing. `phoneRiskSignals` flags invalid, landline, service, repeated-digit,
   sequential and placeholder numbers. The form adapters gain `pk.codPhone()`
   (`IsCodPhone` for class-validator).
+- `getSalesTaxRate()`, `calculateSalesTax()` and `splitInclusive()`
+  (`pakdatakit/salestax`): standard sales tax rates with the dates they
+  applied, from 1 July 2019, for goods (federal) and for services in Punjab,
+  Sindh, Khyber Pakhtunkhwa, Balochistan and Islamabad Capital Territory, each
+  with its law and official source (new dataset `sales-tax-rates.json`).
+  Amounts are rounded half up to the paisa.
 
 ### Changed
 

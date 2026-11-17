@@ -24,6 +24,7 @@ use PakDataKit\Phone;
 use PakDataKit\Postal;
 use PakDataKit\Quality;
 use PakDataKit\RaastQr;
+use PakDataKit\SalesTax;
 use PakDataKit\Tax;
 use PakDataKit\Text;
 use PakDataKit\VehiclePlate;
@@ -449,6 +450,9 @@ final class VectorTest extends TestCase
             'checkIBANInput' => $one(Input::checkIban(...)),
             'scoreAddress' => $one(Quality::scoreAddress(...)),
             'phoneRiskSignals' => $one(Quality::phoneRiskSignals(...)),
+            'getSalesTaxRate' => static fn (array $a, array $k): mixed => SalesTax::getRate($k),
+            'calculateSalesTax' => static fn (array $a, array $k): mixed => SalesTax::calculate($a[0], $k),
+            'splitInclusive' => static fn (array $a, array $k): mixed => SalesTax::splitInclusive($a[0], $a[1]),
         ];
     }
 }

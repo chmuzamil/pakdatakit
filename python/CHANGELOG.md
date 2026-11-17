@@ -9,6 +9,12 @@
   weighted by `ADDRESS_WEIGHTS`. `phone_risk_signals()`: flags a delivery
   phone number that is invalid, a landline or service number, or looks made
   up (repeated, sequential or placeholder digits).
+- `get_sales_tax_rate()`: standard sales tax rate, with its law and source,
+  for goods (FBR) or for services in a province or Islamabad Capital
+  Territory on a date, from 1 July 2019. `calculate_sales_tax()` adds the tax
+  to an amount (or splits it out with `inclusive=True`) and
+  `split_inclusive()` splits a tax-inclusive amount, rounding half up to the
+  paisa exactly, as `SalesTaxAmounts(net, tax, gross, rate)`.
 
 ### Changed
 

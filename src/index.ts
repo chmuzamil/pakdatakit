@@ -125,4 +125,14 @@ export {
   type AddressPart,
   type PhoneRiskFlag,
 } from './quality.js';
+export {
+  getSalesTaxRate,
+  calculateSalesTax,
+  splitInclusive,
+  type SalesTaxKind,
+  type SalesTaxRate,
+  type SalesTaxRateQuery,
+  type SalesTaxAmounts,
+  type SalesTaxOptions,
+} from './salestax.js';
 export { dataVersion } from './data-version.js';

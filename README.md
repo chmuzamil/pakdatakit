@@ -830,6 +830,45 @@ FBR does not publish its check-digit algorithms, so these check the format only.
 
 ---
 
+## Sales Tax
+
+`import { getSalesTaxRate, calculateSalesTax, splitInclusive } from 'pakdatakit/salestax'`
+
+Standard sales tax rates with the dates they applied, from 1 July 2019: federal sales tax on goods (FBR), and sales tax on services in Punjab (PRA), Sindh (SRB), Khyber Pakhtunkhwa (KPRA), Balochistan (BRA) and Islamabad Capital Territory (FBR). Each rate carries the law and the official document it comes from ([DATA.md](DATA.md#sales-tax-rates-sales-tax-ratesjson)). Reduced, higher and sector rates are not included.
+
+### getSalesTaxRate()
+
+```ts
+getSalesTaxRate({ kind: 'goods', date: '2026-11-18' });
+// { kind: "goods", authority: "FBR", province: null, rate: 18, from: "2023-02-23", to: null, law: "Sales Tax Act 1990, s. 3(1), …", source: "https://download1.fbr.gov.pk/…" }
+
+getSalesTaxRate({ kind: 'services', province: 'Sindh', date: '2024-06-30' })
+  ?.rate; // 13
+getSalesTaxRate({ kind: 'services', province: 'ICT' })?.rate; // 15 (today)
+```
+
+`province` accepts the province names and `KP`, `KPK`, `ICT` and `Islamabad`. It returns `null` for a date before 1 July 2019, an invalid date, an unknown province, services without a province, or goods in Azad Jammu and Kashmir or Gilgit-Baltistan.
+
+### calculateSalesTax() / splitInclusive()
+
+```ts
+calculateSalesTax(1000, { rate: 18 });
+// { net: 1000, tax: 180, gross: 1180, rate: 18 }
+
+calculateSalesTax(1000, { province: 'Punjab' });
+// { net: 1000, tax: 160, gross: 1160, rate: 16 }
+
+calculateSalesTax(1150, { province: 'Sindh', inclusive: true });
+// { net: 1000, tax: 150, gross: 1150, rate: 15 }
+
+splitInclusive(99.99, 18);
+// { net: 84.74, tax: 15.25, gross: 99.99, rate: 18 }
+```
+
+Amounts are rounded half up to the paisa, reading the number as written (`1.005` is Rs 1.01). For an inclusive amount the value is rounded and the tax is the rest, so `net + tax` always equals `gross`. Amounts from 0 to one trillion rupees and rates from 0 to 100 with at most two decimals are accepted; anything else returns `null`, never an exception.
+
+---
+
 ## Passports & Vehicle Plates
 
 ### validatePassport()

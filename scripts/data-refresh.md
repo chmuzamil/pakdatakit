@@ -124,6 +124,35 @@ Checklist:
 - [ ] Districts still marked unverified in DATA.md: has a notification
       appeared?
 
+## Sales tax rates
+
+Rates change mostly in the budget, with effect from 1 July, so check the July
+issue most carefully. Standard rates only.
+
+Sources:
+
+- Federal (goods): the Finance Act on https://www.fbr.gov.pk (Budget page),
+  FBR's sales tax circulars, and the consolidated Sales Tax Act 1990 on
+  https://download1.fbr.gov.pk/Docs/ (section 3(1))
+- Punjab: https://pra.punjab.gov.pk (Punjab Sales Tax on Services Act 2012,
+  section 2(41A) and Second Schedule)
+- Sindh: https://www.srb.gos.pk and the Provincial Assembly's Acts on
+  https://www.pas.gov.pk (Sindh Sales Tax on Services Act 2011, section 8(1))
+- Khyber Pakhtunkhwa: https://kpra.gov.pk (KP Sales Tax on Services Act 2022,
+  section 9(1))
+- Balochistan: https://bra.gob.pk and https://pabalochistan.gov.pk (Balochistan
+  Sales Tax on Services Act 2015, section 10(1) and Second Schedule)
+- Islamabad Capital Territory: the Finance Act and FBR's consolidated ICT (Tax
+  on Services) Ordinance 2001
+
+Checklist:
+
+- [ ] Did a Finance Act or SRO change a standard rate? Close the old entry in
+      `data/sales-tax-rates.json` (`to` = the day before) and add the new one
+      with `from`, `law` and the official `source`.
+- [ ] Rates still marked uncertain in DATA.md (Balochistan 2025-26 onwards,
+      ICT after June 2025): is the official document out now?
+
 ## Also
 
 - [ ] Raast QR: any change in the QR format that banking apps generate

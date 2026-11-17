@@ -207,6 +207,54 @@ public sealed class FuzzTests
         Assert.Equal([PhoneRiskFlag.Invalid], Quality.PhoneRiskSignals(null));
     }
 
+    [Fact]
+    public void SalesTaxHandlesHostileInput()
+    {
+        double[] numbers =
+        [
+            double.NaN, double.PositiveInfinity, double.NegativeInfinity, -0.0, -1, -1e-300, double.Epsilon,
+            1e-7, 0.005, 0.0049999999999999, 1.005, 99.99, 100, 100.0000001, 101, 1e12, 1e12 + 0.01,
+            1e15, double.MaxValue, double.MinValue, 18.005, 18.5, 33.33,
+        ];
+        foreach (var a in numbers)
+        {
+            foreach (var r in numbers)
+            {
+                SalesTax.SplitInclusive(a, r);
+                SalesTax.Calculate(a, new SalesTaxOptions { Rate = r });
+                SalesTax.Calculate(a, new SalesTaxOptions { Rate = r, Inclusive = true });
+            }
+            Assert.Null(SalesTax.Calculate(a, null));
+            Assert.Null(SalesTax.Calculate(a, new SalesTaxOptions()));
+        }
+        Assert.Null(SalesTax.SplitInclusive(1e12 + 0.01, 18));
+        Assert.Null(SalesTax.SplitInclusive(100, 18.005));
+        Assert.Equal(new SalesTaxAmounts(1e12, 1.8e11, 1.18e12, 18), SalesTax.Calculate(1e12, new SalesTaxOptions { Rate = 18 }));
+        Assert.Equal(new SalesTaxAmounts(1e12, 1e12, 2e12, 100), SalesTax.Calculate(1e12, new SalesTaxOptions { Rate = 100 }));
+
+        Assert.Null(SalesTax.GetRate(null));
+        Assert.Null(SalesTax.GetRate(new SalesTaxRateQuery { Kind = (SalesTaxKind)7, Date = "2026-01-01" }));
+        Assert.Null(SalesTax.GetRate(new SalesTaxRateQuery
+        {
+            Kind = SalesTaxKind.Goods, Date = "2026-01-01", OnDate = new DateOnly(2026, 1, 1),
+        }));
+        Assert.Equal(18, SalesTax.GetRate(new SalesTaxRateQuery
+        {
+            Kind = SalesTaxKind.Goods, OnDate = new DateOnly(2026, 1, 1),
+        })?.Rate);
+        Assert.NotNull(SalesTax.GetRate(new SalesTaxRateQuery { Kind = SalesTaxKind.Services, Province = " kpk " }));
+        foreach (var input in Hostile)
+        {
+            foreach (var kind in new[] { SalesTaxKind.Goods, SalesTaxKind.Services })
+            {
+                Assert.Null(SalesTax.GetRate(new SalesTaxRateQuery { Kind = kind, Date = input ?? "" }));
+                Assert.Null(SalesTax.GetRate(new SalesTaxRateQuery { Kind = kind, Province = input ?? "", Date = "2026-01-01" }));
+                Assert.Null(SalesTax.Calculate(100, new SalesTaxOptions { Kind = kind, Province = input ?? "" }));
+                Assert.Null(SalesTax.Calculate(100, new SalesTaxOptions { Kind = kind, Date = input ?? "", Inclusive = true }));
+            }
+        }
+    }
+
     private static object? Invoke(string name, MethodInfo method, string? input)
     {
         var parameters = method.GetParameters();

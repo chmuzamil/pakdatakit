@@ -21,6 +21,7 @@ use PakDataKit\Phone;
 use PakDataKit\Postal;
 use PakDataKit\Quality;
 use PakDataKit\RaastQr;
+use PakDataKit\SalesTax;
 use PakDataKit\Tax;
 use PakDataKit\Text;
 use PakDataKit\VehiclePlate;
@@ -237,6 +238,57 @@ final class FuzzTest extends TestCase
         }
         self::assertSame('', Address::format([]));
         self::assertSame('', Address::format(['street' => 5, 'raw' => null]));
+    }
+
+    public function testSalesTaxHandlesHostileInput(): void
+    {
+        $numbers = [
+            null, true, false, '18', '', [], [18], new \stdClass(), NAN, INF, -INF, -0.0, -1, -0.01, 0, 0.0,
+            5e-324, 1e-7, 0.005, 1.005, 99.999, 100.01, 1e12, 1e12 + 0.01, 1e300, PHP_INT_MAX, PHP_INT_MIN,
+            999_999_999_999.99, 999_999_999_999.995,
+        ];
+        foreach ($numbers as $value) {
+            try {
+                SalesTax::splitInclusive($value, 18);
+                SalesTax::splitInclusive(1000, $value);
+                SalesTax::calculate($value, ['rate' => 18]);
+                SalesTax::calculate(1000, ['rate' => $value]);
+                SalesTax::calculate($value, ['rate' => $value, 'inclusive' => true]);
+                SalesTax::calculate(1000, ['kind' => $value, 'province' => $value, 'date' => $value, 'inclusive' => $value]);
+                SalesTax::getRate(['kind' => 'goods', 'province' => $value, 'date' => $value]);
+            } catch (Throwable $e) {
+                self::fail('SalesTax threw ' . $e::class . ' for ' . var_export($value, true) . ': ' . $e->getMessage());
+            }
+        }
+        foreach (self::hostile() as $input) {
+            $label = 'SalesTax(' . self::describe($input) . ')';
+            try {
+                self::assertNull(SalesTax::getRate(['kind' => $input, 'date' => '2026-11-18']), $label);
+                self::assertNull(SalesTax::getRate(['kind' => 'services', 'province' => $input, 'date' => '2026-11-18']), $label);
+                self::assertNull(SalesTax::getRate(['kind' => 'goods', 'province' => 'Punjab', 'date' => $input ?? 'x']), $label);
+                self::assertNull(SalesTax::calculate(1000, ['province' => $input ?? 'x']), $label);
+                self::assertNull(SalesTax::calculate($input, ['rate' => 18]), $label);
+                self::assertNull(SalesTax::splitInclusive(1180, $input), $label);
+            } catch (Throwable $e) {
+                self::fail($label . ' threw ' . $e::class . ': ' . $e->getMessage());
+            }
+        }
+        self::assertNull(SalesTax::getRate(null));
+        self::assertNull(SalesTax::getRate([]));
+        self::assertNull(SalesTax::calculate(1000, null));
+        self::assertNull(SalesTax::calculate(1000, []));
+        self::assertNull(SalesTax::splitInclusive(true, 18));
+        self::assertNull(SalesTax::splitInclusive(1000, true));
+        self::assertNull(SalesTax::splitInclusive(1e12 + 1, 18));
+        self::assertNull(SalesTax::splitInclusive(1000, 16.666));
+        self::assertSame(['net' => 1000.0, 'tax' => 180.0, 'gross' => 1180.0, 'rate' => 18.0], SalesTax::splitInclusive(1180, 18)?->toArray());
+        self::assertSame(1.01, SalesTax::calculate(1.005, ['rate' => 0])?->net);
+        self::assertSame(1e12, SalesTax::calculate(1e12, ['rate' => 100])?->net);
+        self::assertSame(2e12, SalesTax::calculate(1e12, ['rate' => 100])?->gross);
+        self::assertSame(18, SalesTax::getRate(['kind' => 'goods', 'date' => new DateTimeImmutable('2026-11-18')])?->rate);
+        self::assertSame(15, SalesTax::getRate(['kind' => 'services', 'province' => ' ict ', 'date' => ' 2026-11-18 '])?->rate);
+        self::assertNull(SalesTax::getRate(['kind' => 'goods', 'date' => '2023-02-29']));
+        self::assertNotNull(SalesTax::getRate(['kind' => 'goods']));
     }
 
     private static function describe(?string $input): string

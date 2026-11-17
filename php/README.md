@@ -94,6 +94,8 @@ package; call `->toArray()` for an array.
 | `formatCNICInput`, `checkCNICInput`, …                 | `Input::formatCnic`, `Input::checkCnic`, `Input::formatPhone`, …           |
 | `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr::createP2P`, `RaastQr::createMerchant`, `RaastQr::parse`          |
 | `validateRaastQr`                                      | `RaastQr::validate`                                                        |
+| `getSalesTaxRate`, `calculateSalesTax`                 | `SalesTax::getRate`, `SalesTax::calculate`                                 |
+| `splitInclusive`                                       | `SalesTax::splitInclusive`                                                 |
 | `dataVersion`                                          | `PakData::version()`                                                       |
 
 Divisions and tehsils come from the 2023 census (30 divisions, 591 tehsils).
@@ -141,6 +143,46 @@ toll-free and other service numbers), `repeated-digits` (the 7-digit subscriber
 part uses at most two digits), `sequential-digits` (`1234567`, `7654321` …) and
 `test-number` (`03XX-1234567`, `03XX-7654321`, `0312-3456789`). The
 `pk_cod_phone` Laravel rule passes only when there are no flags.
+
+### Sales tax
+
+Standard sales tax rates with the dates they applied, from 1 July 2019:
+federal sales tax on goods (FBR), and sales tax on services in Punjab (PRA),
+Sindh (SRB), Khyber Pakhtunkhwa (KPRA), Balochistan (BRA) and Islamabad
+Capital Territory (FBR). Each rate carries the law and the official document it
+comes from. Reduced, higher and sector rates are not included.
+
+```php
+use PakDataKit\SalesTax;
+
+SalesTax::getRate(['kind' => 'goods', 'date' => '2026-11-18']);
+// SalesTaxRate { kind: 'goods', authority: 'FBR', province: null, rate: 18, from: '2023-02-23', to: null, law: '…', source: '…' }
+SalesTax::getRate(['kind' => 'services', 'province' => 'Sindh', 'date' => '2024-06-30'])?->rate;  // 13
+SalesTax::getRate(['kind' => 'services', 'province' => 'ICT'])?->rate;                            // 15 (today)
+
+SalesTax::calculate(1000, ['rate' => 18]);
+// SalesTaxAmounts { net: 1000.0, tax: 180.0, gross: 1180.0, rate: 18.0 }
+SalesTax::calculate(1000, ['province' => 'Punjab']);                       // tax 160.0, gross 1160.0
+SalesTax::calculate(1150, ['province' => 'Sindh', 'inclusive' => true]);   // net 1000.0, tax 150.0
+SalesTax::splitInclusive(99.99, 18);                                       // net 84.74, tax 15.25
+```
+
+`SalesTax::getRate()` takes `kind` (`goods` or `services`, also
+`SalesTax::GOODS` and `SalesTax::SERVICES`), `province` (the province names,
+`KP`, `KPK`, `ICT` and `Islamabad`) and `date` (`YYYY-MM-DD` or a
+`DateTimeInterface`, its own calendar date; today when left out). It returns
+`null` for a date before 1 July 2019, an invalid date, an unknown province,
+services without a province, or goods in Azad Jammu and Kashmir or
+Gilgit-Baltistan.
+
+`SalesTax::calculate()` takes a `rate`, or a `province` (and `kind`, default
+`services`, and `date`) to use the standard rate, and `inclusive` when the
+amount already includes the tax. Amounts are computed in whole paisa and
+rounded half up, reading the number as written (`1.005` is Rs 1.01). For an
+inclusive amount the value is rounded and the tax is the rest, so `net + tax`
+always equals `gross`. Amounts from 0 to one trillion rupees and rates from 0
+to 100 with at most two decimals are accepted; anything else, including a
+string or boolean, returns `null`, never an exception.
 
 ## Laravel
 
@@ -221,6 +263,7 @@ valid UTF-8.
 | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `validate*`, `is*` (e.g. `Cnic::validate`, `Holidays::isHoliday`)                                                | `false`                                                                                                |
 | `parse`, `get*`, `analyze*` returning one value (e.g. `VehiclePlate::parse`, `Iban::getBank`, `Tax::analyzeNtn`) | `null`                                                                                                 |
+| `SalesTax::getRate`, `SalesTax::calculate`, `SalesTax::splitInclusive` (any value, not only strings)             | `null`                                                                                                 |
 | `search*`, `get*` returning a list (e.g. `Geo::searchCities`, `Holidays::getHolidaysOn`)                         | an empty array                                                                                         |
 | `Phone::analyze`, `RaastQr::validate`, `Address::parse`, `Networks::getNetwork`                                  | a result that says so (`valid: false`, an error list, empty parts, `'Unknown'`), as in the npm package |
 | `Input::format*`, `Input::check*`, `Text::*`                                                                     | the best formatting of what was typed; `'invalid'`                                                     |

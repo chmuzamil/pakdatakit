@@ -132,6 +132,33 @@ pdk.score_address("Lahore").missing   # ['houseNumber', 'street', 'area', 'posta
 pdk.phone_risk_signals("03001234567")  # ['sequential-digits', 'test-number']
 ```
 
+Sales tax:
+
+| Function                                                                       | Returns                                                                  |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `get_sales_tax_rate(kind=, province=None, date=None)`                          | `SalesTaxRate` for goods or a province's services on a date, or `None`   |
+| `calculate_sales_tax(amount, rate=, province=, kind=, date=, inclusive=False)` | `SalesTaxAmounts(net, tax, gross, rate)`, or `None`                      |
+| `split_inclusive(gross, rate)`                                                 | `SalesTaxAmounts` for an amount that already includes the tax, or `None` |
+
+Standard rates only, from 1 July 2019: federal sales tax on goods (FBR) and
+sales tax on services in Punjab, Sindh, Khyber Pakhtunkhwa, Balochistan and
+Islamabad Capital Territory, each with its `law` and `source`.
+`SalesTaxRate` has the npm package's fields, with `from` named `from_`.
+`province` accepts `KP`, `KPK`, `ICT` and `Islamabad`; `date` is
+`YYYY-MM-DD` or a `datetime.date` and defaults to today. `calculate_sales_tax`
+uses `rate` if given, otherwise looks one up (`kind` defaults to `services`
+when a province is given). Amounts are rounded half up to the paisa as
+written (`1.005` is Rs 1.01), and `net + tax` always equals `gross`. Amounts
+from 0 to one trillion rupees and rates from 0 to 100 with at most two
+decimals are accepted; anything else returns `None`, never an exception.
+
+```python
+pdk.get_sales_tax_rate(kind="services", province="Sindh", date="2024-06-30").rate  # 13
+pdk.calculate_sales_tax(1000, rate=18)    # SalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)
+pdk.calculate_sales_tax(1150, province="Sindh", inclusive=True).net  # 1000.0
+pdk.split_inclusive(99.99, 18)            # SalesTaxAmounts(net=84.74, tax=15.25, gross=99.99, rate=18.0)
+```
+
 `BankInfo.type` is one of `commercial`, `public-sector`, `islamic`,
 `microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
 `BankInfo.active` is `False` for a bank that merged into another or has closed.

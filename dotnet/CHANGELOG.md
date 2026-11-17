@@ -13,6 +13,16 @@
   `SequentialDigits`, `TestNumber`). New `[CodPhone]` attribute in
   `PakDataKit.DataAnnotations` and `IsCodPhone()` rule in
   `PakDataKit.FluentValidation`: a mobile number with no risk flags.
+- `SalesTax.GetRate(query)`: the standard sales tax rate on a date, from
+  1 July 2019, for `SalesTaxKind.Goods` (federal, FBR) or
+  `SalesTaxKind.Services` in a province or Islamabad Capital Territory, as a
+  `SalesTaxRate` with its authority, law and official source
+  (`SalesTaxRateQuery` takes `Kind`, `Province` and `Date` or `OnDate`).
+  `SalesTax.Calculate(amount, options)` adds the tax for a `Rate` or a
+  province's rate (`SalesTaxOptions`, `Inclusive` to split it out) and
+  `SalesTax.SplitInclusive(gross, rate)` splits a tax-inclusive amount, both
+  returning `SalesTaxAmounts` (`Net`, `Tax`, `Gross`, `Rate`) rounded half up
+  to the paisa in exact integer arithmetic. Invalid input returns `null`.
 
 ### Changed
 

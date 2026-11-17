@@ -2,7 +2,7 @@
 
 CNIC, phone, networks, WhatsApp, IBAN, postal codes, geography, address
 parsing, Roman Urdu, Hijri dates, holidays, currency formatting, amounts in
-words, tax numbers, landlines, Raast QR codes, and passport and vehicle
+words, tax numbers, sales tax, landlines, Raast QR codes, and passport and vehicle
 registration number formats.
 
 A Python port of the ``pakdatakit`` npm package: it ships the same datasets and
@@ -79,6 +79,14 @@ from .raast import (
     create_raast_p2p_qr,
     parse_raast_qr,
     validate_raast_qr,
+)
+from .salestax import (
+    SalesTaxAmounts,
+    SalesTaxKind,
+    SalesTaxRate,
+    calculate_sales_tax,
+    get_sales_tax_rate,
+    split_inclusive,
 )
 from .tax import NTNInfo, analyze_ntn, validate_ntn, validate_strn
 from .text import normalize_roman_urdu, normalize_text, to_english_digits, to_urdu_digits
@@ -161,6 +169,13 @@ __all__ = [
     "analyze_ntn",
     "validate_ntn",
     "validate_strn",
+    # sales tax
+    "SalesTaxKind",
+    "SalesTaxRate",
+    "SalesTaxAmounts",
+    "get_sales_tax_rate",
+    "calculate_sales_tax",
+    "split_inclusive",
     # passport / vehicle
     "validate_passport",
     "VehiclePlate",

@@ -3,7 +3,7 @@
 Utilities for Pakistani data: CNIC, mobile numbers and networks, WhatsApp
 links, IBAN and banks, postal codes, cities and districts, address parsing,
 Roman Urdu, Hijri dates, public holidays, rupee formatting, amounts in words,
-NTN/STRN, landlines, Raast QR codes, and form-field helpers that format as the
+NTN/STRN, sales tax, landlines, Raast QR codes, and form-field helpers that format as the
 user types.
 
 This is the Dart port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
@@ -69,6 +69,10 @@ final payload = createRaastP2PQr(
 );
 validateRaastQr(payload).valid;              // true
 
+getSalesTaxRate(kind: SalesTaxKind.goods)?.rate; // 18 (today)
+calculateSalesTax(1000, rate: 18)?.gross;    // 1180
+splitInclusive(99.99, 18)?.net;              // 84.74
+
 formatCNICInput('3520212');                  // '35202-12'
 checkPhoneInput('0300 12');                  // InputState.incomplete
 ```
@@ -81,8 +85,8 @@ import 'package:pakdatakit/raast.dart';
 ```
 
 Available: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`,
-`input`, `networks`, `numbers`, `phone`, `postal`, `quality`, `raast`, `tax`,
-`text`, `whatsapp` and `words`.
+`input`, `networks`, `numbers`, `phone`, `postal`, `quality`, `raast`,
+`salestax`, `tax`, `text`, `whatsapp` and `words`.
 
 ## API
 
@@ -125,6 +129,17 @@ In Dart:
   `testNumber`; `.value` holds the npm string, e.g. `'repeated-digits'`), or
   `[]` for an unremarkable mobile number. Both are heuristics and never throw.
   `ADDRESS_WEIGHTS` is `addressWeights`, a `Map<AddressPart, int>`.
+- **Sales tax:** `getSalesTaxRate(kind: SalesTaxKind.goods, province: …,
+  date: …)` returns a `SalesTaxRate` (`kind`, `authority`, `province`,
+  `rate`, `from`, `to`, `law`, `source`) or `null`;
+  `calculateSalesTax(amount, rate: …, province: …, kind: …, date: …,
+  inclusive: …)` and `splitInclusive(gross, rate)` return `SalesTaxAmounts`
+  (`net`, `tax`, `gross`, `rate`, all `double`s) or `null`. The npm
+  `SalesTaxRateQuery` and `SalesTaxOptions` objects are these named
+  parameters; `date` is a `'YYYY-MM-DD'` string or a `DateTime` and defaults
+  to today. Amounts are rounded half up to the paisa from the number as
+  written (`1.005` is Rs 1.01), computed exactly with `BigInt` on every
+  platform. They never throw.
 - **An `ArgumentError` where the npm package throws a `RangeError`**, e.g.
   `formatPKR(double.nan)` or a Raast QR with an amount but no expiry.
 - **Dates are local `DateTime`s**; only the calendar date (or, for Raast

@@ -10,7 +10,7 @@
     <!-- Same version as the npm, PyPI and pub.dev packages. -->
     <Version>2.3.0</Version>
     <Authors>Muzamil Chaudhery</Authors>
-    <Copyright>Copyright (c) 2026 PakDataKit Contributors</Copyright>
+    <Copyright>Copyright (c) 2026 Muzamil Chaudhery and PakDataKit Contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/chmuzamil/pakdatakit/tree/main/dotnet#readme</PackageProjectUrl>
     <RepositoryUrl>https://github.com/chmuzamil/pakdatakit</RepositoryUrl>

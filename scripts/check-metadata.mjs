@@ -320,8 +320,10 @@ if (xml('Copyright') !== copyright) {
     `${props}: Copyright "${xml('Copyright')}", but LICENSE says "${copyright}"`,
   );
 }
-if (!read('NOTICE').includes(copyright))
-  fail(`NOTICE: does not contain "${copyright}"`);
+for (const path of ['NOTICE', 'README.md']) {
+  if (!read(path).includes(copyright))
+    fail(`${path}: does not contain "${copyright}"`);
+}
 
 // ---------------------------------------------------------------------------
 // 5. Core packages: description style and shared keywords

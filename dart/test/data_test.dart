@@ -11,9 +11,12 @@ import 'package:pakdatakit/src/data/banks.g.dart';
 import 'package:pakdatakit/src/data/cities.g.dart';
 import 'package:pakdatakit/src/data/collation.g.dart';
 import 'package:pakdatakit/src/data/districts.g.dart';
+import 'package:pakdatakit/src/data/divisions.g.dart';
 import 'package:pakdatakit/src/data/holidays.g.dart';
 import 'package:pakdatakit/src/data/networks.g.dart';
+import 'package:pakdatakit/src/data/post_offices.g.dart';
 import 'package:pakdatakit/src/data/postal_codes.g.dart';
+import 'package:pakdatakit/src/data/tehsils.g.dart';
 import 'package:test/test.dart';
 
 const Map<String, Object> embedded = {
@@ -21,9 +24,12 @@ const Map<String, Object> embedded = {
   'banks.json': banksJson,
   'cities.json': citiesJson,
   'districts.json': districtsJson,
+  'divisions.json': divisionsJson,
   'holidays.json': holidaysJson,
   'networks.json': networksJson,
+  'post-offices.json': postOfficesJson,
   'postal-codes.json': postalCodesJson,
+  'tehsils.json': tehsilsJson,
 };
 
 bool deepEquals(Object? a, Object? b) {

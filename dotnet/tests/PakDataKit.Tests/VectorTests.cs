@@ -392,6 +392,11 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["getDistrictProvince"] = One(Geo.GetDistrictProvince),
         ["searchDistricts"] = One(Geo.SearchDistricts),
         ["getDistrictsByProvince"] = One(Geo.GetDistrictsByProvince),
+        ["getDivisions"] = (a, _) => a.Count > 0 ? Geo.GetDivisions(Str(a[0])) : Geo.GetDivisions(),
+        ["getDivisionOfDistrict"] = One(Geo.GetDivisionOfDistrict),
+        ["getTehsils"] = One(Geo.GetTehsils),
+        ["getTehsilDistrict"] = (a, _) =>
+            a.Count > 1 ? Geo.GetTehsilDistrict(Str(a[0]), Str(a[1])) : Geo.GetTehsilDistrict(Str(a[0])),
         ["formatPKR"] = (a, _) => Currency.FormatPkr(Number(a[0])),
         ["formatLakh"] = (a, _) => Currency.FormatLakh(Number(a[0])),
         ["validateIBAN"] = One(v => Iban.Validate(v)),
@@ -403,6 +408,8 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["getPostalCodes"] = One(Postal.GetCodes),
         ["getPostalAreas"] = One(Postal.GetAreas),
         ["searchPostalCodes"] = One(Postal.Search),
+        ["getPostOffice"] = One(Postal.GetPostOffice),
+        ["searchPostOffices"] = One(Postal.SearchPostOffices),
         ["parseAddress"] = One(Address.Parse),
         ["formatAddress"] = (_, k) => Address.Format(new ParsedAddress
         {

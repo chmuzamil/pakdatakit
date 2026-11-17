@@ -12,7 +12,8 @@ that date unless a line says otherwise.
   **Snippet only** (seen only in search-result text from an official site) or
   **Not verified**.
 - Section 7 lists the fixes applied with this audit. Section 8 lists what was
-  left as proposals, with a rough size for each.
+  left as proposals, with a rough size for each. Section 9 records what was
+  then done with each proposal, and corrects three findings above.
 
 ## Summary
 
@@ -562,6 +563,137 @@ Ask PTA or Zong for the 037x allocation, or keep the note that it rests on
 libphonenumber. Relabel `034x` only when PTA or PTML announces that the
 merger is complete and what the brand is; a note in the docs is enough until
 then.
+
+## 9. Follow-up: what was done with the proposals
+
+Done on the `phase-3b-data-depth` branch on 16 November 2026. Sources were
+retrieved that day. DATA.md has the provenance for each dataset.
+
+| #   | Proposal                       | Outcome                                                                                            |
+| --- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| P1  | Divisions and tehsils          | **Done.** 30 divisions and 591 tehsils from the census; current district confirmed for Punjab only |
+| P2  | 41 missing area codes          | **Done.** All 41 added                                                                             |
+| P3  | Pakistan Post's full directory | **Done.** 2,560 codes                                                                              |
+| P4  | Codes for 9 institutions       | **None found.** Nothing added                                                                      |
+| P5  | Bank names and types           | **Type done** (`public-sector`). Names kept in the banks' own styling; SBP's spellings recorded    |
+| P6  | Holiday sources for 2020–2023  | **Done.** All seven replaced with SBP circulars; dates unchanged                                   |
+| P7  | Confirm 19 newer districts     | **Partly.** 7 confirmed, 12 still not confirmed; nothing changed                                   |
+| P8  | `0370`, `0371` and Telenor     | **Unverified, unchanged.** No official 037x allocation found; the merger completed, label kept     |
+
+**P1.** The census tables give exactly the totals of the census report: 30
+divisions, 136 districts, 591 tehsil-level units. Each tehsil records its
+census district. For the 17 census districts that have lost territory to a
+new district, the current district is recorded only where an official list
+confirms it: all 25 tehsils of the five Punjab parent districts, from the
+Board of Revenue's list as on 31 December 2023 (Punjab Bureau of Statistics,
+Statistical Pocket Book 2025,
+https://bos.punjab.gov.pk/system/files/Statistical%20Pocket%20Book%202025%20Final.pdf).
+The other 78 tehsils, in Khyber Pakhtunkhwa and Balochistan, are `null`.
+Still open: tehsils created since the census, a division for post-census
+districts, and Azad Jammu and Kashmir and Gilgit-Baltistan.
+
+**P2.** `validateLandline` already accepted numbers in all 41 codes, because
+its patterns come from libphonenumber. Adding the codes only fills in the
+area code and district that `analyzeNumber` returns. The number length for
+the four-digit `58xx` codes is libphonenumber's (ten digits in all); it was
+not confirmed from the ITU plan.
+
+**P3.** All 2,560 offices are in `post-offices.json`, for the new
+`getPostOffice` and `searchPostOffices`. The 457 that belong to a listed city
+are also in `postal-codes.json`, so `getCityByPostalCode` still returns only
+cities (or `null`). See DATA.md for how each office is given a city. No
+lookup that worked before gives a different answer. The 740 non-delivery
+offices of Part II are not imported.
+
+**P4.** Searched: SBP's flood relief (2022) and Türkiye–Syria relief (2023)
+IBAN lists, the dam fund list, and each institution's own website. No printed
+IBAN was found for Punjab Provincial Cooperative Bank, LOLC, Halan or ASA
+microfinance banks, or the EMIs Finja, Akhtar Fuiou, E-Processing Systems,
+Wemsol and YAP. The two relief lists, which section 3 said could not be
+found, are at https://archive.sbp.org.pk/IBANs-of-PM-Flood-Relief-Fund.pdf
+and https://archive.sbp.org.pk/ReliefFund-Turkiye.pdf. They confirm six
+codes that section 3 listed as not verified: `JCMA`, `FINC`, `KHBL`, `NRSP`,
+`APNA` and `UMBL`. Still without an official source: `NAYA`, `SADA`, `RQMI`,
+`MSHQ`, and the legacy codes `MCBL`, `NBPB`, `TAMW` and `NIBP`. One more
+finding, not acted on: an SBP circular reproduced on a bank's website prints
+an SBP account with the code `SBPD`.
+
+**P5.** SBP's list has a "Public Sector Commercial Banks" group, so National
+Bank of Pakistan, Sindh Bank, The Bank of Khyber and The Bank of Punjab are
+now `public-sector`. SBP's spellings were not copied, because the list is
+not consistent ("Allied Bank limited", "Citi Bank N.A"); they are recorded in
+DATA.md. Section 3 said no notice was found for two banks; both exist. SME
+Bank was de-scheduled on 17 March 2025 "as it has gone into liquidation"
+(https://archive.sbp.org.pk/notifications/bprd/2025/ntf6.htm) and is now
+marked inactive. NIB Bank was de-scheduled on 7 July 2017 on its merger into
+MCB Bank (https://archive.sbp.org.pk/notifications/bprd/2017/ntf2.htm).
+
+**P6.** SBP circular letters, each stating the dates we hold: 2020 Ashura
+(No. 39 of 2020), 2020 Eid Milad un Nabi (No. 46 of 2020), 2021 Ashura (No.
+27 of 2021), 2021 Eid Milad un Nabi (No. 31 of 2021), 2022 Eid Milad un Nabi
+(No. 28 of 2022), 2023 Eid ul Fitr (No. 08 of 2023) and 2023 Ashura (No. 14
+of 2023), at
+`https://www.sbp.org.pk/circulars/bprd-circular-letter-no-NN-of-YYYY`. Every
+`source` in `holidays.json` is now a Cabinet Division or SBP document.
+
+**P7.** Nothing in `districts.json` was changed.
+
+| District                                               | Result                                                                                                                                                                                                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Lower and Upper South Waziristan                       | **Verified.** Election Commission delimitation report, 27 September 2023: "South Waziristan has recently been bifurcated into two districts" (https://ecp.gov.pk/storage/uploads/bp8XWT0QfEUZB8y4uvlmCFGG8g3RrjiwJ99sLSz3.pdf) |
+| Bar Swat                                               | **Verified.** Malakand Division's website lists it among 10 districts (cmd.kp.gov.pk)                                                                                                                                          |
+| Hub                                                    | **Verified.** The same Election Commission report: "Hub district has been created from Lasbella district"                                                                                                                      |
+| Usta Muhammad, Barshore, Tump                          | **Verified** as districts in Balochistan's 2026-27 budget documents (finance.gob.pk, June 2026)                                                                                                                                |
+| Central Dir, Allai, Paharpur                           | **Not confirmed.** Malakand and Hazara divisions' websites list no Central Dir or Allai, and Khyber Pakhtunkhwa's Development Statistics 2026 still shows Allai and Paharpur as tehsils                                        |
+| Quetta East and West, North and South Dera Bugti, Wadh | **Not confirmed.** Balochistan's government sites could not be reached; its June 2026 budget paper still writes "Wadh District Khuzdar"                                                                                        |
+| Darel, Tangir, Gupis-Yasin, Roundu                     | **Not confirmed as working districts.** Gilgit-Baltistan's 2024-25 development programme treats them as sub-divisions of Diamer, Ghizer and Skardu                                                                             |
+
+The 12 unconfirmed districts stay, on the notifications and reports cited
+in DATA.md. The three in Khyber Pakhtunkhwa are the weakest: official pages
+updated in November 2026 do not show them. Removing a district would change
+`getDistrictProvince`, `searchDistricts` and the district counts, so it
+needs a decision, with the notification in hand. News reports also mention a
+new "West Chagai" district (October 2026); no official source was found.
+
+**P8.** No document from PTA, the ITU or Zong gives `0370` or `0371` to an
+operator, so both stay as they are, marked unverified in DATA.md. The
+Telenor merger is complete: PTCL announced on 2 July 2026 the "successful
+completion of the amalgamation of Telenor Pakistan into Pak Telecom Mobile
+Limited (PTML), operating as Ufone 5G"
+(https://ptcl.com.pk/Home/PressReleaseDetail/?ItemId=934&linkId=130). This
+corrects section 4, which called it not verified. `034x` is still labelled
+Telenor: the dataset records the operator a prefix was allocated to, and no
+new brand has been announced officially.
+
+### Spot-check, 17 November 2026
+
+Random samples (seed 20261117) compared with the downloaded official files.
+The files were read with a different extractor (MuPDF) from the one used to
+build the data, and the post codes against Pakistan Post's web table where
+an office is in it.
+
+| Sample                 | Checked | Result                                                                                                                                 |
+| ---------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Post offices           | 50      | 50 match (code, office name and province)                                                                                              |
+| Tehsils                | 20      | 20 match (name, census district, type). One looked wrong only because the census prints "KOLAI PALAS KOHISTAN / DISTRICT" on two lines |
+| Area codes added in 3b | 41      | All 41 codes and districts match. Four names differed from our own district names and were fixed (below)                               |
+
+Area-code names fixed, so that `getAreaCode` finds them by the names
+`districts.json` uses: `5821` Neelum → Neelam, `5825` Sudhnoti → Sudhnuti,
+`835` Dera Bugti now also lists North and South Dera Bugti, and `965` South
+Waziristan also lists Lower and Upper South Waziristan. The ITU plan's own
+spellings ("Sudonthi", "Bhimer", "K.Abdullah") are recorded in DATA.md.
+
+### Still open
+
+- Tehsils of today's districts in Khyber Pakhtunkhwa and Balochistan (78
+  with no confirmed current district), and tehsils created since 2023.
+- Divisions and tehsils of Azad Jammu and Kashmir and Gilgit-Baltistan.
+- The 12 districts above.
+- IBAN codes for the nine institutions, and an official source for `NAYA`,
+  `SADA`, `RQMI` and `MSHQ`.
+- An official 037x allocation.
+- A district for each post office. The directory does not give one.
 
 ## Method and limits
 

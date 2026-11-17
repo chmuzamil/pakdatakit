@@ -9,8 +9,8 @@
  *   shared datasets, embedded so the package needs no file access and works
  *   on every platform, including the web).
  * - collation.g.dart: the order `String.prototype.localeCompare` gives every
- *   dataset string the TypeScript library sorts (city, district, postal code
- *   and area names), so the Dart port sorts exactly like the npm package.
+ *   dataset string the TypeScript library sorts (city, district, division,
+ *   tehsil, postal code and area names), so the Dart port sorts exactly like the npm package.
  * - unicode.g.dart: JavaScript's case mappings and the canonical
  *   (de)composition data for NFC, taken from this Node.js runtime's ICU, so
  *   `toUpperCase`, `toLowerCase` and `normalize('NFC')` behave as in
@@ -120,6 +120,15 @@ for (const entry of datasets.districts) sortable.add(entry.district);
 for (const entry of datasets['postal-codes']) {
   sortable.add(entry.postalCode);
   if (entry.area) sortable.add(entry.area);
+}
+for (const entry of datasets.divisions) {
+  sortable.add(entry.division);
+  for (const district of entry.districts) sortable.add(district);
+}
+for (const entry of datasets.tehsils) {
+  sortable.add(entry.tehsil);
+  sortable.add(entry.censusDistrict);
+  if (entry.currentDistrict) sortable.add(entry.currentDistrict);
 }
 const ordered = [...sortable].sort((a, b) => a.localeCompare(b));
 const rankLines = [];

@@ -42,7 +42,7 @@
   {
     "code": "BPUN",
     "name": "The Bank of Punjab",
-    "type": "commercial"
+    "type": "public-sector"
   },
   {
     "code": "CITI",
@@ -107,7 +107,7 @@
   {
     "code": "KHYB",
     "name": "The Bank of Khyber",
-    "type": "commercial"
+    "type": "public-sector"
   },
   {
     "code": "MCBL",
@@ -148,12 +148,12 @@
   {
     "code": "NBPA",
     "name": "National Bank of Pakistan",
-    "type": "commercial"
+    "type": "public-sector"
   },
   {
     "code": "NBPB",
     "name": "National Bank of Pakistan",
-    "type": "commercial",
+    "type": "public-sector",
     "aliasOf": "NBPA"
   },
   {
@@ -201,12 +201,13 @@
   {
     "code": "SIND",
     "name": "Sindh Bank Limited",
-    "type": "commercial"
+    "type": "public-sector"
   },
   {
     "code": "SMES",
-    "name": "SME Bank Limited",
-    "type": "specialized"
+    "name": "SME Bank Limited (in liquidation)",
+    "type": "specialized",
+    "active": false
   },
   {
     "code": "SMFB",

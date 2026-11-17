@@ -2,7 +2,7 @@ import networksData from '../../data/networks.json';
 import { lazy, stripSeparators, toAsciiDigits } from './normalize.js';
 
 /** Mobile prefixes (`03XX`) allocated to an operator in the dataset. */
-const allocatedPrefixes = lazy(
+const allocatedPrefixes = /* @__PURE__ */ lazy(
   () =>
     new Set(
       (networksData as Array<{ prefix: string }>).map((entry) => entry.prefix),

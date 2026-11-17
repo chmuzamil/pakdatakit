@@ -5,7 +5,7 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   dts: true,
   target: 'es2020',
-  // pakdatakit is a runtime dependency. The JSON datasets imported from
-  // ../../data are bundled into dist, so the package is self-contained.
+  // pakdatakit is a runtime dependency. The frozen datasets in src/snapshot
+  // are bundled into dist, so the package is self-contained.
   external: ['pakdatakit'],
 });

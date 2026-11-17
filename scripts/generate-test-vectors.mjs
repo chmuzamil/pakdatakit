@@ -51,9 +51,12 @@ const readData = (name) =>
 const cities = readData('cities.json');
 const districts = readData('districts.json');
 const postal = readData('postal-codes.json');
+const postOffices = readData('post-offices.json');
 const networks = readData('networks.json');
 const banks = readData('banks.json');
 const areaCodes = readData('area-codes.json');
+const divisions = readData('divisions.json');
+const tehsils = readData('tehsils.json');
 
 // ---------------------------------------------------------------------------
 // Encoding helpers
@@ -347,7 +350,12 @@ each(
 call('iban', 'getBanks', []);
 
 // Postal --------------------------------------------------------------------
-const postalCodes = unique(postal.map((e) => e.postalCode));
+// Every code in Pakistan Post's directory: those of listed cities return the
+// city, the rest (towns and villages) return null.
+const postalCodes = unique([
+  ...postal.map((e) => e.postalCode),
+  ...postOffices.map((o) => o.code),
+]);
 const postalCities = unique(postal.map((e) => e.city));
 each(
   'postal',
@@ -407,6 +415,55 @@ each(
     ...postal.filter((e) => e.area).map((e) => e.area),
   ]),
 );
+// Post offices: every fifth code (plus edge cases) and a set of searches.
+each(
+  'postal',
+  ['getPostOffice'],
+  [
+    ...postOffices.filter((_, index) => index % 5 === 0).map((o) => o.code),
+    '48330',
+    ' 48330 ',
+    '48 330',
+    '54000',
+    '99999',
+    '',
+    ' ',
+    'abc',
+    '4833',
+    '483300',
+  ],
+);
+each(
+  'postal',
+  ['searchPostOffices'],
+  unique([
+    'dulmial',
+    'DULMIAL',
+    'Gulberg',
+    'model town',
+    'chak 9',
+    'gpo',
+    'cantt',
+    'karachi',
+    'thatta',
+    'kalri',
+    'jamshoro',
+    '483',
+    '4833',
+    '48330',
+    ' 48330 ',
+    '1',
+    'zz',
+    'qq',
+    '',
+    ' ',
+    'abc123',
+    'D.I Khan',
+    'Islamabad G-9',
+    'Muzaffarabad',
+    'Skardu',
+  ]),
+);
 
 // Geography -----------------------------------------------------------------
 const cityNames = unique(cities.map((e) => e.city));
@@ -461,6 +518,80 @@ each(
     'Lahore',
   ]),
 );
+// Divisions and tehsils (2023 census)
+const protoKeys = [
+  'constructor',
+  'toString',
+  '__proto__',
+  'hasOwnProperty',
+  'valueOf',
+];
+const formerDistricts = ['Quetta', 'south waziristan', 'Dera Bugti'];
+const newDistricts = [
+  'Murree',
+  'Talagang',
+  'Quetta East',
+  'Bar Swat',
+  'Hub',
+  'Gilgit',
+  'Muzaffarabad',
+  'Islamabad',
+];
+call('geo', 'getDivisions', []);
+each(
+  'geo',
+  ['getDivisions'],
+  unique([
+    ...provinces,
+    ...provinces.map((p) => p.toLowerCase()),
+    'punjab ',
+    ' SINDH',
+    'KPK',
+    '',
+    ' ',
+    'Atlantis',
+    ...protoKeys,
+  ]),
+);
+each(
+  'geo',
+  ['getDivisionOfDistrict', 'getTehsils'],
+  unique([
+    ...cityVariants(districtNames),
+    ...formerDistricts,
+    ...newDistricts,
+    ...divisions.map((d) => d.division),
+    'Upper  Dera   Bugti',
+    'Lahore City',
+    ...protoKeys,
+  ]),
+);
+const tehsilNames = unique(tehsils.map((t) => t.tehsil));
+each(
+  'geo',
+  ['getTehsilDistrict'],
+  unique([...cityVariants(tehsilNames), ...districtNames, ...protoKeys]),
+);
+// Names shared by tehsils in different districts, with and without a province.
+const sharedTehsils = tehsilNames.filter(
+  (name) =>
+    new Set(
+      tehsils.filter((t) => t.tehsil === name).map((t) => t.censusDistrict),
+    ).size > 1,
+);
+for (const name of [...sharedTehsils, 'Gojra', 'Murree', 'Atlantis', '']) {
+  for (const province of [
+    ...provinces,
+    'punjab',
+    ' SINDH ',
+    'KPK',
+    '',
+    'Atlantis',
+  ]) {
+    call('geo', 'getTehsilDistrict', [name, province]);
+    call('geo', 'getTehsilDistrict', [name.toUpperCase(), province]);
+  }
+}
 each(
   'geo',
   ['getDistrictsByProvince'],

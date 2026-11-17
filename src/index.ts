@@ -13,6 +13,10 @@ export {
   getDistrictProvince,
   searchDistricts,
   getDistrictsByProvince,
+  getDivisions,
+  getDivisionOfDistrict,
+  getTehsils,
+  getTehsilDistrict,
 } from './geo.js';
 export { formatPKR, formatLakh } from './format.js';
 export { createWhatsAppLink } from './whatsapp.js';
@@ -31,6 +35,11 @@ export {
   getPostalAreas,
   searchPostalCodes,
 } from './postal.js';
+export {
+  getPostOffice,
+  searchPostOffices,
+  type PostOffice,
+} from './post-offices.js';
 export { parseAddress, formatAddress, type ParsedAddress } from './address.js';
 export {
   normalizeText,

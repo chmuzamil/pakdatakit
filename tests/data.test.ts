@@ -39,9 +39,21 @@ describe('dataset integrity', () => {
     }
   });
 
-  it('resolves a province for every postal city', () => {
-    for (const { city } of postalCodes) {
-      expect(getProvince(city), city).not.toBeNull();
+  it('gives every postal entry a province that agrees with its city', () => {
+    for (const entry of postalCodes) {
+      expect(PROVINCES).toContain(entry.province);
+      // Most entries are post offices in towns and villages that are not in
+      // the list of cities; those that are must agree with it.
+      const province = getProvince(entry.city);
+      if (province !== null) expect(province, entry.city).toBe(entry.province);
+    }
+  });
+
+  it('resolves a province for the main office of every listed city', () => {
+    for (const entry of postalCodes) {
+      if (entry.primary === true) {
+        expect(getProvince(entry.city), entry.city).toBe(entry.province);
+      }
     }
   });
 

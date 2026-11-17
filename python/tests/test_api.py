@@ -142,7 +142,9 @@ def test_bank_info() -> None:
     assert info is not None and info.code == "SCBL" and info.type == "commercial" and info.active
     assert pdk.get_bank_info("mezn") == pdk.get_bank_info("MEZN")
     assert pdk.get_bank_info("ZZZZ") is None
-    merged = [b for b in pdk.get_banks() if not b.active]
-    assert merged and all(b.merged_into for b in merged)
+    inactive = [b for b in pdk.get_banks() if not b.active]
+    assert inactive and all(b.merged_into or b.code == "SMES" for b in inactive)
+    smes = pdk.get_bank_info("SMES")
+    assert smes is not None and not smes.active and smes.merged_into is None
     with pytest.raises(ValueError):
         pdk.number_to_words(5, language="fr")

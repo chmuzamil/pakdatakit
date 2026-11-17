@@ -4,11 +4,17 @@ using PakDataKit.Internal;
 
 namespace PakDataKit;
 
-/// <summary>Kind of institution that issues Pakistani IBANs.</summary>
+/// <summary>
+/// Kind of institution that issues Pakistani IBANs, following the State Bank
+/// of Pakistan's grouping.
+/// </summary>
 public enum BankType
 {
-    /// <summary>Commercial bank.</summary>
+    /// <summary>Private commercial bank.</summary>
     Commercial,
+
+    /// <summary>Public sector commercial bank, such as National Bank of Pakistan (<c>public-sector</c>).</summary>
+    PublicSector,
 
     /// <summary>Islamic bank.</summary>
     Islamic,
@@ -36,7 +42,7 @@ public enum BankType
 /// <param name="Code">4-letter IBAN bank code (characters 5–8 of the IBAN).</param>
 /// <param name="Name">Current name of the institution.</param>
 /// <param name="Type">Kind of institution.</param>
-/// <param name="Active"><c>false</c> for banks that merged into another and no longer exist.</param>
+/// <param name="Active"><c>false</c> for banks that merged into another or have closed.</param>
 /// <param name="MergedInto">Code of the bank this one merged into, if it no longer exists.</param>
 /// <param name="AliasOf">Main code of the same bank, when this is an older code still in use.</param>
 public sealed record BankInfo(
@@ -50,8 +56,8 @@ public static class Iban
 
     private static readonly Lazy<IReadOnlyList<BankInfo>> BankList = new(() =>
         Data.Banks.Select(e => new BankInfo(
-            e.Code, e.Name, Enum.Parse<BankType>(e.Type, ignoreCase: true),
-            e.MergedInto is null, e.MergedInto, e.AliasOf)).ToArray());
+            e.Code, e.Name, Enum.Parse<BankType>(e.Type.Replace("-", ""), ignoreCase: true),
+            e.MergedInto is null && e.Active, e.MergedInto, e.AliasOf)).ToArray());
 
     private static readonly Lazy<Dictionary<string, BankInfo>> BankMap = new(() =>
     {

@@ -4,6 +4,21 @@ using PakDataKit.Internal;
 
 namespace PakDataKit;
 
+/// <summary>A delivery post office from Pakistan Post's post code directory.</summary>
+/// <param name="Code">5-digit post code, e.g. <c>48330</c>.</param>
+/// <param name="Office">Office name as the directory gives it, in title case, e.g. <c>Dulmial</c>.</param>
+/// <param name="Town">
+/// The city the office belongs to when that is known (<c>Lahore</c> for an
+/// office in Lahore); otherwise the office's own name, which for most offices
+/// is its town or village.
+/// </param>
+/// <param name="District">
+/// The district, when the town is the headquarters a district is named after;
+/// otherwise <c>null</c>. The directory has no district column.
+/// </param>
+/// <param name="Province">Province or territory.</param>
+public sealed record PostOffice(string Code, string Office, string Town, string? District, string Province);
+
 /// <summary>Pakistani postal code lookups.</summary>
 public static class Postal
 {
@@ -35,6 +50,55 @@ public static class Postal
         postalCode ??= "";
         var code = WsRun.Replace(Js.Trim(postalCode), "");
         return code.Length == 0 ? null : ByCode.Value.GetValueOrDefault(code);
+    }
+
+    private static readonly Lazy<Dictionary<string, PostOffice>> OfficeByCode = new(() =>
+    {
+        var map = new Dictionary<string, PostOffice>(StringComparer.Ordinal);
+        foreach (var office in Data.PostOffices) map[office.Code] = office;
+        return map;
+    });
+
+    /// <summary>
+    /// Returns the delivery post office for a post code, from Pakistan Post's
+    /// directory of about 2,560 offices.
+    /// </summary>
+    /// <remarks>
+    /// Unlike <see cref="GetCity"/>, which only answers for codes in the cities
+    /// pakdatakit lists, this knows every delivery office, including those in
+    /// towns and villages.
+    /// <code>
+    /// Postal.GetPostOffice("48330");
+    /// // PostOffice { Code = 48330, Office = Dulmial, Town = Dulmial, District = , Province = Punjab }
+    /// </code>
+    /// </remarks>
+    /// <param name="code">Post code; whitespace is ignored.</param>
+    /// <returns>The post office, or <c>null</c> if the code is not in the directory.</returns>
+    public static PostOffice? GetPostOffice(string? code)
+    {
+        code ??= "";
+        var key = WsRun.Replace(Js.Trim(code), "");
+        return key.Length == 0 ? null : OfficeByCode.Value.GetValueOrDefault(key);
+    }
+
+    /// <summary>Searches Pakistan Post's directory by office name, town or post code.</summary>
+    /// <remarks>
+    /// Matching is case-insensitive: an office matches when its name or town
+    /// contains the query, or its code starts with it.
+    /// </remarks>
+    /// <param name="query">Partial office name, town or post code.</param>
+    /// <returns>Matching post offices, sorted by post code; empty if none match.</returns>
+    public static IReadOnlyList<PostOffice> SearchPostOffices(string? query)
+    {
+        query ??= "";
+        var key = Normalize.Key(query);
+        if (key.Length == 0) return [];
+        var prefix = Js.Trim(query);
+        return Data.PostOffices
+            .Where(o => Normalize.Key(o.Office).Contains(key, StringComparison.Ordinal)
+                || Normalize.Key(o.Town).Contains(key, StringComparison.Ordinal)
+                || o.Code.StartsWith(prefix, StringComparison.Ordinal))
+            .ToArray();
     }
 
     /// <summary>Returns the primary (GPO) postal code for a city.</summary>
@@ -91,7 +155,7 @@ public static class Postal
     }
 }
 
-/// <summary>Cities, districts and provinces.</summary>
+/// <summary>Cities, tehsils, districts, divisions and provinces.</summary>
 public static class Geo
 {
     private static readonly Lazy<Dictionary<string, string>> CityMap = new(() =>
@@ -107,6 +171,19 @@ public static class Geo
         foreach (var e in Data.Districts) map[Normalize.Key(e.District)] = e.Province;
         return map;
     });
+
+    private static readonly Lazy<Dictionary<string, string>> DivisionOfDistrict = new(() =>
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var e in Data.Divisions)
+        {
+            foreach (var district in e.Districts) map[Normalize.Key(district)] = e.Division;
+        }
+        return map;
+    });
+
+    private static readonly Lazy<HashSet<string>> CensusDistrictKeys = new(() =>
+        Data.Tehsils.Select(e => Normalize.Key(e.CensusDistrict)).ToHashSet(StringComparer.Ordinal));
 
     // Districts that were split or renamed, so names stored before the change
     // still resolve. They are not listed by SearchDistricts or GetDistrictsByProvince.
@@ -182,6 +259,121 @@ public static class Geo
         return Js.LocaleSorted(Data.Districts
             .Where(e => Normalize.Key(e.Province) == key)
             .Select(e => e.District));
+    }
+
+    /// <summary>
+    /// Returns the administrative divisions of Pakistan, sorted.
+    /// <para>
+    /// The list is the 30 divisions of the 2023 census: Punjab 9, Sindh 6,
+    /// Khyber Pakhtunkhwa 7 and Balochistan 8. Islamabad has no division, and
+    /// the census tables do not cover Azad Jammu and Kashmir or
+    /// Gilgit-Baltistan. Divisions created since the census (such as Gujrat
+    /// in Punjab) are not included.
+    /// </para>
+    /// </summary>
+    /// <returns>The division names.</returns>
+    public static IReadOnlyList<string> GetDivisions() =>
+        Js.LocaleSorted(Data.Divisions.Select(e => e.Division));
+
+    /// <summary>
+    /// Returns the administrative divisions of one province, sorted. See
+    /// <see cref="GetDivisions()"/> for what the list covers.
+    /// </summary>
+    /// <param name="province">Province name; case and spacing are ignored.</param>
+    /// <returns>
+    /// The division names; empty if the province is not known or has no
+    /// divisions in the data. <c>null</c> also gives an empty list: call
+    /// <see cref="GetDivisions()"/> for every division.
+    /// </returns>
+    public static IReadOnlyList<string> GetDivisions(string? province)
+    {
+        province ??= "";
+        var key = Normalize.Key(province);
+        if (key.Length == 0) return [];
+        return Js.LocaleSorted(Data.Divisions
+            .Where(e => Normalize.Key(e.Province) == key)
+            .Select(e => e.Division));
+    }
+
+    /// <summary>
+    /// Returns the division a district belonged to in the 2023 census.
+    /// <para>
+    /// Census-district caveat: only the 136 districts of the 2023 census have
+    /// a division here, under the name they had then (so <c>Quetta</c>,
+    /// <c>Dera Bugti</c> and <c>South Waziristan</c> work, and their
+    /// successors do not). Districts created after the census, and those of
+    /// Azad Jammu and Kashmir, Gilgit-Baltistan and Islamabad, return <c>null</c>.
+    /// </para>
+    /// </summary>
+    /// <param name="district">District name; case and spacing are ignored.</param>
+    /// <returns>The division, or <c>null</c> if it is not known.</returns>
+    public static string? GetDivisionOfDistrict(string? district)
+    {
+        district ??= "";
+        var key = Normalize.Key(district);
+        return key.Length == 0 ? null : DivisionOfDistrict.Value.GetValueOrDefault(key);
+    }
+
+    /// <summary>
+    /// Returns the tehsils (talukas, sub-divisions) of a district, sorted.
+    /// <para>
+    /// Census-district caveat: the data is the 591 tehsil-level units of the
+    /// 2023 census, each recorded under the district it was in then. For a
+    /// district of the 2023 census this returns its census tehsils, even if
+    /// some have since moved to a new district (so <c>Rawalpindi</c> still
+    /// lists Murree). For a district created after the census it returns only
+    /// the tehsils an official source places in it, which can be an empty
+    /// list. Azad Jammu and Kashmir and Gilgit-Baltistan are not covered.
+    /// </para>
+    /// </summary>
+    /// <param name="district">
+    /// District name; case and spacing are ignored. Former names such as
+    /// <c>Quetta</c> and <c>South Waziristan</c> work.
+    /// </param>
+    /// <returns>The tehsil names; empty if none are known.</returns>
+    public static IReadOnlyList<string> GetTehsils(string? district)
+    {
+        district ??= "";
+        var key = Normalize.Key(district);
+        if (key.Length == 0) return [];
+        var inCensus = CensusDistrictKeys.Value.Contains(key);
+        return Js.LocaleSorted(Data.Tehsils
+            .Where(e => inCensus
+                ? Normalize.Key(e.CensusDistrict) == key
+                : e.CurrentDistrict is not null && Normalize.Key(e.CurrentDistrict) == key)
+            .Select(e => e.Tehsil));
+    }
+
+    /// <summary>
+    /// Returns the district a tehsil was in at the 2023 census.
+    /// <para>
+    /// Census-district caveat: the result is the census district, which may
+    /// have been split since (a tehsil of <c>Quetta</c> is now in Quetta East
+    /// or Quetta West). A few names are shared by tehsils in different
+    /// districts (<c>Saddar</c>, <c>Sahiwal</c>, <c>Khanpur</c>); pass the
+    /// province to tell them apart.
+    /// </para>
+    /// </summary>
+    /// <param name="tehsil">Tehsil, taluka or sub-division name; case and spacing are ignored.</param>
+    /// <param name="province">Optional province to narrow the search; <c>null</c> searches every province.</param>
+    /// <returns>
+    /// The district, or <c>null</c> when the name is unknown or still matches
+    /// more than one district.
+    /// </returns>
+    public static string? GetTehsilDistrict(string? tehsil, string? province = null)
+    {
+        tehsil ??= "";
+        var key = Normalize.Key(tehsil);
+        if (key.Length == 0) return null;
+        var provinceKey = province is null ? null : Normalize.Key(province);
+        var matches = Data.Tehsils
+            .Where(e => Normalize.Key(e.Tehsil) == key
+                && (provinceKey is null || Normalize.Key(e.Province) == provinceKey))
+            .Select(e => e.CensusDistrict)
+            .Distinct(StringComparer.Ordinal)
+            .Take(2)
+            .ToArray();
+        return matches.Length == 1 ? matches[0] : null;
     }
 }
 

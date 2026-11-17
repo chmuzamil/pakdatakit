@@ -10,9 +10,11 @@ import {
   validatePhone,
 } from 'pakdatakit';
 import { describe, expect, it } from 'vitest';
-import areaCodes from '../../data/area-codes.json';
-import cities from '../../data/cities.json';
-import networks from '../../data/networks.json';
+// The faker generates from its own frozen lists, so the tests read those.
+import areaCodes from '../src/snapshot/area-codes.json';
+import banks from '../src/snapshot/banks.json';
+import cities from '../src/snapshot/cities.json';
+import networks from '../src/snapshot/networks.json';
 import { createFaker, PROVINCES, type Network } from '../src/index.js';
 import {
   FEMALE_FIRST_NAMES,
@@ -315,10 +317,31 @@ describe('distribution', () => {
   });
 
   it('reaches every default bank and never a merged, alias or central code', () => {
-    const expected = getBanks()
-      .filter((b) => b.active && b.aliasOf === null && b.type !== 'central')
+    const closed = new Set(
+      (banks as { code: string; active?: boolean }[])
+        .filter((b) => b.active === false)
+        .map((b) => b.code),
+    );
+    const expected = (
+      banks as {
+        code: string;
+        type: string;
+        mergedInto?: string;
+        aliasOf?: string;
+      }[]
+    )
+      .filter(
+        (b) =>
+          b.mergedInto === undefined &&
+          !closed.has(b.code) &&
+          b.aliasOf === undefined &&
+          b.type !== 'central',
+      )
       .map((b) => b.code)
       .sort();
+    // Every one of them is still a bank pakdatakit knows.
+    const live = new Set(getBanks().map((b) => b.code));
+    for (const code of expected) expect(live.has(code), code).toBe(true);
     const found = new Set(f.many(5000, () => f.ibanDetails().bankCode));
     expect([...found].sort()).toEqual(expected);
   });

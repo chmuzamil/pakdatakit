@@ -153,7 +153,7 @@ a.person(); // deep-equals b.person()
 - `f.seed(value)` restarts an instance; `seed(value)` restarts the default instance.
 - Ages and default dates are relative to "now". Pass `now` for fully reproducible dates: `createFaker({ seed: 1, now: new Date('2026-01-01') })`.
 - `seededRandom(seed)` is exported if you need the raw generator.
-- Output for a given seed can change between minor versions when datasets or generators improve. Pin the version if you snapshot generated data.
+- Output for a given seed does not change when `pakdatakit`'s data is updated: the faker picks from its own frozen lists of banks, cities, postal codes, area codes and mobile prefixes. It can still change between minor versions of `pakdatakit-faker` when a generator improves, so pin the version if you snapshot generated data.
 
 ## Using it with @faker-js/faker
 

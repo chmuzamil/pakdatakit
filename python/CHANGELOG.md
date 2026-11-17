@@ -18,7 +18,31 @@ Bank) added; `TMFB`/`TAMW` renamed "Easypaisa Bank Limited" and `JCMA`/`WMBL`
 Pakistan Post's directory (Gilgit, Dera Ismail Khan, Tank, Badin, Thatta,
 Sujawal, Matiari, Taxila) and Wah Cantonment `47040` added; holiday `source`
 links for 2024 to 2026 now point to official notifications.
-`DATA_VERSION` is now `2026-11-16`.
+
+Data depth:
+
+- `get_divisions()`, `get_division_of_district()`, `get_tehsils()` and
+  `get_tehsil_district()`: division and tehsil lookups from the 2023 census
+  (30 divisions, 591 tehsils). Each tehsil is recorded under its census
+  district.
+- `get_post_office()` and `search_post_offices()`: every delivery post office
+  in Pakistan Post's directory (about 2,560), as `PostOffice(code, office,
+town, district, province)`, including offices in towns and villages.
+- `get_city_by_postal_code()` still returns a city or `None`, and only for
+  post offices in a city on pakdatakit's city list: 457 codes instead of 110.
+  The code of an office in another town or village returns `None`; use
+  `get_post_office()` for those. `get_postal_code()`, `get_postal_codes()`,
+  `get_postal_areas()` and `search_postal_codes()` return more for cities
+  with several offices.
+- Compared with 2.2.1, `get_city_by_postal_code()` gives a different answer
+  for eight codes: `47040` is Wah Cantonment (was Taxila), and `15700`,
+  `29120`, `29430`, `70100`, `72220`, `73020` and `73220`, which were given
+  as the main code of a city but belong to a village office nearby, now
+  return `None`.
+- 41 more landline area codes.
+- New bank type `public-sector`. SME Bank (`SMES`) is reported as inactive.
+
+`DATA_VERSION` is now `2026-11-17`.
 
 ## 2.2.1
 

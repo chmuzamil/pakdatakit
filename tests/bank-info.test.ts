@@ -19,6 +19,8 @@ describe('getBankInfo', () => {
     expect(getBankInfo('TMFB')?.type).toBe('digital');
     expect(getBankInfo('KHBL')?.type).toBe('microfinance');
     expect(getBankInfo('CITI')?.type).toBe('foreign');
+    expect(getBankInfo('NBPA')?.type).toBe('public-sector');
+    expect(getBankInfo('ZTBL')?.type).toBe('specialized');
   });
 
   it('reports merged banks and older codes', () => {
@@ -29,6 +31,13 @@ describe('getBankInfo', () => {
     expect(getBankInfo('WMBL')).toMatchObject({
       active: true,
       aliasOf: 'JCMA',
+    });
+  });
+
+  it('reports a closed bank as inactive', () => {
+    expect(getBankInfo('SMES')).toMatchObject({
+      active: false,
+      mergedInto: null,
     });
   });
 

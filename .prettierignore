@@ -1,4 +1,8 @@
 # Generated files
+# (divisions.json is written by scripts/generate-data.mjs; its lists of
+# districts are laid out differently from Prettier's)
+data/divisions.json
+faker/src/snapshot/
 test-vectors/
 python/.venv/
 python/src/pakdatakit/data/

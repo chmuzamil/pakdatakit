@@ -402,7 +402,7 @@ getBankFromIBAN('invalid');
 // null
 ```
 
-Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SADA (SadaPay), NAYA (NayaPay), RQMI (Raqami), MSHQ (Mashreq), and 48 total entries in the dataset, checked against real IBANs (see [DATA.md](./DATA.md)). Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
+Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SADA (SadaPay), NAYA (NayaPay), RQMI (Raqami), MSHQ (Mashreq), and 50 total entries in the dataset, checked against real IBANs (see [DATA.md](./DATA.md)). Merged or renamed banks are labelled with their current name, e.g. `SAUD` → "Silkbank Limited (merged into United Bank Limited)".
 
 ---
 
@@ -410,7 +410,7 @@ Supported bank codes include HABB, MEZN, SCBL, UNIL, BAHL, NBPA, MUCB, JSBL, SAD
 
 ### getCityByPostalCode()
 
-Returns the city for a Pakistani postal code.
+Returns the city for a Pakistani postal code. Only codes of post offices in a city on pakdatakit's city list return a city; codes of offices in other towns and villages return `null` (use `getPostOffice()` for those).
 
 ```ts
 getCityByPostalCode(postalCode: string): string | null
@@ -421,6 +421,12 @@ Examples:
 ```ts
 getCityByPostalCode('60000');
 // "Multan"
+
+getCityByPostalCode('54660');
+// "Lahore"
+
+getCityByPostalCode('48330');
+// null (a village post office; see getPostOffice)
 
 getCityByPostalCode('99999');
 // null
@@ -445,6 +451,30 @@ getPostalCode('Multan');
 getPostalCode('karachi');
 // "74200"
 ```
+
+---
+
+### getPostOffice() / searchPostOffices()
+
+Every delivery post office in Pakistan Post's directory (about 2,560), including those in towns and villages.
+
+```ts
+getPostOffice(code: string): PostOffice | null
+searchPostOffices(query: string): PostOffice[] // by office name, town or code prefix
+```
+
+```ts
+getPostOffice('48330');
+// { code: "48330", office: "Dulmial", town: "Dulmial", district: null, province: "Punjab" }
+
+getPostOffice('54660');
+// { code: "54660", office: "Lahore Gulberg Colony", town: "Lahore", district: "Lahore", province: "Punjab" }
+
+searchPostOffices('dulmial');
+// [{ code: "48330", office: "Dulmial", ... }]
+```
+
+`town` is the city the office belongs to when that is known, and otherwise the office's own name, which is usually its town or village. `district` is only given for offices in a district's headquarters town; the directory has no district column. The directory is a separate data file (about 32 kB gzipped), so it is only bundled when you call these functions.
 
 ---
 
@@ -560,6 +590,43 @@ District-level geography lookup across 177 districts, including the 2026 Balochi
 getDistrictProvince('Lahore'); // "Punjab"
 searchDistricts('karachi'); // ["Karachi Central", "Karachi East", ...]
 ```
+
+---
+
+### getDivisions() / getDivisionOfDistrict()
+
+The 30 administrative divisions of the 2023 census (Punjab 9, Sindh 6, Khyber Pakhtunkhwa 7, Balochistan 8).
+
+```ts
+getDivisions('Sindh');
+// ["Hyderabad", "Karachi", "Larkana", "Mirpur Khas", "Shaheed Benazirabad", "Sukkur"]
+
+getDivisionOfDistrict('Attock'); // "Rawalpindi"
+getDivisionOfDistrict('Quetta East'); // null (created after the census)
+```
+
+---
+
+### getTehsils() / getTehsilDistrict()
+
+The 591 tehsils, talukas and sub-divisions of the 2023 census.
+
+```ts
+getTehsils('Toba Tek Singh');
+// ["Gojra", "Kamalia", "Pirmahal", "Toba Tek Singh"]
+
+getTehsilDistrict('Gojra'); // "Toba Tek Singh"
+getTehsilDistrict('Khanpur'); // null (three districts have a Khanpur)
+getTehsilDistrict('Khanpur', 'Sindh'); // "Shikarpur"
+```
+
+**Census districts.** Every tehsil is recorded under the district it was in at the 2023 census, which had 136 districts. Districts created or split since then (Murree, Talagang, Quetta East and West, and others) are handled like this:
+
+- `getTehsils('Rawalpindi')` still lists Murree, as the census did.
+- `getTehsils('Murree')` lists only the tehsils an official source places in the new district (Kotli Sattian and Murree). Where no official list could be found, as for `Quetta East`, it is empty.
+- `getTehsilDistrict()` and `getDivisionOfDistrict()` answer with census names: `Quetta`, not Quetta East or Quetta West.
+
+Azad Jammu and Kashmir and Gilgit-Baltistan are not in the census tables, so they have no divisions or tehsils here. See [DATA.md](./DATA.md).
 
 ---
 

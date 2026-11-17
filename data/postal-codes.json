@@ -3,645 +3,3225 @@
     "city": "Islamabad",
     "postalCode": "44000",
     "area": "Islamabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
   },
   {
     "city": "Rawalpindi",
     "postalCode": "46000",
     "area": "Rawalpindi GPO",
-    "primary": true
+    "primary": true,
+    "district": "Rawalpindi",
+    "province": "Punjab"
   },
   {
     "city": "Rawalpindi",
     "postalCode": "46300",
-    "area": "Satellite Town"
+    "area": "Satellite Town",
+    "district": "Rawalpindi",
+    "province": "Punjab"
   },
   {
     "city": "Murree",
     "postalCode": "47150",
     "area": "Murree GPO",
-    "primary": true
+    "primary": true,
+    "district": "Murree",
+    "province": "Punjab"
   },
   {
     "city": "Taxila",
     "postalCode": "47080",
     "area": "Taxila",
-    "primary": true
+    "primary": true,
+    "province": "Punjab"
   },
   {
     "city": "Wah Cantonment",
     "postalCode": "47040",
     "area": "Wah Cantt GPO",
-    "primary": true
+    "primary": true,
+    "province": "Punjab"
   },
   {
     "city": "Lahore",
     "postalCode": "54000",
     "area": "Lahore GPO",
-    "primary": true
+    "primary": true,
+    "district": "Lahore",
+    "province": "Punjab"
   },
   {
     "city": "Lahore",
     "postalCode": "54660",
-    "area": "Gulberg"
+    "area": "Gulberg",
+    "district": "Lahore",
+    "province": "Punjab"
   },
   {
     "city": "Lahore",
     "postalCode": "54700",
-    "area": "Model Town"
+    "area": "Model Town",
+    "district": "Lahore",
+    "province": "Punjab"
   },
   {
     "city": "Lahore",
     "postalCode": "54810",
-    "area": "Lahore Cantt"
+    "area": "Lahore Cantt",
+    "district": "Lahore",
+    "province": "Punjab"
   },
   {
     "city": "Lahore",
     "postalCode": "54570",
-    "area": "Iqbal Town"
+    "area": "Iqbal Town",
+    "district": "Lahore",
+    "province": "Punjab"
   },
   {
     "city": "Faisalabad",
     "postalCode": "38000",
     "area": "Faisalabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Faisalabad",
+    "province": "Punjab"
   },
   {
     "city": "Multan",
     "postalCode": "60000",
     "area": "Multan GPO",
-    "primary": true
+    "primary": true,
+    "district": "Multan",
+    "province": "Punjab"
   },
   {
     "city": "Gujranwala",
     "postalCode": "52250",
     "area": "Gujranwala GPO",
-    "primary": true
+    "primary": true,
+    "district": "Gujranwala",
+    "province": "Punjab"
   },
   {
     "city": "Sialkot",
     "postalCode": "51310",
     "area": "Sialkot GPO",
-    "primary": true
+    "primary": true,
+    "district": "Sialkot",
+    "province": "Punjab"
   },
   {
     "city": "Sargodha",
     "postalCode": "40100",
     "area": "Sargodha GPO",
-    "primary": true
+    "primary": true,
+    "district": "Sargodha",
+    "province": "Punjab"
   },
   {
     "city": "Bahawalpur",
     "postalCode": "63100",
     "area": "Bahawalpur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Bahawalpur",
+    "province": "Punjab"
   },
   {
     "city": "Sheikhupura",
     "postalCode": "39350",
     "area": "Qila Sheikhupura GPO",
-    "primary": true
+    "primary": true,
+    "district": "Sheikhupura",
+    "province": "Punjab"
   },
   {
     "city": "Gujrat",
     "postalCode": "50700",
     "area": "Gujrat GPO",
-    "primary": true
+    "primary": true,
+    "district": "Gujrat",
+    "province": "Punjab"
   },
   {
     "city": "Jhang",
     "postalCode": "35200",
     "area": "Jhang GPO",
-    "primary": true
+    "primary": true,
+    "district": "Jhang",
+    "province": "Punjab"
   },
   {
     "city": "Sahiwal",
     "postalCode": "57000",
     "area": "Sahiwal GPO",
-    "primary": true
+    "primary": true,
+    "district": "Sahiwal",
+    "province": "Punjab"
   },
   {
     "city": "Okara",
     "postalCode": "56300",
     "area": "Okara GPO",
-    "primary": true
+    "primary": true,
+    "district": "Okara",
+    "province": "Punjab"
   },
   {
     "city": "Kasur",
     "postalCode": "55050",
     "area": "Kasur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Kasur",
+    "province": "Punjab"
   },
   {
     "city": "Dera Ghazi Khan",
     "postalCode": "32200",
     "area": "DG Khan GPO",
-    "primary": true
+    "primary": true,
+    "district": "Dera Ghazi Khan",
+    "province": "Punjab"
   },
   {
     "city": "Muzaffargarh",
     "postalCode": "34200",
     "area": "Muzaffargarh GPO",
-    "primary": true
+    "primary": true,
+    "district": "Muzaffargarh",
+    "province": "Punjab"
   },
   {
     "city": "Rahim Yar Khan",
     "postalCode": "64200",
     "area": "RY Khan GPO",
-    "primary": true
+    "primary": true,
+    "district": "Rahim Yar Khan",
+    "province": "Punjab"
   },
   {
     "city": "Bahawalnagar",
     "postalCode": "62300",
     "area": "Bahawalnagar GPO",
-    "primary": true
+    "primary": true,
+    "district": "Bahawalnagar",
+    "province": "Punjab"
   },
   {
     "city": "Khanewal",
     "postalCode": "58150",
     "area": "Khanewal GPO",
-    "primary": true
+    "primary": true,
+    "district": "Khanewal",
+    "province": "Punjab"
   },
   {
     "city": "Vehari",
     "postalCode": "61100",
     "area": "Vehari GPO",
-    "primary": true
+    "primary": true,
+    "district": "Vehari",
+    "province": "Punjab"
   },
   {
     "city": "Pakpattan",
     "postalCode": "57400",
     "area": "Pakpattan GPO",
-    "primary": true
+    "primary": true,
+    "district": "Pakpattan",
+    "province": "Punjab"
   },
   {
     "city": "Chiniot",
     "postalCode": "35400",
     "area": "Chiniot GPO",
-    "primary": true
+    "primary": true,
+    "district": "Chiniot",
+    "province": "Punjab"
   },
   {
     "city": "Hafizabad",
     "postalCode": "52110",
     "area": "Hafizabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Hafizabad",
+    "province": "Punjab"
   },
   {
     "city": "Mandi Bahauddin",
     "postalCode": "50400",
     "area": "Mandi Bahauddin GPO",
-    "primary": true
+    "primary": true,
+    "district": "Mandi Bahauddin",
+    "province": "Punjab"
   },
   {
     "city": "Jhelum",
     "postalCode": "49600",
     "area": "Jhelum GPO",
-    "primary": true
+    "primary": true,
+    "district": "Jhelum",
+    "province": "Punjab"
   },
   {
     "city": "Attock",
     "postalCode": "43600",
     "area": "Attock GPO",
-    "primary": true
+    "primary": true,
+    "district": "Attock",
+    "province": "Punjab"
   },
   {
     "city": "Chakwal",
     "postalCode": "48800",
     "area": "Chakwal GPO",
-    "primary": true
+    "primary": true,
+    "district": "Chakwal",
+    "province": "Punjab"
   },
   {
     "city": "Mianwali",
     "postalCode": "42200",
     "area": "Mianwali GPO",
-    "primary": true
+    "primary": true,
+    "district": "Mianwali",
+    "province": "Punjab"
   },
   {
     "city": "Bhakkar",
     "postalCode": "30000",
     "area": "Bhakkar GPO",
-    "primary": true
+    "primary": true,
+    "district": "Bhakkar",
+    "province": "Punjab"
   },
   {
     "city": "Khushab",
     "postalCode": "41000",
     "area": "Khushab GPO",
-    "primary": true
+    "primary": true,
+    "district": "Khushab",
+    "province": "Punjab"
   },
   {
     "city": "Narowal",
     "postalCode": "51600",
     "area": "Narowal GPO",
-    "primary": true
+    "primary": true,
+    "district": "Narowal",
+    "province": "Punjab"
   },
   {
     "city": "Nankana Sahib",
     "postalCode": "39100",
     "area": "Nankana Sahib GPO",
-    "primary": true
+    "primary": true,
+    "district": "Nankana Sahib",
+    "province": "Punjab"
   },
   {
     "city": "Toba Tek Singh",
     "postalCode": "36050",
     "area": "TTS GPO",
-    "primary": true
+    "primary": true,
+    "district": "Toba Tek Singh",
+    "province": "Punjab"
   },
   {
     "city": "Lodhran",
     "postalCode": "59320",
     "area": "Lodhran GPO",
-    "primary": true
+    "primary": true,
+    "district": "Lodhran",
+    "province": "Punjab"
   },
   {
     "city": "Layyah",
     "postalCode": "31200",
     "area": "Layyah GPO",
-    "primary": true
+    "primary": true,
+    "district": "Layyah",
+    "province": "Punjab"
   },
   {
     "city": "Rajanpur",
     "postalCode": "33500",
     "area": "Rajanpur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Rajanpur",
+    "province": "Punjab"
   },
   {
     "city": "Wazirabad",
     "postalCode": "52000",
     "area": "Wazirabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Wazirabad",
+    "province": "Punjab"
   },
   {
     "city": "Talagang",
     "postalCode": "48100",
     "area": "Talagang GPO",
-    "primary": true
+    "primary": true,
+    "district": "Talagang",
+    "province": "Punjab"
   },
   {
     "city": "Kot Addu",
     "postalCode": "34050",
     "area": "Kot Addu GPO",
-    "primary": true
+    "primary": true,
+    "district": "Kot Addu",
+    "province": "Punjab"
   },
   {
     "city": "Karachi",
     "postalCode": "74200",
     "area": "Karachi GPO",
-    "primary": true
+    "primary": true,
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "74000",
-    "area": "Karachi City GPO"
+    "area": "Karachi City GPO",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "74400",
-    "area": "Karachi Saddar GPO"
+    "area": "Karachi Saddar GPO",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "74800",
-    "area": "New Town GPO"
+    "area": "New Town GPO",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "74700",
-    "area": "Al-Hydri GPO"
+    "area": "Al-Hydri GPO",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "75500",
-    "area": "Defence"
+    "area": "Defence",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "75600",
-    "area": "Clifton"
+    "area": "Clifton",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "75300",
-    "area": "Gulshan-e-Iqbal"
+    "area": "Gulshan-e-Iqbal",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "74600",
-    "area": "Nazimabad"
+    "area": "Nazimabad",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "74900",
-    "area": "Korangi"
+    "area": "Korangi",
+    "province": "Sindh"
   },
   {
     "city": "Karachi",
     "postalCode": "75950",
-    "area": "Federal B Area"
+    "area": "Federal B Area",
+    "province": "Sindh"
   },
   {
     "city": "Hyderabad",
     "postalCode": "71000",
     "area": "Hyderabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Hyderabad",
+    "province": "Sindh"
   },
   {
     "city": "Sukkur",
     "postalCode": "65200",
     "area": "Sukkur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Sukkur",
+    "province": "Sindh"
   },
   {
     "city": "Larkana",
     "postalCode": "77150",
     "area": "Larkana GPO",
-    "primary": true
+    "primary": true,
+    "district": "Larkana",
+    "province": "Sindh"
   },
   {
     "city": "Nawabshah",
     "postalCode": "67450",
     "area": "Nawabshah GPO",
-    "primary": true
+    "primary": true,
+    "province": "Sindh"
   },
   {
     "city": "Mirpur Khas",
     "postalCode": "69000",
     "area": "Mirpur Khas GPO",
-    "primary": true
+    "primary": true,
+    "district": "Mirpur Khas",
+    "province": "Sindh"
   },
   {
     "city": "Jacobabad",
     "postalCode": "79000",
     "area": "Jacobabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Jacobabad",
+    "province": "Sindh"
   },
   {
     "city": "Shikarpur",
     "postalCode": "78100",
     "area": "Shikarpur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Shikarpur",
+    "province": "Sindh"
   },
   {
     "city": "Dadu",
     "postalCode": "76200",
     "area": "Dadu GPO",
-    "primary": true
+    "primary": true,
+    "district": "Dadu",
+    "province": "Sindh"
   },
   {
     "city": "Badin",
     "postalCode": "72200",
     "area": "Badin",
-    "primary": true
+    "primary": true,
+    "district": "Badin",
+    "province": "Sindh"
   },
   {
     "city": "Thatta",
     "postalCode": "73130",
     "area": "Thatta",
-    "primary": true
+    "primary": true,
+    "district": "Thatta",
+    "province": "Sindh"
   },
   {
     "city": "Sanghar",
     "postalCode": "68100",
     "area": "Sanghar GPO",
-    "primary": true
+    "primary": true,
+    "district": "Sanghar",
+    "province": "Sindh"
   },
   {
     "city": "Umerkot",
     "postalCode": "69100",
     "area": "Umerkot GPO",
-    "primary": true
+    "primary": true,
+    "district": "Umerkot",
+    "province": "Sindh"
   },
   {
     "city": "Tharparkar",
     "postalCode": "69230",
     "area": "Mithi GPO",
-    "primary": true
+    "primary": true,
+    "district": "Tharparkar",
+    "province": "Sindh"
   },
   {
     "city": "Jamshoro",
     "postalCode": "76080",
     "area": "University New Campus, Jamshoro",
-    "primary": true
+    "primary": true,
+    "district": "Jamshoro",
+    "province": "Sindh"
   },
   {
     "city": "Matiari",
     "postalCode": "70150",
     "area": "Matiari",
-    "primary": true
+    "primary": true,
+    "district": "Matiari",
+    "province": "Sindh"
   },
   {
     "city": "Khairpur",
     "postalCode": "66020",
     "area": "Khairpur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Khairpur",
+    "province": "Sindh"
   },
   {
     "city": "Ghotki",
     "postalCode": "65110",
     "area": "Ghotki GPO",
-    "primary": true
+    "primary": true,
+    "district": "Ghotki",
+    "province": "Sindh"
   },
   {
     "city": "Kashmore",
     "postalCode": "79200",
     "area": "Kashmore GPO",
-    "primary": true
+    "primary": true,
+    "district": "Kashmore",
+    "province": "Sindh"
   },
   {
     "city": "Sujawal",
     "postalCode": "73050",
     "area": "Sujawal",
-    "primary": true
+    "primary": true,
+    "district": "Sujawal",
+    "province": "Sindh"
   },
   {
     "city": "Peshawar",
     "postalCode": "25000",
     "area": "Peshawar GPO",
-    "primary": true
+    "primary": true,
+    "district": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Mardan",
     "postalCode": "23200",
     "area": "Mardan GPO",
-    "primary": true
+    "primary": true,
+    "district": "Mardan",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Abbottabad",
     "postalCode": "22010",
     "area": "Abbottabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Abbottabad",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Kohat",
     "postalCode": "26000",
     "area": "Kohat GPO",
-    "primary": true
+    "primary": true,
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Bannu",
     "postalCode": "28100",
     "area": "Bannu GPO",
-    "primary": true
+    "primary": true,
+    "district": "Bannu",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Swat",
     "postalCode": "19200",
     "area": "Saidu Sharif GPO",
-    "primary": true
+    "primary": true,
+    "district": "Swat",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Mansehra",
     "postalCode": "21300",
     "area": "Mansehra GPO",
-    "primary": true
+    "primary": true,
+    "district": "Mansehra",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Dera Ismail Khan",
     "postalCode": "29050",
     "area": "Dera Ismail Khan GPO",
-    "primary": true
+    "primary": true,
+    "district": "Dera Ismail Khan",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Nowshera",
     "postalCode": "24100",
     "area": "Nowshera GPO",
-    "primary": true
+    "primary": true,
+    "district": "Nowshera",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Swabi",
     "postalCode": "23430",
     "area": "Swabi GPO",
-    "primary": true
+    "primary": true,
+    "district": "Swabi",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Charsadda",
     "postalCode": "24420",
     "area": "Charsadda GPO",
-    "primary": true
+    "primary": true,
+    "district": "Charsadda",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Haripur",
     "postalCode": "22620",
     "area": "Haripur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Haripur",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Hangu",
     "postalCode": "26190",
     "area": "Hangu GPO",
-    "primary": true
+    "primary": true,
+    "district": "Hangu",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Karak",
     "postalCode": "27200",
     "area": "Karak GPO",
-    "primary": true
+    "primary": true,
+    "district": "Karak",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Tank",
     "postalCode": "29400",
     "area": "Tank GPO",
-    "primary": true
+    "primary": true,
+    "district": "Tank",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Lakki Marwat",
     "postalCode": "28420",
     "area": "Lakki Marwat GPO",
-    "primary": true
+    "primary": true,
+    "district": "Lakki Marwat",
+    "province": "Khyber Pakhtunkhwa"
   },
   {
     "city": "Quetta",
     "postalCode": "87300",
     "area": "Quetta GPO",
-    "primary": true
+    "primary": true,
+    "province": "Balochistan"
   },
   {
     "city": "Gwadar",
     "postalCode": "91200",
     "area": "Gwadar GPO",
-    "primary": true
+    "primary": true,
+    "district": "Gwadar",
+    "province": "Balochistan"
   },
   {
     "city": "Turbat",
     "postalCode": "92600",
     "area": "Turbat GPO",
-    "primary": true
+    "primary": true,
+    "province": "Balochistan"
   },
   {
     "city": "Khuzdar",
     "postalCode": "89100",
     "area": "Khuzdar GPO",
-    "primary": true
+    "primary": true,
+    "district": "Khuzdar",
+    "province": "Balochistan"
   },
   {
     "city": "Sibi",
     "postalCode": "82000",
     "area": "Sibi GPO",
-    "primary": true
+    "primary": true,
+    "district": "Sibi",
+    "province": "Balochistan"
   },
   {
     "city": "Loralai",
     "postalCode": "84800",
     "area": "Loralai GPO",
-    "primary": true
+    "primary": true,
+    "district": "Loralai",
+    "province": "Balochistan"
   },
   {
     "city": "Zhob",
     "postalCode": "85200",
     "area": "Zhob GPO",
-    "primary": true
+    "primary": true,
+    "district": "Zhob",
+    "province": "Balochistan"
   },
   {
     "city": "Chaman",
     "postalCode": "86000",
     "area": "Chaman GPO",
-    "primary": true
+    "primary": true,
+    "district": "Chaman",
+    "province": "Balochistan"
   },
   {
     "city": "Hub",
     "postalCode": "90250",
     "area": "Hub GPO",
-    "primary": true
+    "primary": true,
+    "district": "Hub",
+    "province": "Balochistan"
   },
   {
     "city": "Muzaffarabad",
     "postalCode": "13100",
     "area": "Muzaffarabad GPO",
-    "primary": true
+    "primary": true,
+    "district": "Muzaffarabad",
+    "province": "Azad Jammu and Kashmir"
   },
   {
     "city": "Mirpur",
     "postalCode": "10250",
     "area": "Mirpur GPO",
-    "primary": true
+    "primary": true,
+    "district": "Mirpur",
+    "province": "Azad Jammu and Kashmir"
   },
   {
     "city": "Kotli",
     "postalCode": "11100",
     "area": "Kotli GPO",
-    "primary": true
+    "primary": true,
+    "district": "Kotli",
+    "province": "Azad Jammu and Kashmir"
   },
   {
     "city": "Rawalakot",
     "postalCode": "12350",
     "area": "Rawalakot GPO",
-    "primary": true
+    "primary": true,
+    "province": "Azad Jammu and Kashmir"
   },
   {
     "city": "Bagh",
     "postalCode": "12500",
     "area": "Bagh GPO",
-    "primary": true
+    "primary": true,
+    "district": "Bagh",
+    "province": "Azad Jammu and Kashmir"
   },
   {
     "city": "Gilgit",
     "postalCode": "15100",
     "area": "Gilgit GPO",
-    "primary": true
+    "primary": true,
+    "district": "Gilgit",
+    "province": "Gilgit-Baltistan"
   },
   {
     "city": "Skardu",
     "postalCode": "16100",
     "area": "Skardu GPO",
-    "primary": true
+    "primary": true,
+    "district": "Skardu",
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Mirpur",
+    "postalCode": "10240",
+    "area": "AJK Board Of Education Mirpur",
+    "district": "Mirpur",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Mirpur",
+    "postalCode": "10390",
+    "area": "Tariq Abad (Mirpur)",
+    "district": "Mirpur",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Kotli",
+    "postalCode": "11180",
+    "area": "Mohra Sharif Kotli",
+    "district": "Kotli",
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Palandri",
+    "postalCode": "12010",
+    "area": "Palandri GPO",
+    "primary": true,
+    "province": "Azad Jammu and Kashmir"
+  },
+  {
+    "city": "Aliabad",
+    "postalCode": "15600",
+    "area": "Aliabad",
+    "primary": true,
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Skardu",
+    "postalCode": "16200",
+    "area": "Skardu Airport",
+    "district": "Skardu",
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Khaplu",
+    "postalCode": "16800",
+    "area": "Khaplu",
+    "primary": true,
+    "province": "Gilgit-Baltistan"
+  },
+  {
+    "city": "Chitral",
+    "postalCode": "17200",
+    "area": "Chitral GPO",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Daggar",
+    "postalCode": "17290",
+    "area": "Daggar",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Dir",
+    "postalCode": "18000",
+    "area": "Dir",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Bahrain",
+    "postalCode": "19010",
+    "area": "Bahrain",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Mansehra",
+    "postalCode": "21130",
+    "area": "Dhudial (Mansehra)",
+    "district": "Mansehra",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Mansehra",
+    "postalCode": "21310",
+    "area": "Mansehra City",
+    "district": "Mansehra",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Mansehra",
+    "postalCode": "21450",
+    "area": "Sher Garh (Mansehra)",
+    "district": "Mansehra",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Abbottabad",
+    "postalCode": "22030",
+    "area": "Abbottabad Public School",
+    "district": "Abbottabad",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Abbottabad",
+    "postalCode": "22040",
+    "area": "Ayub Medical College Abbottabad",
+    "district": "Abbottabad",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Havelian",
+    "postalCode": "22500",
+    "area": "Havelian",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Haripur",
+    "postalCode": "22630",
+    "area": "Haripur Telephone Factory",
+    "district": "Haripur",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Haripur",
+    "postalCode": "22640",
+    "area": "Haripur Central Jail",
+    "district": "Haripur",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Batkhela",
+    "postalCode": "23020",
+    "area": "Batkhela GPO",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Mardan",
+    "postalCode": "23210",
+    "area": "Mardan Sugar Research Institute",
+    "district": "Mardan",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Mardan",
+    "postalCode": "23350",
+    "area": "Gujrat (Mardan)",
+    "district": "Mardan",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Mardan",
+    "postalCode": "23570",
+    "area": "Lahor Chhota (Mardan)",
+    "district": "Mardan",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Nowshera",
+    "postalCode": "24110",
+    "area": "Nowshera City",
+    "district": "Nowshera",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Nowshera",
+    "postalCode": "24160",
+    "area": "Feroz Sons Nowshera",
+    "district": "Nowshera",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Nowshera",
+    "postalCode": "24170",
+    "area": "Adamjee Paper Board Mills Nowshera",
+    "district": "Nowshera",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Peshawar",
+    "postalCode": "24720",
+    "area": "Peshawar Industrial Estate",
+    "district": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Landi Kotal",
+    "postalCode": "24740",
+    "area": "Landi Kotal",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Peshawar",
+    "postalCode": "25110",
+    "area": "Peshawar Education Board",
+    "district": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Peshawar",
+    "postalCode": "25120",
+    "area": "Peshawar University",
+    "district": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Peshawar",
+    "postalCode": "25130",
+    "area": "Pak Forest Institute Peshawar",
+    "district": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Peshawar",
+    "postalCode": "25160",
+    "area": "Peshawar C.T. Training School",
+    "district": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Peshawar",
+    "postalCode": "25210",
+    "area": "Peshawar Poly Technical College",
+    "district": "Peshawar",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26020",
+    "area": "Kohat Police Recruit Training Centre",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26030",
+    "area": "Kohat Cadet College",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26050",
+    "area": "Kohat Gunners Line",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26054",
+    "area": "Kohat Satellite Town",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26064",
+    "area": "Kohat Board Of Education",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26070",
+    "area": "Kohat J.d.m.t.mills",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26080",
+    "area": "Kohat P.A.F.",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Kohat",
+    "postalCode": "26090",
+    "area": "Kohat Officers Training School",
+    "district": "Kohat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Parachinar",
+    "postalCode": "26300",
+    "area": "Parachinar",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Bannu",
+    "postalCode": "28010",
+    "area": "Domel (Bannu)",
+    "district": "Bannu",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Bannu",
+    "postalCode": "28334",
+    "area": "Bannu Al.markaz Islami",
+    "district": "Bannu",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Lakki Marwat",
+    "postalCode": "28510",
+    "area": "Lakki Marwat Main Lorry Adda",
+    "district": "Lakki Marwat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Lakki Marwat",
+    "postalCode": "28520",
+    "area": "Michan Khel Adda Lakki Marwat",
+    "district": "Lakki Marwat",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Dera Ismail Khan",
+    "postalCode": "29140",
+    "area": "Saddar Bazar Dera Ismail Khan",
+    "district": "Dera Ismail Khan",
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Wana",
+    "postalCode": "29540",
+    "area": "Wana",
+    "primary": true,
+    "province": "Khyber Pakhtunkhwa"
+  },
+  {
+    "city": "Bhakkar",
+    "postalCode": "30030",
+    "area": "Haiderabad (Bhakkar)",
+    "district": "Bhakkar",
+    "province": "Punjab"
+  },
+  {
+    "city": "Layyah",
+    "postalCode": "31300",
+    "area": "Layyah Sugar Mills",
+    "district": "Layyah",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rojhan",
+    "postalCode": "33700",
+    "area": "Rojhan",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Muzaffargarh",
+    "postalCode": "34060",
+    "area": "Gas Tarbine Power Muzaffargarh",
+    "district": "Muzaffargarh",
+    "province": "Punjab"
+  },
+  {
+    "city": "Muzaffargarh",
+    "postalCode": "34114",
+    "area": "Tharmal Power Station Muzaffargarh",
+    "district": "Muzaffargarh",
+    "province": "Punjab"
+  },
+  {
+    "city": "Muzaffargarh",
+    "postalCode": "34120",
+    "area": "Gujrat (Muzaffargarh)",
+    "district": "Muzaffargarh",
+    "province": "Punjab"
+  },
+  {
+    "city": "Jhang",
+    "postalCode": "35210",
+    "area": "Aliabad, Jhang",
+    "district": "Jhang",
+    "province": "Punjab"
+  },
+  {
+    "city": "Bhawana",
+    "postalCode": "35350",
+    "area": "Bhawana",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Gojra",
+    "postalCode": "36120",
+    "area": "Gojra",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Pir Mahal",
+    "postalCode": "36300",
+    "area": "Pir Mahal",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Kamalia",
+    "postalCode": "36350",
+    "area": "Kamalia GPO",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Jaranwala",
+    "postalCode": "37250",
+    "area": "Jaranwala",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Samundri",
+    "postalCode": "37300",
+    "area": "Samundri",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Chak Jhumra",
+    "postalCode": "37700",
+    "area": "Chak Jhumra",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38004",
+    "area": "Faisalabad Board Of Education",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38070",
+    "area": "Faisalabad Millat Town",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38080",
+    "area": "Faisalabad Millat Colony",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38086",
+    "area": "Faisalabad Sitara Colony",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38090",
+    "area": "Faisalabad Peoples Colony No.2",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38200",
+    "area": "Faisalabad Amin Pur Banglow",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38600",
+    "area": "Faisalabad Nishat Abad",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38610",
+    "area": "Gulistan Colony, Faisalabad",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38700",
+    "area": "Faisalabad Noor Pur",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38800",
+    "area": "Faisalabad Punjab Medical College",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Faisalabad",
+    "postalCode": "38860",
+    "area": "Faisalabad Madina Town",
+    "district": "Faisalabad",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sheikhupura",
+    "postalCode": "39040",
+    "area": "Sheikhupura Service Industry",
+    "district": "Sheikhupura",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kot Abdul Malik",
+    "postalCode": "39250",
+    "area": "Kot Abdul Malik",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Sangla Hill",
+    "postalCode": "39600",
+    "area": "Sangla Hill",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40160",
+    "area": "Sargodha Secondary Board",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40162",
+    "area": "University Of Sargodha",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40170",
+    "area": "Sargodha Taxtile Mills",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40180",
+    "area": "Sargodha P.A.F Base",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40190",
+    "area": "Sargodha Cantt",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40210",
+    "area": "Sahiwal (Sargodha)",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40216",
+    "area": "Gondal (Sargodha)",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40340",
+    "area": "Hyderabad Town Sargodha",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Bhalwal",
+    "postalCode": "40410",
+    "area": "Bhalwal",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Sargodha",
+    "postalCode": "40412",
+    "area": "Attabad, Sargodha",
+    "district": "Sargodha",
+    "province": "Punjab"
+  },
+  {
+    "city": "Khushab",
+    "postalCode": "41100",
+    "area": "Nawshera (Khushab)",
+    "district": "Khushab",
+    "province": "Punjab"
+  },
+  {
+    "city": "Khushab",
+    "postalCode": "41264",
+    "area": "Khushab Atomic Energy Commission",
+    "district": "Khushab",
+    "province": "Punjab"
+  },
+  {
+    "city": "Mianwali",
+    "postalCode": "42030",
+    "area": "Chashma Barrage Colony Mianwali",
+    "district": "Mianwali",
+    "province": "Punjab"
+  },
+  {
+    "city": "Mianwali",
+    "postalCode": "42206",
+    "area": "Mianwali P.A.F Colony",
+    "district": "Mianwali",
+    "province": "Punjab"
+  },
+  {
+    "city": "Attock",
+    "postalCode": "43560",
+    "area": "Attock Khurd",
+    "district": "Attock",
+    "province": "Punjab"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44010",
+    "area": "Islamabad Primr Minister Sectt.",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44020",
+    "area": "Islamabad B-Block Pak Sectt.",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44030",
+    "area": "Islamabad National Assembly",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44040",
+    "area": "Islamabad Aiwan-E-Saddar",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44050",
+    "area": "Islamabad G-5 Foreign Office",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44080",
+    "area": "Islamabad G-8/Markaz",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44090",
+    "area": "Islamabad G-9/Markaz",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44100",
+    "area": "Islamabad G-10 Markaz",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44150",
+    "area": "Islamabad G-15 Sector",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44210",
+    "area": "Islamabad F-7 Markaz",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44220",
+    "area": "Islamabad F-8 Markaz",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44230",
+    "area": "Islamabad E-9 (Air Hq)",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44310",
+    "area": "Islamabad Allama Iqbal Open University",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44320",
+    "area": "Islamabad Federal Board",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44790",
+    "area": "Islamabad I-8/4",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "44800",
+    "area": "Islamabad I-10/Markaz",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45200",
+    "area": "Golra",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45210",
+    "area": "Islamabad Hajj Complex",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45220",
+    "area": "Shah Allah Ditta",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45230",
+    "area": "Tarnol",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45240",
+    "area": "Bagnial",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45250",
+    "area": "Mara Jaffar, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45300",
+    "area": "Noorpur Shahan, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45320",
+    "area": "Islamabad Quiaid-E-Azam University",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45400",
+    "area": "Bara Kau",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45410",
+    "area": "Saree Chowk",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45500",
+    "area": "Islamabad National Health Laboratiories",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45510",
+    "area": "Rawal Town, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45520",
+    "area": "Malpur, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45550",
+    "area": "Tarlai Kalan",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45570",
+    "area": "Kuri, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45600",
+    "area": "Ali Pur Frash",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45610",
+    "area": "Jagiot, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45624",
+    "area": "Pind Malkan",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45640",
+    "area": "Kirpa, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45650",
+    "area": "Nilore, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45680",
+    "area": "Chirah",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45700",
+    "area": "Islamabad, Model Town Humak",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45710",
+    "area": "Lohi Bher, Islamabad",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45720",
+    "area": "Pakistan Town (Korang Town)",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45730",
+    "area": "Islamabad DHA Phase-II",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45740",
+    "area": "Sohan",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45750",
+    "area": "Sihala",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45800",
+    "area": "Herdogher",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Islamabad",
+    "postalCode": "45900",
+    "area": "Rewat",
+    "district": "Islamabad",
+    "province": "Islamabad Capital Territory"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46010",
+    "area": "Rawalpindi Momin Pura",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46020",
+    "area": "Rawalpindi Urdu Bazar",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46030",
+    "area": "Rawalpindi Saidpur Road",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46040",
+    "area": "Rawalpindi Asghar Mall",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46050",
+    "area": "Rawalpindi Allama Iqbal Colony",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46060",
+    "area": "Rawalpindi Westridge",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46070",
+    "area": "Rawalpindi Kohinoor Colony",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46100",
+    "area": "Rawalpindi General Headquarters",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46120",
+    "area": "Murree Brewary Rawalpindi",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46210",
+    "area": "Rawalpindi Chaklala Air Field",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46220",
+    "area": "Rawalpindi Bahria Town (Phase 1, 2, 3, 4)",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46222",
+    "area": "Rawalpindi Gulzar-E-Quaid",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46310",
+    "area": "Rawalpindi Judicial Town",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46320",
+    "area": "Rawalpindi Raja Town",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46330",
+    "area": "Rawalpindi Fizaia Colony",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46350",
+    "area": "Rawalpindi Pir Wadhai",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46500",
+    "area": "Rawalpindi Dhamial Camp",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46510",
+    "area": "Rawalpindi Kutchery",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46520",
+    "area": "Rawalpindi Chak Jalal Din",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46600",
+    "area": "Rawalpindi Attock Oil Company",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46602",
+    "area": "Rawalpindi Bise Morgah",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46604",
+    "area": "Askari 14, Rawalpindi",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46606",
+    "area": "Rawalpindi Adyala Road",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "46610",
+    "area": "Rawalpindi High Court",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Murree",
+    "postalCode": "47118",
+    "area": "Murree Clifdon",
+    "district": "Murree",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kahuta",
+    "postalCode": "47330",
+    "area": "Kahuta GPO",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Rawalpindi",
+    "postalCode": "47376",
+    "area": "Maira (Rawalpindi)",
+    "district": "Rawalpindi",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujar Khan",
+    "postalCode": "47850",
+    "area": "Gujar Khan GPO",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Talagang City",
+    "postalCode": "48090",
+    "area": "Talagang City",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Lawa",
+    "postalCode": "48250",
+    "area": "Lawa",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Chakwal",
+    "postalCode": "48380",
+    "area": "Khairpur (Chakwal)",
+    "district": "Chakwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chakwal",
+    "postalCode": "48700",
+    "area": "Dhudial (Chakwal)",
+    "district": "Chakwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chakwal",
+    "postalCode": "48870",
+    "area": "Khan Pur (Chakwal)",
+    "district": "Chakwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chakwal",
+    "postalCode": "48940",
+    "area": "Jand (Chakwal)",
+    "district": "Chakwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Pind Dadan Khan",
+    "postalCode": "49040",
+    "area": "Pind Dadan Khan",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Sohawa",
+    "postalCode": "49230",
+    "area": "Sohawa",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Dina",
+    "postalCode": "49400",
+    "area": "Dina",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Jhelum",
+    "postalCode": "49510",
+    "area": "Maira (Jhelum)",
+    "district": "Jhelum",
+    "province": "Punjab"
+  },
+  {
+    "city": "Phalia",
+    "postalCode": "50430",
+    "area": "Phalia",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Gojra",
+    "postalCode": "50500",
+    "area": "Gojra",
+    "province": "Punjab"
+  },
+  {
+    "city": "Daska",
+    "postalCode": "51010",
+    "area": "Daska",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Sialkot",
+    "postalCode": "51300",
+    "area": "Sialkot Cantt.",
+    "district": "Sialkot",
+    "province": "Punjab"
+  },
+  {
+    "city": "Pasrur",
+    "postalCode": "51480",
+    "area": "Pasrur",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujranwala",
+    "postalCode": "52230",
+    "area": "Gujranwala Cantt",
+    "district": "Gujranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujranwala",
+    "postalCode": "52256",
+    "area": "Gujranwala Secondary Board",
+    "district": "Gujranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujranwala",
+    "postalCode": "52260",
+    "area": "Gujranwala Peoples Colony",
+    "district": "Gujranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujranwala",
+    "postalCode": "52290",
+    "area": "Gujranwala Climax Abad",
+    "district": "Gujranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujranwala",
+    "postalCode": "52300",
+    "area": "Gujranwala Anwar Industries",
+    "district": "Gujranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Gujranwala",
+    "postalCode": "52410",
+    "area": "Nizam Pur Gujranwala",
+    "district": "Gujranwala",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53100",
+    "area": "Lahore Kahna Nau",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53200",
+    "area": "Barki",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53400",
+    "area": "Lahore Bata Pur",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53500",
+    "area": "Jallo",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53600",
+    "area": "Wagha Lahore",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53700",
+    "area": "Niaz Beg Thokar",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53710",
+    "area": "Lahore E.M.E Society P.O",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53720",
+    "area": "Lahore Bahria Town",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "53800",
+    "area": "Chuhang",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54010",
+    "area": "Naulakha",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54020",
+    "area": "Lahore Alflah",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54030",
+    "area": "Lahore Aitcheson College",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54100",
+    "area": "Shah Alam Market",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54110",
+    "area": "Shahi Mohallah",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54120",
+    "area": "Timber Market",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54500",
+    "area": "Lahore Multan Road Post Office",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54510",
+    "area": "Rewaz Garden",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54550",
+    "area": "Lahore Pt & T Audit",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54560",
+    "area": "Lahore Pmg Punjab Post Office",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54572",
+    "area": "Sabzazar",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54590",
+    "area": "Lahore New University Campus",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54600",
+    "area": "Lahore Ferozepur Road",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54610",
+    "area": "Lahore Shadman Women Model P.O",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54650",
+    "area": "Lahore Secondary Board",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54760",
+    "area": "Lahore Ismail Nagar",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54762",
+    "area": "Lahore Nishtar Town",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54770",
+    "area": "Lahore Township Sector A-1",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54780",
+    "area": "Lahore Awan Coloney",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54782",
+    "area": "Lahore Johar Town",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54784",
+    "area": "River View, Lahore",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54790",
+    "area": "Mansoora",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54792",
+    "area": "Lahore Defence Housing Soicety",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54800",
+    "area": "Lahore C.M.A. Cantt.",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54840",
+    "area": "Moghalpura",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54850",
+    "area": "Lahore Harbans Pura",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54870",
+    "area": "Lahore Tajpura",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54880",
+    "area": "Lahore Punjab Governor House",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54890",
+    "area": "Lahore Engineering University",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54900",
+    "area": "Chah Miran",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54920",
+    "area": "Lahore Baghbanpura",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "54950",
+    "area": "Shahdara Bagh",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kasur",
+    "postalCode": "55110",
+    "area": "Mustafabad Kasur",
+    "district": "Kasur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "55150",
+    "area": "Raiwind",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kasur",
+    "postalCode": "55154",
+    "area": "Kangra, Kasur",
+    "district": "Kasur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "55160",
+    "area": "Lahore Kohinoor Energy",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kasur",
+    "postalCode": "55170",
+    "area": "Robby Taxtile Mill Kasur",
+    "district": "Kasur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Kot Radha Kishan",
+    "postalCode": "55180",
+    "area": "Kot Radha Kishan",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "55210",
+    "area": "Balloki",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chunian",
+    "postalCode": "55220",
+    "area": "Chunian",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Lahore",
+    "postalCode": "55270",
+    "area": "Manga Mandi",
+    "district": "Lahore",
+    "province": "Punjab"
+  },
+  {
+    "city": "Pattoki",
+    "postalCode": "55300",
+    "area": "Pattoki",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Renala Khurd",
+    "postalCode": "56130",
+    "area": "Renala Khurd",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Depalpur",
+    "postalCode": "56180",
+    "area": "Depalpur",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Okara",
+    "postalCode": "56350",
+    "area": "Military Farms Okara",
+    "district": "Okara",
+    "province": "Punjab"
+  },
+  {
+    "city": "Okara",
+    "postalCode": "56400",
+    "area": "Okara Cantonment",
+    "district": "Okara",
+    "province": "Punjab"
+  },
+  {
+    "city": "Okara",
+    "postalCode": "56410",
+    "area": "Okara Ammunition Depot",
+    "district": "Okara",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sahiwal",
+    "postalCode": "57040",
+    "area": "Sahiwal Government College",
+    "district": "Sahiwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sahiwal",
+    "postalCode": "57050",
+    "area": "Farid Town Sahiwal",
+    "district": "Sahiwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Chichawatni",
+    "postalCode": "57200",
+    "area": "Chichawatni",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Sahiwal",
+    "postalCode": "57360",
+    "area": "Ninty (90) More, Sahiwal",
+    "district": "Sahiwal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Mian Channu",
+    "postalCode": "58000",
+    "area": "Mian Channu",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Khanewal",
+    "postalCode": "58120",
+    "area": "Khanewal Ammunition Depot",
+    "district": "Khanewal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Khanewal",
+    "postalCode": "58160",
+    "area": "Khanewal Railway Station",
+    "district": "Khanewal",
+    "province": "Punjab"
+  },
+  {
+    "city": "Multan",
+    "postalCode": "59060",
+    "area": "Multan Fertilizer Project",
+    "district": "Multan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Multan",
+    "postalCode": "60050",
+    "area": "Multan Army Aviation Base",
+    "district": "Multan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Multan",
+    "postalCode": "60650",
+    "area": "New Multan",
+    "district": "Multan",
+    "province": "Punjab"
+  },
+  {
+    "city": "Burewala",
+    "postalCode": "61010",
+    "area": "Burewala",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Vehari",
+    "postalCode": "61120",
+    "area": "Vehari Peoples Colony",
+    "district": "Vehari",
+    "province": "Punjab"
+  },
+  {
+    "city": "Mailsi",
+    "postalCode": "61200",
+    "area": "Mailsi",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Fort Abbas",
+    "postalCode": "62020",
+    "area": "Fort Abbas",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Chishtian",
+    "postalCode": "62350",
+    "area": "Chishtian",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Bahawalpur",
+    "postalCode": "63080",
+    "area": "Bahawalpur Cantt",
+    "district": "Bahawalpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Bahawalpur",
+    "postalCode": "63170",
+    "area": "Bahawalpur Intermediate Secondry Board",
+    "district": "Bahawalpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Bahawalpur",
+    "postalCode": "63180",
+    "area": "Sadiq Public School Bahawalpur",
+    "district": "Bahawalpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Yazman",
+    "postalCode": "63210",
+    "area": "Yazman",
+    "primary": true,
+    "province": "Punjab"
+  },
+  {
+    "city": "Bahawalpur",
+    "postalCode": "63274",
+    "area": "Ashraf Sugar Mills Bahawalpur",
+    "district": "Bahawalpur",
+    "province": "Punjab"
+  },
+  {
+    "city": "Sukkur",
+    "postalCode": "65210",
+    "area": "Sukkur Board Of Secondary Education",
+    "district": "Sukkur",
+    "province": "Sindh"
+  },
+  {
+    "city": "Gambat",
+    "postalCode": "66070",
+    "area": "Gambat",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Moro",
+    "postalCode": "67130",
+    "area": "Moro",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Nawabshah",
+    "postalCode": "67230",
+    "area": "Agricultur Institute Nawabshah",
+    "province": "Sindh"
+  },
+  {
+    "city": "Shahdadpur",
+    "postalCode": "68030",
+    "area": "Shahdadpur",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Khipro",
+    "postalCode": "68330",
+    "area": "Khipro",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Mirpur Khas",
+    "postalCode": "69020",
+    "area": "Satelitte Town Mirpur Khas",
+    "district": "Mirpur Khas",
+    "province": "Sindh"
+  },
+  {
+    "city": "Chhor",
+    "postalCode": "69090",
+    "area": "Chhor",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Diplo",
+    "postalCode": "69280",
+    "area": "Diplo",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Hyderabad",
+    "postalCode": "70110",
+    "area": "Mansora Hyderabad",
+    "district": "Hyderabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Hala",
+    "postalCode": "70120",
+    "area": "Hala",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Hyderabad",
+    "postalCode": "71110",
+    "area": "Hyderabad Cantt.",
+    "district": "Hyderabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Hyderabad",
+    "postalCode": "71500",
+    "area": "Hyderabad City",
+    "district": "Hyderabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Hyderabad",
+    "postalCode": "71850",
+    "area": "Sindh Regimental Centre Hyderabad",
+    "district": "Hyderabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Hyderabad",
+    "postalCode": "71900",
+    "area": "Sindh Industrial Trading Estate Hyderabad",
+    "district": "Hyderabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75000",
+    "area": "Pak. Steel Mills Karachi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75010",
+    "area": "Pak. Steel Mills Township Karachi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75020",
+    "area": "Port Qasim",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75030",
+    "area": "Pak. Machine Tool Factory Karachi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75040",
+    "area": "Murad Memon Goth (Kp-974)",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75050",
+    "area": "Malir City",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75070",
+    "area": "Malir Cantt",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75080",
+    "area": "Malir Colony",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75100",
+    "area": "Model Colony Korangi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75120",
+    "area": "Quaidabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75150",
+    "area": "Export Processing Zone (Kp-1863)",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75160",
+    "area": "Landhi Colony",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75180",
+    "area": "Karachi Darul Uloom (Kp-683)",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75190",
+    "area": "Korangi Creek",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75200",
+    "area": "Karachi Airport",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75210",
+    "area": "Rafa-E-Aam Society Karachi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75230",
+    "area": "Drigh Colony",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75260",
+    "area": "Karachi Gulshan-E-Jamal",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75270",
+    "area": "Karachi University",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75280",
+    "area": "Karachi Mosamiat Chowrangi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75290",
+    "area": "Karachi Gulistan-E-Jouhar (Kp-2023)",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75330",
+    "area": "Karachi Gulzar-E-Hijri",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75340",
+    "area": "Karachi New Sabzi Mandi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75350",
+    "area": "Karachi Shahra-E-Faisal",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75400",
+    "area": "Karachi P.E.C.H.S Bi-2",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75460",
+    "area": "Mehmoodabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75510",
+    "area": "Karachi J.P.M.C",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75520",
+    "area": "Karachi Hotel Metropole",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75530",
+    "area": "Karachi Cantt.",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75550",
+    "area": "Karachi Nishtar Road",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75580",
+    "area": "Karachi Governor House",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75620",
+    "area": "Kemari",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75640",
+    "area": "Manora",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75650",
+    "area": "Karachi Habib Bank",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75660",
+    "area": "Karachi Lyari",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75700",
+    "area": "Karachi I.T.E",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75730",
+    "area": "Karachi Sher Shah Colony",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75750",
+    "area": "Karachi Mauripur Af",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75760",
+    "area": "Karachi Baldia Town",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75780",
+    "area": "Karachi Mauripur Ce",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75790",
+    "area": "Karachi P.N.A.D.",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75800",
+    "area": "Orangi Town",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75840",
+    "area": "Karachi Metroville",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75850",
+    "area": "New Karachi",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75890",
+    "area": "Karachi Manghopir",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75900",
+    "area": "Karachi Liaqatabad",
+    "province": "Sindh"
+  },
+  {
+    "city": "Karachi",
+    "postalCode": "75990",
+    "area": "Karachi Board Of Secondary Education",
+    "province": "Sindh"
+  },
+  {
+    "city": "Kotri",
+    "postalCode": "76000",
+    "area": "Kotri",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Sehwan",
+    "postalCode": "76140",
+    "area": "Sehwan",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Dadu",
+    "postalCode": "76230",
+    "area": "Dadu Sugar Mill (Piaro Goth)",
+    "district": "Dadu",
+    "province": "Sindh"
+  },
+  {
+    "city": "Khairpur Nathan Shah",
+    "postalCode": "76260",
+    "area": "Khairpur Nathan Shah",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Larkana",
+    "postalCode": "77020",
+    "area": "Nasirabad Larkana",
+    "district": "Larkana",
+    "province": "Sindh"
+  },
+  {
+    "city": "Larkana",
+    "postalCode": "77062",
+    "area": "Cadit College, Larkana",
+    "district": "Larkana",
+    "province": "Sindh"
+  },
+  {
+    "city": "Larkana",
+    "postalCode": "77170",
+    "area": "Chandka Medical College Larkana",
+    "district": "Larkana",
+    "province": "Sindh"
+  },
+  {
+    "city": "Shikarpur",
+    "postalCode": "78200",
+    "area": "Khan Pur (Shikarpur)",
+    "district": "Shikarpur",
+    "province": "Sindh"
+  },
+  {
+    "city": "Kandhkot",
+    "postalCode": "79160",
+    "area": "Kandhkot",
+    "primary": true,
+    "province": "Sindh"
+  },
+  {
+    "city": "Sibi",
+    "postalCode": "80000",
+    "area": "Sui Gas Field Sibi",
+    "district": "Sibi",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Dhadar",
+    "postalCode": "81400",
+    "area": "Dhadar",
+    "primary": true,
+    "province": "Balochistan"
+  },
+  {
+    "city": "Sibi",
+    "postalCode": "82100",
+    "area": "Sibi Railway Colony",
+    "district": "Sibi",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Sibi",
+    "postalCode": "82200",
+    "area": "Sibi Petrol Pump",
+    "district": "Sibi",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Loralai",
+    "postalCode": "84820",
+    "area": "Loralai Cantt.",
+    "district": "Loralai",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Quetta",
+    "postalCode": "87500",
+    "area": "Satellite Town Quetta",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Quetta",
+    "postalCode": "87650",
+    "area": "Quetta Air Port",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Quetta",
+    "postalCode": "87800",
+    "area": "Staff College Quetta",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Khuzdar",
+    "postalCode": "89150",
+    "area": "Khuzdar Cantt.",
+    "district": "Khuzdar",
+    "province": "Balochistan"
+  },
+  {
+    "city": "Bela",
+    "postalCode": "90050",
+    "area": "Bela",
+    "primary": true,
+    "province": "Balochistan"
+  },
+  {
+    "city": "Uthal",
+    "postalCode": "90150",
+    "area": "Uthal",
+    "primary": true,
+    "province": "Balochistan"
+  },
+  {
+    "city": "Jiwani",
+    "postalCode": "91100",
+    "area": "Jiwani",
+    "primary": true,
+    "province": "Balochistan"
+  },
+  {
+    "city": "Pasni",
+    "postalCode": "91300",
+    "area": "Pasni",
+    "primary": true,
+    "province": "Balochistan"
+  },
+  {
+    "city": "Ormara",
+    "postalCode": "91400",
+    "area": "Ormara",
+    "primary": true,
+    "province": "Balochistan"
+  },
+  {
+    "city": "Dalbandin",
+    "postalCode": "95100",
+    "area": "Dalbandin",
+    "primary": true,
+    "province": "Balochistan"
   }
 ]

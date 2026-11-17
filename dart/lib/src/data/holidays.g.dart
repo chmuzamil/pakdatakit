@@ -28,12 +28,12 @@ const Map<String, Object?> holidaysJson = <String, Object?>{
         '2020-08-30',
       ],
       'source':
-          'https://arynews.tv/muharram-moon-sighting-youm-i-ashur-ruet-e-hilal-committee',
+          'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-39-of-2020',
     },
     'eidMiladUnNabi': <String, Object?>{
       'dates': <Object?>['2020-10-30'],
       'source':
-          'https://www.geo.tv/latest/313746-rabiul-awwal-moon-not-sighted-eid-i-miladun-nabi-on-oct-30',
+          'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-46-of-2020',
     },
   },
   '2021': <String, Object?>{
@@ -62,12 +62,12 @@ const Map<String, Object?> holidaysJson = <String, Object?>{
         '2021-08-19',
       ],
       'source':
-          'https://propakistani.pk/2021/08/13/govt-announces-ashura-holidays/',
+          'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-27-of-2021',
     },
     'eidMiladUnNabi': <String, Object?>{
       'dates': <Object?>['2021-10-19'],
       'source':
-          'https://www.geo.tv/latest/376025-eid-milad-un-nabi-govt-notifies-12th-rabi-ul-awal-as-nationwide-public-holiday',
+          'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-31-of-2021',
     },
   },
   '2022': <String, Object?>{
@@ -100,7 +100,7 @@ const Map<String, Object?> holidaysJson = <String, Object?>{
     'eidMiladUnNabi': <String, Object?>{
       'dates': <Object?>['2022-10-09'],
       'source':
-          'https://www.thenews.com.pk/latest/994846-rabiul-awwal-moon-not-sighted-eid-milad-un-nabi-pbuh-to-be-observed-on-october-9',
+          'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-28-of-2022',
     },
   },
   '2023': <String, Object?>{
@@ -113,7 +113,7 @@ const Map<String, Object?> holidaysJson = <String, Object?>{
         '2023-04-25',
       ],
       'source':
-          'https://gulfnews.com/world/asia/pakistan/eid-al-fitr-2023-pakistan-announces-five-day-holiday-1.95122615',
+          'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-08-of-2023',
     },
     'eidUlAdha': <String, Object?>{
       'dates': <Object?>[
@@ -130,7 +130,7 @@ const Map<String, Object?> holidaysJson = <String, Object?>{
         '2023-07-29',
       ],
       'source':
-          'https://thestandard.com.pk/government-announces-public-holidays-on-july-28-29-for-ashura/',
+          'https://www.sbp.org.pk/circulars/bprd-circular-letter-no-14-of-2023',
     },
     'eidMiladUnNabi': <String, Object?>{
       'dates': <Object?>['2023-09-29'],

@@ -16,7 +16,11 @@ from .format import format_lakh, format_pkr
 from .geo import (
     get_district_province,
     get_districts_by_province,
+    get_division_of_district,
+    get_divisions,
     get_province,
+    get_tehsil_district,
+    get_tehsils,
     search_cities,
     search_districts,
 )
@@ -49,10 +53,13 @@ from .numbers import (
 from .passport import validate_passport
 from .phone import PhoneAnalysis, analyze_phone, format_phone, validate_phone
 from .postal import (
+    PostOffice,
     get_city_by_postal_code,
+    get_post_office,
     get_postal_areas,
     get_postal_code,
     get_postal_codes,
+    search_post_offices,
     search_postal_codes,
 )
 from .raast import (
@@ -100,12 +107,19 @@ __all__ = [
     "get_postal_codes",
     "get_postal_areas",
     "search_postal_codes",
+    "PostOffice",
+    "get_post_office",
+    "search_post_offices",
     # geo
     "get_province",
     "search_cities",
     "get_district_province",
     "search_districts",
     "get_districts_by_province",
+    "get_divisions",
+    "get_division_of_district",
+    "get_tehsils",
+    "get_tehsil_district",
     # address
     "ParsedAddress",
     "parse_address",

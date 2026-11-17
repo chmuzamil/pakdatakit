@@ -1,23 +1,30 @@
 import postalData from '../data/postal-codes.json';
 import { lazy, normalizeKey } from './internal/normalize.js';
 
+/**
+ * A post office in one of the cities in pakdatakit's city list, from Pakistan
+ * Post's directory. `area` is the office name. Offices in other towns and
+ * villages are in `post-offices.json` (see `getPostOffice`).
+ */
 interface PostalEntry {
   city: string;
   postalCode: string;
   area?: string;
   primary?: boolean;
+  district?: string;
+  province?: string;
 }
 
 const POSTAL_ENTRIES = postalData as PostalEntry[];
 
-const postalByCode = lazy(
+const postalByCode = /* @__PURE__ */ lazy(
   () =>
     new Map<string, string>(
       POSTAL_ENTRIES.map((entry) => [entry.postalCode, entry.city]),
     ),
 );
 
-const postalByCity = lazy(() => {
+const postalByCity = /* @__PURE__ */ lazy(() => {
   const map = new Map<string, string>();
   for (const entry of POSTAL_ENTRIES) {
     const key = normalizeKey(entry.city);
@@ -29,7 +36,11 @@ const postalByCity = lazy(() => {
 });
 
 /**
- * Returns the city name for a Pakistani postal code.
+ * Returns the city for a Pakistani postal code.
+ *
+ * Only codes of post offices in a city on pakdatakit's city list return a
+ * city (`54660` → `Lahore`). The code of a post office in a town or village
+ * that is not on the list returns `null`; use `getPostOffice` for those.
  *
  * @param postalCode - Postal code to look up (whitespace is ignored)
  * @returns City name or `null` if not found
@@ -123,3 +134,6 @@ export function getPostalAreas(city: string): string[] {
 function stripPostalCode(postalCode: string): string {
   return postalCode.trim().replace(/\s+/g, '');
 }
+
+export { getPostOffice, searchPostOffices } from './post-offices.js';
+export type { PostOffice } from './post-offices.js';

@@ -367,6 +367,14 @@ final class VectorTest extends TestCase
             'getDistrictProvince' => $one(Geo::getDistrictProvince(...)),
             'searchDistricts' => $one(Geo::searchDistricts(...)),
             'getDistrictsByProvince' => $one(Geo::getDistrictsByProvince(...)),
+            'getDivisions' => static fn (array $a, array $k): mixed => count($a) > 0
+                ? Geo::getDivisions(self::str($a[0]))
+                : Geo::getDivisions(),
+            'getDivisionOfDistrict' => $one(Geo::getDivisionOfDistrict(...)),
+            'getTehsils' => $one(Geo::getTehsils(...)),
+            'getTehsilDistrict' => static fn (array $a, array $k): mixed => count($a) > 1
+                ? Geo::getTehsilDistrict(self::str($a[0]), self::str($a[1]))
+                : Geo::getTehsilDistrict(self::str($a[0])),
             'formatPKR' => static fn (array $a, array $k): mixed => Currency::formatPkr(self::number($a[0])),
             'formatLakh' => static fn (array $a, array $k): mixed => Currency::formatLakh(self::number($a[0])),
             'validateIBAN' => $one(Iban::validate(...)),
@@ -378,6 +386,8 @@ final class VectorTest extends TestCase
             'getPostalCodes' => $one(Postal::getCodes(...)),
             'getPostalAreas' => $one(Postal::getAreas(...)),
             'searchPostalCodes' => $one(Postal::search(...)),
+            'getPostOffice' => $one(Postal::getPostOffice(...)),
+            'searchPostOffices' => $one(Postal::searchPostOffices(...)),
             'parseAddress' => $one(Address::parse(...)),
             'formatAddress' => static fn (array $a, array $k): mixed => Address::format($k),
             'normalizeText' => $one(Text::normalize(...)),

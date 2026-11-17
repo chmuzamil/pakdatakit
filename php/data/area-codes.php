@@ -145,6 +145,66 @@ return [
         'cities' => ['Attock'],
     ],
     [
+        'code' => '5811',
+        'cities' => ['Gilgit'],
+    ],
+    [
+        'code' => '5812',
+        'cities' => ['Diamer'],
+    ],
+    [
+        'code' => '5813',
+        'cities' => ['Hunza'],
+    ],
+    [
+        'code' => '5814',
+        'cities' => ['Ghizer'],
+    ],
+    [
+        'code' => '5815',
+        'cities' => ['Skardu'],
+    ],
+    [
+        'code' => '5816',
+        'cities' => ['Ghanche'],
+    ],
+    [
+        'code' => '5817',
+        'cities' => ['Astore'],
+    ],
+    [
+        'code' => '5821',
+        'cities' => ['Neelam'],
+    ],
+    [
+        'code' => '5822',
+        'cities' => ['Muzaffarabad'],
+    ],
+    [
+        'code' => '5823',
+        'cities' => ['Bagh'],
+    ],
+    [
+        'code' => '5824',
+        'cities' => ['Poonch'],
+    ],
+    [
+        'code' => '5825',
+        'cities' => ['Sudhnuti'],
+    ],
+    [
+        'code' => '5826',
+        'cities' => ['Kotli'],
+    ],
+    [
+        'code' => '5827',
+        'cities' => ['Mirpur'],
+    ],
+    [
+        'code' => '5828',
+        'cities' => ['Bhimber'],
+    ],
+    [
         'code' => '604',
         'cities' => ['Rajanpur'],
     ],
@@ -213,12 +273,84 @@ return [
         'cities' => ['Quetta'],
     ],
     [
+        'code' => '822',
+        'cities' => ['Zhob'],
+    ],
+    [
+        'code' => '823',
+        'cities' => ['Killa Saifullah'],
+    ],
+    [
+        'code' => '824',
+        'cities' => ['Loralai'],
+    ],
+    [
+        'code' => '825',
+        'cities' => ['Chagai'],
+    ],
+    [
+        'code' => '826',
+        'cities' => ['Killa Abdullah', 'Pishin'],
+    ],
+    [
+        'code' => '828',
+        'cities' => ['Musakhel'],
+    ],
+    [
+        'code' => '829',
+        'cities' => ['Barkhan', 'Kohlu'],
+    ],
+    [
+        'code' => '832',
+        'cities' => ['Kachhi', 'Bolan'],
+    ],
+    [
+        'code' => '833',
+        'cities' => ['Sibi', 'Ziarat'],
+    ],
+    [
+        'code' => '835',
+        'cities' => ['Dera Bugti', 'North Dera Bugti', 'South Dera Bugti'],
+    ],
+    [
+        'code' => '837',
+        'cities' => ['Jhal Magsi'],
+    ],
+    [
+        'code' => '838',
+        'cities' => ['Jaffarabad', 'Nasirabad'],
+    ],
+    [
+        'code' => '843',
+        'cities' => ['Mastung'],
+    ],
+    [
+        'code' => '844',
+        'cities' => ['Kalat'],
+    ],
+    [
+        'code' => '847',
+        'cities' => ['Kharan'],
+    ],
+    [
         'code' => '848',
         'cities' => ['Khuzdar'],
     ],
     [
         'code' => '852',
         'cities' => ['Turbat'],
+    ],
+    [
+        'code' => '853',
+        'cities' => ['Lasbela'],
+    ],
+    [
+        'code' => '855',
+        'cities' => ['Panjgur'],
+    ],
+    [
+        'code' => '856',
+        'cities' => ['Awaran'],
     ],
     [
         'code' => '86',
@@ -237,6 +369,10 @@ return [
         'cities' => ['Nowshera'],
     ],
     [
+        'code' => '924',
+        'cities' => ['Khyber', 'Mohmand'],
+    ],
+    [
         'code' => '925',
         'cities' => ['Hangu'],
     ],
@@ -253,6 +389,10 @@ return [
         'cities' => ['Bannu'],
     ],
     [
+        'code' => '932',
+        'cities' => ['Malakand'],
+    ],
+    [
         'code' => '937',
         'cities' => ['Mardan'],
     ],
@@ -261,8 +401,24 @@ return [
         'cities' => ['Swabi'],
     ],
     [
+        'code' => '939',
+        'cities' => ['Buner'],
+    ],
+    [
+        'code' => '942',
+        'cities' => ['Bajaur'],
+    ],
+    [
         'code' => '943',
         'cities' => ['Chitral'],
+    ],
+    [
+        'code' => '944',
+        'cities' => ['Upper Dir'],
+    ],
+    [
+        'code' => '945',
+        'cities' => ['Lower Dir'],
     ],
     [
         'code' => '946',
@@ -271,6 +427,10 @@ return [
     [
         'code' => '963',
         'cities' => ['Tank'],
+    ],
+    [
+        'code' => '965',
+        'cities' => ['South Waziristan', 'Lower South Waziristan', 'Upper South Waziristan'],
     ],
     [
         'code' => '966',
@@ -287,6 +447,10 @@ return [
     [
         'code' => '995',
         'cities' => ['Haripur'],
+    ],
+    [
+        'code' => '996',
+        'cities' => ['Shangla'],
     ],
     [
         'code' => '997',

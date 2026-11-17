@@ -551,6 +551,7 @@ function ibanCheckDigits(bban: string): string {
 function isDefaultBank(bank: BankEntry): boolean {
   return (
     bank.mergedInto === undefined &&
+    bank.active !== false &&
     bank.aliasOf === undefined &&
     bank.type !== 'central'
   );
@@ -757,6 +758,7 @@ export function createFaker(options: CreateFakerOptions = {}): Faker {
         opts.type !== undefined
           ? entry.type === opts.type &&
             entry.mergedInto === undefined &&
+            entry.active !== false &&
             entry.aliasOf === undefined
           : isDefaultBank(entry),
       );

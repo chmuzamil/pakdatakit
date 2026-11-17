@@ -263,6 +263,13 @@ final Map<String, Call> functions = {
   'getDistrictProvince': one(getDistrictProvince),
   'searchDistricts': one(searchDistricts),
   'getDistrictsByProvince': one(getDistrictsByProvince),
+  'getDivisions': (a, k) =>
+      a.isEmpty ? getDivisions() : getDivisions(optStr(a[0])),
+  'getDivisionOfDistrict': one(getDivisionOfDistrict),
+  'getTehsils': one(getTehsils),
+  'getTehsilDistrict': (a, k) => a.length > 1
+      ? getTehsilDistrict(str(a[0]), optStr(a[1]))
+      : getTehsilDistrict(str(a[0])),
   'formatPKR': (a, k) => formatPKR(number(a[0])),
   'formatLakh': (a, k) => formatLakh(number(a[0])),
   'validateIBAN': one(validateIBAN),
@@ -274,6 +281,8 @@ final Map<String, Call> functions = {
   'getPostalCodes': one(getPostalCodes),
   'getPostalAreas': one(getPostalAreas),
   'searchPostalCodes': one(searchPostalCodes),
+  'getPostOffice': one(getPostOffice),
+  'searchPostOffices': one(searchPostOffices),
   'parseAddress': one(parseAddress),
   'formatAddress': (a, k) => formatAddress(
         raw: optStr(k['raw']),

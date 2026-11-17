@@ -12,11 +12,16 @@ internal static class Data
 
     internal sealed record AreaCodeEntry(string Code, IReadOnlyList<string> Cities);
 
-    internal sealed record BankEntry(string Code, string Name, string Type, string? MergedInto, string? AliasOf);
+    internal sealed record BankEntry(
+        string Code, string Name, string Type, string? MergedInto, string? AliasOf, bool Active);
 
     internal sealed record CityEntry(string City, string Province);
 
     internal sealed record DistrictEntry(string District, string Province);
+
+    internal sealed record DivisionEntry(string Division, string Province, IReadOnlyList<string> Districts);
+
+    internal sealed record TehsilEntry(string Tehsil, string CensusDistrict, string? CurrentDistrict, string Province);
 
     internal sealed record PostalEntry(string City, string PostalCode, string? Area, bool Primary);
 
@@ -30,7 +35,8 @@ internal static class Data
 
     private static readonly Lazy<IReadOnlyList<BankEntry>> BanksLazy = new(() =>
         Array("banks.json", e => new BankEntry(
-            Str(e, "code")!, Str(e, "name")!, Str(e, "type")!, Str(e, "mergedInto"), Str(e, "aliasOf"))));
+            Str(e, "code")!, Str(e, "name")!, Str(e, "type")!, Str(e, "mergedInto"), Str(e, "aliasOf"),
+            !(e.TryGetProperty("active", out var a) && a.ValueKind == JsonValueKind.False))));
 
     private static readonly Lazy<IReadOnlyList<CityEntry>> CitiesLazy = new(() =>
         Array("cities.json", e => new CityEntry(Str(e, "city")!, Str(e, "province")!)));
@@ -38,10 +44,22 @@ internal static class Data
     private static readonly Lazy<IReadOnlyList<DistrictEntry>> DistrictsLazy = new(() =>
         Array("districts.json", e => new DistrictEntry(Str(e, "district")!, Str(e, "province")!)));
 
+    private static readonly Lazy<IReadOnlyList<DivisionEntry>> DivisionsLazy = new(() =>
+        Array("divisions.json", e => new DivisionEntry(
+            Str(e, "division")!, Str(e, "province")!, Strings(e.GetProperty("districts")))));
+
+    private static readonly Lazy<IReadOnlyList<TehsilEntry>> TehsilsLazy = new(() =>
+        Array("tehsils.json", e => new TehsilEntry(
+            Str(e, "tehsil")!, Str(e, "censusDistrict")!, Str(e, "currentDistrict"), Str(e, "province")!)));
+
     private static readonly Lazy<IReadOnlyList<PostalEntry>> PostalLazy = new(() =>
         Array("postal-codes.json", e => new PostalEntry(
             Str(e, "city")!, Str(e, "postalCode")!, Str(e, "area"),
             e.TryGetProperty("primary", out var p) && p.ValueKind == JsonValueKind.True)));
+
+    private static readonly Lazy<IReadOnlyList<PostOffice>> PostOfficesLazy = new(() =>
+        Array("post-offices.json", e => new PostOffice(
+            Str(e, "code")!, Str(e, "office")!, Str(e, "town")!, Str(e, "district"), Str(e, "province")!)));
 
     private static readonly Lazy<IReadOnlyDictionary<string, IReadOnlyDictionary<string, ObservedHoliday>>>
         HolidaysLazy = new(() =>
@@ -76,7 +94,13 @@ internal static class Data
 
     internal static IReadOnlyList<DistrictEntry> Districts => DistrictsLazy.Value;
 
+    internal static IReadOnlyList<DivisionEntry> Divisions => DivisionsLazy.Value;
+
+    internal static IReadOnlyList<TehsilEntry> Tehsils => TehsilsLazy.Value;
+
     internal static IReadOnlyList<PostalEntry> Postal => PostalLazy.Value;
+
+    internal static IReadOnlyList<PostOffice> PostOffices => PostOfficesLazy.Value;
 
     internal static IReadOnlyDictionary<string, IReadOnlyDictionary<string, ObservedHoliday>> Holidays =>
         HolidaysLazy.Value;

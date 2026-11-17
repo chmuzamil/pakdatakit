@@ -8,8 +8,11 @@ final RegExp _letter = RegExp('[A-Z]');
 
 /// Kind of institution that issues Pakistani IBANs.
 enum BankType {
-  /// Commercial bank.
+  /// Private commercial bank.
   commercial('commercial'),
+
+  /// Public sector commercial bank, such as National Bank of Pakistan.
+  publicSector('public-sector'),
 
   /// Islamic bank.
   islamic('islamic'),
@@ -109,7 +112,7 @@ final List<BankInfo> _banks = List.unmodifiable([
       code: e.code,
       name: e.name,
       type: BankType.fromValue(e.type),
-      active: e.mergedInto == null,
+      active: e.mergedInto == null && e.active,
       mergedInto: e.mergedInto,
       aliasOf: e.aliasOf,
     ),

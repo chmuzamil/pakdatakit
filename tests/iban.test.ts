@@ -92,7 +92,7 @@ describe('getBankFromIBAN codes confirmed from real IBANs (2026)', () => {
     ['WMBL', 'Mobilink Microfinance Bank (JazzCash)'],
     ['NAYA', 'NayaPay'],
     ['BKCH', 'Bank of China Limited'],
-    ['SMES', 'SME Bank Limited'],
+    ['SMES', 'SME Bank Limited (in liquidation)'],
     ['MSHQ', 'Mashreq Bank Pakistan Limited'],
     ['RQMI', 'Raqami Islamic Digital Bank Limited'],
   ])('%s → %s', (code, name) => {

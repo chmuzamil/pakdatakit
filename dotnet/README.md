@@ -51,6 +51,7 @@ Passport.Validate("AB1234567");              // true
 VehiclePlate.Parse("lea 1234");              // Series = LEA, Number = 1234, Formatted = LEA-1234
 
 Postal.GetCity("54000");                     // "Lahore"
+Postal.GetPostOffice("48330");               // Office = Dulmial, Town = Dulmial, Province = Punjab
 Geo.GetProvince("Multan");                   // "Punjab"
 
 Currency.FormatPkr(150000);                  // "Rs. 150,000"
@@ -125,7 +126,10 @@ strings to every public method that takes a string and checks this contract.
 | `validatePassport`                                     | `Passport.Validate`                                                     |
 | `parseVehiclePlate`, `validateVehiclePlate`            | `VehiclePlate.Parse`, `VehiclePlate.Validate`                           |
 | `getCityByPostalCode`, `getPostalCode`, …              | `Postal.GetCity`, `Postal.GetCode`, `Postal.GetCodes`, `Postal.Search`  |
+| `getPostOffice`, `searchPostOffices`                   | `Postal.GetPostOffice`, `Postal.SearchPostOffices`                      |
 | `getProvince`, `searchCities`, `searchDistricts`, …    | `Geo.GetProvince`, `Geo.SearchCities`, `Geo.SearchDistricts`, …         |
+| `getDivisions`, `getDivisionOfDistrict`                | `Geo.GetDivisions`, `Geo.GetDivisionOfDistrict`                         |
+| `getTehsils`, `getTehsilDistrict`                      | `Geo.GetTehsils`, `Geo.GetTehsilDistrict`                               |
 | `createWhatsAppLink`                                   | `WhatsApp.CreateLink`                                                   |
 | `formatPKR`, `formatLakh`                              | `Currency.FormatPkr`, `Currency.FormatLakh`                             |
 | `numberToWords`, `amountInWords`                       | `Words.NumberToWords`, `Words.AmountInWords`                            |
@@ -198,6 +202,16 @@ FluentValidation 11 and 12.
   follow moon sighting and can differ by a day or two; pass an `offset`.
 - **Mobile networks** are the network a prefix was first allocated to. With
   number portability the current carrier can differ.
+- **Bank types.** `BankInfo.Type` is a `BankType`: `Commercial` (a private
+  commercial bank), `PublicSector` (`public-sector` in the npm package: a
+  public sector commercial bank, such as National Bank of Pakistan),
+  `Islamic`, `Microfinance`, `Digital`, `Emi`, `Foreign`, `Specialized` and
+  `Central`. `BankInfo.Active` is `false` for a bank that merged into another
+  or has closed (SME Bank, `SMES`).
+- **Divisions and tehsils** come from the 2023 census: 30 divisions and 591
+  tehsils. Each tehsil is recorded under the district it was in at the
+  census, so `Geo.GetTehsils("Rawalpindi")` still lists Murree, and
+  `Geo.GetDivisionOfDistrict` returns `null` for districts created since.
 - **Sorting** of search results follows the same order as the npm package for
   the names in the datasets.
 

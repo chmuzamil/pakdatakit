@@ -103,6 +103,15 @@ write(
 const sortable = new Set();
 for (const entry of datasets.cities) sortable.add(entry.city);
 for (const entry of datasets.districts) sortable.add(entry.district);
+for (const entry of datasets.divisions) {
+  sortable.add(entry.division);
+  for (const district of entry.districts) sortable.add(district);
+}
+for (const entry of datasets.tehsils) {
+  sortable.add(entry.tehsil);
+  sortable.add(entry.censusDistrict);
+  if (entry.currentDistrict) sortable.add(entry.currentDistrict);
+}
 for (const entry of datasets['postal-codes']) {
   sortable.add(entry.postalCode);
   if (entry.area) sortable.add(entry.area);

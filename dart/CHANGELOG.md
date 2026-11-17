@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 (unreleased)
+
+### Added
+
+- `scoreAddress()`: scores how complete a delivery address is (0-100), with
+  the `missing` `AddressPart`s and the `parseAddress` result, and warns when
+  a known post office code is in a different province from the city.
+  `phoneRiskSignals()`: `PhoneRiskFlag`s for a phone number a courier cannot
+  reach or that looks made up (landline, service number, repeated or
+  sequential digits, placeholder numbers). Also `addressWeights`, and as
+  `package:pakdatakit/quality.dart`.
+
+### Changed
 
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,

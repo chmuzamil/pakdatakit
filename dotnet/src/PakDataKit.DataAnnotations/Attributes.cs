@@ -65,3 +65,11 @@ public sealed class PakPassportAttribute()
 /// </summary>
 public sealed class VehiclePlateAttribute()
     : PakValidationAttribute(PakDataKit.VehiclePlate.Validate, "The {0} field is not a valid vehicle registration number.");
+
+/// <summary>
+/// Validates a mobile number a courier can call: a valid Pakistani mobile
+/// number for which <see cref="Quality.PhoneRiskSignals"/> returns no flags
+/// (not a landline, service, repeated-digit, sequential or placeholder number).
+/// </summary>
+public sealed class CodPhoneAttribute()
+    : PakValidationAttribute(value => Quality.PhoneRiskSignals(value).Count == 0, "Enter a mobile number a courier can call");

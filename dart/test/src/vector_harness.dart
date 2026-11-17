@@ -382,6 +382,8 @@ final Map<String, Call> functions = {
   'checkPhoneInput': one(checkPhoneInput),
   'formatIBANInput': one(formatIBANInput),
   'checkIBANInput': one(checkIBANInput),
+  'scoreAddress': one(scoreAddress),
+  'phoneRiskSignals': one(phoneRiskSignals),
 };
 
 const Map<String, Object> constants = {'dataVersion': dataVersion};

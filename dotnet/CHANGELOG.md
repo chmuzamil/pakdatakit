@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 (unreleased)
+
+### Added
+
+- `Quality.ScoreAddress(address)`: scores how complete a delivery address is
+  (0 to 100) for cash on delivery, as an `AddressScore` (`Score`, the
+  `Missing` `AddressPart` values and the `Parsed` address with extra
+  warnings), using `Quality.AddressWeights`. `Quality.PhoneRiskSignals(phone)`
+  returns `PhoneRiskFlag` values for a number a courier cannot reach or that
+  looks made up (`Invalid`, `Landline`, `NotMobile`, `RepeatedDigits`,
+  `SequentialDigits`, `TestNumber`). New `[CodPhone]` attribute in
+  `PakDataKit.DataAnnotations` and `IsCodPhone()` rule in
+  `PakDataKit.FluentValidation`: a mobile number with no risk flags.
+
+### Changed
 
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,

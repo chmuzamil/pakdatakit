@@ -129,6 +129,45 @@ void main() {
       expect(eid.estimated, isFalse);
     });
 
+    test('address and phone quality', () {
+      final full = scoreAddress('House 12, Street 4, Block B, Gulberg III, '
+          'near Liberty Market, Lahore 54660');
+      expect(full.score, 100);
+      expect(full.missing, isEmpty);
+      expect(
+        scoreAddress('12 Model Town Lahore').missing,
+        [AddressPart.street, AddressPart.postalCode, AddressPart.landmark],
+      );
+      expect(AddressPart.houseNumber.value, 'houseNumber');
+      expect(addressWeights.values.reduce((a, b) => a + b), 100);
+      expect(phoneRiskSignals('0300 1234567'),
+          [PhoneRiskFlag.sequentialDigits, PhoneRiskFlag.testNumber]);
+      expect(phoneRiskSignals('0300 1572948'), isEmpty);
+      expect(phoneRiskSignals('03001111111'), [PhoneRiskFlag.repeatedDigits]);
+      expect(phoneRiskSignals('042 35761234'), [PhoneRiskFlag.landline]);
+      expect(phoneRiskSignals('hello'), [PhoneRiskFlag.invalid]);
+      expect(PhoneRiskFlag.notMobile.value, 'not-mobile');
+    });
+
+    test('quality functions never throw', () {
+      final hostile = [
+        '',
+        ' ',
+        '\uD800',
+        '\uDC00 near \uD83D',
+        '۰۳۰۰۱۲۳۴۵۶۷',
+        '${'9' * 100000} Lahore 54000',
+        '${'near, ' * 20000}Karachi',
+        '\u0000\u202E\uFEFF',
+        'İSTANBUL Street ẞ 12',
+      ];
+      for (final input in hostile) {
+        expect(() => scoreAddress(input), returnsNormally);
+        expect(() => phoneRiskSignals(input), returnsNormally);
+        expect(scoreAddress(input).score, inInclusiveRange(0, 100));
+      }
+    });
+
     test('Raast QR round trip', () {
       final payload = createRaastP2PQr(
         iban: 'PK36 SCBL 0000 0011 2345 6702',

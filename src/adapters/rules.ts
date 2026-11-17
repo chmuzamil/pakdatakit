@@ -4,6 +4,7 @@ import { validateLandline } from '../numbers.js';
 import { validatePassport } from '../passport.js';
 import { validatePhone } from '../phone.js';
 import { validateNTN, validateSTRN } from '../tax.js';
+import { phoneRiskSignals } from '../quality.js';
 import { validateVehiclePlate } from '../vehicle.js';
 
 /** A string check shared by the form-library adapters. */
@@ -30,6 +31,10 @@ export const RULES = {
   vehiclePlate: {
     test: validateVehiclePlate,
     message: 'Invalid vehicle registration number',
+  },
+  codPhone: {
+    test: (value: string) => phoneRiskSignals(value).length === 0,
+    message: 'Enter a mobile number a courier can call',
   },
 } satisfies Record<string, Rule>;
 

@@ -22,6 +22,7 @@ use PakDataKit\PakData;
 use PakDataKit\Passport;
 use PakDataKit\Phone;
 use PakDataKit\Postal;
+use PakDataKit\Quality;
 use PakDataKit\RaastQr;
 use PakDataKit\Tax;
 use PakDataKit\Text;
@@ -446,6 +447,8 @@ final class VectorTest extends TestCase
             'checkPhoneInput' => $one(Input::checkPhone(...)),
             'formatIBANInput' => $one(Input::formatIban(...)),
             'checkIBANInput' => $one(Input::checkIban(...)),
+            'scoreAddress' => $one(Quality::scoreAddress(...)),
+            'phoneRiskSignals' => $one(Quality::phoneRiskSignals(...)),
         ];
     }
 }

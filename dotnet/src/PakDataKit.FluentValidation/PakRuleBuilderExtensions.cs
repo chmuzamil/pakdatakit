@@ -71,6 +71,17 @@ public static class PakRuleBuilderExtensions
     public static IRuleBuilderOptions<T, string?> IsVehiclePlate<T>(this IRuleBuilder<T, string?> rule) =>
         Rule(rule, VehiclePlate.Validate, "'{PropertyName}' is not a valid vehicle registration number.");
 
+    /// <summary>
+    /// Requires a mobile number a courier can call: a valid Pakistani mobile
+    /// number for which <see cref="Quality.PhoneRiskSignals"/> returns no flags
+    /// (not a landline, service, repeated-digit, sequential or placeholder number).
+    /// </summary>
+    /// <typeparam name="T">Type being validated.</typeparam>
+    /// <param name="rule">The rule builder.</param>
+    /// <returns>The rule builder, for chaining.</returns>
+    public static IRuleBuilderOptions<T, string?> IsCodPhone<T>(this IRuleBuilder<T, string?> rule) =>
+        Rule(rule, value => Quality.PhoneRiskSignals(value).Count == 0, "Enter a mobile number a courier can call");
+
     private static IRuleBuilderOptions<T, string?> Rule<T>(
         IRuleBuilder<T, string?> rule, Func<string, bool> isValid, string message)
     {

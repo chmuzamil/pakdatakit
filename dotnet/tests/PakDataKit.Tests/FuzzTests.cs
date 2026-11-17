@@ -101,6 +101,7 @@ public sealed class FuzzTests
             "Geo.GetTehsilDistrict", "WhatsApp.CreateLink", "WhatsApp.TryCreateLink", "Text.Normalize",
             "Text.NormalizeRomanUrdu", "Address.Parse", "Input.FormatCnic", "Input.CheckIban", "RaastQr.Parse",
             "RaastQr.Validate", "Holidays.IsHoliday", "Holidays.GetHolidaysOn", "Holidays.TryGetHolidaysOn",
+            "Quality.ScoreAddress", "Quality.PhoneRiskSignals",
         })
         {
             Assert.Contains(expected, names);
@@ -190,6 +191,20 @@ public sealed class FuzzTests
             Assert.NotNull(parsed);
             Assert.NotNull(Address.Format(parsed));
         }
+    }
+
+    [Fact]
+    public void QualityHandlesHostileInput()
+    {
+        foreach (var input in Hostile)
+        {
+            var score = Quality.ScoreAddress(input);
+            Assert.InRange(score.Score, 0, 100);
+            Assert.NotNull(score.Parsed);
+            Assert.NotEmpty(Quality.PhoneRiskSignals(input));
+        }
+        Assert.Equal(0, Quality.ScoreAddress(null).Score);
+        Assert.Equal([PhoneRiskFlag.Invalid], Quality.PhoneRiskSignals(null));
     }
 
     private static object? Invoke(string name, MethodInfo method, string? input)

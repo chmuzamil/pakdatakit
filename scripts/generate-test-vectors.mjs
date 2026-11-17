@@ -1754,6 +1754,52 @@ const ibanInputs = unique([
 ]);
 each('input', ['formatIBANInput', 'checkIBANInput'], ibanInputs);
 
+// Quality (COD) -------------------------------------------------------------
+const qualityAddresses = unique([
+  ...addresses,
+  'House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660',
+  'Makan 5, gali 3, masjid ke samne, Multan',
+  'H 5 nazd Jamia Masjid, Multan',
+  'مکان 5، گلی 3، مسجد کے سامنے، Multan',
+  'مکان نمبر ۱۲، گلی ۴، بلاک بی، نزد جامع مسجد، Lahore',
+  'Flat 2, opp. Civil Hospital, Karachi',
+  'Flat 2, opp Civil Hospital, Karachi 75500',
+  'Plot 7, Phase 2, Hayatabad, behind KTH, Peshawar',
+  'House 1, Lahore 54999',
+  'House 1, Street 2, Lahore 75500',
+  'qareeb Data Darbar, Lahore',
+  'Shop 4 Saddar Bazaar Rawalpindi 46000',
+  '12b Model Town, 4th street, Lahore',
+  'Lahore 54660',
+  'near',
+  'NEAR THE PARK',
+  ...postOffices
+    .filter((_, i) => i % 40 === 0)
+    .map((o, i) => `House ${i + 1}, Street ${i + 2}, ${o.office} ${o.code}`),
+]);
+each('quality', ['scoreAddress'], qualityAddresses);
+each(
+  'quality',
+  ['phoneRiskSignals'],
+  unique([
+    ...phones,
+    ...landlines,
+    '03000000000',
+    '03001111112',
+    '03001234567',
+    '03217654321',
+    '03123456789',
+    '03002345678',
+    '03009876543',
+    '0301-2945716',
+    '+92 333 5820147',
+    '۰۳۰۰۱۲۳۴۵۶۷',
+    '0800-12345',
+    '021-111-825-888',
+    '111-825-888',
+  ]),
+);
+
 // Data version --------------------------------------------------------------
 vectors.set('data-version', [
   {

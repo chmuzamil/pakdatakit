@@ -160,6 +160,16 @@
         "default": "./dist/postal.cjs"
       }
     },
+    "./quality": {
+      "import": {
+        "types": "./dist/quality.d.ts",
+        "default": "./dist/quality.js"
+      },
+      "require": {
+        "types": "./dist/quality.d.cts",
+        "default": "./dist/quality.cjs"
+      }
+    },
     "./raast": {
       "import": {
         "types": "./dist/raast.d.ts",

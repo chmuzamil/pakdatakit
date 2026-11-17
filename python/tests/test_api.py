@@ -148,3 +148,77 @@ def test_bank_info() -> None:
     assert smes is not None and not smes.active and smes.merged_into is None
     with pytest.raises(ValueError):
         pdk.number_to_words(5, language="fr")
+
+
+def test_score_address() -> None:
+    result = pdk.score_address(
+        "House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660"
+    )
+    assert result == pdk.AddressScore(score=100, missing=[], parsed=result.parsed)
+    assert result.parsed.city == "Lahore"
+    assert result.parsed.postal_code == "54660"
+    assert sum(pdk.ADDRESS_WEIGHTS.values()) == 100
+    with pytest.raises(TypeError):
+        pdk.ADDRESS_WEIGHTS["city"] = 0  # type: ignore[index]
+
+    lahore = pdk.score_address("Lahore")
+    assert lahore.score == 30
+    assert lahore.missing == ["houseNumber", "street", "area", "postalCode", "landmark"]
+
+    for address in (
+        "Makan 5, gali 3, masjid ke samne, Multan",
+        "H 5 nazd Jamia Masjid, Multan",
+        "مکان 5، گلی 3، مسجد کے سامنے، Multan",
+        "Flat 2, opp. Civil Hospital, Karachi",
+    ):
+        assert "landmark" not in pdk.score_address(address).missing, address
+    assert "landmark" in pdk.score_address("Flat 2, Karachi").missing
+
+    known = pdk.score_address("House 1, Lahore 54660").score
+    unknown = pdk.score_address("House 1, Lahore 54999")
+    assert known - unknown.score == pdk.ADDRESS_WEIGHTS["postalCode"] - 5
+    assert "postalCode" in unknown.missing
+
+    mismatch = pdk.score_address("House 1, Street 2, Lahore 75500")
+    assert "75500 is in Sindh" in " ".join(mismatch.parsed.warnings)
+    assert mismatch.score == 30 + 20 + 15 + 10 + 15 - 15
+    assert "houseNumber" in pdk.score_address("Lahore 54660").missing
+
+
+def test_phone_risk_signals() -> None:
+    assert pdk.phone_risk_signals("0301-2945716") == []
+    assert pdk.phone_risk_signals("+92 333 5820147") == []
+    assert pdk.phone_risk_signals("12345") == ["invalid"]
+    assert pdk.phone_risk_signals("042 35761234") == ["landline"]
+    assert pdk.phone_risk_signals("0800-12345") == ["not-mobile"]
+    assert pdk.phone_risk_signals("03001111112") == ["repeated-digits"]
+    assert pdk.phone_risk_signals("03123456789") == ["sequential-digits", "test-number"]
+
+
+HOSTILE_INPUTS = [
+    None,
+    123,
+    "",
+    "   ",
+    "!!!",
+    "\u0000",
+    "x" * 10000,
+    "1 " * 5000,
+    "\ud800",
+    "\udfff abc \ud83d",
+    "\U0001f600 Lahore 54660",
+    "İ K ß ΣΑΣ",
+    "۰۳۰۰۱۲۳۴۵۶۷",
+    "near, near,,, , ,54660,54660",
+]
+
+
+def test_quality_never_raises() -> None:
+    for value in HOSTILE_INPUTS:
+        result = pdk.score_address(value)  # type: ignore[arg-type]
+        assert 0 <= result.score <= 100
+        flags = pdk.phone_risk_signals(value)  # type: ignore[arg-type]
+        assert isinstance(flags, list)
+    assert pdk.score_address("").score == 0
+    assert pdk.score_address(None).score == 0  # type: ignore[arg-type]
+    assert pdk.phone_risk_signals(None) == ["invalid"]  # type: ignore[arg-type]

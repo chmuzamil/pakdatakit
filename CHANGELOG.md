@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 (unreleased)
+
+### Added
+
+- `scoreAddress()` and `phoneRiskSignals()` (`pakdatakit/quality`): heuristics
+  for cash on delivery. `scoreAddress` scores an address 0 to 100 from its city,
+  house number, street, area, postal code (a known post office scores more)
+  and landmark words in English, Roman Urdu and Urdu, and lists what is
+  missing. `phoneRiskSignals` flags invalid, landline, service, repeated-digit,
+  sequential and placeholder numbers. The form adapters gain `pk.codPhone()`
+  (`IsCodPhone` for class-validator).
+
+### Changed
 
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,

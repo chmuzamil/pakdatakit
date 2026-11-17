@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 (unreleased)
+
+### Added
+
+- `score_address()`: scores how complete a delivery address is (0 to 100),
+  returning `AddressScore(score, missing, parsed)` with the parts not found,
+  weighted by `ADDRESS_WEIGHTS`. `phone_risk_signals()`: flags a delivery
+  phone number that is invalid, a landline or service number, or looks made
+  up (repeated, sequential or placeholder digits).
+
+### Changed
 
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,

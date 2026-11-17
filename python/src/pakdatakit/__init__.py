@@ -62,6 +62,14 @@ from .postal import (
     search_post_offices,
     search_postal_codes,
 )
+from .quality import (
+    ADDRESS_WEIGHTS,
+    AddressPart,
+    AddressScore,
+    PhoneRiskFlag,
+    phone_risk_signals,
+    score_address,
+)
 from .raast import (
     EmvField,
     MerchantAccountInfo,
@@ -124,6 +132,13 @@ __all__ = [
     "ParsedAddress",
     "parse_address",
     "format_address",
+    # quality
+    "AddressPart",
+    "AddressScore",
+    "ADDRESS_WEIGHTS",
+    "score_address",
+    "PhoneRiskFlag",
+    "phone_risk_signals",
     # text
     "normalize_text",
     "normalize_roman_urdu",

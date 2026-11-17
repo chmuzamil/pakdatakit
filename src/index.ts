@@ -117,4 +117,12 @@ export {
   parseVehiclePlate,
   type VehiclePlate,
 } from './vehicle.js';
+export {
+  scoreAddress,
+  phoneRiskSignals,
+  ADDRESS_WEIGHTS,
+  type AddressScore,
+  type AddressPart,
+  type PhoneRiskFlag,
+} from './quality.js';
 export { dataVersion } from './data-version.js';

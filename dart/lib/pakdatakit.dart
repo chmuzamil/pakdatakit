@@ -32,6 +32,7 @@ export 'src/numbers.dart';
 export 'src/passport.dart';
 export 'src/phone.dart' hide getPhonePrefix, normalizePhoneDigits;
 export 'src/postal.dart';
+export 'src/quality.dart';
 export 'src/raast.dart';
 export 'src/tax.dart';
 export 'src/text.dart';

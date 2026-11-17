@@ -655,6 +655,53 @@ Formats structured components back into a mailing address string. Only the compo
 
 ---
 
+## Cash on Delivery Checks
+
+`import { scoreAddress, phoneRiskSignals } from 'pakdatakit/quality'`
+
+Heuristics for spotting an order a rider will struggle to deliver. They look only at the text you pass: no lists of real people or numbers, no network calls, and they never throw.
+
+### scoreAddress()
+
+Scores a delivery address from 0 to 100 and lists what is missing. Built on `parseAddress` and the Pakistan Post directory: a postal code that is a known post office scores higher than an unknown one, and one in a different province from the city lowers the score.
+
+```ts
+scoreAddress(
+  'House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660',
+);
+// { score: 100, missing: [], parsed: { city: "Lahore", postalCode: "54660", ... } }
+
+scoreAddress('Lahore').missing;
+// ["houseNumber", "street", "area", "postalCode", "landmark"]
+```
+
+| Part          | Points | Found when                                                                                        |
+| ------------- | -----: | ------------------------------------------------------------------------------------------------- |
+| `city`        |     30 | `parseAddress` finds a city                                                                       |
+| `houseNumber` |     20 | a number other than the postal code ("House 12", "12b", "Flat 2")                                 |
+| `street`      |     15 | street, road, lane, gali, chowk, bazaar, mohalla, گلی, محلہ …                                     |
+| `area`        |     10 | an area segment, or block, sector, phase, town, colony, society, بلاک, سیکٹر …                    |
+| `postalCode`  |     15 | a known post office code (an unknown 5-digit code scores 5)                                       |
+| `landmark`    |     10 | near, opp, behind, next to; nazd, nazdeek, qareeb, samne, peechay, bilmuqabil; نزد، قریب، سامنے … |
+
+The weights are exported as `ADDRESS_WEIGHTS`. Importing `scoreAddress` adds about 44 kB gzipped (the post office directory); `phoneRiskSignals` alone is about 3 kB.
+
+### phoneRiskSignals()
+
+Returns the reasons to double-check a phone number given for a delivery, or `[]`.
+
+```ts
+phoneRiskSignals('0301-2945716'); // []
+phoneRiskSignals('03001234567'); // ["sequential-digits", "test-number"]
+phoneRiskSignals('03000000000'); // ["repeated-digits"]
+phoneRiskSignals('042 35761234'); // ["landline"]
+phoneRiskSignals('12345'); // ["invalid"]
+```
+
+Flags: `invalid`, `landline`, `not-mobile` (UAN, toll-free and other service numbers), `repeated-digits` (the 7-digit subscriber part uses at most two digits), `sequential-digits` (`1234567`, `7654321` …) and `test-number` (`03XX-1234567`, `03XX-7654321`, `0312-3456789`). The form adapters have a matching `pk.codPhone()` rule that passes only when there are no flags.
+
+---
+
 ## Text Utilities
 
 ### normalizeRomanUrdu()
@@ -951,7 +998,7 @@ import { pk } from 'pakdatakit/superstruct';
 const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
 ```
 
-Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()` and `pk.vehiclePlate()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()` and `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
 
 ### class-validator and NestJS
 
@@ -974,7 +1021,7 @@ export class CreateCustomerDto {
 }
 ```
 
-Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport` and `IsVehiclePlate`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport`, `IsVehiclePlate` and `IsCodPhone`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ### As-you-type helpers
 

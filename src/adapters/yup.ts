@@ -34,6 +34,7 @@ export const pk = {
   landline: schema('landline'),
   passport: schema('passport'),
   vehiclePlate: schema('vehiclePlate'),
+  codPhone: schema('codPhone'),
 };
 
 export type { AdapterOptions };

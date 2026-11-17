@@ -272,6 +272,7 @@ describe('tax and landline rules', () => {
       'landline',
       'passport',
       'vehiclePlate',
+      'codPhone',
     ]);
     for (const adapter of [
       pkValibot,
@@ -282,5 +283,18 @@ describe('tax and landline rules', () => {
     ]) {
       expect(Object.keys(adapter)).toEqual(Object.keys(pkZod));
     }
+  });
+});
+
+describe('codPhone', () => {
+  it('accepts a mobile number with no risk flags and rejects the rest', () => {
+    const schema = pkZod.codPhone();
+    expect(schema.safeParse('0301-2945716').success).toBe(true);
+    for (const value of ['03001234567', '03000000000', '042 35761234', 'x']) {
+      expect(schema.safeParse(value).success, value).toBe(false);
+    }
+    expect(schema.safeParse('03001234567').error?.issues[0]?.message).toBe(
+      'Enter a mobile number a courier can call',
+    );
   });
 });

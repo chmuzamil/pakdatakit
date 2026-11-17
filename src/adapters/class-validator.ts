@@ -51,6 +51,7 @@ export const pk = {
   landline: decorator('landline'),
   passport: decorator('passport'),
   vehiclePlate: decorator('vehiclePlate'),
+  codPhone: decorator('codPhone'),
 };
 
 /** Validates a CNIC. See {@link pk}. */
@@ -72,3 +73,8 @@ export const IsPakLandline = pk.landline;
 export const IsPakPassport = pk.passport;
 /** Validates the format of a vehicle registration number. See {@link pk}. */
 export const IsVehiclePlate = pk.vehiclePlate;
+/**
+ * Validates a mobile number a courier can call: valid, and with no
+ * `phoneRiskSignals` flag. See {@link pk}.
+ */
+export const IsCodPhone = pk.codPhone;

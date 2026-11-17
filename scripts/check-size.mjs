@@ -65,6 +65,26 @@ const CASES = [
     limit: 4 * 1024,
     allowed: ['area codes'],
   },
+  {
+    name: "phoneRiskSignals from 'pakdatakit/quality'",
+    code: "import { phoneRiskSignals } from 'pakdatakit/quality'; console.log(phoneRiskSignals('03001234567'));",
+    limit: 4 * 1024,
+    allowed: ['area codes'],
+  },
+  {
+    name: "scoreAddress from 'pakdatakit/quality'",
+    code: "import { scoreAddress } from 'pakdatakit/quality'; console.log(scoreAddress('House 1, Lahore 54660'));",
+    limit: 64 * 1024,
+    allowed: ['post offices', 'postal codes'],
+  },
+  {
+    // Every rule of the adapter; zod itself is the app's own dependency.
+    name: "pk from 'pakdatakit/zod' (zod external)",
+    code: "import { pk } from 'pakdatakit/zod'; console.log(pk.cnic());",
+    external: ['zod'],
+    limit: 8 * 1024,
+    allowed: ['area codes'],
+  },
 ];
 
 /** Resolves `pakdatakit` and its subpaths through package.json "exports". */
@@ -90,6 +110,7 @@ for (const c of CASES) {
     platform: 'browser',
     write: false,
     plugins: [selfPackage],
+    external: c.external ?? [],
     logLevel: 'silent',
   });
   const text = result.outputFiles[0].text;

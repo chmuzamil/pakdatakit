@@ -110,6 +110,28 @@ including towns and villages, as `PostOffice(code, office, town, district,
 province)`. `district` is set only when the town is the headquarters a
 district is named after.
 
+Delivery checks:
+
+| Function                    | Returns                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| `score_address(address)`    | `AddressScore(score, missing, parsed)`: how complete a delivery address is   |
+| `phone_risk_signals(phone)` | Reasons to double-check a delivery phone number; `[]` for an ordinary mobile |
+
+`score_address` builds on `parse_address` and adds up `ADDRESS_WEIGHTS` for
+the parts it finds: `city` 30, `houseNumber` 20, `street` 15, `area` 10,
+`postalCode` 15 (5 for a code that is not a known post office) and `landmark`
+10 ("near", "opp", "nazd", "qareeb", "سامنے" ...). A post office in a different
+province from the city takes 15 off and adds a warning to `parsed.warnings`.
+`missing` lists the parts not found, in that order. `phone_risk_signals`
+returns any of `invalid`, `landline`, `not-mobile`, `repeated-digits`,
+`sequential-digits` and `test-number`. Both are heuristics and never raise.
+
+```python
+pdk.score_address("House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660").score  # 100
+pdk.score_address("Lahore").missing   # ['houseNumber', 'street', 'area', 'postalCode', 'landmark']
+pdk.phone_risk_signals("03001234567")  # ['sequential-digits', 'test-number']
+```
+
 `BankInfo.type` is one of `commercial`, `public-sector`, `islamic`,
 `microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
 `BankInfo.active` is `False` for a bank that merged into another or has closed.

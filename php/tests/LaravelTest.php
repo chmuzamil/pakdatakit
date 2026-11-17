@@ -25,6 +25,7 @@ final class LaravelTest extends TestCase
         'landline' => '042-35761234',
         'passport' => 'AB1234567',
         'plate' => 'LEA-1234',
+        'cod' => '0300 4829173',
     ];
 
     private const INVALID = [
@@ -36,6 +37,7 @@ final class LaravelTest extends TestCase
         'landline' => '03001234567',
         'passport' => 'A1234',
         'plate' => 'ABC-12345',
+        'cod' => '0300 1234567',
     ];
 
     private const STRING_RULES = [
@@ -47,6 +49,7 @@ final class LaravelTest extends TestCase
         'landline' => 'pk_landline',
         'passport' => 'pk_passport',
         'plate' => 'pk_vehicle_plate',
+        'cod' => 'pk_cod_phone',
     ];
 
     private const ENGLISH = [
@@ -58,6 +61,7 @@ final class LaravelTest extends TestCase
         'The landline field must be a valid Pakistani landline number.',
         'The passport field must be a valid Pakistani passport number.',
         'The plate field must be a valid vehicle registration number.',
+        'The cod field must be a mobile number a courier can call.',
     ];
 
     /** @return list<class-string> */
@@ -78,6 +82,7 @@ final class LaravelTest extends TestCase
             'landline' => [new Rules\Landline()],
             'passport' => [new Rules\Passport()],
             'plate' => [new Rules\VehiclePlate()],
+            'cod' => [new Rules\CodPhone()],
         ];
     }
 
@@ -120,6 +125,21 @@ final class LaravelTest extends TestCase
         self::assertSame(
             $expected,
             Validator::make($data, ['cnic' => new Rules\Cnic(), 'phone' => new Rules\Phone()])->errors()->all(),
+        );
+    }
+
+    public function testCodPhoneRejectsNumbersACourierCannotUse(): void
+    {
+        foreach (['03001234567', '0300-0000000', '0312-3456789', '042-35761234', '021-111-825-888', 'garbage'] as $phone) {
+            self::assertTrue(Validator::make(['cod' => $phone], ['cod' => 'pk_cod_phone'])->fails(), $phone);
+            self::assertTrue(Validator::make(['cod' => $phone], ['cod' => [new Rules\CodPhone()]])->fails(), $phone);
+        }
+        self::assertTrue(Validator::make(['cod' => '+92 321 4829173'], ['cod' => 'pk_cod_phone'])->passes());
+
+        App::setLocale('ur');
+        self::assertSame(
+            ['cod ایسا موبائل نمبر ہونا چاہیے جس پر کوریئر کال کر سکے۔'],
+            Validator::make(['cod' => '03001234567'], ['cod' => new Rules\CodPhone()])->errors()->all(),
         );
     }
 

@@ -3,8 +3,8 @@
 Utilities for Pakistani data: CNIC, mobile numbers and networks, landlines,
 IBAN and banks, NTN/STRN, passport and vehicle numbers, postal codes, cities
 and districts, WhatsApp links, rupee formatting, amounts in words, Roman Urdu,
-Hijri dates, public holidays, address parsing, as-you-type form helpers and
-Raast QR codes.
+Hijri dates, public holidays, address parsing, delivery-quality checks for
+addresses and phone numbers, as-you-type form helpers and Raast QR codes.
 
 This is the .NET port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
 It ships **the same datasets** and is tested against **the same 12,000+ test
@@ -61,6 +61,11 @@ Words.AmountInWords(125000, cheque: true);   // "Rupees One Lakh Twenty-Five Tho
 Hijri.Format(new DateOnly(2026, 3, 4));      // "15 Ramadan 1447"
 Holidays.IsHoliday(new DateOnly(2026, 8, 14)); // true
 
+Quality.ScoreAddress("House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660").Score; // 100
+Quality.ScoreAddress("Lahore").Missing;      // [HouseNumber, Street, Area, PostalCode, Landmark]
+Quality.PhoneRiskSignals("0301-2945716");    // [] (a courier can call it)
+Quality.PhoneRiskSignals("03001234567");     // [SequentialDigits, TestNumber]
+
 var payload = RaastQr.CreateP2P(new RaastP2POptions
 {
     Iban = "PK36SCBL0000001123456702",
@@ -81,7 +86,7 @@ Unicode (unpaired surrogates, noncharacters).
 | `Validate*`, `Is*` (e.g. `Cnic.Validate`, `Holidays.IsHoliday(string)`) | `false` |
 | `Parse`, `Get*`, `Analyze*` returning one value (e.g. `VehiclePlate.Parse`, `Iban.GetBank`, `Tax.AnalyzeNtn`) | `null` |
 | `Search*`, `Get*` returning a list (e.g. `Geo.SearchCities`, `Holidays.GetHolidaysOn(string)`) | an empty list |
-| `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`), as in the npm package |
+| `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
 | `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
 
 Every regular expression has a one-second timeout; if one is ever hit, the
@@ -137,6 +142,7 @@ strings to every public method that takes a string and checks this contract.
 | `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri.ToHijri`, `Hijri.FromHijri`, `Hijri.Format`, `Hijri.IsRamadan`   |
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays.GetHolidays`, `Holidays.GetHolidaysOn`, `Holidays.IsHoliday`  |
 | `parseAddress`, `formatAddress`                        | `Address.Parse`, `Address.Format`                                       |
+| `scoreAddress`, `phoneRiskSignals`, `ADDRESS_WEIGHTS`  | `Quality.ScoreAddress`, `Quality.PhoneRiskSignals`, `Quality.AddressWeights` |
 | `formatCNICInput`, `checkCNICInput`, …                 | `Input.FormatCnic`, `Input.CheckCnic`, `Input.FormatPhone`, …           |
 | `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr.CreateP2P`, `RaastQr.CreateMerchant`, `RaastQr.Parse`          |
 | `validateRaastQr`                                      | `RaastQr.Validate`                                                      |
@@ -165,7 +171,8 @@ public class CreateCustomerRequest
 ```
 
 Attributes: `[Cnic]`, `[PakPhone]`, `[PakIban]`, `[Ntn]`, `[Strn]`,
-`[PakLandline]`, `[PakPassport]` and `[VehiclePlate]`. Like the built-in
+`[PakLandline]`, `[PakPassport]`, `[VehiclePlate]` and `[CodPhone]` (a mobile
+number a courier can call: `Quality.PhoneRiskSignals` returns no flags). Like the built-in
 attributes, they accept `null` and empty strings; add `[Required]` for
 mandatory fields.
 
@@ -187,7 +194,8 @@ public class CustomerValidator : AbstractValidator<Customer>
 ```
 
 Rules: `IsCnic()`, `IsPakPhone()`, `IsPakIban()`, `IsNtn()`, `IsStrn()`,
-`IsPakLandline()`, `IsPakPassport()` and `IsVehiclePlate()`. They pass `null`
+`IsPakLandline()`, `IsPakPassport()`, `IsVehiclePlate()` and `IsCodPhone()` (a
+mobile number a courier can call: `Quality.PhoneRiskSignals` returns no flags). They pass `null`
 and empty strings; add `NotEmpty()` for mandatory fields. Works with
 FluentValidation 11 and 12.
 
@@ -212,6 +220,15 @@ FluentValidation 11 and 12.
   tehsils. Each tehsil is recorded under the district it was in at the
   census, so `Geo.GetTehsils("Rawalpindi")` still lists Murree, and
   `Geo.GetDivisionOfDistrict` returns `null` for districts created since.
+- **Delivery quality.** `Quality.ScoreAddress` returns an `AddressScore`
+  (`Score` from 0 to 100, the `Missing` parts as `AddressPart` values in the
+  order of `Quality.AddressWeights`, and the `Parsed` address with any extra
+  warnings, e.g. a post office in another province). An unknown postal code
+  scores 5 of its 15 points. `Quality.PhoneRiskSignals` returns
+  `PhoneRiskFlag` values (`Invalid`, `Landline`, `NotMobile`,
+  `RepeatedDigits`, `SequentialDigits`, `TestNumber`; `not-mobile` and so on
+  in the npm package). Both are heuristics on the text alone: they say how
+  much an address or number tells a courier, not whether it exists.
 - **Sorting** of search results follows the same order as the npm package for
   the names in the datasets.
 

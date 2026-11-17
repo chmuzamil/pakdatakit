@@ -50,6 +50,8 @@ getTehsilDistrict('Murree');                 // 'Rawalpindi'
 parseAddress('House 12, Street 5, Model Town Lahore 54000').postalCode; // '54000'
 getPostOffice('48330')?.office;              // 'Dulmial'
 searchPostOffices('Dulmial').length;         // offices whose name or town matches
+scoreAddress('12 Model Town Lahore').score;  // 60 (no street, postal code or landmark)
+phoneRiskSignals('0300 0000000');            // [PhoneRiskFlag.repeatedDigits]
 
 formatPKR(150000);                           // 'Rs. 150,000'
 formatLakh(2500000);                         // '25 Lakh'
@@ -79,8 +81,8 @@ import 'package:pakdatakit/raast.dart';
 ```
 
 Available: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`,
-`input`, `networks`, `numbers`, `phone`, `postal`, `raast`, `tax`, `text`,
-`whatsapp` and `words`.
+`input`, `networks`, `numbers`, `phone`, `postal`, `quality`, `raast`, `tax`,
+`text`, `whatsapp` and `words`.
 
 ## API
 
@@ -115,6 +117,14 @@ In Dart:
   (`'public-sector'`) for public sector commercial banks such as National Bank
   of Pakistan; `BankInfo.active` is `false` for banks that merged into another
   or have closed.
+- **Delivery quality:** `scoreAddress` returns an `AddressScore` (`score`
+  0-100, the `missing` `AddressPart`s in the order of `addressWeights`, and
+  `parsed`, the `parseAddress` result plus any postal-code/province warning).
+  `phoneRiskSignals` returns a list of `PhoneRiskFlag`s (`invalid`,
+  `landline`, `notMobile`, `repeatedDigits`, `sequentialDigits`,
+  `testNumber`; `.value` holds the npm string, e.g. `'repeated-digits'`), or
+  `[]` for an unremarkable mobile number. Both are heuristics and never throw.
+  `ADDRESS_WEIGHTS` is `addressWeights`, a `Map<AddressPart, int>`.
 - **An `ArgumentError` where the npm package throws a `RangeError`**, e.g.
   `formatPKR(double.nan)` or a Raast QR with an amount but no expiry.
 - **Dates are local `DateTime`s**; only the calendar date (or, for Raast

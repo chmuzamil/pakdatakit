@@ -19,6 +19,7 @@ use PakDataKit\Numbers;
 use PakDataKit\Passport;
 use PakDataKit\Phone;
 use PakDataKit\Postal;
+use PakDataKit\Quality;
 use PakDataKit\RaastQr;
 use PakDataKit\Tax;
 use PakDataKit\Text;
@@ -41,8 +42,8 @@ final class FuzzTest extends TestCase
 {
     private const CLASSES = [
         Address::class, Cnic::class, Geo::class, Holidays::class, Iban::class, Input::class, Networks::class,
-        Numbers::class, Passport::class, Phone::class, Postal::class, RaastQr::class, Tax::class, Text::class,
-        VehiclePlate::class, WhatsApp::class,
+        Numbers::class, Passport::class, Phone::class, Postal::class, Quality::class, RaastQr::class, Tax::class,
+        Text::class, VehiclePlate::class, WhatsApp::class,
     ];
 
     /** @return list<string|null> Inputs that can never be valid for any validator or parser. */
@@ -142,7 +143,7 @@ final class FuzzTest extends TestCase
             'Geo::getDivisionOfDistrict', 'Geo::getTehsils', 'Geo::getTehsilDistrict', 'WhatsApp::createLink', 'Text::normalize',
             'Text::normalizeRomanUrdu', 'Address::parse', 'Input::formatCnic', 'Input::checkIban',
             'RaastQr::parse', 'RaastQr::validate', 'Holidays::isHoliday', 'Holidays::getHolidaysOn',
-            'Holidays::tryGetHolidaysOn',
+            'Holidays::tryGetHolidaysOn', 'Quality::scoreAddress', 'Quality::phoneRiskSignals',
         ] as $expected) {
             self::assertContains($expected, $names);
         }

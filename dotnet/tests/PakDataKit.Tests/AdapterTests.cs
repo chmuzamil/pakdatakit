@@ -33,6 +33,9 @@ public sealed class DataAnnotationsTests
 
         [VehiclePlate]
         public string? Plate { get; set; }
+
+        [CodPhone]
+        public string? CodPhone { get; set; }
     }
 
     private static List<string> Errors(Customer customer)
@@ -55,6 +58,7 @@ public sealed class DataAnnotationsTests
             Landline = "042-35761234",
             Passport = "AB1234567",
             Plate = "LEA-1234",
+            CodPhone = "0301-2945716",
         }));
     }
 
@@ -77,6 +81,7 @@ public sealed class DataAnnotationsTests
                 "The Landline field is not a valid Pakistani landline number.",
                 "The Passport field is not a valid Pakistani passport number.",
                 "The Plate field is not a valid vehicle registration number.",
+                "Enter a mobile number a courier can call",
             ],
             Errors(new Customer
             {
@@ -88,7 +93,20 @@ public sealed class DataAnnotationsTests
                 Landline = "03001234567",
                 Passport = "A1234",
                 Plate = "ABC-12345",
+                CodPhone = "03001234567",
             }));
+    }
+
+    [Fact]
+    public void CodPhoneRejectsNumbersACourierCannotUse()
+    {
+        var attribute = new CodPhoneAttribute();
+        Assert.True(attribute.IsValid("+92 333 5820147"));
+        Assert.True(attribute.IsValid(""));
+        Assert.False(attribute.IsValid("042 35761234"));
+        Assert.False(attribute.IsValid("0800-12345"));
+        Assert.False(attribute.IsValid("03000000000"));
+        Assert.False(attribute.IsValid("12345"));
     }
 
     [Fact]
@@ -103,7 +121,7 @@ public sealed class FluentValidationTests
 {
     private sealed record Customer(
         string? Cnic, string? Phone = null, string? Iban = null, string? Ntn = null, string? Strn = null,
-        string? Landline = null, string? Passport = null, string? Plate = null);
+        string? Landline = null, string? Passport = null, string? Plate = null, string? CodPhone = null);
 
     private sealed class CustomerValidator : AbstractValidator<Customer>
     {
@@ -117,6 +135,7 @@ public sealed class FluentValidationTests
             RuleFor(c => c.Landline).IsPakLandline();
             RuleFor(c => c.Passport).IsPakPassport();
             RuleFor(c => c.Plate).IsVehiclePlate();
+            RuleFor(c => c.CodPhone).IsCodPhone();
         }
     }
 
@@ -128,7 +147,7 @@ public sealed class FluentValidationTests
     {
         Assert.Empty(Errors(new Customer(
             "35202-1234567-1", "0300 1234567", "PK36SCBL0000001123456702", "0622438-9", "17-00-3761-882-19",
-            "042-35761234", "AB1234567", "LEA-1234")));
+            "042-35761234", "AB1234567", "LEA-1234", "0301-2945716")));
     }
 
     [Fact]
@@ -150,9 +169,10 @@ public sealed class FluentValidationTests
                 "'Landline' is not a valid Pakistani landline number.",
                 "'Passport' is not a valid Pakistani passport number.",
                 "'Plate' is not a valid vehicle registration number.",
+                "Enter a mobile number a courier can call",
             ],
             Errors(new Customer(
                 "00000-0000000-0", "03601234567", "PK37SCBL0000001123456702", "123", "1", "03001234567", "A1234",
-                "ABC-12345")));
+                "ABC-12345", "03001234567")));
     }
 }

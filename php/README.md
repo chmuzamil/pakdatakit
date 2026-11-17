@@ -90,6 +90,7 @@ package; call `->toArray()` for an array.
 | `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri::toHijri`, `Hijri::fromHijri`, `Hijri::format`, `Hijri::isRamadan`  |
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays::getHolidays`, `Holidays::getHolidaysOn`, `Holidays::isHoliday`  |
 | `parseAddress`, `formatAddress`                        | `Address::parse`, `Address::format`                                        |
+| `scoreAddress`, `phoneRiskSignals`, `ADDRESS_WEIGHTS`  | `Quality::scoreAddress`, `Quality::phoneRiskSignals`, …                    |
 | `formatCNICInput`, `checkCNICInput`, …                 | `Input::formatCnic`, `Input::checkCnic`, `Input::formatPhone`, …           |
 | `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr::createP2P`, `RaastQr::createMerchant`, `RaastQr::parse`          |
 | `validateRaastQr`                                      | `RaastQr::validate`                                                        |
@@ -108,6 +109,39 @@ optional province for names shared by several districts.
 `BankInfo::$active` is `false` for a bank that merged into another or is no
 longer operating (SME Bank, `SMES`).
 
+### Delivery quality
+
+For cash on delivery and other courier use:
+
+```php
+use PakDataKit\Quality;
+
+$result = Quality::scoreAddress('House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660');
+$result->score;    // 100
+$result->missing;  // []
+Quality::scoreAddress('Lahore')->missing;
+// ['houseNumber', 'street', 'area', 'postalCode', 'landmark']
+
+Quality::phoneRiskSignals('0300 4829173');  // []
+Quality::phoneRiskSignals('0300 1234567');  // ['sequential-digits', 'test-number']
+Quality::phoneRiskSignals('042-35761234');  // ['landline']
+```
+
+`Quality::scoreAddress()` returns an `AddressScore` (`score` from 0 to 100,
+`missing` parts, and `parsed`, the `Address::parse()` result with any extra
+warnings). It looks for a city, a house, plot or flat number, a street, an
+area, a postal code and a landmark (`near`, `opp`, `nazd`, `qareeb`, `سامنے`
+…), weighted by `Quality::ADDRESS_WEIGHTS`. A known post office code scores in
+full and an unknown one scores 5; a post office in another province than the
+city takes off 15 and adds a warning. It is a heuristic: it says how much an
+address tells a rider, not whether the address exists.
+
+`Quality::phoneRiskSignals()` flags: `invalid`, `landline`, `not-mobile` (UAN,
+toll-free and other service numbers), `repeated-digits` (the 7-digit subscriber
+part uses at most two digits), `sequential-digits` (`1234567`, `7654321` …) and
+`test-number` (`03XX-1234567`, `03XX-7654321`, `0312-3456789`). The
+`pk_cod_phone` Laravel rule passes only when there are no flags.
+
 ## Laravel
 
 The service provider is discovered automatically (Laravel 11 and 12).
@@ -123,9 +157,10 @@ $request->validate([
 ```
 
 Rules: `pk_cnic`, `pk_phone`, `pk_iban`, `pk_ntn`, `pk_strn`, `pk_landline`,
-`pk_passport` and `pk_vehicle_plate`. As with Laravel's own rules, empty
-values are skipped unless the field is `required`. Values that are not strings
-fail.
+`pk_passport`, `pk_vehicle_plate` and `pk_cod_phone` (a mobile number a
+courier can call: no `Quality::phoneRiskSignals()` flags). As with Laravel's
+own rules, empty values are skipped unless the field is `required`. Values
+that are not strings fail.
 
 The same checks are available as rule objects:
 
@@ -139,7 +174,7 @@ $request->validate([
 ```
 
 `Rules\Cnic`, `Rules\Phone`, `Rules\Iban`, `Rules\Ntn`, `Rules\Strn`,
-`Rules\Landline`, `Rules\Passport` and `Rules\VehiclePlate`.
+`Rules\Landline`, `Rules\Passport`, `Rules\VehiclePlate` and `Rules\CodPhone`.
 
 ### Messages
 

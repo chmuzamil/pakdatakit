@@ -15,6 +15,7 @@ export const modules = [
   'passport',
   'phone',
   'postal',
+  'quality',
   'raast',
   'tax',
   'text',

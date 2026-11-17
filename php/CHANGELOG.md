@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.4.0 (unreleased)
+
+### Added
+
+- `Quality::scoreAddress()`: scores how complete a delivery address is (0 to 100) for cash on delivery, with the `missing` parts (`city`, `houseNumber`,
+  `street`, `area`, `postalCode`, `landmark`) and the parsed address as an
+  `AddressScore`; `Quality::ADDRESS_WEIGHTS` holds the points per part.
+  `Quality::phoneRiskSignals()` flags phone numbers a courier cannot use:
+  invalid, landline and service numbers, and repeated, sequential and
+  placeholder numbers. New Laravel rule `pk_cod_phone` (and `Rules\CodPhone`)
+  passes only when there are no flags, with English and Urdu messages.
+
 ## 2.3.0
 
 First release of the PHP package, matching version 2.3.0 of the

@@ -193,6 +193,8 @@ public sealed class VectorTests(ITestOutputHelper output)
                 return new Dictionary<string, object?> { ["$num"] = d > 0 ? "Infinity" : "-Infinity" };
             case double d: return d;
             case int or long or float or decimal: return Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            // TypeScript's AddressPart values are camelCase ("houseNumber").
+            case AddressPart part: return char.ToLowerInvariant(part.ToString()[0]) + part.ToString()[1..];
             case Enum e: return Kebab(e.ToString());
             case DateOnly date:
                 return new Dictionary<string, object?>
@@ -512,6 +514,8 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["checkPhoneInput"] = One(v => Input.CheckPhone(v)),
         ["formatIBANInput"] = One(Input.FormatIban),
         ["checkIBANInput"] = One(v => Input.CheckIban(v)),
+        ["scoreAddress"] = One(Quality.ScoreAddress),
+        ["phoneRiskSignals"] = One(Quality.PhoneRiskSignals),
     };
 
     private static string FindVectorsDir()

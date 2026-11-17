@@ -12,6 +12,7 @@ first release of each new package, see below).
 | `pakdatakit-faker`      | npm          | `faker-v0.1.0`   | `release-faker.yml`   | `faker/package.json`    |
 | `pakdatakit` (Dart)     | pub.dev      | `dart-v2.2.0`    | `release-dart.yml`    | `dart/pubspec.yaml`     |
 | `pakdatakit_flutter`    | pub.dev      | `flutter-v0.1.0` | `release-flutter.yml` | `flutter/pubspec.yaml`  |
+| `chmuzamil/pakdatakit`  | Packagist    | `php-v2.3.0`     | `split-php.yml`       | `php/src/PakData.php`   |
 | API docs and `llms.txt` | GitHub Pages | `v2.2.0`         | `docs.yml`            | (built from the source) |
 
 Each workflow checks that the tag matches the package's version, runs the
@@ -138,15 +139,21 @@ tests and builds them.
 1. On a branch:
    - update `CHANGELOG.md` with a `## x.y.z` section;
    - set the version in `package.json` (`npm version x.y.z --no-git-tag-version`),
-     and in `python/pyproject.toml` and `python/src/pakdatakit/__init__.py`;
+     in `python/pyproject.toml` and `python/src/pakdatakit/__init__.py`, and in
+     `dart/pubspec.yaml`;
    - set `<Version>` in `dotnet/Directory.Build.props`, and
      `PakData::PACKAGE_VERSION` in `php/src/PakData.php`;
-   - if data changed, update `dataVersion` in `src/data-version.ts` and
-     `python/src/pakdatakit/data_version.py`, and the date in `DATA.md`;
-   - run `npm run build && node scripts/generate-test-vectors.mjs` and commit
-     the updated `test-vectors/` and `python/src/pakdatakit/data/`; if data
-     changed, also run `node scripts/generate-dart-data.mjs` and
-     `node scripts/generate-php-data.mjs`;
+   - add a `## x.y.z` section to each port's CHANGELOG, and update the
+     supported versions in `SECURITY.md` for a new minor version;
+   - if data changed, update `dataVersion` in `src/data-version.ts`,
+     `python/src/pakdatakit/data_version.py`, `dart/lib/src/data_version.dart`
+     and `dart/test/api_test.dart`, and the date in `DATA.md`;
+   - run `npm run check:metadata` (CI runs it too); it fails if any of the
+     versions above, the data version, the repository URL, licence or author
+     differ between the ports;
+   - run `npm run test:ports`, which regenerates `test-vectors/`,
+     `python/src/pakdatakit/data/`, `dart/lib/src/data/` and `php/data/` and
+     runs every port's tests, and commit what it regenerated;
    - do **not** copy new data into `faker/src/snapshot/`. `pakdatakit-faker`
      picks from its own frozen lists so that a seed keeps giving the same
      output; replacing them changes seeded output for every user and needs a

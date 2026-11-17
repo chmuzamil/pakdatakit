@@ -1,7 +1,7 @@
 {
   "name": "pakdatakit",
   "version": "2.3.0",
-  "description": "Pakistani data toolkit for TypeScript/JavaScript: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates, amounts in words. Zero dependencies, with Zod, Valibot, Yup, Joi, Superstruct and class-validator adapters.",
+  "description": "Pakistani data utilities for TypeScript and JavaScript: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates and amounts in words. No dependencies, with Zod, Valibot, Yup, Joi, Superstruct and class-validator adapters.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -17,7 +17,7 @@
     }
   },
   "bin": {
-    "pakdatakit": "./dist/cli.js"
+    "pakdatakit": "dist/cli.js"
   },
   "exports": {
     ".": {
@@ -284,7 +284,8 @@
   },
   "files": [
     "dist",
-    "DATA.md"
+    "DATA.md",
+    "NOTICE"
   ],
   "sideEffects": false,
   "scripts": {
@@ -298,6 +299,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "size": "node scripts/check-size.mjs",
+    "check:metadata": "node scripts/check-metadata.mjs",
+    "test:ports": "node scripts/test-ports.mjs",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build",
     "docs": "typedoc && node scripts/generate-llms.mjs"
@@ -363,7 +366,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chmuzamil/pakdatakit.git"
+    "url": "git+https://github.com/chmuzamil/pakdatakit.git"
   },
   "engines": {
     "node": ">=20"

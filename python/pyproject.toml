@@ -5,14 +5,15 @@ build-backend = "hatchling.build"
 [project]
 name = "pakdatakit"
 version = "2.3.0"
-description = "Utilities for Pakistani data: CNIC, phone, IBAN, postal codes, address parsing, Hijri dates, holidays, amounts in words and Raast QR codes"
+description = "Pakistani data utilities for Python: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates and amounts in words. No dependencies; gives the same results as the pakdatakit npm package."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 authors = [{ name = "Muzamil Chaudhery" }]
 keywords = [
-  "pakistan", "cnic", "phone", "iban", "postal", "hijri", "urdu",
-  "address", "ntn", "raast", "qr", "holidays", "amount-in-words",
+  "pakistan", "cnic", "iban", "phone", "raast", "qr", "validation", "ntn",
+  "strn", "passport", "vehicle-registration", "postal", "hijri", "holidays",
+  "urdu", "address", "amount-in-words",
 ]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -31,11 +32,11 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/chmuzamil/pakdatakit"
-Documentation = "https://github.com/chmuzamil/pakdatakit#readme"
+Homepage = "https://github.com/chmuzamil/pakdatakit/tree/main/python#readme"
+Documentation = "https://github.com/chmuzamil/pakdatakit/tree/main/python#readme"
 Repository = "https://github.com/chmuzamil/pakdatakit"
 Issues = "https://github.com/chmuzamil/pakdatakit/issues"
-Changelog = "https://github.com/chmuzamil/pakdatakit/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/chmuzamil/pakdatakit/blob/main/python/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pakdatakit"]

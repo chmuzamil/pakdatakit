@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Package metadata: the description, keywords and homepage now follow the same
+  style in every registry, and CI checks that the version, repository URL,
+  licence and author agree across ports (`npm run check:metadata`).
+- `PackageProjectUrl` points to the .NET README and `Copyright` matches the
+  licence file.
+
 ## 2.3.0
 
 First release of the .NET packages, matching version 2.3.0 of the

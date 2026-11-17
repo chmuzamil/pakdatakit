@@ -1,12 +1,21 @@
-name: Monthly data check
+name: Data refresh reminder
 
-# Opens a checklist issue on the 1st of every month so the datasets are
-# re-checked against their sources (see DATA.md).
+# Opens a checklist issue so the datasets are re-checked against their
+# official sources (scripts/data-refresh.md):
+# - every quarter (1 January, April, July and October): the full checklist;
+# - every 1 December: the public holidays section, for next year's circular.
 
 on:
   schedule:
-    - cron: '0 6 1 * *'
+    - cron: '0 6 1 1,4,7,10 *'
+    - cron: '0 6 1 12 *'
   workflow_dispatch:
+    inputs:
+      kind:
+        description: Which checklist to open
+        type: choice
+        options: [quarterly, holidays]
+        default: quarterly
 
 permissions:
   issues: write
@@ -17,16 +26,40 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Open the monthly checklist
+      - name: Open the checklist
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          SCHEDULE: ${{ github.event.schedule }}
+          KIND_INPUT: ${{ inputs.kind }}
         run: |
-          title="Monthly data check: $(date -u +'%B %Y')"
+          kind="${KIND_INPUT:-quarterly}"
+          if [ "$SCHEDULE" = "0 6 1 12 *" ]; then kind=holidays; fi
+
+          if [ "$kind" = "holidays" ]; then
+            next_year=$(( $(date -u +%Y) + 1 ))
+            title="Public holidays for ${next_year}"
+            {
+              echo "Check the Cabinet Division's ${next_year} holidays circular and the Islamic holiday dates. From [scripts/data-refresh.md](https://github.com/${REPO}/blob/main/scripts/data-refresh.md):"
+              echo
+              # The holidays section and the regenerate steps.
+              awk '/^## Public holidays/{p=1} /^## Postal directory/{p=0} /^## Regenerate and release/{p=1} p' scripts/data-refresh.md
+            } > body.md
+          else
+            month=$(date -u +%-m)
+            title="Quarterly data refresh: Q$(( (month + 2) / 3 )) $(date -u +%Y)"
+            {
+              echo "From [scripts/data-refresh.md](https://github.com/${REPO}/blob/main/scripts/data-refresh.md):"
+              echo
+              # Everything after the title.
+              tail -n +2 scripts/data-refresh.md
+            } > body.md
+          fi
+
           existing="$(gh issue list --repo "$REPO" --state all --search "\"${title}\" in:title" --json number --jq 'length')"
           if [ "$existing" != "0" ]; then
             echo "Already opened: ${title}"
             exit 0
           fi
           gh label create data --repo "$REPO" --color 0e8a16 --description "Datasets and their sources" 2>/dev/null || true
-          gh issue create --repo "$REPO" --title "$title" --label data --body-file .github/data-check-issue.md
+          gh issue create --repo "$REPO" --title "$title" --label data --body-file body.md

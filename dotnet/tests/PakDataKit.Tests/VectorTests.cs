@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using PakDataKit.Internal;
 using Xunit;
 using Xunit.Abstractions;
@@ -189,6 +190,7 @@ public sealed class VectorTests(ITestOutputHelper output)
         switch (value)
         {
             case null or bool or string: return value;
+            case JsonNode node: return PlainNode(node);
             case double d when double.IsNaN(d): return new Dictionary<string, object?> { ["$num"] = "NaN" };
             case double d when double.IsInfinity(d):
                 return new Dictionary<string, object?> { ["$num"] = d > 0 ? "Infinity" : "-Infinity" };
@@ -218,6 +220,35 @@ public sealed class VectorTests(ITestOutputHelper output)
         }
         return result;
     }
+
+    /// <summary>Converts a JSON result (an FBR invoice) into the vector encoding.</summary>
+    private static object? PlainNode(JsonNode? node) => node switch
+    {
+        null => null,
+        JsonObject obj => obj.ToDictionary(p => p.Key, p => PlainNode(p.Value), StringComparer.Ordinal),
+        JsonArray array => array.Select(PlainNode).ToList(),
+        JsonValue v when v.TryGetValue(out JsonElement e) => Decode(e, raw: true),
+        // Decode reads {"$num": …} in `expected` as a double, so NaN stays a double.
+        JsonValue v when v.TryGetValue(out double d) => d,
+        JsonValue v when v.TryGetValue(out string? s) => s,
+        JsonValue v when v.TryGetValue(out bool b) => b,
+        _ => throw new InvalidOperationException("Unexpected JSON value " + node),
+    };
+
+    /// <summary>
+    /// A decoded vector argument as JSON for the FBR functions. Numbers stay
+    /// numbers (<c>{"$num":"NaN"}</c> becomes a NaN <see cref="JsonValue"/>).
+    /// </summary>
+    private static JsonNode? ToNode(object? value) => value switch
+    {
+        null => null,
+        double d => JsonValue.Create(d),
+        string s => JsonValue.Create(s),
+        bool b => JsonValue.Create(b),
+        List<object?> list => new JsonArray(list.Select(ToNode).ToArray()),
+        Dictionary<string, object?> map => new JsonObject(map.Select(p => KeyValuePair.Create(p.Key, ToNode(p.Value)))),
+        _ => throw new Unrepresentable($"{Describe(value)} is not JSON"),
+    };
 
     private static string Kebab(string name)
     {
@@ -404,6 +435,7 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["formatAddress"] = ["raw", "street", "area", "city", "district", "province", "postalCode", "warnings"],
         ["getSalesTaxRate"] = ["kind", "province", "date"],
         ["calculateSalesTax"] = ["rate", "province", "kind", "date", "inclusive"],
+        ["validateFbrInvoice"] = ["today"],
     };
 
     private static readonly Dictionary<string, Call> Functions = new()
@@ -579,6 +611,9 @@ public sealed class VectorTests(ITestOutputHelper output)
             _ => throw new Unrepresentable($"{Describe(a[1])} is not a string or number"),
         },
         ["normalizeCityForCourier"] = One(Courier.NormalizeCity),
+        ["buildFbrInvoice"] = (a, _) => FbrInvoice.Build(ToNode(a[0])),
+        ["validateFbrInvoice"] = (a, k) => FbrInvoice.Validate(ToNode(a[0]), OptStr(k.GetValueOrDefault("today"))),
+        ["expectedSalesTax"] = (a, _) => FbrInvoice.ExpectedSalesTax(ToNode(a[0])),
     };
 
     private static string FindVectorsDir()

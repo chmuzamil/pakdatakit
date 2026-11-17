@@ -10,6 +10,7 @@ use PakDataKit\Bills;
 use PakDataKit\Cnic;
 use PakDataKit\Courier;
 use PakDataKit\Currency;
+use PakDataKit\FbrInvoice;
 use PakDataKit\Geo;
 use PakDataKit\Hijri;
 use PakDataKit\HijriDate;
@@ -314,6 +315,84 @@ final class FuzzTest extends TestCase
         self::assertSame(15, SalesTax::getRate(['kind' => 'services', 'province' => ' ict ', 'date' => ' 2026-11-18 '])?->rate);
         self::assertNull(SalesTax::getRate(['kind' => 'goods', 'date' => '2023-02-29']));
         self::assertNotNull(SalesTax::getRate(['kind' => 'goods']));
+    }
+
+    public function testFbrInvoiceHandlesHostileInput(): void
+    {
+        $values = [
+            null, true, false, '', '18', [], [[]], ['items' => null], new \stdClass(), NAN, INF, -INF, -0.0, -1, 0,
+            0.001, 1e300, PHP_INT_MAX, PHP_INT_MIN, '__proto__', 'constructor', ['a', 'b'], [1 => 'x'],
+        ];
+        $line = [
+            'hsCode' => '0101.2100', 'productDescription' => 'Horses', 'rate' => '18%', 'uoM' => 'Numbers, pieces, units',
+            'quantity' => 1, 'valueSalesExcludingST' => 1000, 'saleType' => 'Goods at standard rate (default)',
+        ];
+        $invoice = [
+            'invoiceType' => 'Sale Invoice', 'invoiceDate' => '2025-04-21', 'sellerNTNCNIC' => '1234567',
+            'sellerBusinessName' => 'Example Traders', 'sellerProvince' => 'Sindh', 'sellerAddress' => 'Karachi',
+            'buyerNTNCNIC' => '7654321', 'buyerBusinessName' => 'Example Buyer', 'buyerProvince' => 'Punjab',
+            'buyerAddress' => 'Lahore', 'buyerRegistrationType' => 'Registered', 'items' => [$line],
+        ];
+        $keys = [...array_keys($invoice), 'invoiceRefNo', 'scenarioId'];
+        $lineKeys = [
+            ...array_keys($line), 'totalValues', 'fixedNotifiedValueOrRetailPrice', 'salesTaxApplicable',
+            'salesTaxWithheldAtSource', 'extraTax', 'furtherTax', 'fedPayable', 'discount', 'sroScheduleNo', 'sroItemSerialNo',
+        ];
+        foreach ([...$values, ...self::hostile()] as $value) {
+            try {
+                FbrInvoice::build($value);
+                self::assertFalse(FbrInvoice::validate($value)->valid);
+                FbrInvoice::expectedSalesTax($value);
+                FbrInvoice::validate($invoice, ['today' => $value]);
+                foreach ($keys as $key) {
+                    FbrInvoice::build([...$invoice, $key => $value]);
+                    FbrInvoice::validate([...$invoice, $key => $value]);
+                    FbrInvoice::validate((object) [...$invoice, $key => $value]);
+                }
+                foreach ($lineKeys as $key) {
+                    $item = [...$line, $key => $value];
+                    FbrInvoice::expectedSalesTax($item);
+                    FbrInvoice::expectedSalesTax([...$item, 'rate' => 'Rs.3']);
+                    FbrInvoice::expectedSalesTax([...$item, 'saleType' => '3rd Schedule Goods']);
+                    FbrInvoice::build([...$invoice, 'items' => [$item, (object) $item]]);
+                    FbrInvoice::validate([...$invoice, 'items' => [$item, [...$item, 'rate' => 'Rs 3'], (object) $item]]);
+                }
+            } catch (Throwable $e) {
+                self::fail('FbrInvoice threw ' . $e::class . ' for ' . self::describe(is_string($value) ? $value : null)
+                    . ': ' . $e->getMessage());
+            }
+        }
+
+        self::assertSame('1.12', FbrInvoice::SPEC_VERSION);
+        $full = FbrInvoice::build($invoice)['invoice'] ?? null;
+        self::assertTrue(FbrInvoice::validate($full)->valid);
+        self::assertTrue(FbrInvoice::validate(json_decode((string) json_encode($full)))->valid);
+        self::assertFalse(FbrInvoice::validate($invoice)->valid); // totalValues … are required
+        self::assertSame('The invoice must be an object', FbrInvoice::validate([])->errors[0]->message);
+        self::assertSame('0011', FbrInvoice::validate(new \stdClass())->errors[0]->code);
+        $built = FbrInvoice::build(json_decode((string) json_encode($invoice)));
+        self::assertSame(180.0, $built['invoice']['items'][0]['salesTaxApplicable'] ?? null);
+        self::assertSame('', $built['invoice']['invoiceRefNo'] ?? null);
+        self::assertSame(1.0, $built['totals']['quantity'] ?? null);
+        self::assertNull(FbrInvoice::build([...$invoice, 'items' => [[]]]));
+        self::assertSame(
+            ['code' => '0104', 'field' => 'items[0].salesTaxApplicable', 'message' => 'Sales tax should be 180.00 for this rate'],
+            FbrInvoice::validate([...$invoice, 'items' => [[...$line, 'salesTaxApplicable' => 170, 'totalValues' => 0,
+                'fixedNotifiedValueOrRetailPrice' => 0, 'salesTaxWithheldAtSource' => 0]]])->errors[0]->toArray(),
+        );
+        // Per-unit tax beyond 64-bit integers, rounded as the npm package's BigInt.
+        self::assertSame(1e24, FbrInvoice::expectedSalesTax(['rate' => 'Rs.1000000000000', 'quantity' => 1e12]));
+        self::assertSame(
+            9.999999999999899e+23,
+            FbrInvoice::expectedSalesTax(['rate' => 'Rs.999999999999.99', 'quantity' => 999999999999.9999]),
+        );
+        self::assertSame(
+            1.2193263113702222e+23,
+            FbrInvoice::expectedSalesTax(['rate' => 'Rs.987654321098.76', 'quantity' => 123456789012.3468]),
+        );
+        self::assertNull(FbrInvoice::expectedSalesTax(['rate' => 'ſ3', 'quantity' => 1]));
+        self::assertSame(0.18, FbrInvoice::expectedSalesTax(['rate' => "18%\n", 'valueSalesExcludingST' => 1]));
+        self::assertSame('0005', FbrInvoice::validate([...$invoice, 'invoiceDate' => "2025-04-21\n"])->errors[0]->code);
     }
 
     public function testCourierStatusHandlesHostileInput(): void

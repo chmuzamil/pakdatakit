@@ -29,6 +29,11 @@
   M&P, Trax and BlueEx publish none), and city short forms (`LHR`, `Khi`,
   `Pindi`, `Isb`, Lyallpur, Urdu names) mapped to the city list. No API clients
   and no tracking-number detection, as no courier documents its format.
+- `buildFbrInvoice()` and `validateFbrInvoice()` (`pakdatakit/fbr-invoice`):
+  types for FBR's Digital Invoicing JSON, a builder that works out each line's
+  sales tax, and an offline validator that reports FBR's error codes, following
+  PRAL's "Technical Specification for DI API" v1.12. No HTTP client and no
+  tokens.
 
 ### Changed
 

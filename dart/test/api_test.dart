@@ -3,6 +3,7 @@
 import 'package:pakdatakit/bills.dart' as bills;
 import 'package:pakdatakit/cnic.dart' as cnic;
 import 'package:pakdatakit/courier.dart' as courier;
+import 'package:pakdatakit/fbr_invoice.dart' as fbr;
 import 'package:pakdatakit/pakdatakit.dart';
 import 'package:pakdatakit/phone.dart' as phone;
 import 'package:pakdatakit/salestax.dart' as salestax;
@@ -450,6 +451,191 @@ void main() {
       }
     });
 
+    test('FBR digital invoices', () {
+      final input = <String, Object?>{
+        'invoiceType': FbrInvoiceType.saleInvoice.value,
+        'invoiceDate': '2025-04-21',
+        'sellerNTNCNIC': '1234567',
+        'sellerBusinessName': 'Example Traders',
+        'sellerProvince': 'Sindh',
+        'sellerAddress': 'Karachi',
+        'buyerNTNCNIC': '7654321',
+        'buyerBusinessName': 'Example Buyer',
+        'buyerProvince': 'Punjab',
+        'buyerAddress': 'Lahore',
+        'buyerRegistrationType': FbrRegistrationType.registered.value,
+        'items': [
+          {
+            'hsCode': '0101.2100',
+            'productDescription': 'Horses',
+            'rate': '18%',
+            'uoM': 'Numbers, pieces, units',
+            'quantity': 2,
+            'valueSalesExcludingST': 1234,
+            'saleType': 'Goods at standard rate (default)',
+          },
+        ],
+      };
+      final built = buildFbrInvoice(input)!;
+      final item = (built.invoice['items']! as List).first as FbrInvoiceItem;
+      expect(item['salesTaxApplicable'], 222.12);
+      expect(item['totalValues'], 0);
+      expect(built.invoice['invoiceRefNo'], '');
+      expect(built.totals.salesTaxApplicable, 222.12);
+      expect(built.totals.quantity, 2);
+      expect(
+        validateFbrInvoice(built.invoice),
+        const FbrInvoiceValidation(valid: true, errors: []),
+      );
+      expect(
+        validateFbrInvoice({
+          ...built.invoice,
+          'invoiceDate': '21-04-2025',
+          'buyerNTNCNIC': '1234567',
+        }).errors,
+        const [
+          FbrInvoiceError(
+            '0005',
+            'invoiceDate',
+            'Invoice date must be in YYYY-MM-DD format',
+          ),
+          FbrInvoiceError(
+            '0058',
+            'buyerNTNCNIC',
+            'Buyer and seller must be different (self-invoicing is not '
+                'allowed)',
+          ),
+        ],
+      );
+      expect(
+        validateFbrInvoice({...built.invoice, 'invoiceDate': '2027-01-01'},
+                today: '2026-11-18')
+            .errors
+            .single
+            .code,
+        '0043',
+      );
+      final wrongTax = {
+        ...built.invoice,
+        'items': [
+          {...item, 'salesTaxApplicable': 200},
+        ],
+      };
+      expect(
+        validateFbrInvoice(wrongTax).errors.single.toJson(),
+        {
+          'code': '0104',
+          'field': 'items[0].salesTaxApplicable',
+          'message': 'Sales tax should be 222.12 for this rate',
+        },
+      );
+      expect(expectedSalesTax({'rate': 'Rs.3', 'quantity': 12}), 36);
+      expect(expectedSalesTax({'rate': 'Exempt'}), isNull);
+      expect(fbrDiSpecVersion, '1.12');
+      expect(buildFbrInvoice({'items': 'x'}), isNull);
+    });
+
+    test('FBR invoice functions never throw', () {
+      final values = <Object?>[
+        null,
+        true,
+        0,
+        -0.0,
+        -1,
+        1.005,
+        0.00001,
+        1e21,
+        1e300,
+        5e-324,
+        double.nan,
+        double.infinity,
+        '',
+        ' ',
+        '1',
+        '\uD800',
+        '\uDC00 near \uD83D',
+        'constructor',
+        '__proto__',
+        '\u0000\u202E\uFEFF',
+        'x' * 100000,
+        'Rs.${'9' * 400}',
+        '${'9' * 400}%',
+        'rs \u3000 999999999999.99',
+        '18%',
+        '3rd Schedule Goods',
+        'Goods at Reduced Rate',
+        <Object?>[],
+        <Object?>[null],
+        <Object?, Object?>{},
+        <Object?, Object?>{1: 2, null: 'x'},
+      ];
+      const keys = [
+        'invoiceType',
+        'invoiceDate',
+        'sellerNTNCNIC',
+        'buyerNTNCNIC',
+        'buyerRegistrationType',
+        'invoiceRefNo',
+        'scenarioId',
+        'items',
+      ];
+      const itemKeys = [
+        'rate',
+        'saleType',
+        'quantity',
+        'valueSalesExcludingST',
+        'salesTaxApplicable',
+        'fixedNotifiedValueOrRetailPrice',
+        'extraTax',
+        'sroScheduleNo',
+      ];
+      void check(Object? invoice) {
+        expect(() => buildFbrInvoice(invoice), returnsNormally);
+        expect(() => validateFbrInvoice(invoice), returnsNormally);
+        expect(
+          () => validateFbrInvoice(invoice, today: '2025-01-01'),
+          returnsNormally,
+        );
+      }
+
+      for (final value in values) {
+        check(value);
+        expect(() => expectedSalesTax(value), returnsNormally);
+        for (final key in keys) {
+          check({key: value, 'items': const <Object?>[]});
+          check({
+            'items': [value]
+          });
+        }
+        for (final key in itemKeys) {
+          for (final rate in ['18%', 'Rs.3', 'Exempt']) {
+            final item = {
+              'rate': rate,
+              'saleType': '3rd Schedule Goods',
+              'quantity': 1,
+              'valueSalesExcludingST': 100,
+              'fixedNotifiedValueOrRetailPrice': 100,
+              key: value,
+            };
+            expect(() => expectedSalesTax(item), returnsNormally);
+            check({
+              'items': [item],
+            });
+          }
+        }
+      }
+      for (final today in ['', 'bad', '2025-02-30', '\uD800', '9' * 100000]) {
+        expect(
+          () => validateFbrInvoice({'invoiceDate': '2025-01-01'}, today: today),
+          returnsNormally,
+        );
+      }
+      expect(
+        expectedSalesTax({'rate': 'Rs.999999999999.99', 'quantity': 1e12}),
+        9.9999999999999e23,
+      );
+    });
+
     test('Raast QR round trip', () {
       final payload = createRaastP2PQr(
         iban: 'PK36 SCBL 0000 0011 2345 6702',
@@ -490,5 +676,7 @@ void main() {
     expect(salestax.splitInclusive(1180, 18)?.net, 1000);
     expect(bills.validateElectricityRef('0400012345678'), isTrue);
     expect(courier.normalizeCityForCourier('Isb'), 'Islamabad');
+    expect(fbr.expectedSalesTax({'rate': '18%', 'valueSalesExcludingST': 100}),
+        18);
   });
 }

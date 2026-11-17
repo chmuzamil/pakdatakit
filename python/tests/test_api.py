@@ -330,3 +330,91 @@ def test_courier_never_raises() -> None:
             status = pdk.map_courier_status(value, other)  # type: ignore[arg-type]
             assert status is None or isinstance(status, str)
             pdk.map_courier_status("PostEx", other)
+
+
+FBR_INPUT = {
+    "invoiceType": "Sale Invoice",
+    "invoiceDate": "2025-04-21",
+    "sellerNTNCNIC": "1234567",
+    "sellerBusinessName": "Example Traders",
+    "sellerProvince": "Sindh",
+    "sellerAddress": "Karachi",
+    "buyerNTNCNIC": "7654321",
+    "buyerBusinessName": "Example Buyer",
+    "buyerProvince": "Punjab",
+    "buyerAddress": "Lahore",
+    "buyerRegistrationType": "Registered",
+    "items": [
+        {
+            "hsCode": "0101.2100",
+            "productDescription": "Horses",
+            "rate": "18%",
+            "uoM": "Numbers, pieces, units",
+            "quantity": 2,
+            "valueSalesExcludingST": 1234,
+            "saleType": "Goods at standard rate (default)",
+        }
+    ],
+}
+
+
+def test_fbr_invoice() -> None:
+    assert pdk.FBR_DI_SPEC_VERSION == "1.12"
+    built = pdk.build_fbr_invoice(FBR_INPUT)
+    assert built is not None
+    item = built.invoice["items"][0]
+    assert item["salesTaxApplicable"] == 222.12
+    assert item["totalValues"] == 0 and item["salesTaxWithheldAtSource"] == 0
+    assert built.invoice["invoiceRefNo"] == "" and built.invoice["buyerNTNCNIC"] == "7654321"
+    assert built.totals["salesTaxApplicable"] == 222.12 and built.totals["quantity"] == 2
+    assert pdk.validate_fbr_invoice(built.invoice) == pdk.FbrInvoiceValidation(True, [])
+    assert pdk.build_fbr_invoice({"items": [1]}) is None
+    assert pdk.build_fbr_invoice([]) is None
+
+    bad = {**built.invoice, "invoiceDate": "21-04-2025", "buyerNTNCNIC": "1234567"}
+    assert pdk.validate_fbr_invoice(bad).errors == [
+        pdk.FbrInvoiceError("0005", "invoiceDate", "Invoice date must be in YYYY-MM-DD format"),
+        pdk.FbrInvoiceError(
+            "0058", "buyerNTNCNIC", "Buyer and seller must be different (self-invoicing is not allowed)"
+        ),
+    ]
+    assert pdk.validate_fbr_invoice({**built.invoice, "invoiceDate": "2025-04-21\n"}).errors[0].code == "0005"
+    future = pdk.validate_fbr_invoice(built.invoice, today="2025-04-20")
+    assert [e.code for e in future.errors] == ["0043"]
+    wrong = {**built.invoice, "items": [{**item, "salesTaxApplicable": 200}]}
+    assert pdk.validate_fbr_invoice(wrong).errors == [
+        pdk.FbrInvoiceError("0104", "items[0].salesTaxApplicable", "Sales tax should be 222.12 for this rate")
+    ]
+    assert pdk.expected_sales_tax({"rate": "Rs.3", "quantity": 12}) == 36
+    assert pdk.expected_sales_tax({"rate": "ſs.3", "quantity": 12}) is None  # long s: not "rs" in JS
+    assert pdk.expected_sales_tax({"rate": "١٨%", "valueSalesExcludingST": 1000}) is None
+    assert pdk.validate_fbr_invoice(None).errors == [
+        pdk.FbrInvoiceError(None, "invoice", "The invoice must be an object")
+    ]
+
+
+def test_fbr_invoice_never_raises() -> None:
+    values = HOSTILE_INPUTS + [True, -1, 1.5, float("nan"), float("inf"), 1e300, 10**40, 1e-7, [], {}, [None], [{}]]
+    keys = ["invoiceType", "invoiceDate", "sellerNTNCNIC", "buyerNTNCNIC", "buyerRegistrationType",
+            "invoiceRefNo", "scenarioId", "items"]
+    item_keys = ["rate", "saleType", "quantity", "valueSalesExcludingST", "salesTaxApplicable",
+                 "fixedNotifiedValueOrRetailPrice", "extraTax", "sroScheduleNo", "discount"]
+    base_item = FBR_INPUT["items"][0]  # type: ignore[index]
+    for value in values:
+        pdk.build_fbr_invoice(value)  # type: ignore[arg-type]
+        pdk.expected_sales_tax(value)
+        pdk.validate_fbr_invoice(value, today=value)
+        for key in keys:
+            invoice = {**FBR_INPUT, key: value}
+            pdk.build_fbr_invoice(invoice)  # type: ignore[arg-type]
+            result = pdk.validate_fbr_invoice(invoice, today="2026-11-18")
+            assert isinstance(result.valid, bool)
+        for key in item_keys:
+            for other in values:
+                item = {**base_item, key: value, "rate": other} if key != "rate" else {**base_item, key: value}
+                pdk.expected_sales_tax(item)
+                invoice = {**FBR_INPUT, "items": [item]}
+                built = pdk.build_fbr_invoice(invoice)  # type: ignore[arg-type]
+                assert built is not None
+                pdk.validate_fbr_invoice(built.invoice)
+                pdk.validate_fbr_invoice(invoice)

@@ -149,4 +149,21 @@ export {
   type Courier,
   type CourierStatus,
 } from './courier.js';
+export {
+  buildFbrInvoice,
+  validateFbrInvoice,
+  expectedSalesTax,
+  FBR_DI_SPEC_VERSION,
+  type FbrInvoice,
+  type FbrInvoiceItem,
+  type FbrInvoiceInput,
+  type FbrInvoiceItemInput,
+  type FbrInvoiceBuild,
+  type FbrInvoiceTotals,
+  type FbrInvoiceError,
+  type FbrInvoiceValidation,
+  type FbrInvoiceValidationOptions,
+  type FbrInvoiceType,
+  type FbrRegistrationType,
+} from './fbr-invoice.js';
 export { dataVersion } from './data-version.js';

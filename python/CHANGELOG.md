@@ -28,6 +28,14 @@ formatted, urban_rural, disco)`. `validate_gas_consumer_number()` checks an
   Leopards' "Returned to Shipper"). `normalize_city_for_courier()`: maps short
   forms (`LHR`, `Khi`, `Pindi`), the old name Lyallpur, a trailing "city" and
   Urdu-script names to the city list.
+- `build_fbr_invoice()` / `validate_fbr_invoice()` / `expected_sales_tax()`:
+  FBR Digital Invoicing, following PRAL's DI API specification v1.12
+  (`FBR_DI_SPEC_VERSION`). The builder works out each line's sales tax
+  (`N%` and `Rs.N` rates), fills FBR's defaults and adds up the columns, as
+  `FbrInvoiceBuild(invoice, totals)`; the validator returns every problem it
+  can find offline with FBR's error code, as `FbrInvoiceValidation(valid,
+errors)`. The invoice is a plain `dict` with FBR's camelCase keys
+  (`FbrInvoice` / `FbrInvoiceItem` `TypedDict`s). No HTTP client, no tokens.
 
 ### Changed
 

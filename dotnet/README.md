@@ -64,6 +64,11 @@ SalesTax.Calculate(1150, new SalesTaxOptions { Province = "Sindh", Date = "2026-
 // Net = 1000, Tax = 150, Gross = 1150, Rate = 15
 SalesTax.SplitInclusive(99.99, 18);          // Net = 84.74, Tax = 15.25, Gross = 99.99, Rate = 18
 
+var build = FbrInvoice.Build(JsonNode.Parse(invoiceJson)); // System.Text.Json.Nodes
+build!.Totals.SalesTaxApplicable;            // 222.12 (salesTaxApplicable worked out on each line)
+FbrInvoice.Validate(build.Invoice, today: "2026-11-18");
+// Valid = true, Errors = []; otherwise FbrInvoiceError { Code = "0005", Field = "invoiceDate", Message = … }
+
 Bills.ParseElectricityRef("02-12624-0045901 R");
 // Type = Reference, Digits = 02126240045901, Formatted = 02 12624 0045901 R, UrbanRural = R, Disco = null
 Bills.ValidateElectricityRef("0400012345678");                  // true (K-Electric)
@@ -109,6 +114,7 @@ Unicode (unpaired surrogates, noncharacters).
 | `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
 | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`, `Bills.ValidateGasConsumerNumber` | `null` / `false` (also for an undefined `GasCompany` value) |
 | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive` | `null` (also for NaN, infinite, negative or too large amounts and rates, and `null` options) |
+| `FbrInvoice.Validate`, `FbrInvoice.Build`, `FbrInvoice.ExpectedSalesTax` | `Valid = false` with the errors (any JSON, including `null`, arrays, strings where numbers belong and NaN); `null` |
 | `Courier.MapStatus`, `Courier.NormalizeCity` | `null` (also for an unknown courier, and a numeric status that is negative, fractional, NaN or infinite) |
 | `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
 
@@ -169,6 +175,7 @@ strings to every public method that takes a string and checks this contract.
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays.GetHolidays`, `Holidays.GetHolidaysOn`, `Holidays.IsHoliday`  |
 | `parseAddress`, `formatAddress`                        | `Address.Parse`, `Address.Format`                                       |
 | `scoreAddress`, `phoneRiskSignals`, `ADDRESS_WEIGHTS`  | `Quality.ScoreAddress`, `Quality.PhoneRiskSignals`, `Quality.AddressWeights` |
+| `buildFbrInvoice`, `validateFbrInvoice`, `expectedSalesTax`, `FBR_DI_SPEC_VERSION` | `FbrInvoice.Build`, `FbrInvoice.Validate`, `FbrInvoice.ExpectedSalesTax`, `FbrInvoice.SpecVersion` |
 | `mapCourierStatus`, `normalizeCityForCourier`          | `Courier.MapStatus`, `Courier.NormalizeCity`                            |
 | `formatCNICInput`, `checkCNICInput`, …                 | `Input.FormatCnic`, `Input.CheckCnic`, `Input.FormatPhone`, …           |
 | `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr.CreateP2P`, `RaastQr.CreateMerchant`, `RaastQr.Parse`          |
@@ -297,6 +304,30 @@ FluentValidation 11 and 12.
   return `null`, as does any other status. `Courier.NormalizeCity` maps how a
   city is written (`LHR`, `Khi`, `Pindi`, `lyallpur`, `Karachi City`, Urdu
   script) to its name in the city list, or `null`. No API is called.
+- **FBR Digital Invoicing.** `FbrInvoice` follows PRAL's "Technical
+  Specification for DI API" version 1.12 (`FbrInvoice.SpecVersion`) and
+  PRAL's Error Message Guide. The invoice is JSON (`JsonNode`, or a
+  `JsonElement` for `Validate`) with the specification's camelCase keys, since
+  that is what is posted to FBR. `FbrInvoice.Build(input)` works out each
+  line's `salesTaxApplicable` when it is left out (`N%` rates on the value
+  excluding sales tax, or the retail price for Third Schedule goods; `Rs.N`
+  rates on the quantity; other rates get 0), fills FBR's defaults (0 for
+  `totalValues`, `fixedNotifiedValueOrRetailPrice` and
+  `salesTaxWithheldAtSource`, `""` for `buyerNTNCNIC` and `invoiceRefNo`),
+  keeps every other key, and returns a new `JsonObject` with
+  `FbrInvoiceTotals` (column totals, not sent to FBR), or `null` if the input
+  is not an object with an `items` array of objects.
+  `FbrInvoice.Validate(invoice, today)` returns an `FbrInvoiceValidation`
+  with every problem it can find offline as an `FbrInvoiceError` (FBR's
+  `Code` or `null`, the `Field` such as `items[0].rate`, and a `Message`):
+  required fields, formats (date, NTN/CNIC, FBR invoice number, sandbox
+  scenario), amounts (a JSON number, not negative, at most 2 decimals, 4 for
+  quantity; `5.0` is a number, `"5"` is not), SRO rules and the sales tax
+  arithmetic to within one paisa; `today` (`YYYY-MM-DD`) also rejects future
+  dates. It cannot check what needs FBR's reference APIs (registration
+  status, and whether a province, HS code, unit, rate, sale type or SRO is in
+  FBR's lists). `FbrInvoiceType` and `FbrRegistrationType` hold the allowed
+  strings. There is no HTTP client and no token handling.
 - **Sorting** of search results follows the same order as the npm package for
   the names in the datasets.
 

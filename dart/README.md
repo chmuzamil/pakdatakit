@@ -167,6 +167,29 @@ In Dart:
   `normalizeCityForCourier(input)` maps `'LHR'`, `'Khi'`, `'Pindi'`,
   `'Lyallpur'`, `'Karachi City'` or `'لاہور'` to the city list's name, or
   `null`. No API is called, and they never throw.
+- **FBR Digital Invoicing:** the invoice is the JSON posted to FBR, a
+  `Map<String, Object?>` with the spec's camelCase keys (`FbrInvoice`,
+  `FbrInvoiceItem`, `FbrInvoiceInput` and `FbrInvoiceItemInput` are
+  typedefs for it). `buildFbrInvoice(input)` works out each line's
+  `salesTaxApplicable` when it is left out (`N%` of the value excluding tax,
+  or of the retail price for Third Schedule goods, with `calculateSalesTax`;
+  `Rs.N` per unit; 0 otherwise), fills FBR's defaults and returns an
+  `FbrInvoiceBuild` (`invoice`, and `totals`, an `FbrInvoiceTotals` of
+  `double`s for your records), or `null` if `input` is not a map with an
+  `items` list of maps. `validateFbrInvoice(invoice, today: 'YYYY-MM-DD')`
+  takes any value (e.g. from `jsonDecode`) and returns an
+  `FbrInvoiceValidation` (`valid`, and `errors`, a list of `FbrInvoiceError`
+  with FBR's `code` or `null`, the `field`, e.g. `'items[0].rate'`, and a
+  `message`), in the order the npm package reports them; `today` (the npm
+  `FbrInvoiceValidationOptions`) also rejects future dates (0043).
+  `expectedSalesTax(item)` gives the tax FBR expects on a line, or `null`.
+  `FbrInvoiceType` and `FbrRegistrationType` hold the allowed strings
+  (`FbrInvoiceType.saleInvoice.value == 'Sale Invoice'`), and
+  `fbrDiSpecVersion` is `FBR_DI_SPEC_VERSION` (`'1.12'`, PRAL's DI API
+  specification). There is no HTTP client and no token handling; values only
+  FBR's reference APIs can confirm (provinces, HS codes, units, rates, sale
+  types, SROs) are checked for presence only. They never throw. Also as
+  `package:pakdatakit/fbr_invoice.dart`.
 - **An `ArgumentError` where the npm package throws a `RangeError`**, e.g.
   `formatPKR(double.nan)` or a Raast QR with an amount but no expiry.
 - **Dates are local `DateTime`s**; only the calendar date (or, for Raast

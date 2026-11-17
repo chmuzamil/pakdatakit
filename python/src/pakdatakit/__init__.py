@@ -2,7 +2,7 @@
 
 CNIC, phone, networks, WhatsApp, IBAN, postal codes, geography, address
 parsing, Roman Urdu, Hijri dates, holidays, currency formatting, amounts in
-words, tax numbers, sales tax, landlines, Raast QR codes, and passport and vehicle
+words, tax numbers, sales tax, FBR digital invoices, landlines, Raast QR codes, and passport and vehicle
 registration number formats, and electricity and gas bill numbers.
 
 A Python port of the ``pakdatakit`` npm package: it ships the same datasets and
@@ -21,6 +21,22 @@ from .bills import (
 from .cnic import CNICInfo, get_cnic_info, validate_cnic
 from .courier import Courier, CourierStatus, map_courier_status, normalize_city_for_courier
 from .data_version import DATA_VERSION, data_version
+from .fbr_invoice import (
+    FBR_DI_SPEC_VERSION,
+    FbrInvoice,
+    FbrInvoiceBuild,
+    FbrInvoiceError,
+    FbrInvoiceInput,
+    FbrInvoiceItem,
+    FbrInvoiceItemInput,
+    FbrInvoiceTotals,
+    FbrInvoiceType,
+    FbrInvoiceValidation,
+    FbrRegistrationType,
+    build_fbr_invoice,
+    expected_sales_tax,
+    validate_fbr_invoice,
+)
 from .format import format_lakh, format_pkr
 from .geo import (
     get_district_province,
@@ -190,6 +206,21 @@ __all__ = [
     "get_sales_tax_rate",
     "calculate_sales_tax",
     "split_inclusive",
+    # FBR digital invoicing
+    "FBR_DI_SPEC_VERSION",
+    "FbrInvoiceType",
+    "FbrRegistrationType",
+    "FbrInvoiceItem",
+    "FbrInvoice",
+    "FbrInvoiceItemInput",
+    "FbrInvoiceInput",
+    "FbrInvoiceTotals",
+    "FbrInvoiceBuild",
+    "FbrInvoiceError",
+    "FbrInvoiceValidation",
+    "expected_sales_tax",
+    "build_fbr_invoice",
+    "validate_fbr_invoice",
     # passport / vehicle
     "validate_passport",
     "VehiclePlate",

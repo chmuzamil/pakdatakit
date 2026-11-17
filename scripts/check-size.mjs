@@ -97,6 +97,12 @@ const CASES = [
     allowed: [],
   },
   {
+    name: "validateFbrInvoice from 'pakdatakit/fbr-invoice'",
+    code: "import { validateFbrInvoice } from 'pakdatakit/fbr-invoice'; console.log(validateFbrInvoice({}));",
+    limit: 8 * 1024,
+    allowed: ['sales tax rates'],
+  },
+  {
     // Every rule of the adapter; zod itself is the app's own dependency.
     name: "pk from 'pakdatakit/zod' (zod external)",
     code: "import { pk } from 'pakdatakit/zod'; console.log(pk.cnic());",

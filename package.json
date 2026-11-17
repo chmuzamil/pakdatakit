@@ -70,6 +70,16 @@
         "default": "./dist/courier.cjs"
       }
     },
+    "./fbr-invoice": {
+      "import": {
+        "types": "./dist/fbr-invoice.d.ts",
+        "default": "./dist/fbr-invoice.js"
+      },
+      "require": {
+        "types": "./dist/fbr-invoice.d.cts",
+        "default": "./dist/fbr-invoice.cjs"
+      }
+    },
     "./format": {
       "import": {
         "types": "./dist/format.d.ts",

@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Xunit;
 
 namespace PakDataKit.Tests;
@@ -297,6 +299,108 @@ public sealed class FuzzTests
         Assert.Null(Courier.NormalizeCity("constructor"));
         Assert.Null(Courier.NormalizeCity(" city"));
         Assert.Equal("Karachi", Courier.NormalizeCity("Karachi City"));
+    }
+
+    private static readonly JsonSerializerOptions NamedFloats = new()
+    {
+        NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals,
+    };
+
+    private const string SampleInvoice = """
+        {"invoiceType":"Sale Invoice","invoiceDate":"2025-04-21","sellerNTNCNIC":"1234567",
+         "sellerBusinessName":"Example Traders","sellerProvince":"Sindh","sellerAddress":"Karachi",
+         "buyerNTNCNIC":"7654321","buyerBusinessName":"Example Buyer","buyerProvince":"Punjab",
+         "buyerAddress":"Lahore","buyerRegistrationType":"Registered",
+         "items":[{"hsCode":"0101.2100","productDescription":"Horses","rate":"18%",
+                   "uoM":"Numbers, pieces, units","quantity":2,"valueSalesExcludingST":1234,
+                   "saleType":"Goods at standard rate (default)"}]}
+        """;
+
+    [Fact]
+    public void FbrInvoiceHandlesHostileInput()
+    {
+        var built = FbrInvoice.Build(JsonNode.Parse(SampleInvoice))!;
+        Assert.Equal(222.12, built.Totals.SalesTaxApplicable);
+        Assert.Equal(222.12, (double)built.Invoice["items"]![0]!["salesTaxApplicable"]!);
+        Assert.Equal(
+            ["invoiceType", "invoiceDate", "sellerNTNCNIC", "sellerBusinessName", "sellerProvince", "sellerAddress",
+             "buyerNTNCNIC", "buyerBusinessName", "buyerProvince", "buyerAddress", "buyerRegistrationType", "items",
+             "invoiceRefNo"],
+            built.Invoice.Select(p => p.Key));
+        Assert.True(FbrInvoice.Validate(built.Invoice).Valid);
+        Assert.True(FbrInvoice.Validate(JsonDocument.Parse(built.Invoice.ToJsonString()).RootElement, "2025-04-21").Valid);
+        Assert.Equal("0043", FbrInvoice.Validate(built.Invoice, "2025-04-20").Errors.Single().Code);
+        Assert.Equal("1.12", FbrInvoice.SpecVersion);
+
+        // 5.0 is a number; "5" and true are not. A repeated key keeps its last value.
+        var doc = JsonDocument.Parse(built.Invoice.ToJsonString().Replace("\"quantity\":2", "\"quantity\":2.0,\"quantity\":\"2\""));
+        Assert.Equal("0300", FbrInvoice.Validate(doc.RootElement).Errors.Single().Code);
+        Assert.Equal("items[0].quantity", FbrInvoice.Validate(doc.RootElement).Errors.Single().Field);
+        Assert.Equal(180, FbrInvoice.ExpectedSalesTax(JsonNode.Parse("""{"rate":"18%","valueSalesExcludingST":1000.0}""")));
+        Assert.Null(FbrInvoice.ExpectedSalesTax(JsonNode.Parse("""{"rate":"18%","valueSalesExcludingST":"1000"}""")));
+        Assert.Equal(180, FbrInvoice.ExpectedSalesTax(new JsonObject { ["rate"] = "18%", ["valueSalesExcludingST"] = 1000 }));
+        Assert.Equal(180, FbrInvoice.ExpectedSalesTax(new JsonObject { ["rate"] = "18%", ["valueSalesExcludingST"] = 1000m }));
+        Assert.Null(FbrInvoice.ExpectedSalesTax(new JsonObject { ["rate"] = "18%", ["valueSalesExcludingST"] = true }));
+        // Per-unit tax on the largest quantity and price overflows a long; it must not throw.
+        Assert.Equal(1e22, FbrInvoice.ExpectedSalesTax(new JsonObject { ["rate"] = "Rs.1000000000000", ["quantity"] = 1e10 }));
+        // A JsonObject parsed with a repeated key throws when read; here it is just not an object.
+        Assert.False(FbrInvoice.Validate(JsonNode.Parse("""{"a":1,"a":2}""")).Valid);
+        Assert.Null(FbrInvoice.Build(JsonNode.Parse("""{"items":[],"items":[]}""")));
+
+        JsonNode?[] hostileValues =
+        [
+            null, true, false, 0, -1, -0.0, 1.005, 0.12345, double.NaN, double.PositiveInfinity, double.NegativeInfinity,
+            double.MaxValue, double.Epsilon, 1e21, 1e-7, long.MaxValue, decimal.MaxValue, 'x', new JsonArray(),
+            new JsonObject(), new JsonArray(1, "a", null), JsonValue.Create(JsonDocument.Parse("\"x\"").RootElement),
+            JsonValue.Create(JsonDocument.Parse("1e400").RootElement), JsonValue.Create(JsonDocument.Parse("null").RootElement),
+        ];
+        var hostile = hostileValues.Concat(Hostile.Select(s => (JsonNode?)s)).ToList();
+        var invoiceKeys = JsonNode.Parse(SampleInvoice)!.AsObject().Select(p => p.Key)
+            .Concat(["invoiceRefNo", "scenarioId"]).ToArray();
+        var itemKeys = new[]
+        {
+            "hsCode", "productDescription", "rate", "uoM", "quantity", "valueSalesExcludingST", "saleType",
+            "salesTaxApplicable", "salesTaxWithheldAtSource", "totalValues", "fixedNotifiedValueOrRetailPrice",
+            "extraTax", "furtherTax", "fedPayable", "discount", "sroScheduleNo", "sroItemSerialNo",
+        };
+        foreach (var value in hostile)
+        {
+            Check(value?.DeepClone());
+            foreach (var key in invoiceKeys)
+            {
+                var invoice = JsonNode.Parse(SampleInvoice)!.AsObject();
+                invoice[key] = value?.DeepClone();
+                Check(invoice);
+            }
+            foreach (var key in itemKeys)
+            {
+                var invoice = JsonNode.Parse(SampleInvoice)!.AsObject();
+                invoice["items"]![0]![key] = value?.DeepClone();
+                Check(invoice);
+                FbrInvoice.ExpectedSalesTax(invoice["items"]![0]);
+            }
+            var withItem = JsonNode.Parse(SampleInvoice)!.AsObject();
+            withItem["items"]!.AsArray().Add(value?.DeepClone());
+            Check(withItem);
+        }
+        foreach (var rate in new[] { "Rs", "rs.", "RS 1.5", "Rs. 3", "Rs.٣", "18.5%", "1e2%", "0%", "100.00%", "Rs.99999999999999999999" })
+        {
+            var invoice = JsonNode.Parse(SampleInvoice)!.AsObject();
+            invoice["items"]![0]!["rate"] = rate;
+            invoice["items"]![0]!["quantity"] = 1e12;
+            Check(invoice);
+        }
+
+        static void Check(JsonNode? invoice)
+        {
+            var before = invoice?.ToJsonString(NamedFloats);
+            var result = FbrInvoice.Validate(invoice, "2025-04-21");
+            Assert.Equal(result.Errors.Count == 0, result.Valid);
+            FbrInvoice.Validate(invoice, "garbage");
+            var build = FbrInvoice.Build(invoice);
+            if (build is not null) FbrInvoice.Validate(build.Invoice);
+            Assert.Equal(before, invoice?.ToJsonString(NamedFloats)); // the input is not changed
+        }
     }
 
     private static object? Invoke(string name, MethodInfo method, string? input)

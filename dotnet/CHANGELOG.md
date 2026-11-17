@@ -41,6 +41,18 @@
   returns `null`. `Courier.NormalizeCity(input)` maps short forms (`LHR`,
   `Khi`, `Pindi`), the old name Lyallpur, a trailing "city" and Urdu script to
   a city in the city list. Neither throws.
+- `FbrInvoice.Build(input)`, `FbrInvoice.Validate(invoice, today)` and
+  `FbrInvoice.ExpectedSalesTax(item)`: FBR Digital Invoicing (PRAL's DI API
+  specification 1.12, `FbrInvoice.SpecVersion`) on the invoice JSON
+  (`JsonNode`; `Validate` also takes a `JsonElement`). `Build` works out each
+  line's `salesTaxApplicable` with `SalesTax.Calculate` (or quantity × `Rs.N`),
+  fills FBR's defaults and returns an `FbrInvoiceBuild` (`Invoice` as a
+  `JsonObject`, `Totals` as `FbrInvoiceTotals`), or `null`. `Validate` returns
+  an `FbrInvoiceValidation` whose `Errors` are `FbrInvoiceError` records
+  (`Code`, `Field`, `Message`) with FBR's error codes, checking everything
+  that needs no call to FBR, including the sales tax to within one paisa.
+  `FbrInvoiceType` and `FbrRegistrationType` hold the allowed strings. No
+  HTTP client, no tokens.
 
 ### Changed
 

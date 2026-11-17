@@ -12,6 +12,7 @@ use PakDataKit\Bills;
 use PakDataKit\Cnic;
 use PakDataKit\Courier;
 use PakDataKit\Currency;
+use PakDataKit\FbrInvoice;
 use PakDataKit\Geo;
 use PakDataKit\Hijri;
 use PakDataKit\HijriDate;
@@ -34,6 +35,7 @@ use PakDataKit\WhatsApp;
 use PakDataKit\Words;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Throwable;
 
 /**
@@ -45,6 +47,13 @@ use Throwable;
 final class VectorTest extends TestCase
 {
     private const VECTORS_DIR = __DIR__ . '/../../test-vectors';
+
+    /**
+     * Functions that tell a JSON object from a JSON array. Their arguments
+     * are decoded with objects as stdClass, since `{}` and `[]` both decode
+     * to an empty PHP array otherwise.
+     */
+    private const OBJECT_ARGS = ['buildFbrInvoice', 'validateFbrInvoice', 'expectedSalesTax'];
 
     /** @return iterable<string, array{0: string}> */
     public static function modules(): iterable
@@ -69,15 +78,15 @@ final class VectorTest extends TestCase
     #[DataProvider('modules')]
     public function testModule(string $module): void
     {
-        $vectors = json_decode(
-            (string) file_get_contents(self::VECTORS_DIR . '/' . $module . '.json'),
-            true,
-            512,
-            JSON_THROW_ON_ERROR,
-        );
+        $json = (string) file_get_contents(self::VECTORS_DIR . '/' . $module . '.json');
+        $vectors = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        $objectVectors = json_decode($json, false, 512, JSON_THROW_ON_ERROR);
         $failures = [];
         $rejected = [];
         foreach ($vectors as $index => $vector) {
+            if (in_array($vector['fn'], self::OBJECT_ARGS, true)) {
+                $vector['args'] = self::decodeObjects($objectVectors[$index]->args);
+            }
             $problem = self::check($vector, $rejected);
             if ($problem !== null) {
                 $failures[] = sprintf(
@@ -133,7 +142,7 @@ final class VectorTest extends TestCase
         if (!isset($functions[$fn])) {
             return 'no PHP mapping for ' . $fn;
         }
-        $args = self::decode($vector['args']);
+        $args = in_array($fn, self::OBJECT_ARGS, true) ? $vector['args'] : self::decode($vector['args']);
         $kwargs = self::decode($vector['kwargs']);
         $throws = $vector['throws'] === true;
 
@@ -187,6 +196,26 @@ final class VectorTest extends TestCase
             };
         }
         return array_map(self::decode(...), $value);
+    }
+
+    /** As decode(), for JSON decoded with objects as stdClass. */
+    private static function decodeObjects(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map(self::decodeObjects(...), $value);
+        }
+        if (!$value instanceof stdClass) {
+            return $value;
+        }
+        $fields = get_object_vars($value);
+        if (count($fields) === 1 && (isset($fields['$date']) || isset($fields['$num']))) {
+            return self::decode($fields);
+        }
+        $object = new stdClass();
+        foreach ($fields as $key => $field) {
+            $object->{$key} = self::decodeObjects($field);
+        }
+        return $object;
     }
 
     /** Converts a PHP result into the vector encoding. */
@@ -461,6 +490,9 @@ final class VectorTest extends TestCase
                 self::str($a[0]),
                 self::str($a[1]),
             ),
+            'buildFbrInvoice' => static fn (array $a, array $k): mixed => FbrInvoice::build($a[0]),
+            'validateFbrInvoice' => static fn (array $a, array $k): mixed => FbrInvoice::validate($a[0], $k),
+            'expectedSalesTax' => static fn (array $a, array $k): mixed => FbrInvoice::expectedSalesTax($a[0]),
             'mapCourierStatus' => static fn (array $a, array $k): mixed => Courier::mapStatus($a[0], $a[1]),
             'normalizeCityForCourier' => $one(Courier::normalizeCity(...)),
         ];

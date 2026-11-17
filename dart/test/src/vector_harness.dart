@@ -242,6 +242,7 @@ const Map<String, Set<String>> allowedKwargs = {
     'dueDate',
     'amountAfterDueDate',
   },
+  'validateFbrInvoice': {'today'},
   'getSalesTaxRate': {'kind', 'province', 'date'},
   'calculateSalesTax': {'rate', 'province', 'kind', 'date', 'inclusive'},
   // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
@@ -418,9 +419,17 @@ final Map<String, Call> functions = {
   // `raw` is a String or a number, as in TypeScript.
   'mapCourierStatus': (a, k) => mapCourierStatus(str(a[0]), a[1]),
   'normalizeCityForCourier': one(normalizeCityForCourier),
+  // The invoice is untrusted JSON, so any value is passed through.
+  'buildFbrInvoice': (a, k) => buildFbrInvoice(a[0]),
+  'validateFbrInvoice': (a, k) =>
+      validateFbrInvoice(a[0], today: optStr(k['today'])),
+  'expectedSalesTax': (a, k) => expectedSalesTax(a[0]),
 };
 
-const Map<String, Object> constants = {'dataVersion': dataVersion};
+const Map<String, Object> constants = {
+  'dataVersion': dataVersion,
+  'FBR_DI_SPEC_VERSION': fbrDiSpecVersion,
+};
 
 // ---------------------------------------------------------------------------
 // Tests

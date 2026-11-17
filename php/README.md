@@ -98,6 +98,8 @@ package; call `->toArray()` for an array.
 | `validateRaastQr`                                      | `RaastQr::validate`                                                        |
 | `getSalesTaxRate`, `calculateSalesTax`                 | `SalesTax::getRate`, `SalesTax::calculate`                                 |
 | `splitInclusive`                                       | `SalesTax::splitInclusive`                                                 |
+| `buildFbrInvoice`, `validateFbrInvoice`                | `FbrInvoice::build`, `FbrInvoice::validate`                                |
+| `expectedSalesTax`, `FBR_DI_SPEC_VERSION`              | `FbrInvoice::expectedSalesTax`, `FbrInvoice::SPEC_VERSION`                 |
 | `mapCourierStatus`, `normalizeCityForCourier`          | `Courier::mapStatus`, `Courier::normalizeCity`                             |
 | `dataVersion`                                          | `PakData::version()`                                                       |
 
@@ -214,6 +216,78 @@ inclusive amount the value is rounded and the tax is the rest, so `net + tax`
 always equals `gross`. Amounts from 0 to one trillion rupees and rates from 0
 to 100 with at most two decimals are accepted; anything else, including a
 string or boolean, returns `null`, never an exception.
+
+### FBR Digital Invoicing
+
+A builder and an offline validator for the invoice JSON that FBR's Digital
+Invoicing API accepts (`postinvoicedata` and `validateinvoicedata`),
+following PRAL's "Technical Specification for DI API" version 1.12
+(`FbrInvoice::SPEC_VERSION`) and PRAL's Error Message Guide. There is no HTTP
+client and no token handling: send the invoice with your own code.
+
+```php
+use PakDataKit\FbrInvoice;
+
+$built = FbrInvoice::build([
+    'invoiceType' => 'Sale Invoice',
+    'invoiceDate' => '2025-04-21',
+    'sellerNTNCNIC' => '1234567',
+    'sellerBusinessName' => 'Example Traders',
+    'sellerProvince' => 'Sindh',
+    'sellerAddress' => 'Karachi',
+    'buyerNTNCNIC' => '7654321',
+    'buyerBusinessName' => 'Example Buyer',
+    'buyerProvince' => 'Punjab',
+    'buyerAddress' => 'Lahore',
+    'buyerRegistrationType' => 'Registered',
+    'items' => [[
+        'hsCode' => '0101.2100',
+        'productDescription' => 'Horses',
+        'rate' => '18%',
+        'uoM' => 'Numbers, pieces, units',
+        'quantity' => 2,
+        'valueSalesExcludingST' => 1234,
+        'saleType' => 'Goods at standard rate (default)',
+    ]],
+]);
+$built['invoice']['items'][0]['salesTaxApplicable'];  // 222.12
+$built['totals']['salesTaxApplicable'];               // 222.12
+$json = json_encode($built['invoice']);               // the body to post
+
+FbrInvoice::validate($built['invoice']);
+// FbrInvoiceValidation { valid: true, errors: [] }
+FbrInvoice::validate([...$built['invoice'], 'invoiceDate' => '21-04-2025'], ['today' => '2026-11-18'])->errors[0];
+// FbrInvoiceError { code: '0005', field: 'invoiceDate', message: 'Invoice date must be in YYYY-MM-DD format' }
+FbrInvoice::expectedSalesTax(['rate' => 'Rs.3', 'quantity' => 12]);  // 36.0
+```
+
+An invoice is an associative array with FBR's camelCase keys (as
+`json_decode($json, true)` gives) or an object (as `json_decode($json)`
+gives); `items` is a list. An empty PHP array counts as an empty list, not as
+an object.
+
+`FbrInvoice::build()` works out each line's `salesTaxApplicable` when it is
+left out (with `SalesTax::calculate()`), sets `totalValues`,
+`fixedNotifiedValueOrRetailPrice` and `salesTaxWithheldAtSource` to 0 and
+`buyerNTNCNIC` and `invoiceRefNo` to `''` when missing, keeps every other key,
+and returns `['invoice' => …, 'totals' => …]` with the column totals in rupees
+(for your own records; FBR has no invoice totals). Rates of the form `N%` use
+the value excluding sales tax (or the retail price for Third Schedule goods);
+`Rs.N` rates use the quantity; other rates (`Exempt`, combined rates) get 0
+unless you give the tax. It returns `null` if the input is not an object with
+an `items` list of objects.
+
+`FbrInvoice::validate()` returns every problem it can find without calling
+FBR, as `FbrInvoiceError`s with FBR's error code (or `null` where the
+specification gives none), the field (`items[0].rate`) and a message, in the
+same order and words as the npm package. It checks required fields, formats
+(date, NTN/CNIC, FBR invoice number, sandbox scenario), amounts (numbers, not
+negative, at most 2 decimals, 4 for quantity), SRO rules and the sales tax
+arithmetic (to within one paisa); pass `['today' => 'YYYY-MM-DD']` to also
+reject future dates. It cannot check what needs FBR's reference APIs:
+registration status, and whether a province, HS code, unit, rate, sale type or
+SRO is in FBR's lists. A `valid` result means FBR's own validation is likely
+to pass, not that it will.
 
 ### Couriers
 
@@ -338,6 +412,8 @@ valid UTF-8.
 | `validate*`, `is*` (e.g. `Cnic::validate`, `Holidays::isHoliday`)                                                | `false`                                                                                                |
 | `parse`, `get*`, `analyze*` returning one value (e.g. `VehiclePlate::parse`, `Iban::getBank`, `Tax::analyzeNtn`) | `null`                                                                                                 |
 | `SalesTax::getRate`, `SalesTax::calculate`, `SalesTax::splitInclusive` (any value, not only strings)             | `null`                                                                                                 |
+| `FbrInvoice::build`, `FbrInvoice::expectedSalesTax` (any value)                                                  | `null`                                                                                                 |
+| `FbrInvoice::validate` (any value)                                                                               | a result with `valid: false` and the errors                                                            |
 | `search*`, `get*` returning a list (e.g. `Geo::searchCities`, `Holidays::getHolidaysOn`)                         | an empty array                                                                                         |
 | `Phone::analyze`, `RaastQr::validate`, `Address::parse`, `Networks::getNetwork`                                  | a result that says so (`valid: false`, an error list, empty parts, `'Unknown'`), as in the npm package |
 | `Input::format*`, `Input::check*`, `Text::*`                                                                     | the best formatting of what was typed; `'invalid'`                                                     |

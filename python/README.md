@@ -159,6 +159,53 @@ pdk.calculate_sales_tax(1150, province="Sindh", inclusive=True).net  # 1000.0
 pdk.split_inclusive(99.99, 18)            # SalesTaxAmounts(net=84.74, tax=15.25, gross=99.99, rate=18.0)
 ```
 
+FBR digital invoicing:
+
+| Function                                    | Returns                                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `build_fbr_invoice(input)`                  | `FbrInvoiceBuild(invoice, totals)` with the sales tax worked out, or `None`         |
+| `validate_fbr_invoice(invoice, today=None)` | `FbrInvoiceValidation(valid, errors)`, each `FbrInvoiceError(code, field, message)` |
+| `expected_sales_tax(item)`                  | The sales tax FBR expects on a line, in rupees, or `None`                           |
+
+The invoice JSON for FBR's Digital Invoicing API (`postinvoicedata` and
+`validateinvoicedata`), following PRAL's "Technical Specification for DI API"
+version 1.12 (`FBR_DI_SPEC_VERSION`) and PRAL's Error Message Guide. The
+invoice is a plain `dict` with FBR's camelCase keys (described by the
+`FbrInvoice` and `FbrInvoiceItem` `TypedDict`s), ready for `json.dumps`; there
+is no HTTP client and no token handling. `build_fbr_invoice` works out each
+line's `salesTaxApplicable` when you leave it out (`N%` rates on the value
+excluding sales tax, or the retail price for Third Schedule goods; `Rs.N`
+rates on the quantity; other rates get 0), defaults `totalValues`,
+`fixedNotifiedValueOrRetailPrice` and `salesTaxWithheldAtSource` to 0 and
+`buyerNTNCNIC` and `invoiceRefNo` to `""`, and adds up the columns in
+`totals` (a `dict`). `validate_fbr_invoice` returns every problem it can find
+without calling FBR, with FBR's error code (`None` where FBR gives none):
+required fields, formats (date, NTN/CNIC, FBR invoice number, sandbox
+scenario), amounts (not negative, at most 2 decimals, 4 for quantity), SRO
+rules and the sales tax arithmetic (to within one paisa). Pass
+`today="YYYY-MM-DD"` to also reject future dates. Whether a province, HS code,
+unit, rate, sale type or SRO is in FBR's lists is not checked. None of these
+raise.
+
+```python
+built = pdk.build_fbr_invoice({
+    "invoiceType": "Sale Invoice", "invoiceDate": "2025-04-21",
+    "sellerNTNCNIC": "1234567", "sellerBusinessName": "Example Traders",
+    "sellerProvince": "Sindh", "sellerAddress": "Karachi",
+    "buyerNTNCNIC": "7654321", "buyerBusinessName": "Example Buyer",
+    "buyerProvince": "Punjab", "buyerAddress": "Lahore",
+    "buyerRegistrationType": "Registered",
+    "items": [{"hsCode": "0101.2100", "productDescription": "Horses", "rate": "18%",
+               "uoM": "Numbers, pieces, units", "quantity": 2,
+               "valueSalesExcludingST": 1234, "saleType": "Goods at standard rate (default)"}],
+})
+built.invoice["items"][0]["salesTaxApplicable"]  # 222.12
+built.totals["salesTaxApplicable"]               # 222.12
+pdk.validate_fbr_invoice(built.invoice)          # FbrInvoiceValidation(valid=True, errors=[])
+pdk.validate_fbr_invoice({**built.invoice, "invoiceDate": "21-04-2025"}).errors
+# [FbrInvoiceError(code='0005', field='invoiceDate', message='Invoice date must be in YYYY-MM-DD format')]
+```
+
 Utility bills:
 
 | Function                                        | Returns                                                                       |

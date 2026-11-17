@@ -942,6 +942,69 @@ normalizeCityForCourier('Atlantis'); // null
 
 ---
 
+## FBR Digital Invoicing
+
+`import { buildFbrInvoice, validateFbrInvoice } from 'pakdatakit/fbr-invoice'`
+
+Types, a builder and an offline validator for the invoice JSON that FBR's Digital Invoicing API accepts (`postinvoicedata` and `validateinvoicedata`), following PRAL's "Technical Specification for DI API" version 1.12 (`FBR_DI_SPEC_VERSION`) and PRAL's Error Message Guide. There is no HTTP client and no token handling: send the invoice with your own code.
+
+### buildFbrInvoice()
+
+Works out each line's `salesTaxApplicable` when you leave it out (with `calculateSalesTax`), fills FBR's defaults and adds up the columns.
+
+```ts
+const { invoice, totals } = buildFbrInvoice({
+  invoiceType: 'Sale Invoice',
+  invoiceDate: '2025-04-21',
+  sellerNTNCNIC: '1234567',
+  sellerBusinessName: 'Example Traders',
+  sellerProvince: 'Sindh',
+  sellerAddress: 'Karachi',
+  buyerNTNCNIC: '7654321',
+  buyerBusinessName: 'Example Buyer',
+  buyerProvince: 'Punjab',
+  buyerAddress: 'Lahore',
+  buyerRegistrationType: 'Registered',
+  items: [
+    {
+      hsCode: '0101.2100',
+      productDescription: 'Horses',
+      rate: '18%',
+      uoM: 'Numbers, pieces, units',
+      quantity: 2,
+      valueSalesExcludingST: 1234,
+      saleType: 'Goods at standard rate (default)',
+    },
+  ],
+})!;
+invoice.items[0].salesTaxApplicable; // 222.12
+totals.salesTaxApplicable; // 222.12
+```
+
+Rates of the form `N%` use the value excluding sales tax (or the retail price for Third Schedule goods); `Rs.N` rates use the quantity. Other rates (`Exempt`, combined rates) get 0 unless you give the tax.
+
+### validateFbrInvoice()
+
+Returns every problem it can find without calling FBR, with FBR's error code:
+
+```ts
+validateFbrInvoice(invoice);
+// { valid: true, errors: [] }
+
+validateFbrInvoice({
+  ...invoice,
+  invoiceDate: '21-04-2025',
+  buyerNTNCNIC: invoice.sellerNTNCNIC,
+});
+// { valid: false, errors: [
+//   { code: "0005", field: "invoiceDate", message: "Invoice date must be in YYYY-MM-DD format" },
+//   { code: "0058", field: "buyerNTNCNIC", message: "Buyer and seller must be different (self-invoicing is not allowed)" } ] }
+```
+
+It checks required fields, formats (date, NTN/CNIC, FBR invoice number, sandbox scenario), amounts (not negative, at most 2 decimals, 4 for quantity), SRO rules and the sales tax arithmetic (to within one paisa). Pass `{ today: 'YYYY-MM-DD' }` to also reject future dates. It cannot check what needs FBR's reference APIs: registration status, and whether a province, HS code, unit, rate, sale type or SRO is in FBR's lists. A `valid` result means FBR's own validation is likely to pass, not that it will.
+
+---
+
 ## Passports & Vehicle Plates
 
 ### validatePassport()

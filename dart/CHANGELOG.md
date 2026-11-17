@@ -31,6 +31,16 @@
   `normalizeCityForCourier()` maps short forms (`LHR`, `Khi`, `Pindi`), the
   old name Lyallpur, a trailing "city" and Urdu script to the city list. No
   API is called. Also as `package:pakdatakit/courier.dart`.
+- `buildFbrInvoice()` and `validateFbrInvoice()`: FBR Digital Invoicing, for
+  the invoice JSON (`Map<String, Object?>`, typedef `FbrInvoice`) posted to
+  PRAL's DI API (specification 1.12, `fbrDiSpecVersion`). The builder works
+  out each line's sales tax (`expectedSalesTax()`: `N%` or `Rs.N` per unit,
+  with `calculateSalesTax`), fills FBR's defaults and adds up the columns
+  (`FbrInvoiceBuild`, `FbrInvoiceTotals`); the validator returns every
+  problem it can find offline with FBR's error code (`FbrInvoiceValidation`,
+  `FbrInvoiceError`), optionally rejecting future dates with `today:`. Also
+  `FbrInvoiceType` and `FbrRegistrationType`. No HTTP client and no token
+  handling. Also as `package:pakdatakit/fbr_invoice.dart`.
 
 ### Changed
 

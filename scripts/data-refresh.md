@@ -167,6 +167,12 @@ No datasets, but each follows an official document that can change.
       have TCS, Leopards, M&P, Trax or BlueEx published their statuses or
       tracking number formats? Update `src/courier.ts` and DATA.md.
 
+- [ ] FBR Digital Invoicing: is PRAL's "Technical Specification for DI API"
+      still version 1.12 (https://dicrm.pral.com.pk/assets/docs/documents.json,
+      https://www.fbr.gov.pk/di-technical-assistance/173967/173970)? If not,
+      compare the fields and error codes, update `src/fbr-invoice.ts`,
+      `FBR_DI_SPEC_VERSION` and DATA.md.
+
 ## Also
 
 - [ ] Raast QR: any change in the QR format that banking apps generate

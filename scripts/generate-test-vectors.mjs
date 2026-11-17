@@ -2137,6 +2137,312 @@ each(
   ]),
 );
 
+// FBR Digital Invoicing -----------------------------------------------------
+const fbrLine = (overrides = {}) => ({
+  hsCode: '0101.2100',
+  productDescription: 'Horses',
+  rate: '18%',
+  uoM: 'Numbers, pieces, units',
+  quantity: 1,
+  valueSalesExcludingST: 1000,
+  saleType: 'Goods at standard rate (default)',
+  ...overrides,
+});
+const fbrInput = (overrides = {}, lines = [fbrLine()]) => ({
+  invoiceType: 'Sale Invoice',
+  invoiceDate: '2025-04-21',
+  sellerNTNCNIC: '1234567',
+  sellerBusinessName: 'Example Traders',
+  sellerProvince: 'Sindh',
+  sellerAddress: 'Karachi',
+  buyerNTNCNIC: '7654321',
+  buyerBusinessName: 'Example Buyer',
+  buyerProvince: 'Punjab',
+  buyerAddress: 'Lahore',
+  buyerRegistrationType: 'Registered',
+  items: lines,
+  ...overrides,
+});
+const fbrInputs = [
+  fbrInput(),
+  fbrInput({ scenarioId: 'SN001' }),
+  fbrInput({}, [
+    fbrLine(),
+    fbrLine({ quantity: 2, valueSalesExcludingST: 1234 }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: 'Rs.3',
+      quantity: 12,
+      sroScheduleNo: 'EIGHTH SCHEDULE Table 1',
+      sroItemSerialNo: '82',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: 'Rs.200',
+      quantity: 123,
+      sroScheduleNo: '6th Schd Table I',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({}, [fbrLine({ rate: 'rs 2.5', quantity: 1.2345 })]),
+  fbrInput({}, [
+    fbrLine({
+      saleType: '3rd Schedule Goods',
+      valueSalesExcludingST: 0,
+      fixedNotifiedValueOrRetailPrice: 1000,
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      saleType: '3rd schedule goods',
+      fixedNotifiedValueOrRetailPrice: 100,
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: '1.43%',
+      valueSalesExcludingST: 100,
+      sroScheduleNo: '297(I)/2023-Table-I',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: 'Exempt',
+      sroScheduleNo: 'SIXTH SCHEDULE',
+      sroItemSerialNo: '100',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({ rate: '18% along with rupees 60 per kilogram', uoM: 'KG' }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      salesTaxApplicable: 7,
+      salesTaxWithheldAtSource: 7,
+      totalValues: 1007,
+      furtherTax: 40,
+      extraTax: 0,
+      fedPayable: 0,
+      discount: 10,
+    }),
+  ]),
+  fbrInput({}, [fbrLine({ valueSalesExcludingST: 0.25 })]),
+  fbrInput({}, [fbrLine({ valueSalesExcludingST: 1.005 })]),
+  fbrInput({}, [fbrLine({ valueSalesExcludingST: 999999.99 })]),
+  fbrInput({}, [
+    fbrLine({
+      rate: '0%',
+      sroScheduleNo: 'FIFTH SCHEDULE',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: '25%',
+      sroScheduleNo: 'NINTH SCHEDULE',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({ buyerNTNCNIC: undefined, buyerRegistrationType: 'Unregistered' }),
+  fbrInput({
+    invoiceRefNo: '7327556DI1744111990654',
+    invoiceType: 'Debit Note',
+  }),
+  fbrInput({}, []),
+  null,
+  'invoice',
+  fbrInput({ items: 'x' }),
+  fbrInput({}, [null]),
+  fbrInput({}, [fbrLine({ quantity: NUM('NaN') })]),
+];
+for (const input of fbrInputs) {
+  call('fbr-invoice', 'buildFbrInvoice', [input]);
+}
+for (const item of [
+  fbrLine(),
+  fbrLine({ rate: '17%' }),
+  fbrLine({ rate: ' 18% ' }),
+  fbrLine({ rate: '18 %' }),
+  fbrLine({ rate: '100%' }),
+  fbrLine({ rate: '101%' }),
+  fbrLine({ rate: '16.666%' }),
+  fbrLine({ rate: 'Rs.3', quantity: 12 }),
+  fbrLine({ rate: 'Rs 3', quantity: 12 }),
+  fbrLine({ rate: 'RS.3', quantity: 0.0001 }),
+  fbrLine({ rate: 'Rs.0.005', quantity: 1 }),
+  fbrLine({ rate: 'Rs.3' }),
+  fbrLine({ rate: 'Exempt' }),
+  fbrLine({ rate: '' }),
+  fbrLine({
+    saleType: '3rd Schedule Goods',
+    fixedNotifiedValueOrRetailPrice: 100,
+  }),
+  fbrLine({
+    saleType: '3rd  Schedule  GOODS',
+    fixedNotifiedValueOrRetailPrice: 100,
+  }),
+  fbrLine({ saleType: '3rd Schedule Goods' }),
+  fbrLine({ valueSalesExcludingST: NUM('Infinity') }),
+  fbrLine({ valueSalesExcludingST: -5 }),
+  fbrLine({ quantity: NUM('NaN'), rate: 'Rs.3' }),
+  { rate: 5 },
+  null,
+]) {
+  call('fbr-invoice', 'expectedSalesTax', [item]);
+}
+
+// Built invoices, then mutated one field at a time, through the validator.
+const fbrBase = lib.buildFbrInvoice(fbrInput()).invoice;
+const fbrWith = (mutate) => {
+  const copy = JSON.parse(JSON.stringify(fbrBase));
+  mutate(copy);
+  return copy;
+};
+const fbrInvoices = [
+  fbrBase,
+  ...fbrInputs
+    .map((input) => lib.buildFbrInvoice(input))
+    .filter((built) => built !== null)
+    .map((built) => JSON.parse(JSON.stringify(built.invoice))),
+  fbrWith((i) => (i.invoiceType = 'Sales Invoice')),
+  fbrWith((i) => (i.invoiceType = '')),
+  fbrWith((i) => delete i.invoiceType),
+  fbrWith((i) => (i.invoiceType = 'Debit Note')),
+  fbrWith((i) => {
+    i.invoiceType = 'Debit Note';
+    i.invoiceRefNo = '7327556DI1744111990654';
+  }),
+  fbrWith((i) => (i.invoiceRefNo = '3520212345671DI1744111990654')),
+  fbrWith((i) => (i.invoiceRefNo = '7327556-1744111990654')),
+  fbrWith((i) => (i.invoiceRefNo = ' 7327556DI1744111990654 ')),
+  fbrWith((i) => (i.invoiceDate = '21-04-2025')),
+  fbrWith((i) => (i.invoiceDate = '2025-02-30')),
+  fbrWith((i) => (i.invoiceDate = '2024-02-29')),
+  fbrWith((i) => (i.invoiceDate = '2027-01-01')),
+  fbrWith((i) => (i.invoiceDate = '')),
+  fbrWith((i) => (i.invoiceDate = 20250421)),
+  fbrWith((i) => (i.sellerNTNCNIC = '12345-6789012-3')),
+  fbrWith((i) => (i.sellerNTNCNIC = '3520212345671')),
+  fbrWith((i) => (i.sellerNTNCNIC = '123456789')),
+  fbrWith((i) => (i.sellerNTNCNIC = 1234567)),
+  fbrWith((i) => (i.sellerBusinessName = '  ')),
+  fbrWith((i) => (i.sellerProvince = '')),
+  fbrWith((i) => (i.sellerAddress = '')),
+  fbrWith((i) => (i.buyerRegistrationType = 'registered')),
+  fbrWith((i) => (i.buyerRegistrationType = '')),
+  fbrWith((i) => (i.buyerNTNCNIC = '')),
+  fbrWith((i) => {
+    i.buyerNTNCNIC = '';
+    i.buyerRegistrationType = 'Unregistered';
+  }),
+  fbrWith((i) => {
+    i.buyerNTNCNIC = '12';
+    i.buyerRegistrationType = 'Unregistered';
+  }),
+  fbrWith((i) => (i.buyerNTNCNIC = '1234567')),
+  fbrWith((i) => (i.buyerBusinessName = '')),
+  fbrWith((i) => (i.buyerProvince = ' ')),
+  fbrWith((i) => (i.buyerAddress = '')),
+  fbrWith((i) => (i.scenarioId = 'SN028')),
+  fbrWith((i) => (i.scenarioId = 'SN029')),
+  fbrWith((i) => (i.scenarioId = 'SN000')),
+  fbrWith((i) => (i.scenarioId = '')),
+  fbrWith((i) => (i.scenarioId = 1)),
+  fbrWith((i) => (i.items = [])),
+  fbrWith((i) => delete i.items),
+  fbrWith((i) => (i.items = [null, 'x'])),
+  fbrWith((i) => (i.items[0].hsCode = '')),
+  fbrWith((i) => delete i.items[0].productDescription),
+  fbrWith((i) => (i.items[0].productDescription = '')),
+  fbrWith((i) => (i.items[0].rate = '')),
+  fbrWith((i) => (i.items[0].uoM = '')),
+  fbrWith((i) => (i.items[0].saleType = '')),
+  fbrWith((i) => delete i.items[0].quantity),
+  fbrWith((i) => delete i.items[0].valueSalesExcludingST),
+  fbrWith((i) => delete i.items[0].salesTaxApplicable),
+  fbrWith((i) => delete i.items[0].salesTaxWithheldAtSource),
+  fbrWith((i) => delete i.items[0].totalValues),
+  fbrWith((i) => delete i.items[0].fixedNotifiedValueOrRetailPrice),
+  fbrWith((i) => (i.items[0].quantity = 1.23456)),
+  fbrWith((i) => (i.items[0].quantity = 1.2345)),
+  fbrWith((i) => (i.items[0].valueSalesExcludingST = 1000.001)),
+  fbrWith((i) => (i.items[0].valueSalesExcludingST = '1000')),
+  fbrWith((i) => (i.items[0].valueSalesExcludingST = -1)),
+  fbrWith((i) => (i.items[0].discount = -1)),
+  fbrWith((i) => (i.items[0].discount = '')),
+  fbrWith((i) => (i.items[0].discount = 'ten')),
+  fbrWith((i) => (i.items[0].furtherTax = 1.234)),
+  fbrWith((i) => (i.items[0].salesTaxWithheldAtSource = '')),
+  fbrWith((i) => (i.items[0].rate = '17%')),
+  fbrWith((i) => {
+    i.items[0].rate = '17%';
+    i.items[0].sroScheduleNo = 'EIGHTH SCHEDULE Table 1';
+  }),
+  fbrWith((i) => {
+    i.items[0].rate = '17%';
+    i.items[0].sroScheduleNo = 'EIGHTH SCHEDULE Table 1';
+    i.items[0].sroItemSerialNo = '82';
+    i.items[0].salesTaxApplicable = 170;
+  }),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 180.01)),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 179.99)),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 180.02)),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 0)),
+  fbrWith((i) => {
+    i.items[0].saleType = '3rd Schedule Goods';
+    i.items[0].fixedNotifiedValueOrRetailPrice = 0;
+  }),
+  fbrWith((i) => {
+    i.items[0].saleType = '3rd Schedule Goods';
+    i.items[0].fixedNotifiedValueOrRetailPrice = 1000;
+  }),
+  fbrWith((i) => {
+    i.items[0].saleType = 'Goods at Reduced Rate';
+    i.items[0].extraTax = 0;
+  }),
+  fbrWith((i) => {
+    i.items[0].saleType = 'goods at reduced rate';
+    i.items[0].extraTax = '';
+  }),
+  fbrWith((i) => {
+    i.items[0].rate = 'Rs.3';
+    i.items[0].quantity = 12;
+    i.items[0].salesTaxApplicable = 36;
+    i.items[0].sroScheduleNo = 'X';
+    i.items[0].sroItemSerialNo = '1';
+  }),
+  fbrWith((i) => {
+    i.items[0].rate = 'Rs.3';
+    i.items[0].quantity = 12;
+    i.items[0].salesTaxApplicable = 30;
+  }),
+  fbrWith((i) => (i.items[0].sroScheduleNo = 'X')),
+];
+for (const invoice of fbrInvoices) {
+  call('fbr-invoice', 'validateFbrInvoice', [invoice]);
+}
+for (const today of [
+  '2026-11-18',
+  '2025-04-21',
+  '2025-04-20',
+  'bad',
+  '2025-02-30',
+]) {
+  call('fbr-invoice', 'validateFbrInvoice', [fbrBase], { today });
+  call(
+    'fbr-invoice',
+    'validateFbrInvoice',
+    [fbrWith((i) => (i.invoiceDate = '2027-01-01'))],
+    { today },
+  );
+}
+for (const value of [null, 1, 'x', [], {}]) {
+  call('fbr-invoice', 'validateFbrInvoice', [value]);
+}
+
 // Data version --------------------------------------------------------------
 vectors.set('data-version', [
   {

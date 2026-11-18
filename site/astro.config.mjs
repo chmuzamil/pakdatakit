@@ -33,7 +33,15 @@ export default defineConfig({
       },
     },
   },
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    // Never inline fonts as data: URLs: the server's CSP allows fonts from
+    // this site only (font-src 'self').
+    build: {
+      assetsInlineLimit: (file) =>
+        /\.(woff2?|ttf|otf)$/.test(file) ? false : undefined,
+    },
+  },
   integrations: [
     starlight({
       title: 'PakDataKit',

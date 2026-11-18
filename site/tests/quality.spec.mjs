@@ -3,6 +3,8 @@
 // and the old API URLs by npm run check:redirects.
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const PAGES = [
   '/',
@@ -26,11 +28,40 @@ const PAGES = [
   '/about/',
 ];
 
+// The CSP header Nginx sends in production (site/deploy/nginx/). astro preview
+// sends no headers, so every page is served with it here too: browsers
+// enforce it together with each page's <meta> CSP.
+const HEADER_CSP = /Content-Security-Policy "([^"]+)"/.exec(
+  readFileSync(
+    fileURLToPath(
+      new URL('../deploy/nginx/pakdatakit-headers.conf', import.meta.url),
+    ),
+    'utf8',
+  ),
+)[1];
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/*', async (route) => {
+    if (route.request().resourceType() !== 'document') return route.continue();
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      headers: {
+        ...response.headers(),
+        'content-security-policy': HEADER_CSP,
+      },
+    });
+  });
+});
+
 /** Fails the test on any Content-Security-Policy violation. */
 async function watchCsp(page) {
   const violations = [];
   page.on('console', (msg) => {
-    if (msg.type() === 'error' && /Content Security Policy/i.test(msg.text()))
+    if (
+      msg.type() === 'error' &&
+      /Content Security Policy|violates the following/i.test(msg.text())
+    )
       violations.push(msg.text().slice(0, 200));
   });
   return violations;

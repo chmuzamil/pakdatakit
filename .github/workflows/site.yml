@@ -1,0 +1,127 @@
+name: Site
+
+# Builds pakdatakit.dev and deploys it to the VPS (see RELEASING.md and
+# site/build-placeholder.sh).
+#
+# - Pull requests: build only, and attach the built site to the run as an
+#   artifact (there is no preview server).
+# - main (site changes), core release tags and manual runs: build, upload
+#   with rsync into a new release folder, then "activate" it. Activation
+#   switches the site to the new release, checks it through Nginx on the
+#   server, and switches back automatically if that check fails.
+# - Once the site is live (environment variable PDK_SITE_LIVE = true), the
+#   workflow also checks https://pakdatakit.dev/healthz.json from outside
+#   and rolls back if it doesn't report the new release.
+#
+# The SSH key can only run /usr/local/bin/pdk-deploy on the server
+# (upload, activate, rollback, status); it has no shell.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+    paths: ['site/**', '.github/workflows/site.yml']
+  pull_request:
+    paths: ['site/**', '.github/workflows/site.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.id.outputs.release }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Release id
+        id: id
+        run: echo "release=$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: bash site/build-placeholder.sh dist "${{ steps.id.outputs.release }}" "$GITHUB_SHA"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site-${{ steps.id.outputs.release }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: pakdatakit-site
+      url: https://pakdatakit.dev/
+    concurrency:
+      group: site-deploy
+      cancel-in-progress: false
+    env:
+      RELEASE: ${{ needs.build.outputs.release }}
+      TARGET: ${{ vars.PDK_DEPLOY_USER }}@${{ vars.PDK_DEPLOY_HOST }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: site-${{ needs.build.outputs.release }}
+          path: dist
+
+      - name: Set up the deploy key
+        env:
+          KEY: ${{ secrets.PDK_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ vars.PDK_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::The PDK_DEPLOY_SSH_KEY secret is not set on the pakdatakit-site environment"
+            exit 1
+          fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/pdk_deploy
+          chmod 600 ~/.ssh/pdk_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'EOF'
+          Host pdk
+            IdentityFile ~/.ssh/pdk_deploy
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            ConnectTimeout 20
+          EOF
+          sed -i 's/^          //' ~/.ssh/config
+          echo "  HostName ${TARGET#*@}" >> ~/.ssh/config
+          echo "  User ${TARGET%@*}" >> ~/.ssh/config
+
+      - name: Upload
+        run: rsync -rlpt --chmod=D755,F644 dist/ "pdk:$RELEASE/"
+
+      # Switches to the new release and checks it on the server; switches
+      # back by itself (and fails this step) if the check fails.
+      - name: Activate
+        id: activate
+        run: ssh pdk "activate $RELEASE"
+
+      - name: Check the public site
+        if: vars.PDK_SITE_LIVE == 'true'
+        run: |
+          for attempt in 1 2 3 4 5; do
+            body=$(curl -fsS --max-time 15 https://pakdatakit.dev/healthz.json || true)
+            case "$body" in *"\"release\":\"$RELEASE\""*) echo "Live: $body"; exit 0 ;; esac
+            sleep 10
+          done
+          echo "::error::https://pakdatakit.dev/healthz.json does not report $RELEASE (got: ${body:-nothing})"
+          exit 1
+
+      - name: Roll back
+        if: failure() && steps.activate.outcome == 'success'
+        run: ssh pdk rollback
+
+      - name: Status
+        if: always()
+        run: ssh pdk status || true
+
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/pdk_deploy

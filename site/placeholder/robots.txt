@@ -1,0 +1,3 @@
+# Placeholder while the site is being built: keep it out of search results.
+User-agent: *
+Disallow: /

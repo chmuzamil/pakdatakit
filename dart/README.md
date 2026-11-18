@@ -103,7 +103,7 @@ Available: `address`, `bills`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `ib
 
 Every function of the npm package is available under the same name
 (`validateCNIC`, `createRaastP2PQr`, …). See the
-[API reference](https://chmuzamil.github.io/pakdatakit/) for what each one does.
+[API reference](https://pakdatakit.dev/api/typescript/) for what each one does.
 In Dart:
 
 - **Options objects are named parameters**: `{ expiresIn: '1d' }` →

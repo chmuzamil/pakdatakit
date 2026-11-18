@@ -297,8 +297,10 @@ for (const [where, url] of Object.entries(repositories)) {
     fail(`${where}: repository ${url}, expected ${REPO}`);
 }
 for (const [where, url] of Object.entries(homepages)) {
-  if (!url?.startsWith(REPO))
-    fail(`${where}: homepage ${url} is not in ${REPO}`);
+  if (!url?.startsWith(REPO) && !url?.startsWith('https://pakdatakit.dev/'))
+    fail(
+      `${where}: homepage ${url} is neither in ${REPO} nor on https://pakdatakit.dev/`,
+    );
 }
 
 // Every LICENSE file is the root one, and the .NET copyright matches it.

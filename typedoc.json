@@ -47,7 +47,7 @@
   "navigationLinks": {
     "GitHub": "https://github.com/chmuzamil/pakdatakit",
     "npm": "https://www.npmjs.com/package/pakdatakit",
-    "Playground": "https://pakdatakit-playground.vercel.app/"
+    "Playground": "https://pakdatakit.dev/playground/"
   },
   "hostedBaseUrl": "https://chmuzamil.github.io/pakdatakit/",
   "useHostedBaseUrlForAbsoluteLinks": false,

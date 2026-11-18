@@ -3,8 +3,7 @@
 // and the old API URLs by npm run check:redirects.
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { HEADER_CSP } from '../site.config.mjs';
 
 const PAGES = [
   '/',
@@ -28,17 +27,9 @@ const PAGES = [
   '/about/',
 ];
 
-// The CSP header Nginx sends in production (site/deploy/nginx/). astro preview
-// sends no headers, so every page is served with it here too: browsers
-// enforce it together with each page's <meta> CSP.
-const HEADER_CSP = /Content-Security-Policy "([^"]+)"/.exec(
-  readFileSync(
-    fileURLToPath(
-      new URL('../deploy/nginx/pakdatakit-headers.conf', import.meta.url),
-    ),
-    'utf8',
-  ),
-)[1];
+// The CSP header the server sends in production (HEADER_CSP in
+// site.config.mjs). astro preview sends no headers, so every page is served
+// with it here too: browsers enforce it together with each page's <meta> CSP.
 
 test.beforeEach(async ({ page }) => {
   await page.route('**/*', async (route) => {

@@ -4,7 +4,7 @@ export const SITE = 'https://pakdatakit.dev';
 
 // Search engines: false adds `noindex` to every page and disallows everything
 // in robots.txt. Launch is a one-line change to `true`.
-export const INDEXABLE = false;
+export const INDEXABLE = true;
 
 // Umami (self-hosted at t.chaudhery.com) is served from this site's own origin:
 // Nginx proxies /a.js and /api/send, so the CSP can stay connect-src 'self'.

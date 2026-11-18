@@ -68,6 +68,15 @@ jobs:
         with:
           subject-path: dotnet/artifacts/*.nupkg
 
+      # Keep the attested files: nuget.org re-signs what it receives, so its
+      # copies have different digests and cannot be checked against the
+      # attestation. These are also attached to the GitHub release below.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nupkg-attested
+          path: dotnet/artifacts/*.nupkg
+          if-no-files-found: error
+
       # Skip the publish when every package is already on NuGet (for example
       # after a first upload by hand); the GitHub release is still created.
       - name: Check which packages are already on NuGet
@@ -117,17 +126,27 @@ jobs:
               --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
 
-      # Created when the packages are on NuGet (already, or pushed above).
+      # Created when the packages are on NuGet (already, or pushed above), with
+      # the attested .nupkg files attached. Verify one with:
+      #   gh attestation verify PakDataKit.x.y.z.nupkg --repo chmuzamil/pakdatakit
+      # On a re-run, files already attached are kept (never replaced), so the
+      # assets stay the ones from the first run and its attestation.
       - name: Create GitHub release
         if: steps.published.outputs.exists == 'true' || steps.auth.outputs.mode == 'trusted' || steps.auth.outputs.mode == 'key'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="${{ steps.version.outputs.version }}"
-          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
-            echo "Release ${GITHUB_REF_NAME} already exists"
-            exit 0
+          if ! gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            node scripts/release-notes.mjs dotnet/CHANGELOG.md "$version" "PakDataKit for .NET" "https://www.nuget.org/packages/PakDataKit/$version" > release-notes.md
+            gh release create "${GITHUB_REF_NAME}" --title "PakDataKit for .NET $version" \
+              --notes-file release-notes.md --verify-tag --latest=false
           fi
-          node scripts/release-notes.mjs dotnet/CHANGELOG.md "$version" "PakDataKit for .NET" "https://www.nuget.org/packages/PakDataKit/$version" > release-notes.md
-          gh release create "${GITHUB_REF_NAME}" --title "PakDataKit for .NET $version" \
-            --notes-file release-notes.md --verify-tag --latest=false
+          attached="$(gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets[].name')"
+          for file in dotnet/artifacts/*.nupkg; do
+            if printf '%s\n' "$attached" | grep -qxF "$(basename "$file")"; then
+              echo "$(basename "$file") is already attached; keeping it"
+            else
+              gh release upload "${GITHUB_REF_NAME}" "$file"
+            fi
+          done

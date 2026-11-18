@@ -10,7 +10,7 @@ name: Split PHP package
 
 on:
   push:
-    tags: ['php-v*.*.*']
+    tags: ['php-v[0-9]+.[0-9]+.[0-9]+*']
 
 permissions:
   contents: read

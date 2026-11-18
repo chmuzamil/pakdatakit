@@ -42,7 +42,7 @@ Changelog = "https://github.com/chmuzamil/pakdatakit/blob/main/python/CHANGELOG.
 packages = ["src/pakdatakit"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/pakdatakit", "tests", "README.md", "RELEASING.md"]
+include = ["src/pakdatakit", "README.md", "RELEASING.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

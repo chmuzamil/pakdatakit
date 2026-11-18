@@ -12,3 +12,5 @@ src/content/docs/data.md
 # Quality-gate output
 test-results/
 playwright-report/
+# Server config (Nginx, the deploy script): kept on the server, not public
+deploy/

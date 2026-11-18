@@ -14,3 +14,11 @@ export const INDEXABLE = true;
 export const UMAMI_WEBSITE_ID = '0cdf6457-e044-4783-84ae-85b6390c90e6';
 
 export const GITHUB = 'https://github.com/chmuzamil/pakdatakit';
+
+// The Content-Security-Policy header the server sends with every page (the
+// server's Nginx config must match it). script-src and style-src are not in
+// it: each page carries those in a <meta> CSP with the hash of every inline
+// script (scripts/csp-hashes.mjs), and browsers enforce both policies. The
+// quality tests serve pages with this header too.
+export const HEADER_CSP =
+  "img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; media-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";

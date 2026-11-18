@@ -1,6 +1,6 @@
 {
   "name": "pakdatakit-pay",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Payment gateway helpers for Pakistan: JazzCash secure hash (HMAC-SHA256) building and constant-time response verification, for Node.js and Web Crypto",
   "type": "module",
   "main": "./dist/index.cjs",

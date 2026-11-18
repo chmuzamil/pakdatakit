@@ -1,6 +1,6 @@
 {
   "name": "pakdatakit-angular",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Angular directives, pipes, form validators and ready-made checkout and KYC forms for Pakistani CNIC, mobile numbers, IBANs, addresses and more, built on pakdatakit",
   "keywords": [
     "pakistan",

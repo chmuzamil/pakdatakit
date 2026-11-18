@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1
+
+Published by the release workflow with npm provenance (0.1.0 was published
+by hand, without provenance). No API changes.
+
+### Changed
+
+- Requires `pakdatakit` `^2.5.0`. 0.1.0 declared `^2.4.0`, a version that was never published (2.5.0 was the next release); any 2.5 version already satisfied it.
+- Development dependencies updated (jsdom 31, tsup 9, Vitest 5.1).
+
 ## 0.1.0
 
 First release.

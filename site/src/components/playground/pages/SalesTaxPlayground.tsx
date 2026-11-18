@@ -1,29 +1,44 @@
-import { useMemo, useState } from 'react'
-import { calculateSalesTax, getSalesTaxRate, type SalesTaxKind } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { OutputRow } from '../components/OutputRow'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { inputClassName, monoInputClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import {
+  calculateSalesTax,
+  getSalesTaxRate,
+  type SalesTaxKind,
+} from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { OutputRow } from '../components/OutputRow';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { inputClassName, monoInputClassName } from '../utils/examples';
 
-const provinces = ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad'] as const
+const provinces = [
+  'Punjab',
+  'Sindh',
+  'Khyber Pakhtunkhwa',
+  'Balochistan',
+  'Islamabad',
+] as const;
 
 function today(): string {
-  return new Date().toISOString().slice(0, 10)
+  return new Date().toISOString().slice(0, 10);
 }
 
 export function SalesTaxPlayground() {
-  const [amount, setAmount] = useState('1000')
-  const [kind, setKind] = useState<SalesTaxKind>('services')
-  const [province, setProvince] = useState<string>('Punjab')
-  const [date, setDate] = useState(today())
-  const [inclusive, setInclusive] = useState(false)
+  const [amount, setAmount] = useState('1000');
+  const [kind, setKind] = useState<SalesTaxKind>('services');
+  const [province, setProvince] = useState<string>('Punjab');
+  const [date, setDate] = useState(today());
+  const [inclusive, setInclusive] = useState(false);
 
-  const value = Number(amount)
+  const value = Number(amount);
   const rate = useMemo(
-    () => getSalesTaxRate({ kind, province: kind === 'services' ? province : undefined, date }),
+    () =>
+      getSalesTaxRate({
+        kind,
+        province: kind === 'services' ? province : undefined,
+        date,
+      }),
     [kind, province, date],
-  )
+  );
   const result = useMemo(
     () =>
       Number.isFinite(value)
@@ -35,7 +50,7 @@ export function SalesTaxPlayground() {
           })
         : null,
     [value, kind, province, date, inclusive],
-  )
+  );
 
   const opts = [
     `kind: "${kind}"`,
@@ -44,11 +59,11 @@ export function SalesTaxPlayground() {
     inclusive ? 'inclusive: true' : null,
   ]
     .filter(Boolean)
-    .join(', ')
+    .join(', ');
   const code = `import { getSalesTaxRate, calculateSalesTax } from "pakdatakit";
 
 calculateSalesTax(${amount || 0}, { ${opts} });
-// → ${result ? JSON.stringify(result) : 'null'}`
+// → ${result ? JSON.stringify(result) : 'null'}`;
 
   return (
     <PlaygroundShell
@@ -78,7 +93,10 @@ calculateSalesTax(${amount || 0}, { ${opts} });
             </label>
           </Card>
           <Card title="What and where">
-            <label htmlFor="st-kind" className="mb-1 block text-xs text-text-muted">
+            <label
+              htmlFor="st-kind"
+              className="mb-1 block text-xs text-text-muted"
+            >
               Kind
             </label>
             <select
@@ -92,7 +110,10 @@ calculateSalesTax(${amount || 0}, { ${opts} });
             </select>
             {kind === 'services' && (
               <>
-                <label htmlFor="st-province" className="mt-3 mb-1 block text-xs text-text-muted">
+                <label
+                  htmlFor="st-province"
+                  className="mt-3 mb-1 block text-xs text-text-muted"
+                >
                   Province
                 </label>
                 <select
@@ -107,7 +128,10 @@ calculateSalesTax(${amount || 0}, { ${opts} });
                 </select>
               </>
             )}
-            <label htmlFor="st-date" className="mt-3 mb-1 block text-xs text-text-muted">
+            <label
+              htmlFor="st-date"
+              className="mt-3 mb-1 block text-xs text-text-muted"
+            >
               Date
             </label>
             <input
@@ -123,11 +147,21 @@ calculateSalesTax(${amount || 0}, { ${opts} });
       }
       output={
         <Card title="Result">
-          <OutputRow label="Authority" value={rate?.authority ?? ''} mono={false} />
+          <OutputRow
+            label="Authority"
+            value={rate?.authority ?? ''}
+            mono={false}
+          />
           <OutputRow label="Rate" value={rate ? `${rate.rate}%` : ''} />
           <OutputRow label="Net" value={result ? result.net.toFixed(2) : ''} />
-          <OutputRow label="Sales tax" value={result ? result.tax.toFixed(2) : ''} />
-          <OutputRow label="Gross" value={result ? result.gross.toFixed(2) : ''} />
+          <OutputRow
+            label="Sales tax"
+            value={result ? result.tax.toFixed(2) : ''}
+          />
+          <OutputRow
+            label="Gross"
+            value={result ? result.gross.toFixed(2) : ''}
+          />
           <OutputRow
             label="In force"
             value={rate ? `${rate.from} to ${rate.to ?? 'now'}` : ''}
@@ -137,17 +171,23 @@ calculateSalesTax(${amount || 0}, { ${opts} });
           {rate && (
             <p className="mt-3 text-xs text-text-muted">
               Source:{' '}
-              <a href={rate.source} target="_blank" rel="noreferrer" className="text-brand underline">
+              <a
+                href={rate.source}
+                target="_blank"
+                rel="noreferrer"
+                className="text-brand underline"
+              >
                 {rate.source}
               </a>
             </p>
           )}
           <p className="mt-3 text-xs leading-relaxed text-text-muted">
-            Standard rates only. Reduced rates, exemptions and the Third Schedule are not covered.
+            Standard rates only. Reduced rates, exemptions and the Third
+            Schedule are not covered.
           </p>
         </Card>
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }

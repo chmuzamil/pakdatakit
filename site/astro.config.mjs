@@ -9,7 +9,9 @@ import { GITHUB, INDEXABLE, SITE } from './site.config.mjs';
 
 // The TypeScript API reference uses the same entry points as the root
 // typedoc.json, rendered as Starlight pages under /api/typescript/.
-const rootTypedoc = JSON.parse(readFileSync(new URL('../typedoc.json', import.meta.url), 'utf8'));
+const rootTypedoc = JSON.parse(
+  readFileSync(new URL('../typedoc.json', import.meta.url), 'utf8'),
+);
 
 const lang = (code, label) => ({ label, link: `/install/${code}/` });
 
@@ -24,7 +26,10 @@ export default defineConfig({
   security: {
     csp: {
       styleDirective: {
-        resources: ["'self'", { resource: "'unsafe-inline'", kind: 'attribute' }],
+        resources: [
+          "'self'",
+          { resource: "'unsafe-inline'", kind: 'attribute' },
+        ],
       },
     },
   },

@@ -9,13 +9,41 @@ import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 Each guide explains what a module checks or calculates, what it returns and where its data comes from. Every guide has a live example that runs in your browser, and the same examples in all five languages, checked against every port on each build.
 
 <CardGrid>
-  <LinkCard title="CNIC" href="/docs/cnic/" description="Validate CNIC numbers and read the province and gender they encode. A format check, not NADRA verification." />
-  <LinkCard title="Phone" href="/docs/phone/" description="Validate mobile numbers, format them as E.164 and find the network a number was first issued on." />
-  <LinkCard title="IBAN and banks" href="/docs/iban/" description="Validate IBANs with the mod-97 checksum and look up the bank from its code." />
-  <LinkCard title="Raast QR" href="/docs/raast/" description="Create, read and check Raast payment QR codes following the State Bank's standard." />
-  <LinkCard title="Sales tax" href="/docs/salestax/" description="Federal and provincial sales tax rates on any date since July 2019, with the law behind each rate." />
-  <LinkCard title="Income tax on salary" href="/docs/incometax/" description="Tax on salaries from the Income Tax Ordinance's salaried rate table, tax years 2020 to 2027." />
-  <LinkCard title="Postal codes" href="/docs/postal/" description="Postal codes of cities and every delivery post office in Pakistan Post's directory." />
+  <LinkCard
+    title="CNIC"
+    href="/docs/cnic/"
+    description="Validate CNIC numbers and read the province and gender they encode. A format check, not NADRA verification."
+  />
+  <LinkCard
+    title="Phone"
+    href="/docs/phone/"
+    description="Validate mobile numbers, format them as E.164 and find the network a number was first issued on."
+  />
+  <LinkCard
+    title="IBAN and banks"
+    href="/docs/iban/"
+    description="Validate IBANs with the mod-97 checksum and look up the bank from its code."
+  />
+  <LinkCard
+    title="Raast QR"
+    href="/docs/raast/"
+    description="Create, read and check Raast payment QR codes following the State Bank's standard."
+  />
+  <LinkCard
+    title="Sales tax"
+    href="/docs/salestax/"
+    description="Federal and provincial sales tax rates on any date since July 2019, with the law behind each rate."
+  />
+  <LinkCard
+    title="Income tax on salary"
+    href="/docs/incometax/"
+    description="Tax on salaries from the Income Tax Ordinance's salaried rate table, tax years 2020 to 2027."
+  />
+  <LinkCard
+    title="Postal codes"
+    href="/docs/postal/"
+    description="Postal codes of cities and every delivery post office in Pakistan Post's directory."
+  />
 </CardGrid>
 
 Looking for something else? The [TypeScript API reference](/api/typescript/) lists every function in all 32 modules.

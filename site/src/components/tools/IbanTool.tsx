@@ -1,7 +1,14 @@
 import { useEffect, useId, useRef } from 'react';
 import { getBankInfo, validateIBAN } from 'pakdatakit/iban';
 import { checkIBANInput, formatIBANInput } from 'pakdatakit/input';
-import { Badge, PrivacyNote, Rows, ShareButton, trackTool, useHashState } from '../widgets/common';
+import {
+  Badge,
+  PrivacyNote,
+  Rows,
+  ShareButton,
+  trackTool,
+  useHashState,
+} from '../widgets/common';
 
 const TYPES: Record<string, string> = {
   commercial: 'Commercial bank',
@@ -53,7 +60,8 @@ export default function IbanTool() {
             'Keep typing…'
           ) : (
             <>
-              Checksum: <Badge valid={valid} labels={['Correct', 'Not a valid IBAN']} />
+              Checksum:{' '}
+              <Badge valid={valid} labels={['Correct', 'Not a valid IBAN']} />
             </>
           )}
         </p>
@@ -62,14 +70,23 @@ export default function IbanTool() {
             ['Bank', bank?.name],
             ['Bank code', valid ? code : null],
             ['Type', bank ? (TYPES[bank.type] ?? bank.type) : null],
-            ['Status', bank ? (bank.active ? 'Active' : `Inactive${bank.mergedInto ? `, merged into ${bank.mergedInto}` : ''}`) : null],
+            [
+              'Status',
+              bank
+                ? bank.active
+                  ? 'Active'
+                  : `Inactive${bank.mergedInto ? `, merged into ${bank.mergedInto}` : ''}`
+                : null,
+            ],
           ]}
         />
         <ShareButton state={state} personal />
       </div>
       <p className="pdk-note">
-        <strong>A correct IBAN is not a verified account.</strong> The mod-97 checksum catches typing mistakes and the bank
-        code names the bank. It cannot tell whether the account exists or who owns it; only the bank can.
+        <strong>A correct IBAN is not a verified account.</strong> The mod-97
+        checksum catches typing mistakes and the bank code names the bank. It
+        cannot tell whether the account exists or who owns it; only the bank
+        can.
       </p>
       <PrivacyNote />
     </div>

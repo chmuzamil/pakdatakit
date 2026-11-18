@@ -42,7 +42,10 @@ interface SalaryTax {
 ### calculateMonthlySalaryTax()
 
 ```ts
-function calculateMonthlySalaryTax(monthlySalary: number, options?: { taxYear?: number; date?: string | Date }): SalaryTax | null;
+function calculateMonthlySalaryTax(
+  monthlySalary: number,
+  options?: { taxYear?: number; date?: string | Date },
+): SalaryTax | null;
 ```
 
 **Returns** the same result for a monthly salary (twelve times the month).

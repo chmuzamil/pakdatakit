@@ -25,7 +25,9 @@ export default function SalaryTaxWidget() {
           ['Effective rate', result ? `${result.effectiveRate}%` : null],
           [
             'Slab',
-            result ? `${rs(result.slab.fixed)} + ${result.slab.rate}% above ${rs(result.slab.over)}` : null,
+            result
+              ? `${rs(result.slab.fixed)} + ${result.slab.rate}% above ${rs(result.slab.over)}`
+              : null,
           ],
         ]}
       />

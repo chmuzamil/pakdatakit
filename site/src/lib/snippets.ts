@@ -39,15 +39,60 @@ interface Api {
 
 /** Names of every function used in the examples, per port. */
 export const API: Record<string, Api> = {
-  validateCNIC: { py: 'validate_cnic', dart: 'validateCNIC', cs: 'Cnic.Validate', php: 'Cnic::validate' },
-  getCNICInfo: { py: 'get_cnic_info', dart: 'getCNICInfo', cs: 'Cnic.GetInfo', php: 'Cnic::getInfo' },
-  validatePhone: { py: 'validate_phone', dart: 'validatePhone', cs: 'Phone.Validate', php: 'Phone::validate' },
-  formatPhone: { py: 'format_phone', dart: 'formatPhone', cs: 'Phone.Format', php: 'Phone::format' },
-  analyzePhone: { py: 'analyze_phone', dart: 'analyzePhone', cs: 'Phone.Analyze', php: 'Phone::analyze' },
-  getNetwork: { py: 'get_network', dart: 'getNetwork', cs: 'Networks.GetNetwork', php: 'Networks::getNetwork' },
-  validateIBAN: { py: 'validate_iban', dart: 'validateIBAN', cs: 'Iban.Validate', php: 'Iban::validate' },
-  getBankFromIBAN: { py: 'get_bank_from_iban', dart: 'getBankFromIBAN', cs: 'Iban.GetBank', php: 'Iban::getBank' },
-  getBankInfo: { py: 'get_bank_info', dart: 'getBankInfo', cs: 'Iban.GetBankInfo', php: 'Iban::getBankInfo' },
+  validateCNIC: {
+    py: 'validate_cnic',
+    dart: 'validateCNIC',
+    cs: 'Cnic.Validate',
+    php: 'Cnic::validate',
+  },
+  getCNICInfo: {
+    py: 'get_cnic_info',
+    dart: 'getCNICInfo',
+    cs: 'Cnic.GetInfo',
+    php: 'Cnic::getInfo',
+  },
+  validatePhone: {
+    py: 'validate_phone',
+    dart: 'validatePhone',
+    cs: 'Phone.Validate',
+    php: 'Phone::validate',
+  },
+  formatPhone: {
+    py: 'format_phone',
+    dart: 'formatPhone',
+    cs: 'Phone.Format',
+    php: 'Phone::format',
+  },
+  analyzePhone: {
+    py: 'analyze_phone',
+    dart: 'analyzePhone',
+    cs: 'Phone.Analyze',
+    php: 'Phone::analyze',
+  },
+  getNetwork: {
+    py: 'get_network',
+    dart: 'getNetwork',
+    cs: 'Networks.GetNetwork',
+    php: 'Networks::getNetwork',
+  },
+  validateIBAN: {
+    py: 'validate_iban',
+    dart: 'validateIBAN',
+    cs: 'Iban.Validate',
+    php: 'Iban::validate',
+  },
+  getBankFromIBAN: {
+    py: 'get_bank_from_iban',
+    dart: 'getBankFromIBAN',
+    cs: 'Iban.GetBank',
+    php: 'Iban::getBank',
+  },
+  getBankInfo: {
+    py: 'get_bank_info',
+    dart: 'getBankInfo',
+    cs: 'Iban.GetBankInfo',
+    php: 'Iban::getBankInfo',
+  },
   getSalesTaxRate: {
     py: 'get_sales_tax_rate',
     dart: 'getSalesTaxRate',
@@ -63,7 +108,12 @@ export const API: Record<string, Api> = {
     php: 'SalesTax::calculate',
     csOptions: 'SalesTaxOptions',
   },
-  splitInclusive: { py: 'split_inclusive', dart: 'splitInclusive', cs: 'SalesTax.SplitInclusive', php: 'SalesTax::splitInclusive' },
+  splitInclusive: {
+    py: 'split_inclusive',
+    dart: 'splitInclusive',
+    cs: 'SalesTax.SplitInclusive',
+    php: 'SalesTax::splitInclusive',
+  },
   calculateSalaryTax: {
     py: 'calculate_salary_tax',
     dart: 'calculateSalaryTax',
@@ -78,10 +128,30 @@ export const API: Record<string, Api> = {
     php: 'IncomeTax::calculateMonthlySalary',
     csOptions: 'SalaryTaxOptions',
   },
-  getTaxYear: { py: 'get_tax_year', dart: 'getTaxYear', cs: 'IncomeTax.GetTaxYear', php: 'IncomeTax::getTaxYear' },
-  getPostalCode: { py: 'get_postal_code', dart: 'getPostalCode', cs: 'Postal.GetCode', php: 'Postal::getCode' },
-  getCityByPostalCode: { py: 'get_city_by_postal_code', dart: 'getCityByPostalCode', cs: 'Postal.GetCity', php: 'Postal::getCity' },
-  getPostOffice: { py: 'get_post_office', dart: 'getPostOffice', cs: 'Postal.GetPostOffice', php: 'Postal::getPostOffice' },
+  getTaxYear: {
+    py: 'get_tax_year',
+    dart: 'getTaxYear',
+    cs: 'IncomeTax.GetTaxYear',
+    php: 'IncomeTax::getTaxYear',
+  },
+  getPostalCode: {
+    py: 'get_postal_code',
+    dart: 'getPostalCode',
+    cs: 'Postal.GetCode',
+    php: 'Postal::getCode',
+  },
+  getCityByPostalCode: {
+    py: 'get_city_by_postal_code',
+    dart: 'getCityByPostalCode',
+    cs: 'Postal.GetCity',
+    php: 'Postal::getCity',
+  },
+  getPostOffice: {
+    py: 'get_post_office',
+    dart: 'getPostOffice',
+    cs: 'Postal.GetPostOffice',
+    php: 'Postal::getPostOffice',
+  },
   createRaastP2PQr: {
     py: 'create_raast_p2p_qr',
     dart: 'createRaastP2PQr',
@@ -121,16 +191,25 @@ function lit(lang: Lang, v: unknown, key?: string): string {
     if (lang === 'dart') return `SalesTaxKind.${v}`;
     if (lang === 'cs') return `SalesTaxKind.${pascal(v)}`;
   }
-  if (v === null) return { ts: 'null', py: 'None', dart: 'null', cs: 'null', php: 'null' }[lang];
-  if (typeof v === 'boolean') return lang === 'py' ? (v ? 'True' : 'False') : String(v);
+  if (v === null)
+    return { ts: 'null', py: 'None', dart: 'null', cs: 'null', php: 'null' }[
+      lang
+    ];
+  if (typeof v === 'boolean')
+    return lang === 'py' ? (v ? 'True' : 'False') : String(v);
   if (typeof v === 'number') {
     // Group large amounts (5_000_000) where the language allows it; leave years alone.
     const grouped = Number.isInteger(v) && Math.abs(v) >= 10000;
-    return grouped && (lang === 'py' || lang === 'php') ? String(v).replace(/(\d)(?=(\d{3})+$)/g, '$1_') : String(v);
+    return grouped && (lang === 'py' || lang === 'php')
+      ? String(v).replace(/(\d)(?=(\d{3})+$)/g, '$1_')
+      : String(v);
   }
   if (typeof v === 'string') {
-    if (lang === 'cs' || lang === 'dart' && /'/.test(v)) return JSON.stringify(v);
-    return lang === 'py' || lang === 'php' || lang === 'dart' || lang === 'ts' ? `'${v.replace(/'/g, "\\'")}'` : JSON.stringify(v);
+    if (lang === 'cs' || (lang === 'dart' && /'/.test(v)))
+      return JSON.stringify(v);
+    return lang === 'py' || lang === 'php' || lang === 'dart' || lang === 'ts'
+      ? `'${v.replace(/'/g, "\\'")}'`
+      : JSON.stringify(v);
   }
   return JSON.stringify(v);
 }
@@ -143,7 +222,9 @@ export function call(lang: Lang, ex: Example): string {
   const kw = Object.entries(ex.kwargs ?? {});
   switch (lang) {
     case 'ts': {
-      const opts = kw.length ? `{ ${kw.map(([k, v]) => `${k}: ${lit('ts', v, k)}`).join(', ')} }` : '';
+      const opts = kw.length
+        ? `{ ${kw.map(([k, v]) => `${k}: ${lit('ts', v, k)}`).join(', ')} }`
+        : '';
       return `${ex.fn}(${[...args, ...(opts ? [opts] : [])].join(', ')})`;
     }
     case 'py':
@@ -153,13 +234,16 @@ export function call(lang: Lang, ex: Example): string {
     case 'cs': {
       if (!kw.length) return `${api.cs}(${args.join(', ')})`;
       const props = kw.map(([k, v]) => {
-        if (k === 'date' && typeof v === 'string') return `Date = ${lit('cs', v)}`;
+        if (k === 'date' && typeof v === 'string')
+          return `Date = ${lit('cs', v)}`;
         return `${pascal(k)} = ${lit('cs', v, k)}`;
       });
       return `${api.cs}(${[...args, `new ${api.csOptions} { ${props.join(', ')} }`].join(', ')})`;
     }
     case 'php': {
-      const arr = kw.length ? `[${kw.map(([k, v]) => `'${k}' => ${lit('php', v, k)}`).join(', ')}]` : '';
+      const arr = kw.length
+        ? `[${kw.map(([k, v]) => `'${k}' => ${lit('php', v, k)}`).join(', ')}]`
+        : '';
       return `${api.php}(${[...args, ...(arr ? [arr] : [])].join(', ')})`;
     }
   }
@@ -176,14 +260,19 @@ export function resultComment(lang: Lang, value: unknown): string {
     .map((line, i) => (i === 0 ? `${c} → ${line}` : `${c}   ${line}`))
     .join('\n');
   return lang === 'py'
-    ? json.replace(/\btrue\b/g, 'True').replace(/\bfalse\b/g, 'False').replace(/\bnull\b/g, 'None')
+    ? json
+        .replace(/\btrue\b/g, 'True')
+        .replace(/\bfalse\b/g, 'False')
+        .replace(/\bnull\b/g, 'None')
     : json;
 }
 
 /** Import / using lines for a set of examples. */
 export function header(lang: Lang, examples: Example[]): string {
   const fns = [...new Set(examples.map((e) => e.fn))];
-  const needsDate = examples.some((e) => Object.values(e.kwargs ?? {}).some(isDate));
+  const needsDate = examples.some((e) =>
+    Object.values(e.kwargs ?? {}).some(isDate),
+  );
   switch (lang) {
     case 'ts':
       return `import { ${fns.join(', ')} } from 'pakdatakit';`;
@@ -197,7 +286,9 @@ export function header(lang: Lang, examples: Example[]): string {
     case 'cs':
       return 'using PakDataKit;';
     case 'php': {
-      const classes = [...new Set(fns.map((f) => API[f].php.split('::')[0]))].sort();
+      const classes = [
+        ...new Set(fns.map((f) => API[f].php.split('::')[0])),
+      ].sort();
       return classes.map((c) => `use PakDataKit\\${c};`).join('\n');
     }
   }

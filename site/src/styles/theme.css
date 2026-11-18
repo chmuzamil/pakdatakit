@@ -7,8 +7,10 @@
 @import '@fontsource/noto-naskh-arabic/arabic-600.css';
 
 :root {
-  --sl-font: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --sl-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --sl-font:
+    'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --sl-font-mono:
+    'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
   --pdk-font-ur: 'Noto Naskh Arabic', 'Inter Variable', serif;
 }
 

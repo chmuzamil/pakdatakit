@@ -1,10 +1,14 @@
-import { useMemo, useState } from 'react'
-import { buildFbrInvoice, validateFbrInvoice, type FbrInvoice } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { ResultBadge } from '../components/ResultBadge'
-import { textareaClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import {
+  buildFbrInvoice,
+  validateFbrInvoice,
+  type FbrInvoice,
+} from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { ResultBadge } from '../components/ResultBadge';
+import { textareaClassName } from '../utils/examples';
 
 const example = buildFbrInvoice({
   invoiceType: 'Sale Invoice',
@@ -29,36 +33,42 @@ const example = buildFbrInvoice({
       saleType: 'Goods at standard rate (default)',
     },
   ],
-})!.invoice
+})!.invoice;
 
 const broken: FbrInvoice = {
   ...example,
   invoiceDate: '21-04-2025',
   buyerNTNCNIC: example.sellerNTNCNIC,
   items: [{ ...example.items[0], salesTaxApplicable: 100 }],
-}
+};
 
-const pretty = (v: unknown) => JSON.stringify(v, null, 2)
+const pretty = (v: unknown) => JSON.stringify(v, null, 2);
 
 export function FbrInvoicePlayground() {
-  const [text, setText] = useState(pretty(broken))
+  const [text, setText] = useState(pretty(broken));
 
-  const parsed = useMemo((): { invoice: FbrInvoice | null; error: string | null } => {
+  const parsed = useMemo((): {
+    invoice: FbrInvoice | null;
+    error: string | null;
+  } => {
     try {
-      return { invoice: JSON.parse(text) as FbrInvoice, error: null }
+      return { invoice: JSON.parse(text) as FbrInvoice, error: null };
     } catch (e) {
-      return { invoice: null, error: e instanceof Error ? e.message : 'Invalid JSON' }
+      return {
+        invoice: null,
+        error: e instanceof Error ? e.message : 'Invalid JSON',
+      };
     }
-  }, [text])
+  }, [text]);
   const result = useMemo(
     () => (parsed.invoice ? validateFbrInvoice(parsed.invoice) : null),
     [parsed.invoice],
-  )
+  );
 
   const code = `import { validateFbrInvoice } from "pakdatakit";
 
 validateFbrInvoice(invoice);
-// → ${result ? pretty({ valid: result.valid, errors: result.errors.slice(0, 3) }).replace(/\n/g, '\n// ') : 'not JSON'}`
+// → ${result ? pretty({ valid: result.valid, errors: result.errors.slice(0, 3) }).replace(/\n/g, '\n// ') : 'not JSON'}`;
 
   return (
     <PlaygroundShell
@@ -100,20 +110,31 @@ validateFbrInvoice(invoice);
       output={
         <Card title="Result">
           {parsed.error ? (
-            <p className="text-sm text-text-muted">Not valid JSON: {parsed.error}</p>
+            <p className="text-sm text-text-muted">
+              Not valid JSON: {parsed.error}
+            </p>
           ) : (
             <>
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm text-text-muted">
-                  {result?.valid ? 'No problems found' : `${result?.errors.length ?? 0} problem(s)`}
+                  {result?.valid
+                    ? 'No problems found'
+                    : `${result?.errors.length ?? 0} problem(s)`}
                 </span>
                 <ResultBadge valid={result?.valid ?? false} />
               </div>
               <ul className="space-y-2">
                 {result?.errors.map((e, i) => (
-                  <li key={i} className="rounded-md border border-border px-3 py-2 text-sm">
-                    <span className="font-mono text-xs text-brand">{e.code ?? '—'}</span>{' '}
-                    <span className="font-mono text-xs text-text-muted">{e.field}</span>
+                  <li
+                    key={i}
+                    className="rounded-md border border-border px-3 py-2 text-sm"
+                  >
+                    <span className="font-mono text-xs text-brand">
+                      {e.code ?? '—'}
+                    </span>{' '}
+                    <span className="font-mono text-xs text-text-muted">
+                      {e.field}
+                    </span>
                     <p className="mt-1 text-text-heading">{e.message}</p>
                   </li>
                 ))}
@@ -121,13 +142,14 @@ validateFbrInvoice(invoice);
             </>
           )}
           <p className="mt-4 text-xs leading-relaxed text-text-muted">
-            It cannot check what needs FBR's reference APIs, such as registration status or
-            whether an HS code is in FBR's lists. A valid result means FBR's own validation is
-            likely to pass, not that it will.
+            It cannot check what needs FBR's reference APIs, such as
+            registration status or whether an HS code is in FBR's lists. A valid
+            result means FBR's own validation is likely to pass, not that it
+            will.
           </p>
         </Card>
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }

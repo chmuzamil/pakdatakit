@@ -37,7 +37,13 @@ function getSalesTaxRate(query: {
 ```ts
 function calculateSalesTax(
   amount: number,
-  options: { rate?: number; province?: string; kind?: 'goods' | 'services'; date?: string | Date; inclusive?: boolean },
+  options: {
+    rate?: number;
+    province?: string;
+    kind?: 'goods' | 'services';
+    date?: string | Date;
+    inclusive?: boolean;
+  },
 ): SalesTaxAmounts | null; // { net, tax, gross, rate }
 ```
 

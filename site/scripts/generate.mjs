@@ -13,7 +13,15 @@
  * Needs the library built first (`npm run build` at the repository root).
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GITHUB, INDEXABLE, SITE } from '../site.config.mjs';
@@ -23,7 +31,9 @@ const root = join(site, '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
 
 if (!existsSync(join(root, 'dist', 'index.js'))) {
-  throw new Error('Build the library first: npm run build (at the repository root)');
+  throw new Error(
+    'Build the library first: npm run build (at the repository root)',
+  );
 }
 
 /** Relative links in repository Markdown → GitHub URLs. */
@@ -40,19 +50,68 @@ const yaml = (s) => JSON.stringify(s);
 // ---------------------------------------------------------------- releases --
 
 const CORE = [
-  ['CHANGELOG.md', 'TypeScript (npm)', 'pakdatakit', 'https://www.npmjs.com/package/pakdatakit/v/'],
-  ['python/CHANGELOG.md', 'Python (PyPI)', 'pakdatakit', 'https://pypi.org/project/pakdatakit/'],
-  ['dart/CHANGELOG.md', 'Dart (pub.dev)', 'pakdatakit', 'https://pub.dev/packages/pakdatakit/versions/'],
-  ['dotnet/CHANGELOG.md', '.NET (NuGet)', 'PakDataKit', 'https://www.nuget.org/packages/PakDataKit/'],
-  ['php/CHANGELOG.md', 'PHP (Packagist)', 'chmuzamil/pakdatakit', 'https://packagist.org/packages/chmuzamil/pakdatakit#v'],
+  [
+    'CHANGELOG.md',
+    'TypeScript (npm)',
+    'pakdatakit',
+    'https://www.npmjs.com/package/pakdatakit/v/',
+  ],
+  [
+    'python/CHANGELOG.md',
+    'Python (PyPI)',
+    'pakdatakit',
+    'https://pypi.org/project/pakdatakit/',
+  ],
+  [
+    'dart/CHANGELOG.md',
+    'Dart (pub.dev)',
+    'pakdatakit',
+    'https://pub.dev/packages/pakdatakit/versions/',
+  ],
+  [
+    'dotnet/CHANGELOG.md',
+    '.NET (NuGet)',
+    'PakDataKit',
+    'https://www.nuget.org/packages/PakDataKit/',
+  ],
+  [
+    'php/CHANGELOG.md',
+    'PHP (Packagist)',
+    'chmuzamil/pakdatakit',
+    'https://packagist.org/packages/chmuzamil/pakdatakit#v',
+  ],
 ];
 const ADDONS = [
-  ['react/CHANGELOG.md', 'pakdatakit-react', 'https://www.npmjs.com/package/pakdatakit-react/v/'],
-  ['vue/CHANGELOG.md', 'pakdatakit-vue', 'https://www.npmjs.com/package/pakdatakit-vue/v/'],
-  ['angular/CHANGELOG.md', 'pakdatakit-angular', 'https://www.npmjs.com/package/pakdatakit-angular/v/'],
-  ['faker/CHANGELOG.md', 'pakdatakit-faker', 'https://www.npmjs.com/package/pakdatakit-faker/v/'],
-  ['pay/CHANGELOG.md', 'pakdatakit-pay', 'https://www.npmjs.com/package/pakdatakit-pay/v/'],
-  ['flutter/CHANGELOG.md', 'pakdatakit_flutter', 'https://pub.dev/packages/pakdatakit_flutter/versions/'],
+  [
+    'react/CHANGELOG.md',
+    'pakdatakit-react',
+    'https://www.npmjs.com/package/pakdatakit-react/v/',
+  ],
+  [
+    'vue/CHANGELOG.md',
+    'pakdatakit-vue',
+    'https://www.npmjs.com/package/pakdatakit-vue/v/',
+  ],
+  [
+    'angular/CHANGELOG.md',
+    'pakdatakit-angular',
+    'https://www.npmjs.com/package/pakdatakit-angular/v/',
+  ],
+  [
+    'faker/CHANGELOG.md',
+    'pakdatakit-faker',
+    'https://www.npmjs.com/package/pakdatakit-faker/v/',
+  ],
+  [
+    'pay/CHANGELOG.md',
+    'pakdatakit-pay',
+    'https://www.npmjs.com/package/pakdatakit-pay/v/',
+  ],
+  [
+    'flutter/CHANGELOG.md',
+    'pakdatakit_flutter',
+    'https://pub.dev/packages/pakdatakit_flutter/versions/',
+  ],
 ];
 
 /** Version → section body, for every `## x.y.z` section (Unreleased skipped). */
@@ -64,7 +123,13 @@ function sections(file) {
     const [head, ...rest] = part.split('\n');
     const m = /^\[?(\d+\.\d+\.\d+[^\]\s]*)\]?/.exec(head.trim());
     if (!m) continue;
-    out.set(m[1], absolutize(rest.join('\n').trim(), dirname(file) === '.' ? '' : dirname(file)));
+    out.set(
+      m[1],
+      absolutize(
+        rest.join('\n').trim(),
+        dirname(file) === '.' ? '' : dirname(file),
+      ),
+    );
   }
   return out;
 }
@@ -72,7 +137,8 @@ function sections(file) {
 const semverDesc = (a, b) => {
   const pa = a.split(/[.-]/).map(Number);
   const pb = b.split(/[.-]/).map(Number);
-  for (let i = 0; i < 3; i++) if ((pb[i] || 0) !== (pa[i] || 0)) return (pb[i] || 0) - (pa[i] || 0);
+  for (let i = 0; i < 3; i++)
+    if ((pb[i] || 0) !== (pa[i] || 0)) return (pb[i] || 0) - (pa[i] || 0);
   return 0;
 };
 
@@ -80,19 +146,33 @@ const relDir = join(site, 'src', 'content', 'docs', 'releases');
 rmSync(relDir, { recursive: true, force: true });
 mkdirSync(relDir, { recursive: true });
 
-const core = CORE.map(([file, label, pkg, url]) => ({ label, pkg, url, versions: sections(file) }));
-const coreVersions = [...new Set(core.flatMap((c) => [...c.versions.keys()]))].sort(semverDesc);
+const core = CORE.map(([file, label, pkg, url]) => ({
+  label,
+  pkg,
+  url,
+  versions: sections(file),
+}));
+const coreVersions = [
+  ...new Set(core.flatMap((c) => [...c.versions.keys()])),
+].sort(semverDesc);
 for (const v of coreVersions) {
   const ports = core.filter((c) => c.versions.has(v));
   const body = ports
-    .map((c) => `## ${c.label}\n\n[${c.pkg} ${v}](${c.url}${v}${c.url.endsWith('#v') ? '' : c.url.includes('pypi') ? '/' : ''})\n\n${c.versions.get(v).replace(/^### /gm, '### ')}`)
+    .map(
+      (c) =>
+        `## ${c.label}\n\n[${c.pkg} ${v}](${c.url}${v}${c.url.endsWith('#v') ? '' : c.url.includes('pypi') ? '/' : ''})\n\n${c.versions.get(v).replace(/^### /gm, '### ')}`,
+    )
     .join('\n\n');
   writeFileSync(
     join(relDir, `${v}.md`),
     `---\ntitle: ${yaml(`pakdatakit ${v}`)}\nslug: ${yaml(`releases/${v}`)}\ndescription: ${yaml(`Changes in pakdatakit ${v} for ${ports.map((p) => p.label.split(' ')[0]).join(', ')}.`)}\n---\n\n${body}\n`,
   );
 }
-const addons = ADDONS.map(([file, pkg, url]) => ({ pkg, url, versions: sections(file) }));
+const addons = ADDONS.map(([file, pkg, url]) => ({
+  pkg,
+  url,
+  versions: sections(file),
+}));
 for (const a of addons) {
   for (const [v, text] of a.versions) {
     writeFileSync(
@@ -104,16 +184,34 @@ for (const a of addons) {
 writeFileSync(
   join(relDir, 'index.md'),
   `---\ntitle: Releases\ndescription: Every version of every pakdatakit package, from each package's changelog.\n---\n\nThe core library has one version number in every language: TypeScript, Python, Dart, .NET and PHP are released together and give the same results. The add-ons have their own versions.\n\n## Core library\n\n| Version | Ports |\n| --- | --- |\n${coreVersions
-    .map((v) => `| [${v}](/releases/${v}/) | ${core.filter((c) => c.versions.has(v)).map((c) => c.label.split(' ')[0]).join(', ')} |`)
+    .map(
+      (v) =>
+        `| [${v}](/releases/${v}/) | ${core
+          .filter((c) => c.versions.has(v))
+          .map((c) => c.label.split(' ')[0])
+          .join(', ')} |`,
+    )
     .join('\n')}\n\n## Add-ons\n\n${addons
-    .map((a) => `- **${a.pkg}**: ${[...a.versions.keys()].sort(semverDesc).map((v) => `[${v}](/releases/${a.pkg}-${v}/)`).join(', ')}`)
-    .join('\n')}\n\nGitHub releases, with the attested .NET packages attached: [github.com/chmuzamil/pakdatakit/releases](${GITHUB}/releases).\n`,
+    .map(
+      (a) =>
+        `- **${a.pkg}**: ${[...a.versions.keys()]
+          .sort(semverDesc)
+          .map((v) => `[${v}](/releases/${a.pkg}-${v}/)`)
+          .join(', ')}`,
+    )
+    .join(
+      '\n',
+    )}\n\nGitHub releases, with the attested .NET packages attached: [github.com/chmuzamil/pakdatakit/releases](${GITHUB}/releases).\n`,
 );
-console.log(`releases: ${coreVersions.length} core versions, ${addons.reduce((n, a) => n + a.versions.size, 0)} add-on versions`);
+console.log(
+  `releases: ${coreVersions.length} core versions, ${addons.reduce((n, a) => n + a.versions.size, 0)} add-on versions`,
+);
 
 // -------------------------------------------------------------------- data --
 
-const { dataVersion } = await import(new URL(`file:///${join(root, 'dist', 'index.js').replace(/\\/g, '/')}`).href);
+const { dataVersion } = await import(
+  new URL(`file:///${join(root, 'dist', 'index.js').replace(/\\/g, '/')}`).href
+);
 const dataFiles = readdirSync(join(root, 'data'))
   .filter((f) => f.endsWith('.json'))
   .sort();
@@ -139,7 +237,16 @@ rmSync(join(site, 'public', 'api'), { recursive: true, force: true });
 
 execFileSync(
   process.execPath,
-  [join(root, 'scripts', 'generate-llms.mjs'), '--out', join(site, 'public'), '--site', SITE, '--api', `${SITE}/api/typescript`, '--pages'],
+  [
+    join(root, 'scripts', 'generate-llms.mjs'),
+    '--out',
+    join(site, 'public'),
+    '--site',
+    SITE,
+    '--api',
+    `${SITE}/api/typescript`,
+    '--pages',
+  ],
   { cwd: root, stdio: 'inherit' },
 );
 

@@ -22,7 +22,9 @@ const VIEWS = [
   ['mobile', devices['Pixel 7']],
 ];
 
-const browser = await chromium.launch({ channel: process.env.PW_CHANNEL || undefined });
+const browser = await chromium.launch({
+  channel: process.env.PW_CHANNEL || undefined,
+});
 for (const [view, opts] of VIEWS) {
   for (const scheme of ['light', 'dark']) {
     const ctx = await browser.newContext({ ...opts, colorScheme: scheme });
@@ -30,7 +32,9 @@ for (const [view, opts] of VIEWS) {
     for (const [name, path] of PAGES) {
       await page.goto(base + path, { waitUntil: 'networkidle' });
       await page.waitForTimeout(400);
-      await page.screenshot({ path: join(out, `${name}-${view}-${scheme}.png`) });
+      await page.screenshot({
+        path: join(out, `${name}-${view}-${scheme}.png`),
+      });
     }
     await ctx.close();
   }

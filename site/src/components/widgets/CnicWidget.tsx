@@ -2,7 +2,11 @@ import { useId, useState } from 'react';
 import { getCNICInfo, validateCNIC } from 'pakdatakit/cnic';
 import { Badge, Rows } from './common';
 
-export default function CnicWidget({ initial = '35202-1234567-1' }: { initial?: string }) {
+export default function CnicWidget({
+  initial = '35202-1234567-1',
+}: {
+  initial?: string;
+}) {
   const id = useId();
   const [value, setValue] = useState(initial);
   const valid = validateCNIC(value);

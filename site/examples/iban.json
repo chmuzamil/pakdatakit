@@ -6,27 +6,21 @@
       "id": "validate",
       "title": "Validate an IBAN",
       "fn": "validateIBAN",
-      "args": [
-        "PK36SCBL0000001123456702"
-      ],
+      "args": ["PK36SCBL0000001123456702"],
       "expected": true
     },
     {
       "id": "bank",
       "title": "Bank from an IBAN",
       "fn": "getBankFromIBAN",
-      "args": [
-        "PK36 SCBL 0000 0011 2345 6702"
-      ],
+      "args": ["PK36 SCBL 0000 0011 2345 6702"],
       "expected": "Standard Chartered Bank (Pakistan) Limited"
     },
     {
       "id": "info",
       "title": "Bank details from a code",
       "fn": "getBankInfo",
-      "args": [
-        "MEZN"
-      ],
+      "args": ["MEZN"],
       "expected": {
         "code": "MEZN",
         "name": "Meezan Bank Limited",

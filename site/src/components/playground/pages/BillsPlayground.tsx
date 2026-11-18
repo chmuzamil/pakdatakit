@@ -1,31 +1,42 @@
-import { useMemo, useState } from 'react'
-import { parseElectricityRef, validateGasConsumerNumber, type GasCompany } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { OutputRow } from '../components/OutputRow'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { ResultBadge } from '../components/ResultBadge'
-import { escapeForCode, inputClassName, monoInputClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import {
+  parseElectricityRef,
+  validateGasConsumerNumber,
+  type GasCompany,
+} from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { OutputRow } from '../components/OutputRow';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { ResultBadge } from '../components/ResultBadge';
+import {
+  escapeForCode,
+  inputClassName,
+  monoInputClassName,
+} from '../utils/examples';
 
 const refTypes = {
   reference: 'DISCO reference number',
   'customer-id': 'DISCO customer ID',
   'k-electric': 'K-Electric account number',
-} as const
+} as const;
 
 export function BillsPlayground() {
-  const [ref, setRef] = useState('02-12624-0045901 R')
-  const [gas, setGas] = useState('12345678901')
-  const [company, setCompany] = useState<GasCompany>('SNGPL')
+  const [ref, setRef] = useState('02-12624-0045901 R');
+  const [gas, setGas] = useState('12345678901');
+  const [company, setCompany] = useState<GasCompany>('SNGPL');
 
-  const parsed = useMemo(() => parseElectricityRef(ref), [ref])
-  const gasValid = useMemo(() => validateGasConsumerNumber(gas, company), [gas, company])
+  const parsed = useMemo(() => parseElectricityRef(ref), [ref]);
+  const gasValid = useMemo(
+    () => validateGasConsumerNumber(gas, company),
+    [gas, company],
+  );
 
   const code = `import { parseElectricityRef, validateGasConsumerNumber } from "pakdatakit";
 
 parseElectricityRef("${escapeForCode(ref)}");
 // → ${parsed ? JSON.stringify(parsed) : 'null'}
-validateGasConsumerNumber("${escapeForCode(gas)}", "${company}"); // → ${gasValid}`
+validateGasConsumerNumber("${escapeForCode(gas)}", "${company}"); // → ${gasValid}`;
 
   return (
     <PlaygroundShell
@@ -48,10 +59,18 @@ validateGasConsumerNumber("${escapeForCode(gas)}", "${company}"); // → ${gasVa
               spellCheck={false}
               className={monoInputClassName}
             />
-            <p className="mt-2 text-xs text-text-muted">Try: 02-12624-0045901 R · 0400012345678</p>
+            <p className="mt-2 text-xs text-text-muted">
+              Try: 02-12624-0045901 R · 0400012345678
+            </p>
           </Card>
-          <Card title="Gas consumer number" description="SNGPL: 11 digits. SSGC: 10 digits.">
-            <label htmlFor="gas-company" className="mb-1 block text-xs text-text-muted">
+          <Card
+            title="Gas consumer number"
+            description="SNGPL: 11 digits. SSGC: 10 digits."
+          >
+            <label
+              htmlFor="gas-company"
+              className="mb-1 block text-xs text-text-muted"
+            >
               Company
             </label>
             <select
@@ -63,7 +82,10 @@ validateGasConsumerNumber("${escapeForCode(gas)}", "${company}"); // → ${gasVa
               <option value="SNGPL">SNGPL</option>
               <option value="SSGC">SSGC</option>
             </select>
-            <label htmlFor="gas-number" className="mt-3 mb-1 block text-xs text-text-muted">
+            <label
+              htmlFor="gas-number"
+              className="mt-3 mb-1 block text-xs text-text-muted"
+            >
               Consumer number
             </label>
             <input
@@ -80,19 +102,33 @@ validateGasConsumerNumber("${escapeForCode(gas)}", "${company}"); // → ${gasVa
       output={
         <Card title="Result">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm text-text-muted">Electricity reference</span>
+            <span className="text-sm text-text-muted">
+              Electricity reference
+            </span>
             <ResultBadge valid={parsed !== null} />
           </div>
-          <OutputRow label="Type" value={parsed ? refTypes[parsed.type] : ''} mono={false} />
+          <OutputRow
+            label="Type"
+            value={parsed ? refTypes[parsed.type] : ''}
+            mono={false}
+          />
           <OutputRow label="Formatted" value={parsed?.formatted ?? ''} />
           <OutputRow
             label="Urban / rural"
-            value={parsed?.urbanRural === 'U' ? 'Urban' : parsed?.urbanRural === 'R' ? 'Rural' : ''}
+            value={
+              parsed?.urbanRural === 'U'
+                ? 'Urban'
+                : parsed?.urbanRural === 'R'
+                  ? 'Rural'
+                  : ''
+            }
             mono={false}
           />
           <OutputRow label="Company" value={parsed?.disco ?? ''} mono={false} />
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-sm text-text-muted">Gas consumer number ({company})</span>
+            <span className="text-sm text-text-muted">
+              Gas consumer number ({company})
+            </span>
             <ResultBadge valid={gasValid} />
           </div>
           <p className="mt-4 text-xs leading-relaxed text-text-muted">
@@ -102,5 +138,5 @@ validateGasConsumerNumber("${escapeForCode(gas)}", "${company}"); // → ${gasVa
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }

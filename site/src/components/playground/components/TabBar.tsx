@@ -1,10 +1,10 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { useRef, type KeyboardEvent } from 'react';
 
 interface TabBarProps<T extends string> {
-  tabs: readonly { id: T; label: string }[]
-  active: T
-  onChange: (id: T) => void
-  label?: string
+  tabs: readonly { id: T; label: string }[];
+  active: T;
+  onChange: (id: T) => void;
+  label?: string;
 }
 
 export function TabBar<T extends string>({
@@ -13,11 +13,11 @@ export function TabBar<T extends string>({
   onChange,
   label = 'Mode',
 }: TabBarProps<T>) {
-  const buttons = useRef<(HTMLButtonElement | null)[]>([])
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Arrow keys, Home and End move between tabs (WAI-ARIA tabs pattern).
   function handleKeyDown(event: KeyboardEvent, index: number) {
-    const last = tabs.length - 1
+    const last = tabs.length - 1;
     const next = (
       {
         ArrowRight: index === last ? 0 : index + 1,
@@ -25,11 +25,11 @@ export function TabBar<T extends string>({
         Home: 0,
         End: last,
       } as Record<string, number>
-    )[event.key]
-    if (next === undefined) return
-    event.preventDefault()
-    onChange(tabs[next].id)
-    buttons.current[next]?.focus()
+    )[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    onChange(tabs[next].id);
+    buttons.current[next]?.focus();
   }
 
   return (
@@ -39,12 +39,12 @@ export function TabBar<T extends string>({
       className="flex flex-wrap gap-1 rounded-xl border border-border bg-surface-raised p-1"
     >
       {tabs.map(({ id, label: tabLabel }, index) => {
-        const selected = active === id
+        const selected = active === id;
         return (
           <button
             key={id}
             ref={(el) => {
-              buttons.current[index] = el
+              buttons.current[index] = el;
             }}
             type="button"
             role="tab"
@@ -60,8 +60,8 @@ export function TabBar<T extends string>({
           >
             {tabLabel}
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

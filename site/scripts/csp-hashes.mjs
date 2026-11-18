@@ -28,14 +28,16 @@ function* htmlFiles(dir) {
   }
 }
 
-const META = /<meta http-equiv="content-security-policy" content="([^"]*)"\s*\/?>/i;
+const META =
+  /<meta http-equiv="content-security-policy" content="([^"]*)"\s*\/?>/i;
 const INLINE = /<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi;
 let pages = 0;
 let added = 0;
 const missing = [];
 let typedoc = 0;
 
-const hashOf = (body) => `'sha256-${createHash('sha256').update(body, 'utf8').digest('base64')}'`;
+const hashOf = (body) =>
+  `'sha256-${createHash('sha256').update(body, 'utf8').digest('base64')}'`;
 
 for (const file of htmlFiles(dist)) {
   const rel = relative(dist, file).replace(/\\/g, '/');
@@ -43,12 +45,21 @@ for (const file of htmlFiles(dist)) {
   if (rel.startsWith('api/') && !META.test(html)) {
     const hashes = new Set();
     for (const [, attrs, body] of html.matchAll(INLINE)) {
-      if (!/type="application\/(ld\+)?json"/.test(attrs)) hashes.add(hashOf(body));
+      if (!/type="application\/(ld\+)?json"/.test(attrs))
+        hashes.add(hashOf(body));
     }
-    const policy = `script-src 'self' ${[...hashes].join(' ')}; style-src 'self' 'unsafe-inline'`.replace(/ ;/, ';');
+    const policy =
+      `script-src 'self' ${[...hashes].join(' ')}; style-src 'self' 'unsafe-inline'`.replace(
+        / ;/,
+        ';',
+      );
     const tag = `<meta http-equiv="content-security-policy" content="${policy.replace(/'/g, '&#39;')}">`;
-    if (!/<head>/i.test(html)) throw new Error(`csp-hashes: no <head> in ${rel}`);
-    writeFileSync(file, html.replace(/<head>/i, (h) => `${h}${tag}`));
+    if (!/<head>/i.test(html))
+      throw new Error(`csp-hashes: no <head> in ${rel}`);
+    writeFileSync(
+      file,
+      html.replace(/<head>/i, (h) => `${h}${tag}`),
+    );
     typedoc++;
     continue;
   }
@@ -69,8 +80,14 @@ for (const file of htmlFiles(dist)) {
     }
   }
   if (extra.length) {
-    const updated = policy.replace(/script-src ([^;]*)/, (m) => `${m} ${extra.join(' ')}`);
-    html = html.replace(meta[0], meta[0].replace(meta[1], updated.replace(/'/g, '&#39;')));
+    const updated = policy.replace(
+      /script-src ([^;]*)/,
+      (m) => `${m} ${extra.join(' ')}`,
+    );
+    html = html.replace(
+      meta[0],
+      meta[0].replace(meta[1], updated.replace(/'/g, '&#39;')),
+    );
     writeFileSync(file, html);
     added += extra.length;
   }
@@ -78,7 +95,11 @@ for (const file of htmlFiles(dist)) {
 }
 
 if (missing.length) {
-  console.error(`csp-hashes: no CSP meta in ${missing.length} page(s): ${missing.slice(0, 5).join(', ')}`);
+  console.error(
+    `csp-hashes: no CSP meta in ${missing.length} page(s): ${missing.slice(0, 5).join(', ')}`,
+  );
   process.exit(1);
 }
-console.log(`csp-hashes: ${pages} pages checked, ${added} script hash(es) added; CSP added to ${typedoc} API reference page(s)`);
+console.log(
+  `csp-hashes: ${pages} pages checked, ${added} script hash(es) added; CSP added to ${typedoc} API reference page(s)`,
+);

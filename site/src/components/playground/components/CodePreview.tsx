@@ -1,13 +1,14 @@
-import { toolFor, track } from '../utils/track'
-import { CopyButton } from './CopyButton'
+import { toolFor, track } from '../utils/track';
+import { CopyButton } from './CopyButton';
 
 interface CodePreviewProps {
-  code: string
-  title?: string
+  code: string;
+  title?: string;
 }
 
 export function CodePreview({ code, title = 'Usage' }: CodePreviewProps) {
-  const tool = typeof location !== 'undefined' ? toolFor(location.pathname) : undefined
+  const tool =
+    typeof location !== 'undefined' ? toolFor(location.pathname) : undefined;
 
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-code">
@@ -21,9 +22,13 @@ export function CodePreview({ code, title = 'Usage' }: CodePreviewProps) {
           onCopied={() => tool && track('code_copy', { tool })}
         />
       </div>
-      <pre tabIndex={0} aria-label={`${title} code`} className="overflow-x-auto p-4 font-mono text-sm leading-relaxed text-text-heading">
+      <pre
+        tabIndex={0}
+        aria-label={`${title} code`}
+        className="overflow-x-auto p-4 font-mono text-sm leading-relaxed text-text-heading"
+      >
         <code>{code}</code>
       </pre>
     </div>
-  )
+  );
 }

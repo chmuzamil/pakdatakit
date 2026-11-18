@@ -1,25 +1,36 @@
-import { useMemo, useState } from 'react'
-import { mapCourierStatus, normalizeCityForCourier } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { OutputRow } from '../components/OutputRow'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { escapeForCode, inputClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import { mapCourierStatus, normalizeCityForCourier } from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { OutputRow } from '../components/OutputRow';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { escapeForCode, inputClassName } from '../utils/examples';
 
-const samples = ['LHR', 'Khi', 'Pindi', 'lyallpur', 'Karachi City', 'لاہور', 'Atlantis']
+const samples = [
+  'LHR',
+  'Khi',
+  'Pindi',
+  'lyallpur',
+  'Karachi City',
+  'لاہور',
+  'Atlantis',
+];
 
 export function CourierPlayground() {
-  const [city, setCity] = useState('Pindi')
-  const [courier, setCourier] = useState('PostEx')
-  const [status, setStatus] = useState('Delivered')
+  const [city, setCity] = useState('Pindi');
+  const [courier, setCourier] = useState('PostEx');
+  const [status, setStatus] = useState('Delivered');
 
-  const normalized = useMemo(() => normalizeCityForCourier(city), [city])
-  const mapped = useMemo(() => mapCourierStatus(courier, status), [courier, status])
+  const normalized = useMemo(() => normalizeCityForCourier(city), [city]);
+  const mapped = useMemo(
+    () => mapCourierStatus(courier, status),
+    [courier, status],
+  );
 
   const code = `import { normalizeCityForCourier, mapCourierStatus } from "pakdatakit";
 
 normalizeCityForCourier("${escapeForCode(city)}"); // → ${normalized ? `"${normalized}"` : 'null'}
-mapCourierStatus("${escapeForCode(courier)}", "${escapeForCode(status)}"); // → ${mapped ? `"${mapped}"` : 'null'}`
+mapCourierStatus("${escapeForCode(courier)}", "${escapeForCode(status)}"); // → ${mapped ? `"${mapped}"` : 'null'}`;
 
   return (
     <PlaygroundShell
@@ -31,8 +42,8 @@ mapCourierStatus("${escapeForCode(courier)}", "${escapeForCode(status)}"); // �
             role="note"
             className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-text-heading"
           >
-            <strong>Experimental.</strong> The status mapping may change in a minor release as more
-            couriers' lists are added.
+            <strong>Experimental.</strong> The status mapping may change in a
+            minor release as more couriers' lists are added.
           </div>
           <Card title="City as typed">
             <label htmlFor="courier-city" className="sr-only">
@@ -58,8 +69,14 @@ mapCourierStatus("${escapeForCode(courier)}", "${escapeForCode(status)}"); // �
               ))}
             </div>
           </Card>
-          <Card title="Courier status" description="PostEx order statuses and tracking codes, and Leopards' returns.">
-            <label htmlFor="courier-name" className="mb-1 block text-xs text-text-muted">
+          <Card
+            title="Courier status"
+            description="PostEx order statuses and tracking codes, and Leopards' returns."
+          >
+            <label
+              htmlFor="courier-name"
+              className="mb-1 block text-xs text-text-muted"
+            >
               Courier
             </label>
             <select
@@ -68,11 +85,16 @@ mapCourierStatus("${escapeForCode(courier)}", "${escapeForCode(status)}"); // �
               onChange={(e) => setCourier(e.target.value)}
               className={inputClassName}
             >
-              {['PostEx', 'Leopards', 'TCS', 'M&P', 'Trax', 'BlueEx'].map((c) => (
-                <option key={c}>{c}</option>
-              ))}
+              {['PostEx', 'Leopards', 'TCS', 'M&P', 'Trax', 'BlueEx'].map(
+                (c) => (
+                  <option key={c}>{c}</option>
+                ),
+              )}
             </select>
-            <label htmlFor="courier-status" className="mt-3 mb-1 block text-xs text-text-muted">
+            <label
+              htmlFor="courier-status"
+              className="mt-3 mb-1 block text-xs text-text-muted"
+            >
               Status as the courier reports it
             </label>
             <input
@@ -87,11 +109,20 @@ mapCourierStatus("${escapeForCode(courier)}", "${escapeForCode(status)}"); // �
       }
       output={
         <Card title="Result">
-          <OutputRow label="City" value={normalized ?? ''} mono={false} emptyText="Not recognised" />
-          <OutputRow label="Status" value={mapped ?? ''} emptyText="Not recognised" />
+          <OutputRow
+            label="City"
+            value={normalized ?? ''}
+            mono={false}
+            emptyText="Not recognised"
+          />
+          <OutputRow
+            label="Status"
+            value={mapped ?? ''}
+            emptyText="Not recognised"
+          />
         </Card>
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }

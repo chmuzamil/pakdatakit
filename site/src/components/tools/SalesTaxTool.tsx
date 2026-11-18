@@ -1,14 +1,33 @@
 import { useEffect, useId, useRef } from 'react';
 import { calculateSalesTax, getSalesTaxRate } from 'pakdatakit/salestax';
-import { PrivacyNote, Rows, ShareButton, rs, trackTool, useHashState } from '../widgets/common';
+import {
+  PrivacyNote,
+  Rows,
+  ShareButton,
+  rs,
+  trackTool,
+  useHashState,
+} from '../widgets/common';
 
-const PROVINCES = ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad'];
+const PROVINCES = [
+  'Punjab',
+  'Sindh',
+  'Khyber Pakhtunkhwa',
+  'Balochistan',
+  'Islamabad',
+];
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
   const id = useId();
   const [state, set] = useHashState(
-    { amount: '1000', kind: 'goods', province: 'Punjab', inclusive: '', date: '' },
+    {
+      amount: '1000',
+      kind: 'goods',
+      province: 'Punjab',
+      inclusive: '',
+      date: '',
+    },
     true,
   );
   const tracked = useRef(false);
@@ -45,7 +64,12 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
           </div>
           <div className="pdk-field">
             <label htmlFor={`${id}-k`}>Goods or services</label>
-            <select id={`${id}-k`} className="pdk-select" value={kind} onChange={(e) => set({ kind: e.target.value })}>
+            <select
+              id={`${id}-k`}
+              className="pdk-select"
+              value={kind}
+              onChange={(e) => set({ kind: e.target.value })}
+            >
               <option value="goods">Goods (federal, FBR)</option>
               <option value="services">Services (provincial)</option>
             </select>
@@ -53,7 +77,12 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
           {kind === 'services' ? (
             <div className="pdk-field">
               <label htmlFor={`${id}-p`}>Province</label>
-              <select id={`${id}-p`} className="pdk-select" value={state.province} onChange={(e) => set({ province: e.target.value })}>
+              <select
+                id={`${id}-p`}
+                className="pdk-select"
+                value={state.province}
+                onChange={(e) => set({ province: e.target.value })}
+              >
                 {PROVINCES.map((p) => (
                   <option key={p}>{p}</option>
                 ))}
@@ -68,7 +97,9 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
               min="2019-07-01"
               className="pdk-input"
               value={date}
-              onChange={(e) => set({ date: e.target.value === today() ? '' : e.target.value })}
+              onChange={(e) =>
+                set({ date: e.target.value === today() ? '' : e.target.value })
+              }
             />
           </div>
         </div>
@@ -95,19 +126,23 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
       </div>
       {rate ? (
         <p className="pdk-note">
-          <strong>Law:</strong> {rate.law}. <strong>In force:</strong> {rate.from} to {rate.to ?? 'now'}.{' '}
-          <strong>Source:</strong>{' '}
+          <strong>Law:</strong> {rate.law}. <strong>In force:</strong>{' '}
+          {rate.from} to {rate.to ?? 'now'}. <strong>Source:</strong>{' '}
           <a href={rate.source} rel="noopener">
             {rate.source}
           </a>
           . <strong>Checked:</strong> {dataChecked}.
         </p>
       ) : (
-        <p className="pdk-note">No standard rate for that combination (dates before 1 July 2019, or goods in AJK or Gilgit-Baltistan).</p>
+        <p className="pdk-note">
+          No standard rate for that combination (dates before 1 July 2019, or
+          goods in AJK or Gilgit-Baltistan).
+        </p>
       )}
       <p className="pdk-note">
-        Standard rates only. Reduced rates, exemptions, the Third Schedule (retail price) and further tax are not
-        included. Amounts are exact to the paisa. Not tax advice.
+        Standard rates only. Reduced rates, exemptions, the Third Schedule
+        (retail price) and further tax are not included. Amounts are exact to
+        the paisa. Not tax advice.
       </p>
       <PrivacyNote />
     </div>

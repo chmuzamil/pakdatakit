@@ -1,10 +1,10 @@
-import { CopyButton } from './CopyButton'
+import { CopyButton } from './CopyButton';
 
 interface ResultListProps {
-  label: string
-  items: string[]
-  emptyText?: string
-  maxHeight?: string
+  label: string;
+  items: string[];
+  emptyText?: string;
+  maxHeight?: string;
 }
 
 export function ResultList({
@@ -19,7 +19,9 @@ export function ResultList({
         <span className="text-sm text-text-muted">
           {label} ({items.length})
         </span>
-        {items.length > 0 && <CopyButton value={items.join(', ')} label="Copy all" />}
+        {items.length > 0 && (
+          <CopyButton value={items.join(', ')} label="Copy all" />
+        )}
       </div>
       {items.length === 0 ? (
         <p className="text-sm text-text-muted">{emptyText}</p>
@@ -41,5 +43,5 @@ export function ResultList({
         </ul>
       )}
     </div>
-  )
+  );
 }

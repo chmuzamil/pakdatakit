@@ -19,9 +19,12 @@ const out = process.argv[2];
 if (!out) throw new Error('usage: node scripts/docs-stub.mjs <out-dir>');
 
 const SITE = 'https://pakdatakit.dev';
-const map = JSON.parse(readFileSync(join(root, 'site', 'api-redirects.json'), 'utf8'));
+const map = JSON.parse(
+  readFileSync(join(root, 'site', 'api-redirects.json'), 'utf8'),
+);
 
-const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const esc = (s) =>
+  s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const page = (to) => {
   const url = esc(new URL(to, SITE).href);
   return `<!doctype html>
@@ -48,4 +51,6 @@ for (const [from, to] of Object.entries(map)) {
 }
 writeFileSync(join(out, '404.html'), page('/api/typescript/'));
 writeFileSync(join(out, '.nojekyll'), '');
-console.log(`docs-stub: ${Object.keys(map).length} redirect pages written to ${out}`);
+console.log(
+  `docs-stub: ${Object.keys(map).length} redirect pages written to ${out}`,
+);

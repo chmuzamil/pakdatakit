@@ -6,27 +6,21 @@
       "id": "validate",
       "title": "Validate a mobile number",
       "fn": "validatePhone",
-      "args": [
-        "0300-1234567"
-      ],
+      "args": ["0300-1234567"],
       "expected": true
     },
     {
       "id": "format",
       "title": "Format as E.164",
       "fn": "formatPhone",
-      "args": [
-        "0300 1234567"
-      ],
+      "args": ["0300 1234567"],
       "expected": "+923001234567"
     },
     {
       "id": "analyze",
       "title": "Analyze a number",
       "fn": "analyzePhone",
-      "args": [
-        "+92 345 1234567"
-      ],
+      "args": ["+92 345 1234567"],
       "expected": {
         "valid": true,
         "formatted": "+923451234567",
@@ -37,9 +31,7 @@
       "id": "network",
       "title": "Original network",
       "fn": "getNetwork",
-      "args": [
-        "03211234567"
-      ],
+      "args": ["03211234567"],
       "expected": "Jazz"
     }
   ]

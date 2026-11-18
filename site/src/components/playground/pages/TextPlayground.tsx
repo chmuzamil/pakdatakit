@@ -1,43 +1,47 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
 import {
   normalizeRomanUrdu,
   normalizeText,
   toEnglishDigits,
   toUrduDigits,
-} from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { OutputRow } from '../components/OutputRow'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { TabBar } from '../components/TabBar'
-import { escapeForCode, examples, inputClassName } from '../utils/examples'
+} from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { OutputRow } from '../components/OutputRow';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { TabBar } from '../components/TabBar';
+import { escapeForCode, examples, inputClassName } from '../utils/examples';
 
-type TextMode = 'normalize' | 'roman' | 'digits'
+type TextMode = 'normalize' | 'roman' | 'digits';
 
 export function TextPlayground() {
-  const [mode, setMode] = useState<TextMode>('normalize')
+  const [mode, setMode] = useState<TextMode>('normalize');
   const [input, setInput] = useState<string>(
-    mode === 'roman' ? examples.romanUrdu : mode === 'digits' ? '0300 ۱۲۳۴۵۶۷' : examples.text,
-  )
+    mode === 'roman'
+      ? examples.romanUrdu
+      : mode === 'digits'
+        ? '0300 ۱۲۳۴۵۶۷'
+        : examples.text,
+  );
 
   const output = useMemo(() => {
-    if (!input.trim()) return ''
+    if (!input.trim()) return '';
     switch (mode) {
       case 'normalize':
-        return normalizeText(input)
+        return normalizeText(input);
       case 'roman':
-        return normalizeRomanUrdu(input)
+        return normalizeRomanUrdu(input);
       case 'digits':
-        return toUrduDigits(input)
+        return toUrduDigits(input);
       default:
-        return ''
+        return '';
     }
-  }, [input, mode])
+  }, [input, mode]);
 
   const englishDigits = useMemo(() => {
-    if (!input.trim() || mode !== 'digits') return ''
-    return toEnglishDigits(input)
-  }, [input, mode])
+    if (!input.trim() || mode !== 'digits') return '';
+    return toEnglishDigits(input);
+  }, [input, mode]);
 
   const codeByMode: Record<TextMode, string> = {
     normalize: `import { normalizeText } from "pakdatakit";
@@ -50,13 +54,13 @@ normalizeRomanUrdu("${escapeForCode(input || examples.romanUrdu)}"); // → "${e
 
 toUrduDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}");    // → "${escapeForCode(output || '')}"
 toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${escapeForCode(englishDigits || '')}"`,
-  }
+  };
 
   function handleModeChange(next: TextMode) {
-    setMode(next)
-    if (next === 'normalize') setInput(examples.text)
-    else if (next === 'roman') setInput(examples.romanUrdu)
-    else setInput('0300 ۱۲۳۴۵۶۷')
+    setMode(next);
+    if (next === 'normalize') setInput(examples.text);
+    else if (next === 'roman') setInput(examples.romanUrdu);
+    else setInput('0300 ۱۲۳۴۵۶۷');
   }
 
   return (
@@ -83,7 +87,11 @@ toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${e
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={
-              mode === 'roman' ? 'ap kia ker rhe ho' : mode === 'digits' ? '0300 ۱۲۳۴۵۶۷' : '  Hello   World  '
+              mode === 'roman'
+                ? 'ap kia ker rhe ho'
+                : mode === 'digits'
+                  ? '0300 ۱۲۳۴۵۶۷'
+                  : '  Hello   World  '
             }
             className={`${inputClassName} mt-3`}
           />
@@ -100,7 +108,11 @@ toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${e
             </>
           ) : (
             <OutputRow
-              label={mode === 'normalize' ? 'normalizeText()' : 'normalizeRomanUrdu()'}
+              label={
+                mode === 'normalize'
+                  ? 'normalizeText()'
+                  : 'normalizeRomanUrdu()'
+              }
               value={output}
               mono={false}
             />
@@ -109,5 +121,5 @@ toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${e
       }
       code={<CodePreview code={codeByMode[mode]} />}
     />
-  )
+  );
 }

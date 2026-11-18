@@ -2,7 +2,13 @@ import { useId, useState } from 'react';
 import { calculateSalesTax, getSalesTaxRate } from 'pakdatakit/salestax';
 import { Rows, rs } from './common';
 
-const PROVINCES = ['Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 'Balochistan', 'Islamabad'];
+const PROVINCES = [
+  'Punjab',
+  'Sindh',
+  'Khyber Pakhtunkhwa',
+  'Balochistan',
+  'Islamabad',
+];
 
 export default function SalesTaxWidget() {
   const id = useId();
@@ -27,7 +33,12 @@ export default function SalesTaxWidget() {
         </div>
         <div className="pdk-field">
           <label htmlFor={`${id}-w`}>Goods, or services in</label>
-          <select id={`${id}-w`} className="pdk-select" value={where} onChange={(e) => setWhere(e.target.value)}>
+          <select
+            id={`${id}-w`}
+            className="pdk-select"
+            value={where}
+            onChange={(e) => setWhere(e.target.value)}
+          >
             <option value="goods">Goods (FBR)</option>
             {PROVINCES.map((p) => (
               <option key={p} value={p}>

@@ -1,41 +1,41 @@
-import { useMemo, useState } from 'react'
-import { amountInWords, formatLakh, formatPKR } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { CopyButton } from '../components/CopyButton'
-import { OutputRow } from '../components/OutputRow'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { examples, monoInputClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import { amountInWords, formatLakh, formatPKR } from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { CopyButton } from '../components/CopyButton';
+import { OutputRow } from '../components/OutputRow';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { examples, monoInputClassName } from '../utils/examples';
 
 export function CurrencyPlayground() {
-  const [input, setInput] = useState(String(examples.amount))
+  const [input, setInput] = useState(String(examples.amount));
 
   const amount = useMemo(() => {
-    const parsed = Number(input.replace(/,/g, ''))
-    return Number.isFinite(parsed) ? parsed : NaN
-  }, [input])
+    const parsed = Number(input.replace(/,/g, ''));
+    return Number.isFinite(parsed) ? parsed : NaN;
+  }, [input]);
 
   const pkr = useMemo(() => {
-    if (!input.trim() || Number.isNaN(amount)) return ''
-    return formatPKR(amount)
-  }, [input, amount])
+    if (!input.trim() || Number.isNaN(amount)) return '';
+    return formatPKR(amount);
+  }, [input, amount]);
 
   const lakh = useMemo(() => {
-    if (!input.trim() || Number.isNaN(amount)) return ''
-    return formatLakh(amount)
-  }, [input, amount])
+    if (!input.trim() || Number.isNaN(amount)) return '';
+    return formatLakh(amount);
+  }, [input, amount]);
 
   const words = useMemo(() => {
-    if (!input.trim() || Number.isNaN(amount) || amount < 0) return null
+    if (!input.trim() || Number.isNaN(amount) || amount < 0) return null;
     return {
       en: amountInWords(amount),
       cheque: amountInWords(amount, { cheque: true }),
       ur: amountInWords(amount, { language: 'ur' }),
-    }
-  }, [input, amount])
+    };
+  }, [input, amount]);
 
-  const hasError = input.trim() !== '' && Number.isNaN(amount)
-  const shown = Number.isNaN(amount) ? 0 : amount
+  const hasError = input.trim() !== '' && Number.isNaN(amount);
+  const shown = Number.isNaN(amount) ? 0 : amount;
 
   const code = `import { formatPKR, formatLakh, amountInWords } from "pakdatakit";
 
@@ -50,7 +50,7 @@ amountInWords(${shown}, { cheque: true });
 amountInWords(${shown}, { language: "ur" });
 // → "${words.ur}"`
     : '// amountInWords() needs an amount of zero or more'
-}`
+}`;
 
   return (
     <PlaygroundShell
@@ -71,7 +71,9 @@ amountInWords(${shown}, { language: "ur" });
             className={`${monoInputClassName} ${hasError ? 'border-error hover:border-error' : ''}`}
           />
           {hasError ? (
-            <p className="mt-2 text-xs text-error">Enter a valid numeric amount.</p>
+            <p className="mt-2 text-xs text-error">
+              Enter a valid numeric amount.
+            </p>
           ) : (
             <p className="mt-2 text-xs text-text-muted">
               Try: 150000 · 2500000 · 10000000
@@ -82,9 +84,13 @@ amountInWords(${shown}, { language: "ur" });
       output={
         <Card title="Result">
           {!input.trim() ? (
-            <p className="text-sm text-text-muted">Enter an amount to format.</p>
+            <p className="text-sm text-text-muted">
+              Enter an amount to format.
+            </p>
           ) : hasError ? (
-            <p className="text-sm text-error">Invalid number — check your input.</p>
+            <p className="text-sm text-error">
+              Invalid number — check your input.
+            </p>
           ) : (
             <>
               <OutputRow label="formatPKR()" value={pkr} />
@@ -105,10 +111,18 @@ amountInWords(${shown}, { language: "ur" });
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }
 
-function WordsBlock({ label, text, rtl = false }: { label: string; text: string; rtl?: boolean }) {
+function WordsBlock({
+  label,
+  text,
+  rtl = false,
+}: {
+  label: string;
+  text: string;
+  rtl?: boolean;
+}) {
   return (
     <div>
       <div className="mb-1 flex items-center justify-between">
@@ -123,5 +137,5 @@ function WordsBlock({ label, text, rtl = false }: { label: string; text: string;
         {text}
       </p>
     </div>
-  )
+  );
 }

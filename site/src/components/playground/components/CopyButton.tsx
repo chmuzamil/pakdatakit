@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { copyToClipboard } from '../utils/examples'
+import { useState } from 'react';
+import { copyToClipboard } from '../utils/examples';
 
 interface CopyButtonProps {
-  value: string
-  label?: string
+  value: string;
+  label?: string;
   /** Show only the icon; `label` becomes the accessible name. */
-  iconOnly?: boolean
-  className?: string
+  iconOnly?: boolean;
+  className?: string;
   /** Called after a successful copy. */
-  onCopied?: () => void
+  onCopied?: () => void;
 }
 
 export function CopyButton({
@@ -18,16 +18,21 @@ export function CopyButton({
   className = '',
   onCopied,
 }: CopyButtonProps) {
-  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
 
   async function handleCopy() {
-    const copied = await copyToClipboard(value)
-    setStatus(copied ? 'copied' : 'failed')
-    if (copied) onCopied?.()
-    window.setTimeout(() => setStatus('idle'), 1500)
+    const copied = await copyToClipboard(value);
+    setStatus(copied ? 'copied' : 'failed');
+    if (copied) onCopied?.();
+    window.setTimeout(() => setStatus('idle'), 1500);
   }
 
-  const text = status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : label
+  const text =
+    status === 'copied'
+      ? 'Copied'
+      : status === 'failed'
+        ? 'Copy failed'
+        : label;
 
   return (
     <>
@@ -49,28 +54,52 @@ export function CopyButton({
         {!iconOnly && text}
       </button>
       <span role="status" className="sr-only">
-        {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}
+        {status === 'copied'
+          ? 'Copied'
+          : status === 'failed'
+            ? 'Copy failed'
+            : ''}
       </span>
     </>
-  )
+  );
 }
 
 function CopyIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect
+        x="9"
+        y="9"
+        width="13"
+        height="13"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
       <path
         d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
         stroke="currentColor"
         strokeWidth="2"
       />
     </svg>
-  )
+  );
 }
 
 function CheckIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M20 6 9 17l-5-5"
         stroke="currentColor"
@@ -79,5 +108,5 @@ function CheckIcon() {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }

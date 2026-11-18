@@ -6,27 +6,21 @@
       "id": "validate",
       "title": "Validate a CNIC",
       "fn": "validateCNIC",
-      "args": [
-        "35202-1234567-1"
-      ],
+      "args": ["35202-1234567-1"],
       "expected": true
     },
     {
       "id": "validate-bad",
       "title": "An invalid province code",
       "fn": "validateCNIC",
-      "args": [
-        "05202-1234567-1"
-      ],
+      "args": ["05202-1234567-1"],
       "expected": false
     },
     {
       "id": "info",
       "title": "Province and gender",
       "fn": "getCNICInfo",
-      "args": [
-        "35202-1234567-1"
-      ],
+      "args": ["35202-1234567-1"],
       "expected": {
         "digits": "3520212345671",
         "formatted": "35202-1234567-1",

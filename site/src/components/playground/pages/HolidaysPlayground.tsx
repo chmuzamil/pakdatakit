@@ -1,47 +1,47 @@
-import { useMemo, useState } from 'react'
-import { getPakistanHolidays, isPakistanHoliday } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { ResultBadge } from '../components/ResultBadge'
-import { inputClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import { getPakistanHolidays, isPakistanHoliday } from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { ResultBadge } from '../components/ResultBadge';
+import { inputClassName } from '../utils/examples';
 
-const currentYear = new Date().getFullYear()
-const years = Array.from({ length: 9 }, (_, i) => currentYear - 6 + i)
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 9 }, (_, i) => currentYear - 6 + i);
 
 function formatDay(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number)
+  const [y, m, d] = iso.split('-').map(Number);
   return new Date(y!, m! - 1, d!).toLocaleDateString('en-GB', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
-  })
+  });
 }
 
 export function HolidaysPlayground() {
-  const [year, setYear] = useState(currentYear)
-  const [christian, setChristian] = useState(false)
+  const [year, setYear] = useState(currentYear);
+  const [christian, setChristian] = useState(false);
   const [checkDate, setCheckDate] = useState(() => {
-    const now = new Date()
+    const now = new Date();
     return [now.getFullYear(), now.getMonth() + 1, now.getDate()]
       .map((n, i) => String(n).padStart(i === 0 ? 4 : 2, '0'))
-      .join('-')
-  })
+      .join('-');
+  });
 
   const holidays = useMemo(
     () => getPakistanHolidays(year, { includeChristianHolidays: christian }),
     [year, christian],
-  )
+  );
   const isHoliday = useMemo(
     () => (checkDate ? isPakistanHoliday(checkDate) : false),
     [checkDate],
-  )
+  );
 
   const code = `import { getPakistanHolidays, isPakistanHoliday } from "pakdatakit";
 
 getPakistanHolidays(${year}${christian ? ', { includeChristianHolidays: true }' : ''});
 // → ${holidays.length} holidays
-isPakistanHoliday("${checkDate}"); // → ${isHoliday}`
+isPakistanHoliday("${checkDate}"); // → ${isHoliday}`;
 
   return (
     <PlaygroundShell
@@ -81,7 +81,11 @@ isPakistanHoliday("${checkDate}"); // → ${isHoliday}`
             />
             {checkDate && (
               <div className="mt-3">
-                <ResultBadge valid={isHoliday} validLabel="Public holiday" invalidLabel="Working day" />
+                <ResultBadge
+                  valid={isHoliday}
+                  validLabel="Public holiday"
+                  invalidLabel="Working day"
+                />
               </div>
             )}
           </Card>
@@ -111,13 +115,13 @@ isPakistanHoliday("${checkDate}"); // → ${isHoliday}`
           </ul>
           {holidays.some((h) => h.estimated) && (
             <p className="mt-3 text-xs leading-relaxed text-text-muted">
-              Estimated dates come from the Hijri calendar. The actual dates depend on the
-              moon-sighting announcement.
+              Estimated dates come from the Hijri calendar. The actual dates
+              depend on the moon-sighting announcement.
             </p>
           )}
         </Card>
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }

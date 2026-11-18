@@ -15,7 +15,15 @@
  *     its own on the new site and had to fall back to its module page.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,32 +57,51 @@ const FIXED = {
 const tmp = mkdtempSync(join(tmpdir(), 'pdk-old-api-'));
 let oldPages;
 try {
-  execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['typedoc', '--out', tmp, '--logLevel', 'Error'], {
-    cwd: root,
-    stdio: ['ignore', 'ignore', 'inherit'],
-    shell: process.platform === 'win32',
-  });
+  execFileSync(
+    process.platform === 'win32' ? 'npx.cmd' : 'npx',
+    ['typedoc', '--out', tmp, '--logLevel', 'Error'],
+    {
+      cwd: root,
+      stdio: ['ignore', 'ignore', 'inherit'],
+      shell: process.platform === 'win32',
+    },
+  );
   const walk = (dir) =>
     readdirSync(dir).flatMap((n) => {
       const p = join(dir, n);
-      return statSync(p).isDirectory() ? walk(p) : n.endsWith('.html') ? [relative(tmp, p).replace(/\\/g, '/')] : [];
+      return statSync(p).isDirectory()
+        ? walk(p)
+        : n.endsWith('.html')
+          ? [relative(tmp, p).replace(/\\/g, '/')]
+          : [];
     });
   oldPages = walk(tmp).sort();
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
-if (oldPages.length < 100) throw new Error(`api-redirects: TypeDoc produced only ${oldPages.length} pages`);
+if (oldPages.length < 100)
+  throw new Error(
+    `api-redirects: TypeDoc produced only ${oldPages.length} pages`,
+  );
 
 // ---- The new pages: starlight-typedoc's generated content (written by `astro build`).
 const content = join(site, 'src', 'content', 'docs', 'api', 'typescript');
-if (!existsSync(content)) throw new Error('api-redirects: run `npm run build` in site/ first (no generated API pages)');
+if (!existsSync(content))
+  throw new Error(
+    'api-redirects: run `npm run build` in site/ first (no generated API pages)',
+  );
 const newPages = new Set(
   (function walk(dir) {
     return readdirSync(dir).flatMap((n) => {
       const p = join(dir, n);
       if (statSync(p).isDirectory()) return walk(p);
-      const rel = relative(content, p).replace(/\\/g, '/').replace(/\.mdx?$/, '').toLowerCase(); // Starlight lowercases slugs
-      return [API + (rel === 'index' ? '' : rel.replace(/(^|\/)index$/, '') + '/')];
+      const rel = relative(content, p)
+        .replace(/\\/g, '/')
+        .replace(/\.mdx?$/, '')
+        .toLowerCase(); // Starlight lowercases slugs
+      return [
+        API + (rel === 'index' ? '' : rel.replace(/(^|\/)index$/, '') + '/'),
+      ];
     });
   })(content),
 );
@@ -92,7 +119,7 @@ for (const page of oldPages) {
   if (dir === 'modules' && name) {
     const target = `${API}${name.replace(/_/g, '/')}/`;
     if (newPages.has(target)) redirects[page] = target;
-    else fallbacks.push(page), (redirects[page] = API);
+    else (fallbacks.push(page), (redirects[page] = API));
     continue;
   }
   if (KIND[dir] && name) {
@@ -115,7 +142,9 @@ const json = `${JSON.stringify(redirects, null, 2)}\n`;
 
 if (!check) {
   writeFileSync(out, json);
-  console.log(`api-redirects: ${oldPages.length} old pages mapped (${fallbacks.length} fell back) → ${relative(root, out)}`);
+  console.log(
+    `api-redirects: ${oldPages.length} old pages mapped (${fallbacks.length} fell back) → ${relative(root, out)}`,
+  );
   if (fallbacks.length) console.log(`  fell back: ${fallbacks.join(', ')}`);
   process.exit(0);
 }
@@ -123,13 +152,21 @@ if (!check) {
 // ---- --check
 const problems = [];
 if (!existsSync(out) || readFileSync(out, 'utf8') !== json)
-  problems.push('site/api-redirects.json is stale: run `node scripts/api-redirects.mjs` in site/ and commit it');
-for (const page of fallbacks) problems.push(`no new page for ${page} (fell back to ${redirects[page]})`);
+  problems.push(
+    'site/api-redirects.json is stale: run `node scripts/api-redirects.mjs` in site/ and commit it',
+  );
+for (const page of fallbacks)
+  problems.push(`no new page for ${page} (fell back to ${redirects[page]})`);
 for (const [from, to] of Object.entries(redirects)) {
-  if (!existsSync(join(dist, to, 'index.html'))) problems.push(`${from} → ${to}: no such page in dist/`);
+  if (!existsSync(join(dist, to, 'index.html')))
+    problems.push(`${from} → ${to}: no such page in dist/`);
 }
 if (problems.length) {
-  console.error(`api-redirects: ${problems.length} problem(s):\n  ${problems.slice(0, 30).join('\n  ')}`);
+  console.error(
+    `api-redirects: ${problems.length} problem(s):\n  ${problems.slice(0, 30).join('\n  ')}`,
+  );
   process.exit(1);
 }
-console.log(`api-redirects: all ${oldPages.length} old URLs map to pages that exist`);
+console.log(
+  `api-redirects: all ${oldPages.length} old URLs map to pages that exist`,
+);

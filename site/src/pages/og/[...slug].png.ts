@@ -22,29 +22,58 @@ interface Page {
 }
 
 const TOOLS: Record<string, Page> = {
-  'tools/cnic': { title: 'CNIC format checker and decoder', description: 'Format, province and gender. Runs in your browser. Not NADRA verification.' },
-  'tools/iban': { title: 'Pakistan IBAN checker and bank lookup', description: 'Mod-97 check digits and the bank from its code. Runs in your browser.' },
-  'tools/salary-tax': { title: 'Salary tax calculator 2026-27', description: 'Tax year 2027 salaried rates from the Finance Act 2026, every slab shown.' },
-  'tools/sales-tax': { title: 'Sales tax calculator', description: 'FBR goods and provincial services (PRA, SRB, KPRA, BRA, ICT), by date.' },
-  playground: { title: 'Playground', description: 'Every pakdatakit module, live in your browser.' },
+  'tools/cnic': {
+    title: 'CNIC format checker and decoder',
+    description:
+      'Format, province and gender. Runs in your browser. Not NADRA verification.',
+  },
+  'tools/iban': {
+    title: 'Pakistan IBAN checker and bank lookup',
+    description:
+      'Mod-97 check digits and the bank from its code. Runs in your browser.',
+  },
+  'tools/salary-tax': {
+    title: 'Salary tax calculator 2026-27',
+    description:
+      'Tax year 2027 salaried rates from the Finance Act 2026, every slab shown.',
+  },
+  'tools/sales-tax': {
+    title: 'Sales tax calculator',
+    description:
+      'FBR goods and provincial services (PRA, SRB, KPRA, BRA, ICT), by date.',
+  },
+  playground: {
+    title: 'Playground',
+    description: 'Every pakdatakit module, live in your browser.',
+  },
 };
 
 export const getStaticPaths = (async () => {
   const docs = await getCollection('docs');
-  const pages: { params: { slug: string }; props: Page }[] = docs.map((entry) => ({
-    params: { slug: entry.id === '' ? 'index' : entry.id },
-    props: { title: entry.data.title, description: entry.data.description ?? '' },
-  }));
-  for (const [slug, page] of Object.entries(TOOLS)) pages.push({ params: { slug }, props: page });
+  const pages: { params: { slug: string }; props: Page }[] = docs.map(
+    (entry) => ({
+      params: { slug: entry.id === '' ? 'index' : entry.id },
+      props: {
+        title: entry.data.title,
+        description: entry.data.description ?? '',
+      },
+    }),
+  );
+  for (const [slug, page] of Object.entries(TOOLS))
+    pages.push({ params: { slug }, props: page });
   for (const tool of registry)
     pages.push({
       params: { slug: `playground/${tool.slug}` },
-      props: { title: `${tool.label} · Playground`, description: tool.description },
+      props: {
+        title: `${tool.label} · Playground`,
+        description: tool.description,
+      },
     });
   return pages;
 }) satisfies GetStaticPaths;
 
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /** Greedy word wrap by character count (good enough for these fonts). */
 function wrap(text: string, max: number, lines: number): string[] {
@@ -58,7 +87,8 @@ function wrap(text: string, max: number, lines: number): string[] {
     } else line = `${line} ${word}`;
   }
   if (out.length < lines && line.trim()) out.push(line.trim());
-  if (out.length === lines && text.length > out.join(' ').length) out[lines - 1] = out[lines - 1].replace(/\W*$/, '…');
+  if (out.length === lines && text.length > out.join(' ').length)
+    out[lines - 1] = out[lines - 1].replace(/\W*$/, '…');
   return out;
 }
 
@@ -86,7 +116,11 @@ function svg({ title, description }: Page): string {
 export const GET: APIRoute = ({ props }) => {
   const png = new Resvg(svg(props as Page), {
     fitTo: { mode: 'width', value: 1200 },
-    font: { fontFiles: FONTS, loadSystemFonts: false, defaultFontFamily: 'Inter' },
+    font: {
+      fontFiles: FONTS,
+      loadSystemFonts: false,
+      defaultFontFamily: 'Inter',
+    },
   })
     .render()
     .asPng();

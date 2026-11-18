@@ -5,13 +5,27 @@ import {
   getSalaryTaxSlabs,
   getSalaryTaxYears,
 } from 'pakdatakit/incometax';
-import { PrivacyNote, Rows, ShareButton, rs, trackTool, useHashState } from '../widgets/common';
+import {
+  PrivacyNote,
+  Rows,
+  ShareButton,
+  rs,
+  trackTool,
+  useHashState,
+} from '../widgets/common';
 
 const YEARS = getSalaryTaxYears();
 
-export default function SalaryTaxTool({ dataChecked }: { dataChecked: string }) {
+export default function SalaryTaxTool({
+  dataChecked,
+}: {
+  dataChecked: string;
+}) {
   const id = useId();
-  const [state, set] = useHashState({ salary: '150000', per: 'month', year: '2027' }, true);
+  const [state, set] = useHashState(
+    { salary: '150000', per: 'month', year: '2027' },
+    true,
+  );
   const tracked = useRef(false);
   const year = Number(state.year);
   const amount = Number(state.salary.replace(/[,\s]/g, ''));
@@ -21,7 +35,10 @@ export default function SalaryTaxTool({ dataChecked }: { dataChecked: string }) 
       : calculateSalaryTax(amount, { taxYear: year });
   const table = getSalaryTaxSlabs(year);
   useEffect(() => {
-    if (!tracked.current && (state.salary !== '150000' || state.year !== '2027')) {
+    if (
+      !tracked.current &&
+      (state.salary !== '150000' || state.year !== '2027')
+    ) {
       tracked.current = true;
       trackTool('salary-tax');
     }
@@ -43,14 +60,24 @@ export default function SalaryTaxTool({ dataChecked }: { dataChecked: string }) 
           </div>
           <div className="pdk-field">
             <label htmlFor={`${id}-p`}>Per</label>
-            <select id={`${id}-p`} className="pdk-select" value={state.per} onChange={(e) => set({ per: e.target.value })}>
+            <select
+              id={`${id}-p`}
+              className="pdk-select"
+              value={state.per}
+              onChange={(e) => set({ per: e.target.value })}
+            >
               <option value="month">Month</option>
               <option value="year">Year</option>
             </select>
           </div>
           <div className="pdk-field">
             <label htmlFor={`${id}-y`}>Tax year</label>
-            <select id={`${id}-y`} className="pdk-select" value={state.year} onChange={(e) => set({ year: e.target.value })}>
+            <select
+              id={`${id}-y`}
+              className="pdk-select"
+              value={state.year}
+              onChange={(e) => set({ year: e.target.value })}
+            >
               {[...YEARS].reverse().map((y) => (
                 <option key={y} value={y}>
                   {y} ({y - 1}-{String(y).slice(2)}, July to June)
@@ -64,7 +91,12 @@ export default function SalaryTaxTool({ dataChecked }: { dataChecked: string }) 
             ['Tax per year', rs(result?.tax)],
             ['Tax per month', rs(result?.monthly)],
             ['Effective rate', result ? `${result.effectiveRate}%` : null],
-            ['Slab', result ? `${rs(result.slab.fixed)} + ${result.slab.rate}% of the amount above ${rs(result.slab.over)}` : null],
+            [
+              'Slab',
+              result
+                ? `${rs(result.slab.fixed)} + ${result.slab.rate}% of the amount above ${rs(result.slab.over)}`
+                : null,
+            ],
           ]}
         />
         <ShareButton state={state} />
@@ -82,13 +114,19 @@ export default function SalaryTaxTool({ dataChecked }: { dataChecked: string }) 
             <tbody>
               {table.slabs.map((s) => (
                 <tr key={s.over}>
-                  <td className={result?.slab.over === s.over ? 'hl' : undefined}>
+                  <td
+                    className={result?.slab.over === s.over ? 'hl' : undefined}
+                  >
                     {s.upTo === null
                       ? `Above ${s.over.toLocaleString('en-PK')}`
                       : `${s.over.toLocaleString('en-PK')} to ${s.upTo.toLocaleString('en-PK')}`}
                   </td>
-                  <td className={result?.slab.over === s.over ? 'hl' : undefined}>
-                    {s.rate === 0 ? 'No tax' : `${s.fixed ? `${s.fixed.toLocaleString('en-PK')} + ` : ''}${s.rate}% of the amount above ${s.over.toLocaleString('en-PK')}`}
+                  <td
+                    className={result?.slab.over === s.over ? 'hl' : undefined}
+                  >
+                    {s.rate === 0
+                      ? 'No tax'
+                      : `${s.fixed ? `${s.fixed.toLocaleString('en-PK')} + ` : ''}${s.rate}% of the amount above ${s.over.toLocaleString('en-PK')}`}
                   </td>
                 </tr>
               ))}
@@ -104,8 +142,9 @@ export default function SalaryTaxTool({ dataChecked }: { dataChecked: string }) 
         </section>
       ) : null}
       <p className="pdk-note">
-        An estimate from the salaried rate table only: it applies when salary is more than 75% of taxable income, and
-        does not include tax credits, exemptions or allowances. Not tax advice.
+        An estimate from the salaried rate table only: it applies when salary is
+        more than 75% of taxable income, and does not include tax credits,
+        exemptions or allowances. Not tax advice.
       </p>
       <PrivacyNote />
     </div>

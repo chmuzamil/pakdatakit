@@ -30,7 +30,8 @@ const PAGES = [
 async function watchCsp(page) {
   const violations = [];
   page.on('console', (msg) => {
-    if (msg.type() === 'error' && /Content Security Policy/i.test(msg.text())) violations.push(msg.text().slice(0, 200));
+    if (msg.type() === 'error' && /Content Security Policy/i.test(msg.text()))
+      violations.push(msg.text().slice(0, 200));
   });
   return violations;
 }
@@ -54,12 +55,19 @@ for (const path of PAGES) {
         // the name still starts with the visible word.
         .map((v) =>
           v.id === 'label-content-name-mismatch'
-            ? { ...v, nodes: v.nodes.filter((n) => !String(n.target).includes('data-open-modal')) }
+            ? {
+                ...v,
+                nodes: v.nodes.filter(
+                  (n) => !String(n.target).includes('data-open-modal'),
+                ),
+              }
             : v,
         )
         .filter((v) => v.nodes.length > 0);
       expect(
-        serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length}) ${v.nodes[0]?.target}`),
+        serious.map(
+          (v) => `${v.id}: ${v.help} (${v.nodes.length}) ${v.nodes[0]?.target}`,
+        ),
         `axe found serious issues on ${path}`,
       ).toEqual([]);
       expect(csp, `CSP violations on ${path}`).toEqual([]);
@@ -91,22 +99,42 @@ for (const tool of TOOLS) {
       const sameOrigin = url.origin === new URL(page.url()).origin;
       // The only request allowed is the same-origin analytics event, and it must
       // not contain anything that was typed.
-      if (sameOrigin && url.pathname === '/api/send' && req.method() === 'POST') {
+      if (
+        sameOrigin &&
+        url.pathname === '/api/send' &&
+        req.method() === 'POST'
+      ) {
         const body = req.postData() ?? '';
-        if (body.includes(tool.text) || body.includes(tool.text.replace(/\D/g, '')) || body.includes('#'))
-          problems.push(`analytics payload contains input: ${body.slice(0, 120)}`);
+        if (
+          body.includes(tool.text) ||
+          body.includes(tool.text.replace(/\D/g, '')) ||
+          body.includes('#')
+        )
+          problems.push(
+            `analytics payload contains input: ${body.slice(0, 120)}`,
+          );
         continue;
       }
       // Chromium re-reads the tab icon when the URL hash changes; it is a static
       // file and carries nothing that was typed.
-      if (sameOrigin && req.method() === 'GET' && url.pathname === '/favicon.svg' && !url.search) continue;
+      if (
+        sameOrigin &&
+        req.method() === 'GET' &&
+        url.pathname === '/favicon.svg' &&
+        !url.search
+      )
+        continue;
       problems.push(`${req.method()} ${req.url()}`);
     }
-    expect(problems, `requests made while ${tool.path} was running`).toEqual([]);
+    expect(problems, `requests made while ${tool.path} was running`).toEqual(
+      [],
+    );
   });
 }
 
-test('personal-data tools keep input out of the URL until "Copy share link"', async ({ page }) => {
+test('personal-data tools keep input out of the URL until "Copy share link"', async ({
+  page,
+}) => {
   await page.goto('/tools/cnic/');
   await page.locator('main input').first().fill('35202-1234567-1');
   await page.waitForTimeout(300);
@@ -115,6 +143,8 @@ test('personal-data tools keep input out of the URL until "Copy share link"', as
 
 test('?lang=python selects Python in every code tab', async ({ page }) => {
   await page.goto('/docs/cnic/?lang=python');
-  const selected = page.locator('starlight-tabs [role="tab"][aria-selected="true"]').first();
+  const selected = page
+    .locator('starlight-tabs [role="tab"][aria-selected="true"]')
+    .first();
   await expect(selected).toHaveText('Python');
 });

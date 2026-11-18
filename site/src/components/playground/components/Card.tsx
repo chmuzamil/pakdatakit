@@ -1,13 +1,18 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 
 interface CardProps {
-  title?: string
-  description?: string
-  children: ReactNode
-  className?: string
+  title?: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
 }
 
-export function Card({ title, description, children, className = '' }: CardProps) {
+export function Card({
+  title,
+  description,
+  children,
+  className = '',
+}: CardProps) {
   return (
     <section
       className={`rounded-lg border border-border bg-surface-overlay p-5 ${className}`}
@@ -26,5 +31,5 @@ export function Card({ title, description, children, className = '' }: CardProps
       )}
       {children}
     </section>
-  )
+  );
 }

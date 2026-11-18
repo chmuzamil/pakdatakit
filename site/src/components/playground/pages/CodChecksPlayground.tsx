@@ -1,11 +1,15 @@
-import { useMemo, useState } from 'react'
-import { phoneRiskSignals, scoreAddress } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { OutputRow } from '../components/OutputRow'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { ResultBadge } from '../components/ResultBadge'
-import { escapeForCode, monoInputClassName, textareaClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import { phoneRiskSignals, scoreAddress } from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { OutputRow } from '../components/OutputRow';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { ResultBadge } from '../components/ResultBadge';
+import {
+  escapeForCode,
+  monoInputClassName,
+  textareaClassName,
+} from '../utils/examples';
 
 const partLabels: Record<string, string> = {
   city: 'City',
@@ -14,22 +18,22 @@ const partLabels: Record<string, string> = {
   area: 'Area',
   postalCode: 'Postal code',
   landmark: 'Landmark',
-}
+};
 
 export function CodChecksPlayground() {
   const [address, setAddress] = useState(
     'House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660',
-  )
-  const [phone, setPhone] = useState('03001234567')
+  );
+  const [phone, setPhone] = useState('03001234567');
 
-  const score = useMemo(() => scoreAddress(address), [address])
-  const flags = useMemo(() => phoneRiskSignals(phone), [phone])
+  const score = useMemo(() => scoreAddress(address), [address]);
+  const flags = useMemo(() => phoneRiskSignals(phone), [phone]);
 
   const code = `import { scoreAddress, phoneRiskSignals } from "pakdatakit";
 
 scoreAddress("${escapeForCode(address)}");
 // → { score: ${score.score}, missing: ${JSON.stringify(score.missing)} }
-phoneRiskSignals("${escapeForCode(phone)}"); // → ${JSON.stringify(flags)}`
+phoneRiskSignals("${escapeForCode(phone)}"); // → ${JSON.stringify(flags)}`;
 
   return (
     <PlaygroundShell
@@ -71,10 +75,18 @@ phoneRiskSignals("${escapeForCode(phone)}"); // → ${JSON.stringify(flags)}`
           <div className="mb-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">Address score</span>
-              <span className="font-mono text-text-heading">{score.score} / 100</span>
+              <span className="font-mono text-text-heading">
+                {score.score} / 100
+              </span>
             </div>
-            <div className="mt-2 h-2 overflow-hidden rounded bg-surface" aria-hidden="true">
-              <div className="h-full bg-accent" style={{ width: `${score.score}%` }} />
+            <div
+              className="mt-2 h-2 overflow-hidden rounded bg-surface"
+              aria-hidden="true"
+            >
+              <div
+                className="h-full bg-accent"
+                style={{ width: `${score.score}%` }}
+              />
             </div>
           </div>
           <OutputRow
@@ -83,19 +95,29 @@ phoneRiskSignals("${escapeForCode(phone)}"); // → ${JSON.stringify(flags)}`
             mono={false}
             emptyText="Nothing"
           />
-          <OutputRow label="City found" value={score.parsed.city ?? ''} mono={false} />
-          <OutputRow label="Postal code found" value={score.parsed.postalCode ?? ''} />
+          <OutputRow
+            label="City found"
+            value={score.parsed.city ?? ''}
+            mono={false}
+          />
+          <OutputRow
+            label="Postal code found"
+            value={score.parsed.postalCode ?? ''}
+          />
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-sm text-text-muted">Phone usable for COD</span>
+            <span className="text-sm text-text-muted">
+              Phone usable for COD
+            </span>
             <ResultBadge valid={flags.length === 0} />
           </div>
           <OutputRow label="Flags" value={flags.join(', ')} emptyText="None" />
           <p className="mt-4 text-xs leading-relaxed text-text-muted">
-            Heuristics on the text only: no lists of real people or numbers, and no network calls.
+            Heuristics on the text only: no lists of real people or numbers, and
+            no network calls.
           </p>
         </Card>
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }

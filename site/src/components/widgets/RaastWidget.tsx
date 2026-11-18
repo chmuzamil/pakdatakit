@@ -24,7 +24,11 @@ export default function RaastWidget() {
       setSvg('');
       return;
     }
-    QRCode.toString(payload, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' }).then(setSvg, () => setSvg(''));
+    QRCode.toString(payload, {
+      type: 'svg',
+      margin: 1,
+      errorCorrectionLevel: 'M',
+    }).then(setSvg, () => setSvg(''));
   }, [payload]);
   return (
     <div className="pdk-card" data-widget="raast">
@@ -42,7 +46,9 @@ export default function RaastWidget() {
             />
           </div>
           <div className="pdk-field">
-            <label htmlFor={`${id}-a`}>Amount (optional; the QR then expires in a day)</label>
+            <label htmlFor={`${id}-a`}>
+              Amount (optional; the QR then expires in a day)
+            </label>
             <input
               id={`${id}-a`}
               className="pdk-input mono"
@@ -66,11 +72,21 @@ export default function RaastWidget() {
               alt="Raast QR code for the IBAN above"
               width={180}
               height={180}
-              style={{ background: '#fff', borderRadius: '0.5rem', padding: '0.25rem' }}
+              style={{
+                background: '#fff',
+                borderRadius: '0.5rem',
+                padding: '0.25rem',
+              }}
             />
           ) : null}
           {payload ? (
-            <p className="pdk-note" style={{ overflowWrap: 'anywhere', fontFamily: 'var(--sl-font-mono)' }}>
+            <p
+              className="pdk-note"
+              style={{
+                overflowWrap: 'anywhere',
+                fontFamily: 'var(--sl-font-mono)',
+              }}
+            >
               {payload}
             </p>
           ) : null}

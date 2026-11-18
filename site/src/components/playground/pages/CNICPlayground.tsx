@@ -1,35 +1,41 @@
-import { useMemo, useState } from 'react'
-import { getCNICInfo, validateCNIC } from 'pakdatakit'
-import { Card } from '../components/Card'
-import { CodePreview } from '../components/CodePreview'
-import { OutputRow } from '../components/OutputRow'
-import { PlaygroundShell } from '../components/PlaygroundShell'
-import { ResultBadge } from '../components/ResultBadge'
-import { escapeForCode, examples, monoInputClassName } from '../utils/examples'
+import { useMemo, useState } from 'react';
+import { getCNICInfo, validateCNIC } from 'pakdatakit';
+import { Card } from '../components/Card';
+import { CodePreview } from '../components/CodePreview';
+import { OutputRow } from '../components/OutputRow';
+import { PlaygroundShell } from '../components/PlaygroundShell';
+import { ResultBadge } from '../components/ResultBadge';
+import { escapeForCode, examples, monoInputClassName } from '../utils/examples';
 
 export function CNICPlayground() {
-  const [input, setInput] = useState<string>(examples.cnic)
+  const [input, setInput] = useState<string>(examples.cnic);
 
   const isValid = useMemo(() => {
-    if (!input.trim()) return false
-    return validateCNIC(input)
-  }, [input])
+    if (!input.trim()) return false;
+    return validateCNIC(input);
+  }, [input]);
 
-  const info = useMemo(() => (input.trim() ? getCNICInfo(input) : null), [input])
-  const shown = escapeForCode(input || examples.cnic)
+  const info = useMemo(
+    () => (input.trim() ? getCNICInfo(input) : null),
+    [input],
+  );
+  const shown = escapeForCode(input || examples.cnic);
 
   const code = `import { validateCNIC, getCNICInfo } from "pakdatakit";
 
 validateCNIC("${shown}"); // → ${isValid}
 getCNICInfo("${shown}");
-// → ${info ? `{ formatted: "${info.formatted}", province: "${info.province}", gender: "${info.gender}" }` : 'null'}`
+// → ${info ? `{ formatted: "${info.formatted}", province: "${info.province}", gender: "${info.gender}" }` : 'null'}`;
 
   return (
     <PlaygroundShell
       title="CNIC Validator"
       description="Validate Pakistani CNIC numbers and read the province and gender they encode."
       input={
-        <Card title="Input" description="13-digit CNIC with optional separators.">
+        <Card
+          title="Input"
+          description="13-digit CNIC with optional separators."
+        >
           <label htmlFor="cnic-input" className="sr-only">
             CNIC number
           </label>
@@ -61,7 +67,11 @@ getCNICInfo("${shown}");
                 value={info?.formatted ?? ''}
                 emptyText="Invalid CNIC"
               />
-              <OutputRow label="Province" value={info?.province ?? ''} mono={false} />
+              <OutputRow
+                label="Province"
+                value={info?.province ?? ''}
+                mono={false}
+              />
               <OutputRow
                 label="Gender"
                 value={info ? (info.gender === 'male' ? 'Male' : 'Female') : ''}
@@ -69,8 +79,8 @@ getCNICInfo("${shown}");
               />
               {info && (
                 <p className="mt-3 text-xs leading-relaxed text-text-muted">
-                  The province is where the CNIC was first registered, not necessarily where the
-                  holder lives now.
+                  The province is where the CNIC was first registered, not
+                  necessarily where the holder lives now.
                 </p>
               )}
             </>
@@ -79,5 +89,5 @@ getCNICInfo("${shown}");
       }
       code={<CodePreview code={code} />}
     />
-  )
+  );
 }

@@ -1,6 +1,6 @@
 # pakdatakit-react
 
-React inputs and hooks for Pakistani **CNIC**, **mobile numbers** and **IBANs** that format as you type, plus a **Raast payment QR** component. Built on [pakdatakit](https://github.com/chmuzamil/pakdatakit).
+React inputs and hooks for Pakistani **CNIC**, **mobile numbers** and **IBANs** that format as you type, ready-made **checkout and KYC forms** (English and Urdu), plus a **Raast payment QR** component. Built on [pakdatakit](https://github.com/chmuzamil/pakdatakit).
 
 - Formats as the user types (`35202-1234567-1`, `0300-1234567`, `PK36 SCBL 0000 0011 2345 6702`) without making the caret jump
 - Reports whether the value is `empty`, `incomplete`, `valid` or `invalid`, plus details once valid (province and gender, mobile network, bank name)
@@ -123,6 +123,145 @@ function CNICField() {
 | `inputProps` | `{ value, onChange, type, inputMode, autoComplete, autoCorrect, autoCapitalize, spellCheck, 'aria-invalid' }` to spread on a native `<input>` |
 
 The `onChange` in `inputProps` must receive the change event of a real `<input>` element, which is what component libraries pass on.
+
+## Checkout and KYC forms
+
+Ready-made, unstyled forms for a delivery address (`PakCheckoutForm`) and for know-your-customer checks (`PakKycForm`, which adds a required CNIC). Requires pakdatakit 2.4.0 or later.
+
+```tsx
+import { PakCheckoutForm, PakKycForm } from 'pakdatakit-react';
+
+<PakCheckoutForm onSubmit={(values) => saveOrder(values)} />
+
+<PakKycForm tehsil onSubmit={(values) => verify(values.cnic)} />
+```
+
+`onSubmit` is only called when the form is valid, with trimmed values:
+
+```ts
+{
+  fullName: 'Ayesha Khan',
+  mobile: '0321-4567890',
+  province: 'Punjab',
+  district: 'Lahore',
+  tehsil: '',            // filled only with the `tehsil` prop
+  city: 'Lahore',
+  address: 'House 12, Street 4, Gulberg III',
+  landmark: 'Liberty Market',
+  postalCode: '54660',
+  cnic: '35202-1234567-1', // PakKycForm only
+}
+```
+
+- **Fields**: full name, mobile number (`PhoneInput`), CNIC (`CNICInput`, KYC only), province, district, tehsil (optional, `tehsil` prop), city, address, nearby place (optional) and postal code (optional, 5 digits).
+- **Cascading location**: districts come from `getDistrictsByProvince` and tehsils from `getTehsils`. pakdatakit has no official city-to-district mapping, so the city is a text field with `<datalist>` suggestions from `searchCities`, limited to the chosen province. Changing the province clears district, tehsil and city; changing the district clears the tehsil.
+- **Validation**: mobile with `validatePhone` (mobile numbers only), CNIC with `validateCNIC`, name, address and city required (whitespace does not count). Errors show after a field loses focus or on submit.
+- **Accessible**: every control has a `<label for>`, the selects are native `<select>`s, required fields have `required` and `aria-required`, errors are linked with `aria-describedby` and `aria-invalid`, and a failed submit shows an error summary (`role="alert"`) and focuses the first invalid field. It all works with the keyboard.
+- **Unstyled**: no CSS. Every element has a `pak-form__*` class (`pak-form`, `pak-form__field`, `pak-form__label`, `pak-form__input`, `pak-form__select`, `pak-form__error`, `pak-form__error-summary`, `pak-form__hints`, `pak-form__submit`, ...), field wrappers have `data-field` and `data-invalid`, and you can add your own with `className` and `classNames={{ field: 'mb-4', input: 'input', ... }}`.
+- **Controlled or not**: pass `values` and `onChange`, or `defaultValues`. `onInvalid(errors)` is called when a submit is blocked. Anything you pass as `children` is rendered before the submit button.
+
+### Urdu
+
+```tsx
+<PakKycForm
+  locale="ur"
+  labels={{ submit: 'تصدیق کریں' }}
+  onSubmit={(values) => verify(values)}
+/>
+```
+
+`locale="ur"` switches every label, placeholder, error and hint to Urdu (نام، موبائل نمبر، صوبہ، ضلع، شہر، پتہ ...) and sets `dir="rtl"` and `lang="ur"` on the form. The mobile, CNIC and postal code inputs stay left to right. Values are kept as typed. Override any text with `labels`; the built-in texts are in `PAK_FORM_LABELS`.
+
+### Delivery hints
+
+```tsx
+<PakCheckoutForm hints onSubmit={saveOrder} />
+```
+
+With `hints`, the form shows non-blocking suggestions in an `aria-live="polite"` region: how complete the address is (`scoreAddress` of the address, nearby place, city and postal code) and which parts are missing, warning signs in the mobile number (`phoneRiskSignals`: landline, repeated or sequential digits, sample numbers), and a postal code that belongs to a different city. Hints never block submit.
+
+Hints need the post office directory, about 32 kB gzipped. It is loaded with a dynamic `import()` of `pakdatakit/quality` and `pakdatakit/postal` only when `hints` is turned on, so bundlers put it in a separate chunk and the form without hints does not include it. Use `usePakHints({ enabled, address, landmark, city, postalCode, mobile })` to show the same hints in your own markup.
+
+### With react-hook-form
+
+`pakRules` has a `{ required, validate }` rule for each field, in the shape `register` accepts (`createPakRules({ locale: 'ur', labels })` for Urdu or your own messages). `useLocationOptions` gives the province, district, tehsil and city choices, and `applyLocationChange` the clearing rules.
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { PhoneInput, pakRules, useLocationOptions } from 'pakdatakit-react';
+
+function Checkout() {
+  const { register, watch, setValue, handleSubmit, formState } = useForm({
+    defaultValues: {
+      fullName: '',
+      mobile: '',
+      province: '',
+      district: '',
+      city: '',
+    },
+  });
+  const { provinces, districts, cities } = useLocationOptions({
+    province: watch('province'),
+    district: watch('district'),
+    cityQuery: watch('city'),
+  });
+  const province = register('province', pakRules.province);
+
+  return (
+    <form onSubmit={handleSubmit(save)} noValidate>
+      <label htmlFor="name">Full name</label>
+      <input id="name" {...register('fullName', pakRules.fullName)} />
+      {formState.errors.fullName?.message}
+
+      <label htmlFor="mobile">Mobile number</label>
+      <PhoneInput
+        id="mobile"
+        value={watch('mobile')}
+        onValueChange={(value) =>
+          setValue('mobile', value, { shouldValidate: true })
+        }
+      />
+      <input type="hidden" {...register('mobile', pakRules.mobile)} />
+
+      <label htmlFor="province">Province</label>
+      <select
+        id="province"
+        {...province}
+        onChange={(event) => {
+          void province.onChange(event);
+          setValue('district', '');
+          setValue('city', '');
+        }}
+      >
+        <option value="">Choose a province</option>
+        {provinces.map((p) => (
+          <option key={p}>{p}</option>
+        ))}
+      </select>
+
+      <label htmlFor="district">District</label>
+      <select id="district" {...register('district', pakRules.district)}>
+        <option value="">Choose a district</option>
+        {districts.map((d) => (
+          <option key={d}>{d}</option>
+        ))}
+      </select>
+
+      <label htmlFor="city">City</label>
+      <input id="city" list="cities" {...register('city', pakRules.city)} />
+      <datalist id="cities">
+        {cities.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
+
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+`validatePakField(field, value)` and `validatePakForm(values, 'checkout' | 'kyc')` run the same checks without a form library.
 
 ## Raast QR
 

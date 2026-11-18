@@ -3,5 +3,6 @@ import { afterEach } from 'vitest';
 
 enableAutoUnmount(afterEach);
 afterEach(() => {
-  document.body.innerHTML = '';
+  // The bundle test runs in Node, without a document.
+  if (typeof document !== 'undefined') document.body.innerHTML = '';
 });

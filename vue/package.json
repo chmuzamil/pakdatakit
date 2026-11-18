@@ -1,7 +1,7 @@
 {
   "name": "pakdatakit-vue",
   "version": "0.1.0",
-  "description": "Vue composables and a directive for Pakistani CNIC, mobile numbers and IBANs that format as you type, built on pakdatakit",
+  "description": "Vue composables, a directive and ready-made checkout and KYC forms for Pakistani CNIC, mobile numbers, IBANs and addresses, built on pakdatakit",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -44,7 +44,11 @@
     "form",
     "composables",
     "directive",
-    "pakdatakit"
+    "pakdatakit",
+    "address",
+    "checkout",
+    "kyc",
+    "urdu"
   ],
   "author": "Muzamil Chaudhery",
   "license": "MIT",
@@ -61,7 +65,7 @@
     "node": ">=20"
   },
   "peerDependencies": {
-    "pakdatakit": "^2.3.0",
+    "pakdatakit": "^2.4.0",
     "vue": "^3.3.0"
   },
   "devDependencies": {
@@ -69,6 +73,7 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/user-event": "^14.6.10",
     "@vue/test-utils": "^2.5.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.14.0",
     "jsdom": "^31.0.0",
     "pakdatakit": "file:..",

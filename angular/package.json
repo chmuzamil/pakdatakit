@@ -1,7 +1,7 @@
 {
   "name": "pakdatakit-angular",
   "version": "0.1.0",
-  "description": "Angular directives, pipes and form validators for Pakistani CNIC, mobile numbers, IBANs and more, built on pakdatakit",
+  "description": "Angular directives, pipes, form validators and ready-made checkout and KYC forms for Pakistani CNIC, mobile numbers, IBANs, addresses and more, built on pakdatakit",
   "keywords": [
     "pakistan",
     "angular",
@@ -15,7 +15,12 @@
     "validators",
     "pipes",
     "directive",
-    "pakdatakit"
+    "pakdatakit",
+    "address",
+    "checkout",
+    "kyc",
+    "urdu",
+    "reactive-forms"
   ],
   "author": "Muzamil Chaudhery",
   "license": "MIT",
@@ -39,7 +44,7 @@
   "peerDependencies": {
     "@angular/core": ">=17.0.0 <23.0.0",
     "@angular/forms": ">=17.0.0 <23.0.0",
-    "pakdatakit": "^2.3.0"
+    "pakdatakit": "^2.4.0"
   },
   "devDependencies": {
     "@angular/common": "^17.3.12",
@@ -52,6 +57,7 @@
     "@eslint/js": "^10.0.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/user-event": "^14.6.10",
+    "esbuild": "^0.28.2",
     "eslint": "^10.14.0",
     "jsdom": "^31.0.0",
     "ng-packagr": "^17.3.0",

@@ -1,8 +1,8 @@
 name: pakdatakit_flutter
-version: 0.1.0
+version: 0.2.0
 description: >-
   Flutter widgets for Pakistani data: CNIC, phone and IBAN fields that format
-  as you type, form validators, and a Raast payment QR code widget.
+  as you type, form validators, checkout and KYC forms, and a Raast QR widget.
 homepage: https://github.com/chmuzamil/pakdatakit/tree/main/flutter#readme
 repository: https://github.com/chmuzamil/pakdatakit
 issue_tracker: https://github.com/chmuzamil/pakdatakit/issues
@@ -22,7 +22,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  pakdatakit: ^2.3.0
+  pakdatakit: ^2.4.0
   qr: ^3.0.2
 
 dev_dependencies:

@@ -1,7 +1,7 @@
 {
   "name": "pakdatakit-react",
-  "version": "0.1.1",
-  "description": "React inputs and hooks for Pakistani CNIC, mobile numbers and IBANs that format as you type, plus a Raast payment QR component, built on pakdatakit",
+  "version": "0.2.0",
+  "description": "React inputs and hooks for Pakistani CNIC, mobile numbers and IBANs that format as you type, ready-made checkout and KYC forms, and a Raast payment QR component, built on pakdatakit",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -43,6 +43,10 @@
     "input",
     "input-mask",
     "form",
+    "urdu",
+    "address",
+    "kyc",
+    "checkout",
     "hooks",
     "pakdatakit"
   ],
@@ -61,7 +65,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "pakdatakit": "^2.2.0",
+    "pakdatakit": "^2.4.0",
     "qrcode": "^1.5.4"
   },
   "peerDependencies": {
@@ -76,6 +80,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.27.7",
     "eslint": "^10.12.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "jsdom": "^30.1.3",

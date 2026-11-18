@@ -7,6 +7,9 @@ Flutter widgets for Pakistani data, built on
   type and keep the caret where it belongs.
 - **Form validators** for CNIC, mobile, IBAN, NTN, STRN and landline numbers.
 - **Ready form fields**: `CnicField`, `PhoneField` and `IbanField`.
+- **Checkout and KYC forms**: `PakCheckoutForm` and `PakKycForm`, with a
+  province → district → city cascade, Urdu labels and optional address and
+  phone hints.
 - **`RaastQr`**: a Raast payment QR code for an IBAN that banking apps such as
   Easypaisa and JazzCash can scan.
 
@@ -124,6 +127,89 @@ TextFormField(validator: PakValidators.landline(requiredMessage: 'Required'))
 
 Each returns `null` for a valid value and an error message otherwise. An
 empty value is an error only when `required` is `true` (the default).
+
+## Checkout and KYC forms
+
+`PakCheckoutForm` asks for a full name, mobile number, province, district,
+city, address, nearby place (optional) and postal code (optional).
+`PakKycForm` adds a required CNIC. Both are a plain `Form` of Material fields
+with no styling of their own:
+
+```dart
+PakCheckoutForm(
+  onSubmitted: (PakFormValues values) {
+    // values.fullName, values.mobile ('0300-1234567'), values.province,
+    // values.district, values.city, values.address, values.landmark,
+    // values.postalCode; values.toMap() for JSON.
+  },
+)
+```
+
+- The mobile number and CNIC are a `PhoneField` and a `CnicField`, so they
+  format as you type and validate with `validatePhone` (mobile numbers only)
+  and `validateCNIC`. Name, address and city are required and trimmed; a
+  postal code, if given, must have 5 digits.
+- Province, district and the optional tehsil (`showTehsil: true`) are
+  `DropdownButtonFormField`s from `getDistrictsByProvince` and `getTehsils`.
+  The data has no city-to-district mapping, so the city is free text with
+  `Autocomplete` suggestions from `searchCities`, limited to the chosen
+  province. Changing the province clears the district, tehsil and city;
+  changing the district clears the tehsil. `PakLocation` has the same
+  cascade for your own markup.
+- Every field has a label, errors are shown under the fields, and a failed
+  submit adds a summary in a live region. Each field has a
+  `Key('pakForm.<field>')`. Restyle fields with `decorate` and replace the
+  button with `submitBuilder`.
+
+### Urdu
+
+`locale: PakFormLocale.ur` switches every label, placeholder, error and hint
+to Urdu and lays the form out right to left. Typed values are kept as they
+are. Override any text with `labels` (keys in `PakFormLabels`):
+
+```dart
+PakKycForm(
+  locale: PakFormLocale.ur,
+  labels: const {'fullName': 'پورا نام', 'submit': 'تصدیق کریں'},
+  onSubmitted: (values) => verify(values.cnic!),
+)
+```
+
+### Hints
+
+`hints: true` shows non-blocking suggestions in a polite live region: how
+complete the address is (`scoreAddress` on the address, nearby place, city
+and postal code) and what it is missing, risk signals for the mobile number
+(`phoneRiskSignals`: repeated digits, test numbers …), and a postal code that
+belongs to another city (`getCityByPostalCode`). They never block submit.
+
+```dart
+PakCheckoutForm(hints: true, onSubmitted: placeOrder)
+```
+
+Hints need the post office directory (about 32 kB gzipped as JSON), so it is
+loaded on demand. `PakFormHints.compute` imports `pakdatakit`'s quality and
+postal libraries with `deferred as` and calls `loadLibrary()` the first time
+hints are computed. On the web, dart2js puts that code and data in a separate
+file that is downloaded only then; a form without hints never references
+it (the package's bundle test checks this: about 53 kB gzipped in the
+deferred part, outside the main bundle). On Android, iOS and desktop a
+deferred import loads at once and unused code is tree-shaken anyway, so it
+costs nothing. A Dart package cannot load a JSON file lazily on mobile
+without assets, which is why a deferred import is used rather than a data
+file.
+
+To compute hints yourself (on a server, or with your own rules), pass a
+`hintsLoader`:
+
+```dart
+PakCheckoutForm(
+  hints: true,
+  hintsLoader: (values) async => PakFormHints(
+    phoneFlags: await api.phoneFlags(values.mobile),
+  ),
+)
+```
 
 ## Raast QR code
 

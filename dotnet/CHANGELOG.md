@@ -1,6 +1,8 @@
 # Changelog
 
-## 2.5.0 (unreleased)
+## 2.5.0
+
+Includes everything prepared for 2.4.0, which was never published on its own: the 2.4.0 changes are listed here with the 2.5.0 ones.
 
 ### Added
 
@@ -22,11 +24,6 @@
   and official source, `IncomeTax.GetSalaryTaxYears()` the years covered, and
   `IncomeTax.GetTaxYear(date)` the July-to-June tax year of a date. Invalid
   input returns `null`.
-
-## 2.4.0 (unreleased)
-
-### Added
-
 - `Quality.ScoreAddress(address)`: scores how complete a delivery address is
   (0 to 100) for cash on delivery, as an `AddressScore` (`Score`, the
   `Missing` `AddressPart` values and the `Parsed` address with extra

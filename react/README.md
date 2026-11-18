@@ -126,7 +126,7 @@ The `onChange` in `inputProps` must receive the change event of a real `<input>`
 
 ## Checkout and KYC forms
 
-Ready-made, unstyled forms for a delivery address (`PakCheckoutForm`) and for know-your-customer checks (`PakKycForm`, which adds a required CNIC). Requires pakdatakit 2.4.0 or later.
+Ready-made, unstyled forms for a delivery address (`PakCheckoutForm`) and for know-your-customer checks (`PakKycForm`, which adds a required CNIC). Requires pakdatakit 2.5.0 or later.
 
 ```tsx
 import { PakCheckoutForm, PakKycForm } from 'pakdatakit-react';

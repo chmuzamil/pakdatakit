@@ -65,7 +65,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "pakdatakit": "^2.4.0",
+    "pakdatakit": "^2.5.0",
     "qrcode": "^1.5.4"
   },
   "peerDependencies": {

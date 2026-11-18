@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0
 
 Requires pakdatakit 2.4.0 (for `pakdatakit/quality`).
 

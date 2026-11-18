@@ -1,0 +1,115 @@
+name: Release .NET packages
+
+# Publishes PakDataKit, PakDataKit.DataAnnotations and PakDataKit.FluentValidation
+# to NuGet when a tag like dotnet-v2.5.0 is pushed, then creates a GitHub
+# release. The three packages share the version in dotnet/Directory.Build.props.
+#
+# How it authenticates, in this order (see RELEASING.md):
+# 1. NuGet trusted publishing (GitHub OIDC, no stored key): set the repository
+#    variable NUGET_USER to your nuget.org profile name, and add a trusted
+#    publishing policy on nuget.org for chmuzamil/pakdatakit,
+#    release-dotnet.yml, environment nuget.
+# 2. Otherwise the repository secret NUGET_API_KEY.
+# 3. Neither set: the packages are built, tested and attested, and the
+#    publish is skipped with a notice (the run still succeeds). Configure one
+#    of the above and re-run the workflow.
+# Versions already on NuGet are skipped, so a re-run is safe.
+
+on:
+  push:
+    tags: ['dotnet-v[0-9]+.[0-9]+.[0-9]+*']
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # OIDC token for NuGet trusted publishing and attestations
+  attestations: write # build provenance for the .nupkg files
+
+concurrency:
+  group: release-dotnet
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: nuget
+    env:
+      NUGET_USER: ${{ vars.NUGET_USER || secrets.NUGET_USER }}
+      HAS_API_KEY: ${{ secrets.NUGET_API_KEY != '' }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Check the tag matches dotnet/Directory.Build.props
+        id: version
+        run: |
+          version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' dotnet/Directory.Build.props | head -n 1)"
+          if [ "${GITHUB_REF_NAME}" != "dotnet-v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match dotnet/Directory.Build.props version ${version}"
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - run: dotnet build -c Release
+        working-directory: dotnet
+
+      - run: dotnet test -c Release --no-build
+        working-directory: dotnet
+
+      - run: dotnet pack -c Release --no-build -o artifacts
+        working-directory: dotnet
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dotnet/artifacts/*.nupkg
+
+      - name: Choose how to authenticate
+        id: auth
+        run: |
+          if [ -n "${NUGET_USER}" ]; then
+            echo "Using NuGet trusted publishing as ${NUGET_USER}"
+            echo "mode=trusted" >> "$GITHUB_OUTPUT"
+          elif [ "${HAS_API_KEY}" = "true" ]; then
+            echo "Using the NUGET_API_KEY secret"
+            echo "mode=key" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Neither the NUGET_USER variable nor the NUGET_API_KEY secret is set; skipping the NuGet publish. See RELEASING.md, then re-run this workflow."
+            echo "mode=none" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Exchanges the GitHub OIDC token for a NuGet API key valid for 1 hour.
+      - uses: NuGet/login@v1
+        id: login
+        if: steps.auth.outputs.mode == 'trusted'
+        with:
+          user: ${{ env.NUGET_USER }}
+
+      # PakDataKit first: the two adapters depend on the same version of it.
+      - name: Push to NuGet
+        if: steps.auth.outputs.mode != 'none'
+        working-directory: dotnet/artifacts
+        env:
+          NUGET_KEY: ${{ steps.login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          for id in PakDataKit PakDataKit.DataAnnotations PakDataKit.FluentValidation; do
+            dotnet nuget push "${id}.${version}.nupkg" --api-key "${NUGET_KEY}" \
+              --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done
+
+      - name: Create GitHub release
+        if: steps.auth.outputs.mode != 'none'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs dotnet/CHANGELOG.md "$version" "PakDataKit for .NET" "https://www.nuget.org/packages/PakDataKit/$version" > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" --title "PakDataKit for .NET $version" \
+            --notes-file release-notes.md --verify-tag --latest=false

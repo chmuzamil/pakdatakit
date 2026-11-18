@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0
 
 - `PakCheckoutForm` and `PakKycForm`: ready checkout and KYC forms (full
   name, mobile number, province, district, optional tehsil, city with

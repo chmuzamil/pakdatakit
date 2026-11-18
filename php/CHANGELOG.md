@@ -1,20 +1,13 @@
 # Changelog
 
-## 2.5.0 (unreleased)
+## 2.5.0
+
+Includes everything prepared for 2.4.0, which was never published on its own: the 2.4.0 changes are listed here with the 2.5.0 ones.
 
 ### Added
 
 - `Text::slugify()`, `Text::compareUrdu()`, `Text::isRtl()` and `Text::wrapBidi()`: URL slugs that keep Urdu letters (`script`: `Text::SCRIPT_ANY`, `SCRIPT_LATIN`, `SCRIPT_URDU`), Urdu alphabetical order for `usort()` from the CLDR `ur` collation (no intl or ICU needed), right-to-left detection, and Unicode directional isolates (`Text::BIDI_AUTO`, `BIDI_RTL`, `BIDI_LTR`). They accept any value and never throw.
 - `IncomeTax::calculateSalary()`, `IncomeTax::calculateMonthlySalary()`, `IncomeTax::getSalarySlabs()`, `IncomeTax::getSalaryYears()` and `IncomeTax::getTaxYear()`: income tax on salary from the salaried rate table of the Income Tax Ordinance 2001 for tax years 2020 to 2027, computed exactly in whole paisa (`SalaryTax`, `SalaryTaxSlab`, `SalaryTaxYear`). They return `null` for any invalid input and never throw.
-
-### Changed
-
-- `composer.json` now also requires `ext-ctype` and `ext-json` (with `ext-mbstring`), the extensions the code calls, so Composer refuses to install without them. Both are enabled in standard PHP builds.
-
-## 2.4.0 (unreleased)
-
-### Added
-
 - `Quality::scoreAddress()`: scores how complete a delivery address is (0 to 100) for cash on delivery, with the `missing` parts (`city`, `houseNumber`,
   `street`, `area`, `postalCode`, `landmark`) and the parsed address as an
   `AddressScore`; `Quality::ADDRESS_WEIGHTS` holds the points per part.
@@ -29,6 +22,7 @@
 
 ### Changed
 
+- `composer.json` now also requires `ext-ctype` and `ext-json` (with `ext-mbstring`), the extensions the code calls, so Composer refuses to install without them. Both are enabled in standard PHP builds.
 - `PakData::version()` is now `2026-11-18` (new dataset: sales tax rates).
 
 ## 2.3.0

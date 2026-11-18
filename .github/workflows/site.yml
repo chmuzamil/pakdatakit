@@ -15,7 +15,8 @@ name: Site
 #
 # Quality gates: accessibility (axe, no serious issues, light and dark,
 # mobile and desktop), no network requests while a tool runs, no CSP
-# violations, internal links, and the old API URL redirect map.
+# violations, internal links, the old API URL redirect map, and llms.txt
+# (every pakdatakit.dev URL in it exists; every guide, tool and module listed).
 #
 # The SSH key can only run /usr/local/bin/pdk-deploy on the server
 # (upload, activate, rollback, status); it has no shell.
@@ -65,6 +66,10 @@ jobs:
         working-directory: site
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The sitemap's <lastmod> and dateModified come from each page's
+          # last commit (site/src/lib/lastmod.mjs).
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
@@ -93,6 +98,9 @@ jobs:
 
       - name: Old API URLs map to existing pages
         run: npm run check:redirects
+
+      - name: llms.txt links and coverage
+        run: npm run check:llms
 
       - name: Install Chromium for the quality gates
         run: npx playwright install --with-deps chromium

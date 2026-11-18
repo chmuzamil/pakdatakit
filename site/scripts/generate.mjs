@@ -165,7 +165,7 @@ for (const v of coreVersions) {
     .join('\n\n');
   writeFileSync(
     join(relDir, `${v}.md`),
-    `---\ntitle: ${yaml(`pakdatakit ${v}`)}\nslug: ${yaml(`releases/${v}`)}\ndescription: ${yaml(`Changes in pakdatakit ${v} for ${ports.map((p) => p.label.split(' ')[0]).join(', ')}.`)}\n---\n\n${body}\n`,
+    `---\ntitle: ${yaml(`pakdatakit ${v}`)}\nslug: ${yaml(`releases/${v}`)}\ndescription: ${yaml(`Release notes for pakdatakit ${v} (${ports.map((p) => p.label.split(' ')[0]).join(', ')}): what changed, what was fixed and how to upgrade.`)}\n---\n\n${body}\n`,
   );
 }
 const addons = ADDONS.map(([file, pkg, url]) => ({
@@ -177,7 +177,7 @@ for (const a of addons) {
   for (const [v, text] of a.versions) {
     writeFileSync(
       join(relDir, `${a.pkg}-${v}.md`),
-      `---\ntitle: ${yaml(`${a.pkg} ${v}`)}\nslug: ${yaml(`releases/${a.pkg}-${v}`)}\ndescription: ${yaml(`Changes in ${a.pkg} ${v}.`)}\n---\n\n[${a.pkg} ${v} on its registry](${a.url}${v})\n\n${text}\n`,
+      `---\ntitle: ${yaml(`${a.pkg} ${v}`)}\nslug: ${yaml(`releases/${a.pkg}-${v}`)}\ndescription: ${yaml(`Release notes for ${a.pkg} ${v}, a PakDataKit companion package: what changed, what was fixed and how to upgrade.`)}\n---\n\n[${a.pkg} ${v} on its registry](${a.url}${v})\n\n${text}\n`,
     );
   }
 }
@@ -255,7 +255,24 @@ execFileSync(
 writeFileSync(
   join(site, 'public', 'robots.txt'),
   INDEXABLE
-    ? `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap-index.xml\n`
+    ? [
+        '# Search engines and AI assistants are welcome: this is public',
+        '# documentation, and llms.txt / llms-full.txt are written for them.',
+        ...[
+          'GPTBot',
+          'OAI-SearchBot',
+          'ChatGPT-User',
+          'ClaudeBot',
+          'Claude-SearchBot',
+          'PerplexityBot',
+          'Google-Extended',
+        ].flatMap((bot) => [`User-agent: ${bot}`, 'Allow: /', '']),
+        'User-agent: *',
+        'Allow: /',
+        '',
+        `Sitemap: ${SITE}/sitemap-index.xml`,
+        '',
+      ].join('\n')
     : `# Not launched yet: keep the site out of search results (site.config.mjs INDEXABLE).\nUser-agent: *\nDisallow: /\n`,
 );
 console.log(`robots.txt: ${INDEXABLE ? 'indexable' : 'noindex'}`);

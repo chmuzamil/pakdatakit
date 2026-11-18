@@ -10,10 +10,12 @@
     "check": "astro check",
     "check:links": "linkinator http://localhost:4329/ --config linkinator.config.json",
     "check:quality": "playwright test",
-    "check:redirects": "node scripts/api-redirects.mjs --check"
+    "check:redirects": "node scripts/api-redirects.mjs --check",
+    "check:llms": "node scripts/check-llms.mjs"
   },
   "dependencies": {
     "@astrojs/react": "7.1.9",
+    "@astrojs/sitemap": "3.7.5",
     "@astrojs/starlight": "0.43.1",
     "@fontsource-variable/inter": "5.3.0",
     "@fontsource/jetbrains-mono": "5.3.0",

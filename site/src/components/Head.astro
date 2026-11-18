@@ -6,13 +6,31 @@
  * - Umami, served from this site's own origin (/a.js), path and tool name only
  */
 import Default from '@astrojs/starlight/components/Head.astro';
+import { version } from 'pakdatakit/package.json' with { type: 'json' };
+import { dataVersion } from 'pakdatakit';
 import { SITE, UMAMI_WEBSITE_ID } from '../../site.config.mjs';
+import { structuredData } from '../lib/seo';
 
-const id = Astro.locals.starlightRoute.id || 'index';
+const route = Astro.locals.starlightRoute;
+const id = route.id || 'index';
 const ogImage = new URL(`/og/${id.replace(/\/$/, '') || 'index'}.png`, SITE).href;
+const is404 = Astro.url.pathname === '/404/' || Astro.url.pathname === '/404.html' || id === '404';
+const jsonLd = is404
+  ? null
+  : structuredData({
+      path: Astro.url.pathname,
+      title: route.entry.data.title,
+      // the page's own description, or the site's (as in the meta tag)
+      description: String(
+        route.head.find((t) => t.attrs?.name === 'description')?.attrs?.content ?? '',
+      ),
+      dataVersion,
+      version,
+    });
 ---
 
 <Default />
+{jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
 <script is:inline src="/lang.js"></script>
 <meta property="og:image" content={ogImage} />
 <meta property="og:image:width" content="1200" />

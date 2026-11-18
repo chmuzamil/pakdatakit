@@ -172,9 +172,76 @@ if (unlisted.length > 0) {
   );
 }
 
+/** A module's API reference page: pakdatakit.dev (Starlight) or the old TypeDoc site. */
+const moduleUrl = (page) =>
+  sitePages
+    ? `${api}/${page.replace(/^adapters_/, 'adapters/')}/`
+    : `${api}/modules/${page}.html`;
+
+/** Front matter title and description of a Markdown page. */
+function frontMatter(file) {
+  const text = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const fm = /^---\n([\s\S]*?)\n---/.exec(text)?.[1] ?? '';
+  const field = (key) =>
+    new RegExp(`^${key}:\\s*(.*)$`, 'm')
+      .exec(fm)?.[1]
+      ?.trim()
+      .replace(/^['"]|['"]$/g, '');
+  return { title: field('title'), description: field('description') };
+}
+
+/** pakdatakit.dev: every guide, install page and tool, read from the site's pages. */
+function siteGuides() {
+  const content = join(root, 'site', 'src', 'content', 'docs');
+  const section = (dir, order) =>
+    readdirSync(join(content, dir))
+      .filter((f) => /\.mdx?$/.test(f) && !f.startsWith('index.'))
+      .map((f) => ({
+        slug: f.replace(/\.mdx?$/, ''),
+        ...frontMatter(join(content, dir, f)),
+      }))
+      .sort(
+        (a, b) =>
+          (order.indexOf(a.slug) + 1 || 99) - (order.indexOf(b.slug) + 1 || 99),
+      )
+      .map((p) => `- [${p.title}](${site}/${dir}/${p.slug}/): ${p.description}`)
+      .join('\n');
+  const toolsDir = join(root, 'site', 'src', 'pages', 'tools');
+  const tools = readdirSync(toolsDir)
+    .filter((f) => f.endsWith('.astro'))
+    .map((f) => {
+      const src = readFileSync(join(toolsDir, f), 'utf8');
+      const title = /\btitle="([^"]+)"/.exec(src)?.[1];
+      const description = /\bdescription="([^"]+)"/.exec(src)?.[1];
+      if (!title || !description)
+        throw new Error(`llms.txt: no title or description in tools/${f}`);
+      return `- [${title}](${site}/tools/${f.replace(/\.astro$/, '')}/): ${description}`;
+    })
+    .join('\n');
+  return `### Module guides (examples in TypeScript, Python, Dart, C# and PHP)
+
+${section('docs', ['cnic', 'phone', 'iban', 'raast', 'salestax', 'incometax', 'postal'])}
+
+### Install
+
+${section('install', ['typescript', 'python', 'dart', 'flutter', 'dotnet', 'php', 'react', 'vue', 'angular'])}
+
+### Tools (run in the browser; nothing is uploaded)
+
+${tools}
+
+### Reference
+
+- [TypeScript API reference](${api}/): every function, type and option in all modules
+- [Playground](${site}/playground/): try every module in the browser
+- [Data sources](${site}/data/): where each dataset comes from, with counts and dates
+- [Releases](${site}/releases/): every version of every package
+- [About and privacy](${site}/about/)`;
+}
+
 const index = `# PakDataKit
 
-> ${pkg.description}. TypeScript, zero runtime dependencies, ESM and CommonJS. npm package \`pakdatakit\` (version ${pkg.version}, data checked ${dataVersion}).
+> ${pkg.description.replace(/\.$/, '')}. TypeScript, zero runtime dependencies, ESM and CommonJS. npm package \`pakdatakit\` (version ${pkg.version}, data checked ${dataVersion}).
 
 Install with \`npm install pakdatakit\`. Import everything from \`pakdatakit\`, or one module from a subpath such as \`pakdatakit/cnic\` to keep bundles small. Functions return \`null\` (or \`'Unknown'\` for networks) when input is invalid, and throw \`RangeError\` only for programming errors such as a non-finite amount. Never log or store real CNICs or account numbers in examples.
 
@@ -185,16 +252,13 @@ Key facts an assistant should know:
 
 ## Modules
 
-${MODULES.map(([subpath, page, text]) => `- [pakdatakit/${subpath}](${api}/modules/${page}.html): ${text}`).join('\n')}
+${MODULES.map(([subpath, page, text]) => `- [pakdatakit/${subpath}](${moduleUrl(page)}): ${text}`).join('\n')}
 
 ## Guides
 
 ${
   sitePages
-    ? `- [Install](${site}/install/typescript/): every language (TypeScript, Python, Dart, Flutter, .NET, PHP, React, Vue, Angular)
-- [Module guides](${site}/docs/cnic/): CNIC, phone, IBAN, Raast QR, sales tax, income tax and postal, with examples in all five languages
-- [Data sources](${site}/data/): where each dataset comes from, with counts and dates
-- [Releases](${site}/releases/): every version of every package`
+    ? siteGuides()
     : `- [README](${api}/index.html): overview and examples for every function
 - [Data sources](${api}/documents/DATA.html): where each dataset comes from and how sure we are
 - [Changelog](${api}/documents/CHANGELOG.html)`

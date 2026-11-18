@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PakDataKit;
 
 use DateTimeImmutable;
-use DateTimeInterface;
 use PakDataKit\Internal\Data;
+use PakDataKit\Internal\Date;
 use PakDataKit\Internal\Js;
 use PakDataKit\Internal\Money;
 
@@ -77,7 +77,7 @@ final class SalesTax
         if ($kind !== self::GOODS && $kind !== self::SERVICES) {
             return null;
         }
-        $date = self::isoDate($query['date'] ?? new DateTimeImmutable());
+        $date = Date::iso($query['date'] ?? new DateTimeImmutable());
         if ($date === null) {
             return null;
         }
@@ -219,28 +219,6 @@ final class SalesTax
             return null;
         }
         return self::PROVINCES[Js::normalizeKey($input)] ?? null;
-    }
-
-    /** `YYYY-MM-DD` for a valid calendar date, otherwise null. */
-    private static function isoDate(mixed $input): ?string
-    {
-        if ($input instanceof DateTimeInterface) {
-            return $input->format('Y-m-d');
-        }
-        if (!is_string($input)) {
-            return null;
-        }
-        $match = Js::match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})\z/u', Js::trim($input));
-        if ($match === null) {
-            return null;
-        }
-        [$y, $m, $d] = [(int) $match[1], (int) $match[2], (int) $match[3]];
-        $leap = ($y % 4 === 0 && $y % 100 !== 0) || $y % 400 === 0;
-        $days = [31, $leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        if ($m < 1 || $m > 12 || $d < 1 || $d > $days[$m - 1]) {
-            return null;
-        }
-        return $match[1] . '-' . $match[2] . '-' . $match[3];
     }
 
     /** @return list<SalesTaxRate> */

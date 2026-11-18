@@ -12,6 +12,7 @@ export const modules = [
   'hijri',
   'holidays',
   'iban',
+  'incometax',
   'input',
   'networks',
   'numbers',

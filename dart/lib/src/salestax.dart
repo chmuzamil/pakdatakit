@@ -1,5 +1,5 @@
 import 'data/sales_tax_rates.g.dart';
-import 'internal/js.dart';
+import 'internal/date.dart';
 import 'internal/money.dart';
 import 'internal/normalize.dart';
 
@@ -177,27 +177,6 @@ const Set<String> _outsideFederal = {
   'Gilgit-Baltistan',
 };
 
-String _pad(int n, [int width = 2]) => n.toString().padLeft(width, '0');
-
-final RegExp _isoPattern = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
-
-/// `YYYY-MM-DD` for a valid calendar date, otherwise `null`.
-String? _isoDate(Object? input) {
-  if (input is DateTime) {
-    return '${_pad(input.year, 4)}-${_pad(input.month)}-${_pad(input.day)}';
-  }
-  if (input is! String) return null;
-  final match = _isoPattern.firstMatch(jsTrim(input));
-  if (match == null) return null;
-  final y = int.parse(match.group(1)!);
-  final m = int.parse(match.group(2)!);
-  final d = int.parse(match.group(3)!);
-  final leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
-  final days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  if (m < 1 || m > 12 || d < 1 || d > days[m - 1]) return null;
-  return '${match.group(1)}-${match.group(2)}-${match.group(3)}';
-}
-
 /// Returns the standard sales tax rate for goods (federal, Sales Tax Act
 /// 1990) or for services in a province or Islamabad Capital Territory, on a
 /// given date.
@@ -224,7 +203,7 @@ SalesTaxRate? getSalesTaxRate({
   String? province,
   Object? date,
 }) {
-  final iso = _isoDate(date ?? DateTime.now());
+  final iso = isoDate(date ?? DateTime.now());
   if (iso == null) return null;
 
   String? name;

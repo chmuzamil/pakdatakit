@@ -1,7 +1,8 @@
 /// Utilities for Pakistani data: CNIC, phone, IBAN, postal codes, address
 /// parsing, Hijri dates, holidays, amounts in words, Raast QR codes, sales
-/// tax, FBR digital invoices, passport and vehicle registration number
-/// formats, utility bill numbers, and courier statuses and city names.
+/// tax, income tax on salary, FBR digital invoices, passport and vehicle
+/// registration number formats, utility bill numbers, courier statuses and
+/// city names, and Urdu slugs, sorting and bidirectional text.
 ///
 /// A pure-Dart port of the `pakdatakit` npm package. It uses the same
 /// datasets and gives identical results, checked against test vectors
@@ -30,6 +31,7 @@ export 'src/geo.dart';
 export 'src/hijri.dart';
 export 'src/holidays.dart';
 export 'src/iban.dart';
+export 'src/incometax.dart';
 export 'src/input.dart';
 export 'src/networks.dart';
 export 'src/numbers.dart';

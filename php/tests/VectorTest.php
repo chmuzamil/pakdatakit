@@ -18,6 +18,7 @@ use PakDataKit\Hijri;
 use PakDataKit\HijriDate;
 use PakDataKit\Holidays;
 use PakDataKit\Iban;
+use PakDataKit\IncomeTax;
 use PakDataKit\Input;
 use PakDataKit\Networks;
 use PakDataKit\Numbers;
@@ -427,6 +428,12 @@ final class VectorTest extends TestCase
             'normalizeRomanUrdu' => $one(Text::normalizeRomanUrdu(...)),
             'toUrduDigits' => $one(Text::toUrduDigits(...)),
             'toEnglishDigits' => $one(Text::toEnglishDigits(...)),
+            'slugify' => static fn (array $a, array $k): mixed => Text::slugify($a[0], $k),
+            'compareUrdu' => static fn (array $a, array $k): mixed => Text::compareUrdu($a[0], $a[1]),
+            'isRTL' => static fn (array $a, array $k): mixed => Text::isRtl($a[0]),
+            'wrapBidi' => static fn (array $a, array $k): mixed => count($a) > 1
+                ? Text::wrapBidi($a[0], $a[1])
+                : Text::wrapBidi($a[0]),
             'toHijri' => static fn (array $a, array $k): mixed => Hijri::toHijri($date($a), self::intOption($k, 'offset', 0)),
             'fromHijri' => static fn (array $a, array $k): mixed => Hijri::fromHijri(
                 new HijriDate(
@@ -484,6 +491,15 @@ final class VectorTest extends TestCase
             'getSalesTaxRate' => static fn (array $a, array $k): mixed => SalesTax::getRate($k),
             'calculateSalesTax' => static fn (array $a, array $k): mixed => SalesTax::calculate($a[0], $k),
             'splitInclusive' => static fn (array $a, array $k): mixed => SalesTax::splitInclusive($a[0], $a[1]),
+            'getSalaryTaxSlabs' => static fn (array $a, array $k): mixed => count($a) > 0
+                ? IncomeTax::getSalarySlabs($a[0])
+                : IncomeTax::getSalarySlabs(),
+            'getSalaryTaxYears' => static fn (array $a, array $k): mixed => IncomeTax::getSalaryYears(),
+            'getTaxYear' => static fn (array $a, array $k): mixed => count($a) > 0
+                ? IncomeTax::getTaxYear($a[0])
+                : IncomeTax::getTaxYear(),
+            'calculateSalaryTax' => static fn (array $a, array $k): mixed => IncomeTax::calculateSalary($a[0], $k),
+            'calculateMonthlySalaryTax' => static fn (array $a, array $k): mixed => IncomeTax::calculateMonthlySalary($a[0], $k),
             'parseElectricityRef' => $one(Bills::parseElectricityRef(...)),
             'validateElectricityRef' => $one(Bills::validateElectricityRef(...)),
             'validateGasConsumerNumber' => static fn (array $a, array $k): mixed => Bills::validateGasConsumerNumber(

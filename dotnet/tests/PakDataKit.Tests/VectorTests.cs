@@ -401,6 +401,45 @@ public sealed class VectorTests(ITestOutputHelper output)
         _ => throw new Unrepresentable($"{Describe(value)} is not a SalesTaxKind", option),
     };
 
+    /// <summary>
+    /// TypeScript's Urdu text helpers read any value that is not a string as
+    /// <c>''</c> (or return their empty default); the .NET methods take
+    /// <c>string?</c> and do the same for <c>null</c>.
+    /// </summary>
+    private static string? Loose(object? value) => value as string;
+
+    /// <summary>TypeScript treats an unknown script as "any"; so does .NET for an undefined enum value.</summary>
+    private static SlugScript Script(object? value) => value switch
+    {
+        "any" => SlugScript.Any,
+        "latin" => SlugScript.Latin,
+        "urdu" => SlugScript.Urdu,
+        string => (SlugScript)(-1),
+        _ => throw new Unrepresentable($"{Describe(value)} is not a SlugScript", "script"),
+    };
+
+    /// <summary>TypeScript treats an unknown direction as "auto"; so does .NET for an undefined enum value.</summary>
+    private static BidiDirection Direction(object? value) => value switch
+    {
+        null or "auto" => BidiDirection.Auto,
+        "rtl" => BidiDirection.Rtl,
+        "ltr" => BidiDirection.Ltr,
+        string => (BidiDirection)(-1),
+        _ => throw new Unrepresentable($"{Describe(value)} is not a BidiDirection"),
+    };
+
+    private static SalaryTaxOptions? SalaryOptions(Dictionary<string, object?> k)
+    {
+        if (k.Count == 0) return null;
+        var date = k.GetValueOrDefault("date");
+        return new SalaryTaxOptions
+        {
+            TaxYear = k.GetValueOrDefault("taxYear") is { } year ? Integer(year) : null,
+            Date = date as string ?? (date is null or DateTime ? null : Str(date)),
+            OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,
+        };
+    }
+
     private delegate object? Call(List<object?> a, Dictionary<string, object?> k);
 
     private static Call One(Func<string, object?> fn) => (a, _) => fn(Str(a[0]));
@@ -436,6 +475,9 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["getSalesTaxRate"] = ["kind", "province", "date"],
         ["calculateSalesTax"] = ["rate", "province", "kind", "date", "inclusive"],
         ["validateFbrInvoice"] = ["today"],
+        ["slugify"] = ["script"],
+        ["calculateSalaryTax"] = ["taxYear", "date"],
+        ["calculateMonthlySalaryTax"] = ["taxYear", "date"],
     };
 
     private static readonly Dictionary<string, Call> Functions = new()
@@ -486,6 +528,12 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["normalizeRomanUrdu"] = One(Text.NormalizeRomanUrdu),
         ["toUrduDigits"] = One(Text.ToUrduDigits),
         ["toEnglishDigits"] = One(Text.ToEnglishDigits),
+        ["slugify"] = (a, k) => Text.Slugify(
+            Loose(a[0]), k.Count > 0 ? new SlugifyOptions { Script = Script(k.GetValueOrDefault("script")) } : null),
+        ["compareUrdu"] = (a, _) => Text.CompareUrdu(Loose(a[0]), Loose(a[1])),
+        ["isRTL"] = (a, _) => Text.IsRtl(Loose(a[0])),
+        ["wrapBidi"] = (a, _) =>
+            a.Count > 1 ? Text.WrapBidi(Loose(a[0]), Direction(a[1])) : Text.WrapBidi(Loose(a[0])),
         ["toHijri"] = (a, k) => Hijri.ToHijri(Date(a[0]), IntOption(k, "offset", 0)),
         ["fromHijri"] = (a, k) =>
         {
@@ -599,6 +647,17 @@ public sealed class VectorTests(ITestOutputHelper output)
                 Inclusive = OptBool(k.GetValueOrDefault("inclusive")) ?? false,
             });
         },
+        ["getSalaryTaxSlabs"] = (a, _) =>
+            a.Count > 0 && a[0] is not null ? IncomeTax.GetSalaryTaxSlabs(Integer(a[0])) : IncomeTax.GetSalaryTaxSlabs(),
+        ["getSalaryTaxYears"] = (_, _) => IncomeTax.GetSalaryTaxYears(),
+        ["getTaxYear"] = (a, _) => a.Count == 0 ? IncomeTax.GetTaxYear() : a[0] switch
+        {
+            DateTime dt => IncomeTax.GetTaxYear(DateOnly.FromDateTime(dt)),
+            var other => IncomeTax.GetTaxYear(OptStr(other)),
+        },
+        ["calculateSalaryTax"] = (a, k) => IncomeTax.CalculateSalaryTax(Number(a[0]), SalaryOptions(k)),
+        ["calculateMonthlySalaryTax"] = (a, k) =>
+            IncomeTax.CalculateMonthlySalaryTax(Number(a[0]), SalaryOptions(k)),
         ["splitInclusive"] = (a, _) => SalesTax.SplitInclusive(Number(a[0]), Number(a[1])),
         ["parseElectricityRef"] = One(Bills.ParseElectricityRef),
         ["validateElectricityRef"] = One(v => Bills.ValidateElectricityRef(v)),

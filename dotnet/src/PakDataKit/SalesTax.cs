@@ -116,8 +116,6 @@ public static class SalesTax
     private static readonly HashSet<string> OutsideFederal =
         new(StringComparer.Ordinal) { "Azad Jammu and Kashmir", "Gilgit-Baltistan" };
 
-    private static readonly SafeRegex IsoDatePattern = Js.Rx("^([0-9]{4})-([0-9]{2})-([0-9]{2})\\z");
-
     /// <summary>
     /// Returns the standard sales tax rate for goods (federal, Sales Tax Act
     /// 1990) or for services in a province or Islamabad Capital Territory, on
@@ -250,25 +248,8 @@ public static class SalesTax
     private static string? ResolveDate(string? text, DateOnly? date)
     {
         if (text is not null && date is not null) return null;
-        if (text is not null) return IsoDate(text);
-        return Format(date ?? DateOnly.FromDateTime(DateTime.Now));
-    }
-
-    private static string Format(DateOnly date) =>
-        $"{date.Year:D4}-{date.Month:D2}-{date.Day:D2}";
-
-    /// <summary><c>YYYY-MM-DD</c> for a valid calendar date, otherwise <c>null</c>.</summary>
-    private static string? IsoDate(string input)
-    {
-        var match = IsoDatePattern.Match(Js.Trim(input));
-        if (!match.Success) return null;
-        var y = int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-        var m = int.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
-        var d = int.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
-        var leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
-        int[] days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        if (m < 1 || m > 12 || d < 1 || d > days[m - 1]) return null;
-        return match.Value;
+        if (text is not null) return Dates.IsoDate(text);
+        return Dates.Format(date ?? Dates.Today);
     }
 
     /// <summary>Basis points (hundredths of a percent) for a rate from 0 to 100 with at most 2 decimals.</summary>

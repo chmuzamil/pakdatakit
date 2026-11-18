@@ -13,6 +13,7 @@ import 'package:pakdatakit/src/data/collation.g.dart';
 import 'package:pakdatakit/src/data/districts.g.dart';
 import 'package:pakdatakit/src/data/divisions.g.dart';
 import 'package:pakdatakit/src/data/holidays.g.dart';
+import 'package:pakdatakit/src/data/income_tax_slabs.g.dart';
 import 'package:pakdatakit/src/data/networks.g.dart';
 import 'package:pakdatakit/src/data/post_offices.g.dart';
 import 'package:pakdatakit/src/data/postal_codes.g.dart';
@@ -27,6 +28,7 @@ const Map<String, Object> embedded = {
   'districts.json': districtsJson,
   'divisions.json': divisionsJson,
   'holidays.json': holidaysJson,
+  'income-tax-slabs.json': incomeTaxSlabsJson,
   'networks.json': networksJson,
   'post-offices.json': postOfficesJson,
   'postal-codes.json': postalCodesJson,

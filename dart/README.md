@@ -2,8 +2,9 @@
 
 Utilities for Pakistani data: CNIC, mobile numbers and networks, WhatsApp
 links, IBAN and banks, postal codes, cities and districts, address parsing,
-Roman Urdu, Hijri dates, public holidays, rupee formatting, amounts in words,
-NTN/STRN, sales tax, landlines, electricity and gas bill numbers, Raast QR
+Roman Urdu, Urdu slugs and alphabetical sorting, Hijri dates, public
+holidays, rupee formatting, amounts in words, NTN/STRN, sales tax, income tax
+on salary, landlines, electricity and gas bill numbers, Raast QR
 codes, and form-field helpers that format as the user types.
 
 This is the Dart port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
@@ -72,6 +73,12 @@ validateRaastQr(payload).valid;              // true
 getSalesTaxRate(kind: SalesTaxKind.goods)?.rate; // 18 (today)
 calculateSalesTax(1000, rate: 18)?.gross;    // 1180
 splitInclusive(99.99, 18)?.net;              // 84.74
+calculateSalaryTax(1800000, taxYear: 2026)?.tax; // 72000
+calculateMonthlySalaryTax(150000, taxYear: 2026)?.monthly; // 6000
+
+slugify('Lahore Fort, 2024');                // 'lahore-fort-2024'
+['ے', 'بھائی', 'آم', 'باغ', 'اب']..sort(compareUrdu); // ['اب', 'آم', 'باغ', 'بھائی', 'ے']
+isRTL('123 سلام');                           // true
 
 parseElectricityRef('02-12624-0045901 R')?.formatted; // '02 12624 0045901 R'
 parseElectricityRef('0400012345678')?.disco; // 'K-Electric'
@@ -89,7 +96,7 @@ import 'package:pakdatakit/raast.dart';
 ```
 
 Available: `address`, `bills`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`,
-`input`, `networks`, `numbers`, `phone`, `postal`, `quality`, `raast`,
+`incometax`, `input`, `networks`, `numbers`, `phone`, `postal`, `quality`, `raast`,
 `salestax`, `tax`, `text`, `whatsapp` and `words`.
 
 ## API
@@ -144,6 +151,32 @@ In Dart:
   to today. Amounts are rounded half up to the paisa from the number as
   written (`1.005` is Rs 1.01), computed exactly with `BigInt` on every
   platform. They never throw.
+- **Income tax on salary:** `calculateSalaryTax(annualIncome, taxYear: …,
+  date: …)` and `calculateMonthlySalaryTax(monthlySalary, taxYear: …, date:
+  …)` return a `SalaryTax` (`tax`, `monthly`, `effectiveRate`, all
+  `double`s; `slab`, a `SalaryTaxSlab` with `over`, `upTo`, `fixed` and
+  `rate`; `taxYear`) or `null`, from the salaried rate table of the Income
+  Tax Ordinance 2001 (First Schedule, Part I, Division I, clause (2)) for tax
+  years 2020 to 2027. The npm `SalaryTaxOptions` object is these named
+  parameters: `taxYear` (an `int`) takes precedence over `date` (a
+  `'YYYY-MM-DD'` string or a `DateTime`), and with neither the current tax
+  year is used. `getSalaryTaxSlabs([taxYear])` returns the `SalaryTaxYear`
+  (`taxYear`, `from`, `to`, `law`, `source`, `slabs`, an unmodifiable list),
+  `getSalaryTaxYears()` the years covered and `getTaxYear([date])` the tax
+  year (July to June, named after the June it ends in) of a date. Tax is
+  rounded half up to the paisa, exactly with `BigInt` on every platform. Only
+  the rate table is applied: the surcharge, tax credits, exemptions, the
+  pension rate and withholding adjustments are not. They never throw. Also as
+  `package:pakdatakit/incometax.dart`.
+- **Urdu text:** `slugify(input, script: SlugScript.any)` makes a URL slug,
+  keeping Urdu letters as they are (`SlugScript.latin` keeps only `a-z`,
+  `SlugScript.urdu` only Urdu letters; digits become `0-9`).
+  `compareUrdu(a, b)` sorts in the CLDR Urdu alphabetical order (بھ, پھ, …
+  are letters of their own), the same on every platform without ICU, and
+  can be passed straight to `List.sort`. `isRTL(text)` is `true` when the
+  first letter is from a right-to-left script, and `wrapBidi(text,
+  [direction])` wraps text in Unicode directional isolates
+  (`BidiDirection.auto`, the default, `rtl` or `ltr`). They never throw.
 - **Utility bills:** `parseElectricityRef(input)` returns an
   `ElectricityRef` (`type`, an `ElectricityRefType`: `reference`,
   `customerId` (`'customer-id'`) or `kElectric` (`'k-electric'`); `digits`;

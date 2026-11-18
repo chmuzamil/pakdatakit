@@ -55,6 +55,7 @@ Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, ch
 | [`chmuzamil/pakdatakit` (PHP)](https://github.com/chmuzamil/pakdatakit/tree/main/php) | Build from `php/` (not on Packagist yet) | PHP 8.2+, same functions and data, with Laravel rules, rule objects and Eloquent casts         |
 | [`pakdatakit-vue`](https://github.com/chmuzamil/pakdatakit/tree/main/vue)             | Build from `vue/` (not on npm yet)       | Vue 3 composables and a `v-pak-input` directive that format as you type                        |
 | [`pakdatakit-angular`](https://github.com/chmuzamil/pakdatakit/tree/main/angular)     | Build from `angular/` (not on npm yet)   | Angular directives, pipes and form validators                                                  |
+| [`pakdatakit-pay`](https://github.com/chmuzamil/pakdatakit/tree/main/pay)             | Build from `pay/` (not on npm yet)       | Server-side JazzCash secure hash: build it and verify responses in constant time               |
 
 The Python, Dart, .NET and PHP packages are checked against the TypeScript library with over 25,000 shared test cases, so all five give the same results.
 
@@ -711,6 +712,58 @@ Normalizes informal Roman Urdu spellings (`ap kia ker` → `aap kya kar`).
 ### toUrduDigits() / toEnglishDigits()
 
 Convert between English, Urdu, and Arabic-Indic digits.
+
+### slugify()
+
+Turns text into a URL slug. Urdu letters are kept as they are: Urdu does not write short vowels, so there is no single Roman spelling to transliterate to. Diacritics and zero-width characters are dropped, Urdu digits become `0-9`, and `script` limits which letters are kept (`any`, the default; `latin`; `urdu`).
+
+```ts
+slugify('Lahore Fort, 2024'); // "lahore-fort-2024"
+slugify('لاہور قلعہ'); // "لاہور-قلعہ"
+slugify('لاہور Fort', { script: 'latin' }); // "fort"
+slugify('کراچی ۲۰۲۴', { script: 'urdu' }); // "کراچی-2024"
+```
+
+### compareUrdu()
+
+Sorts Urdu in alphabetical order, following the Unicode CLDR collation for Urdu (CLDR 49): ا آ ب بھ پ پھ ت تھ ٹ … ی یھ ے. A letter joined with ھ (بھ, پھ, کھ …) is a letter of its own, so بھائی comes after every other ب word. The same order is used in every port, without depending on the platform's ICU.
+
+```ts
+['ے', 'بھائی', 'آم', 'باغ', 'اب'].sort(compareUrdu);
+// ["اب", "آم", "باغ", "بھائی", "ے"]
+```
+
+Digits come before letters (one digit at a time, so `10` before `2`), and other scripts after. The Arabic look-alikes ك ي ه are not Urdu letters in CLDR and sort after ے; write ک ی ہ to sort them as Urdu.
+
+### isRTL() / wrapBidi()
+
+`isRTL` is `true` when the first letter is from a right-to-left script. `wrapBidi` wraps text in Unicode directional isolates (FSI … PDI, or RLI/LRI with `'rtl'`/`'ltr'`), so an English order number or name does not jumble an Urdu sentence.
+
+```ts
+isRTL('123 سلام'); // true
+isRTL('Order نمبر'); // false
+`آرڈر ${wrapBidi('PDK-1042')} بھیج دیا گیا`;
+```
+
+---
+
+## Income Tax on Salary
+
+`import { calculateSalaryTax } from 'pakdatakit/incometax'`
+
+Income tax on a salaried individual's taxable income, from the salaried rate table in the Income Tax Ordinance 2001 (First Schedule, Part I, Division I, clause (2), which applies when salary is more than 75% of taxable income). Tax years 2020 to 2027 are covered; a tax year runs from 1 July to 30 June and is named after the June it ends in.
+
+```ts
+calculateSalaryTax(1_800_000, { taxYear: 2026 });
+// { tax: 72000, monthly: 6000, effectiveRate: 4,
+//   slab: { over: 1200000, upTo: 2200000, fixed: 6000, rate: 11 }, taxYear: 2026 }
+
+calculateMonthlySalaryTax(150_000, { taxYear: 2026 })?.monthly; // 6000
+getSalaryTaxSlabs(2027); // the table, its law and FBR source
+getTaxYear('2025-07-01'); // 2026
+```
+
+Without `taxYear` or `date`, the current tax year is used, and a year that is not covered returns `null`. Tax is rounded half up to the paisa. Only the rate table is applied: the surcharge, tax credits, exemptions, the separate rate for pensions and withholding adjustments are not. Sources and the full table are in [DATA.md](DATA.md#income-tax-on-salary-income-tax-slabsjson).
 
 ---
 

@@ -1,8 +1,9 @@
 """PakDataKit: utilities for Pakistani data.
 
 CNIC, phone, networks, WhatsApp, IBAN, postal codes, geography, address
-parsing, Roman Urdu, Hijri dates, holidays, currency formatting, amounts in
-words, tax numbers, sales tax, FBR digital invoices, landlines, Raast QR codes, and passport and vehicle
+parsing, Roman Urdu, Urdu slugs and sorting, Hijri dates, holidays, currency
+formatting, amounts in words, tax numbers, sales tax, income tax on salary,
+FBR digital invoices, landlines, Raast QR codes, and passport and vehicle
 registration number formats, and electricity and gas bill numbers.
 
 A Python port of the ``pakdatakit`` npm package: it ships the same datasets and
@@ -59,6 +60,16 @@ from .hijri import (
 )
 from .holidays import Holiday, get_holidays_on, get_pakistan_holidays, is_pakistan_holiday
 from .iban import BankInfo, get_bank_from_iban, get_bank_info, get_banks, validate_iban
+from .incometax import (
+    SalaryTax,
+    SalaryTaxSlab,
+    SalaryTaxYear,
+    calculate_monthly_salary_tax,
+    calculate_salary_tax,
+    get_salary_tax_slabs,
+    get_salary_tax_years,
+    get_tax_year,
+)
 from .input import (
     check_cnic_input,
     check_iban_input,
@@ -114,7 +125,18 @@ from .salestax import (
     split_inclusive,
 )
 from .tax import NTNInfo, analyze_ntn, validate_ntn, validate_strn
-from .text import normalize_roman_urdu, normalize_text, to_english_digits, to_urdu_digits
+from .text import (
+    BidiDirection,
+    SlugScript,
+    compare_urdu,
+    is_rtl,
+    normalize_roman_urdu,
+    normalize_text,
+    slugify,
+    to_english_digits,
+    to_urdu_digits,
+    wrap_bidi,
+)
 from .vehicle import VehiclePlate, parse_vehicle_plate, validate_vehicle_plate
 from .whatsapp import create_whatsapp_link
 from .words import amount_in_words, number_to_words
@@ -182,6 +204,12 @@ __all__ = [
     "normalize_roman_urdu",
     "to_urdu_digits",
     "to_english_digits",
+    "SlugScript",
+    "slugify",
+    "compare_urdu",
+    "BidiDirection",
+    "is_rtl",
+    "wrap_bidi",
     # hijri
     "HijriDate",
     "to_hijri",
@@ -206,6 +234,15 @@ __all__ = [
     "get_sales_tax_rate",
     "calculate_sales_tax",
     "split_inclusive",
+    # income tax on salary
+    "SalaryTaxSlab",
+    "SalaryTaxYear",
+    "SalaryTax",
+    "get_salary_tax_slabs",
+    "get_salary_tax_years",
+    "get_tax_year",
+    "calculate_salary_tax",
+    "calculate_monthly_salary_tax",
     # FBR digital invoicing
     "FBR_DI_SPEC_VERSION",
     "FbrInvoiceType",

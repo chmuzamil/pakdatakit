@@ -130,6 +130,16 @@
         "default": "./dist/iban.cjs"
       }
     },
+    "./incometax": {
+      "import": {
+        "types": "./dist/incometax.d.ts",
+        "default": "./dist/incometax.js"
+      },
+      "require": {
+        "types": "./dist/incometax.d.cts",
+        "default": "./dist/incometax.cjs"
+      }
+    },
     "./input": {
       "import": {
         "types": "./dist/input.d.ts",

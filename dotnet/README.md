@@ -64,6 +64,19 @@ SalesTax.Calculate(1150, new SalesTaxOptions { Province = "Sindh", Date = "2026-
 // Net = 1000, Tax = 150, Gross = 1150, Rate = 15
 SalesTax.SplitInclusive(99.99, 18);          // Net = 84.74, Tax = 15.25, Gross = 99.99, Rate = 18
 
+IncomeTax.CalculateSalaryTax(1_800_000, new SalaryTaxOptions { TaxYear = 2026 });
+// Tax = 72000, Monthly = 6000, EffectiveRate = 4, Slab = { Over = 1200000, UpTo = 2200000, Fixed = 6000, Rate = 11 }, TaxYear = 2026
+IncomeTax.CalculateMonthlySalaryTax(150_000, new SalaryTaxOptions { TaxYear = 2026 })?.Monthly; // 6000
+IncomeTax.GetTaxYear("2025-07-01");          // 2026
+
+Text.Slugify("Lahore Fort, 2024");           // "lahore-fort-2024"
+Text.Slugify("لاہور قلعہ");                  // "لاہور-قلعہ"
+Text.Slugify("کراچی ۲۰۲۴", new SlugifyOptions { Script = SlugScript.Urdu }); // "کراچی-2024"
+var names = new List<string> { "ے", "بھائی", "آم", "باغ", "اب" };
+names.Sort(Text.CompareUrdu);                // اب, آم, باغ, بھائی, ے
+Text.IsRtl("123 سلام");                      // true
+$"آرڈر {Text.WrapBidi("PDK-1042")} بھیج دیا گیا"; // the order number keeps its direction
+
 var build = FbrInvoice.Build(JsonNode.Parse(invoiceJson)); // System.Text.Json.Nodes
 build!.Totals.SalesTaxApplicable;            // 222.12 (salesTaxApplicable worked out on each line)
 FbrInvoice.Validate(build.Invoice, today: "2026-11-18");
@@ -114,9 +127,10 @@ Unicode (unpaired surrogates, noncharacters).
 | `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
 | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`, `Bills.ValidateGasConsumerNumber` | `null` / `false` (also for an undefined `GasCompany` value) |
 | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive` | `null` (also for NaN, infinite, negative or too large amounts and rates, and `null` options) |
+| `IncomeTax.CalculateSalaryTax`, `IncomeTax.CalculateMonthlySalaryTax`, `IncomeTax.GetSalaryTaxSlabs`, `IncomeTax.GetTaxYear(string)` | `null` (also for NaN, infinite, negative or too large amounts, an invalid date and a tax year that is not covered) |
 | `FbrInvoice.Validate`, `FbrInvoice.Build`, `FbrInvoice.ExpectedSalesTax` | `Valid = false` with the errors (any JSON, including `null`, arrays, strings where numbers belong and NaN); `null` |
 | `Courier.MapStatus`, `Courier.NormalizeCity` | `null` (also for an unknown courier, and a numeric status that is negative, fractional, NaN or infinite) |
-| `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
+| `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` (`Text.Slugify` and `Text.WrapBidi` return `""` for `null`, `Text.IsRtl` returns `false`, and `Text.CompareUrdu` reads `null` as `""`) |
 
 Every regular expression has a one-second timeout; if one is ever hit, the
 input is treated as not matching, so the method still returns `false` or
@@ -171,6 +185,9 @@ strings to every public method that takes a string and checks this contract.
 | `parseElectricityRef`, `validateElectricityRef`        | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`            |
 | `validateGasConsumerNumber`                            | `Bills.ValidateGasConsumerNumber`                                       |
 | `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text.Normalize`, `Text.NormalizeRomanUrdu`, `Text.ToUrduDigits`        |
+| `slugify`, `compareUrdu`, `isRTL`, `wrapBidi`          | `Text.Slugify`, `Text.CompareUrdu`, `Text.IsRtl`, `Text.WrapBidi`       |
+| `getSalaryTaxSlabs`, `getSalaryTaxYears`, `getTaxYear` | `IncomeTax.GetSalaryTaxSlabs`, `IncomeTax.GetSalaryTaxYears`, `IncomeTax.GetTaxYear` |
+| `calculateSalaryTax`, `calculateMonthlySalaryTax`      | `IncomeTax.CalculateSalaryTax`, `IncomeTax.CalculateMonthlySalaryTax`   |
 | `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri.ToHijri`, `Hijri.FromHijri`, `Hijri.Format`, `Hijri.IsRamadan`   |
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays.GetHolidays`, `Holidays.GetHolidaysOn`, `Holidays.IsHoliday`  |
 | `parseAddress`, `formatAddress`                        | `Address.Parse`, `Address.Format`                                       |
@@ -279,6 +296,46 @@ FluentValidation 11 and 12.
   an inclusive amount the value is rounded and the tax is the rest, so
   `Net + Tax` always equals `Gross`. Amounts from 0 to one trillion rupees and
   rates from 0 to 100 with at most two decimals are accepted.
+- **Income tax on salary.** `IncomeTax.GetSalaryTaxSlabs(taxYear)` returns
+  the salaried rate table (Division I of Part I of the First Schedule to the
+  Income Tax Ordinance 2001, clause (2)) for tax years 2020 to 2027 as a
+  `SalaryTaxYear` (`TaxYear`, `From`, `To`, `Law`, `Source` and the
+  `SalaryTaxSlab` bands: `Over`, `UpTo`, `Fixed`, `Rate`), or `null`; it
+  defaults to the current tax year, and `IncomeTax.GetSalaryTaxYears()` lists
+  the years covered. A tax year runs from 1 July to 30 June and is named after
+  the June it ends in: `IncomeTax.GetTaxYear("2025-07-01")` is 2026 (also for
+  a `DateOnly`, or today with no argument). `IncomeTax.CalculateSalaryTax(annualIncome, options)`
+  returns a `SalaryTax` (`Tax`, `Monthly` = tax / 12, `EffectiveRate` in
+  percent to 2 decimals, the `Slab` and the `TaxYear`); income must exceed a
+  band's `Over` to fall in it. `SalaryTaxOptions` takes `TaxYear`, which wins
+  over `Date` (`YYYY-MM-DD`) or `OnDate` (a `DateOnly`); without either it
+  uses today's local date. `IncomeTax.CalculateMonthlySalaryTax(monthlySalary, options)`
+  works on `monthlySalary × 12`, so `Monthly` is the tax to withhold each
+  month. Amounts are rounded half up to the paisa in exact integer
+  arithmetic, reading the number as written; amounts from 0 to one trillion
+  rupees are accepted. Only the rate table is applied: no surcharge, tax
+  credits, exemptions, pension rate or withholding adjustments.
+- **Urdu text.** `Text.Slugify(input, options)` makes a URL slug: lower-case
+  words joined by `-`. Urdu letters are kept as they are (no
+  transliteration), diacritics, tatweel and zero-width characters are
+  dropped, the Arabic look-alikes ك ي ى become ک ی ی, Urdu and Arabic-Indic
+  digits become `0-9`, and accented Latin-1 letters lose their accents (`é`
+  to `e`, `ß` to `ss`); anything else separates words. `SlugifyOptions.Script`
+  is `SlugScript.Any` (default), `Latin` (only `a-z`) or `Urdu` (only Urdu
+  letters); digits are always kept. `Text.CompareUrdu(a, b)` returns -1, 0 or
+  1 in Urdu alphabetical order (CLDR `ur`, CLDR 49), for `List.Sort` or
+  `OrderBy(x => x, Comparer<string>.Create(Text.CompareUrdu))`: a letter
+  joined with ھ (بھ, پھ, …) is a letter of its own, أ ؤ ۂ ئ ۓ sort as ا و ہ ی ے
+  just after them, diacritics only break ties, punctuation comes first, then
+  digits digit by digit (Urdu, Arabic-Indic and ASCII digits are equal), then
+  Urdu letters, other Arabic-script characters, and everything else by code
+  point ignoring ASCII case; 0 means identical strings. The order is built
+  in, so it does not depend on the culture or the ICU version.
+  `Text.IsRtl(text)` is `true` when the first letter is from a right-to-left
+  script. `Text.WrapBidi(text, direction)` wraps text in a directional isolate
+  (`BidiDirection.Auto`, U+2068, by default; `Rtl`, U+2067; `Ltr`, U+2066)
+  closed with U+2069, so an English order number does not reorder an Urdu
+  sentence.
 - **Utility bills.** `Bills.ParseElectricityRef` reads a DISCO (WAPDA)
   reference number (14 digits, optional `U` or `R`), a DISCO customer ID (10
   digits, 11 for LESCO) or a K-Electric account number (13 digits starting

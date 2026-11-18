@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.0 (unreleased)
+
+### Added
+
+- `Text::slugify()`, `Text::compareUrdu()`, `Text::isRtl()` and `Text::wrapBidi()`: URL slugs that keep Urdu letters (`script`: `Text::SCRIPT_ANY`, `SCRIPT_LATIN`, `SCRIPT_URDU`), Urdu alphabetical order for `usort()` from the CLDR `ur` collation (no intl or ICU needed), right-to-left detection, and Unicode directional isolates (`Text::BIDI_AUTO`, `BIDI_RTL`, `BIDI_LTR`). They accept any value and never throw.
+- `IncomeTax::calculateSalary()`, `IncomeTax::calculateMonthlySalary()`, `IncomeTax::getSalarySlabs()`, `IncomeTax::getSalaryYears()` and `IncomeTax::getTaxYear()`: income tax on salary from the salaried rate table of the Income Tax Ordinance 2001 for tax years 2020 to 2027, computed exactly in whole paisa (`SalaryTax`, `SalaryTaxSlab`, `SalaryTaxYear`). They return `null` for any invalid input and never throw.
+
 ## 2.4.0 (unreleased)
 
 ### Added
@@ -13,7 +20,7 @@
   passes only when there are no flags, with English and Urdu messages.
 - `SalesTax::getRate()`, `SalesTax::calculate()` and `SalesTax::splitInclusive()`: standard sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) from 1 July 2019, with the law and source of each, and exact sales tax amounts in whole paisa (`SalesTaxRate`, `SalesTaxAmounts`). They return `null` for any invalid input and never throw.
 - `Bills::parseElectricityRef()`, `Bills::validateElectricityRef()` and `Bills::validateGasConsumerNumber()`: electricity bill identifiers (14-digit DISCO reference numbers with optional U/R, DISCO customer IDs and K-Electric account numbers) as an `ElectricityRef`, and SNGPL (11 digits) and SSGC (10 digits) gas consumer numbers. New Laravel rule `pk_electricity_ref` (and `Rules\ElectricityRef`), with English and Urdu messages.
-- `Courier::mapStatus()` and `Courier::normalizeCity()`: maps a courier's own status (PostEx's documented order statuses and tracking codes, and Leopards' "Returned to Shipper") to one vocabulary (`Courier::PENDING` … `Courier::CANCELLED`), and maps short forms, old names and Urdu spellings of cities (`LHR`, `Pindi`, `Lyallpur`, `Karachi City`, `لاہور`) to the city list. No API is called; both return `null` for anything unknown and never throw.
+- `Courier::mapStatus()` and `Courier::normalizeCity()`: maps a courier's own status (PostEx's documented order statuses and tracking codes, and Leopards' "Returned to Shipper") to one vocabulary (`Courier::PENDING` … `Courier::CANCELLED`), and maps short forms, old names and Urdu spellings of cities (`LHR`, `Pindi`, `Lyallpur`, `Karachi City`, `لاہور`) to the city list. No API is called; both return `null` for anything unknown and never throw. The status mapping is experimental and may change in a minor release as more couriers' lists are added.
 - `FbrInvoice::build()`, `FbrInvoice::validate()` and `FbrInvoice::expectedSalesTax()`: FBR Digital Invoicing (PRAL's DI API specification v1.12, `FbrInvoice::SPEC_VERSION`). `build()` works out each line's sales tax (`N%` and `Rs.N` rates), fills FBR's defaults and adds up the columns; `validate()` checks an invoice (array or decoded JSON object) offline and returns every problem with FBR's error code as an `FbrInvoiceValidation` of `FbrInvoiceError`s. No HTTP client or tokens; they never throw.
 
 ### Changed

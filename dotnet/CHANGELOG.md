@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.5.0 (unreleased)
+
+### Added
+
+- `Text.Slugify(input, options)`: a URL slug that keeps Urdu letters as they
+  are, folds accented Latin-1 letters and converts Urdu digits
+  (`SlugifyOptions.Script`: `SlugScript.Any`, `Latin` or `Urdu`).
+  `Text.CompareUrdu(a, b)`: Urdu alphabetical order (CLDR `ur`, with the ھ
+  digraphs as letters of their own), for `List.Sort`, built in so it does not
+  depend on the culture or ICU. `Text.IsRtl(text)`: whether the first letter
+  is right to left. `Text.WrapBidi(text, direction)`: wraps text in a Unicode
+  directional isolate (`BidiDirection.Auto`, `Rtl` or `Ltr`).
+- `IncomeTax.CalculateSalaryTax(annualIncome, options)` and
+  `IncomeTax.CalculateMonthlySalaryTax(monthlySalary, options)`: income tax on
+  salary from the salaried rate table for tax years 2020 to 2027, as a
+  `SalaryTax` (`Tax`, `Monthly`, `EffectiveRate`, `Slab`, `TaxYear`) rounded
+  half up to the paisa in exact integer arithmetic (`SalaryTaxOptions` takes
+  `TaxYear`, `Date` or `OnDate`). `IncomeTax.GetSalaryTaxSlabs(taxYear)`
+  returns the table as a `SalaryTaxYear` with its `SalaryTaxSlab` bands, law
+  and official source, `IncomeTax.GetSalaryTaxYears()` the years covered, and
+  `IncomeTax.GetTaxYear(date)` the July-to-June tax year of a date. Invalid
+  input returns `null`.
+
 ## 2.4.0 (unreleased)
 
 ### Added
@@ -38,7 +61,8 @@
   `Attempted`, `UnderReview`, `Delivered`, `Returning`, `Returned`,
   `Cancelled`). Only publicly documented statuses are mapped (PostEx's
   merchant API guide and Leopards' "Returned to Shipper"); anything else
-  returns `null`. `Courier.NormalizeCity(input)` maps short forms (`LHR`,
+  returns `null`. The status mapping is experimental and may change in a
+  minor release as more couriers' lists are added. `Courier.NormalizeCity(input)` maps short forms (`LHR`,
   `Khi`, `Pindi`), the old name Lyallpur, a trailing "city" and Urdu script to
   a city in the city list. Neither throws.
 - `FbrInvoice.Build(input)`, `FbrInvoice.Validate(invoice, today)` and

@@ -67,6 +67,15 @@ internal static class Data
             Str(e, "authority")!, Str(e, "province"), e.GetProperty("rate").GetDouble(),
             Str(e, "from")!, Str(e, "to"), Str(e, "law")!, Str(e, "source")!)));
 
+    private static readonly Lazy<IReadOnlyList<SalaryTaxYear>> SalaryTaxYearsLazy = new(() =>
+        Array("income-tax-slabs.json", e => new SalaryTaxYear(
+            e.GetProperty("taxYear").GetInt32(), Str(e, "from")!, Str(e, "to")!, Str(e, "law")!, Str(e, "source")!,
+            e.GetProperty("slabs").EnumerateArray().Select(s => new SalaryTaxSlab(
+                s.GetProperty("over").GetInt64(),
+                s.GetProperty("upTo").ValueKind == JsonValueKind.Number ? s.GetProperty("upTo").GetInt64() : null,
+                s.GetProperty("fixed").GetInt64(),
+                s.GetProperty("rate").GetDouble())).ToArray())));
+
     private static readonly Lazy<IReadOnlyDictionary<string, IReadOnlyDictionary<string, ObservedHoliday>>>
         HolidaysLazy = new(() =>
         {
@@ -109,6 +118,8 @@ internal static class Data
     internal static IReadOnlyList<PostOffice> PostOffices => PostOfficesLazy.Value;
 
     internal static IReadOnlyList<SalesTaxRate> SalesTaxRates => SalesTaxRatesLazy.Value;
+
+    internal static IReadOnlyList<SalaryTaxYear> SalaryTaxYears => SalaryTaxYearsLazy.Value;
 
     internal static IReadOnlyDictionary<string, IReadOnlyDictionary<string, ObservedHoliday>> Holidays =>
         HolidaysLazy.Value;

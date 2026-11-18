@@ -16,6 +16,7 @@ use PakDataKit\Hijri;
 use PakDataKit\HijriDate;
 use PakDataKit\Holidays;
 use PakDataKit\Iban;
+use PakDataKit\IncomeTax;
 use PakDataKit\Input;
 use PakDataKit\Networks;
 use PakDataKit\Numbers;
@@ -436,6 +437,103 @@ final class FuzzTest extends TestCase
         }
         self::assertSame('Karachi', Courier::normalizeCity('Karachi City'));
         self::assertSame('Lahore', Courier::normalizeCity('لاہور'));
+    }
+
+    public function testUrduTextHandlesHostileInput(): void
+    {
+        $values = [null, true, false, 0, 1.5, NAN, [], ['script' => 'urdu'], new \stdClass(), 'rtl', 'ltr', 'urdu', 'latin'];
+        $inputs = [...$values, ...self::hostile()];
+        mt_srand(crc32('Text::urdu'));
+        for ($i = 0; $i < 300; $i++) {
+            $inputs[] = self::randomString();
+        }
+        foreach ($inputs as $value) {
+            $label = is_string($value) ? self::describe($value) : var_export(is_object($value) ? 'object' : $value, true);
+            try {
+                self::assertIsString(Text::slugify($value));
+                self::assertIsString(Text::slugify($value, ['script' => 'urdu']));
+                self::assertIsString(Text::slugify($value, ['script' => 'latin']));
+                self::assertIsString(Text::slugify('Lahore', $value));
+                self::assertContains(Text::compareUrdu($value, 'لاہور'), [-1, 0, 1]);
+                self::assertContains(Text::compareUrdu('abc', $value), [-1, 0, 1]);
+                self::assertSame(0, Text::compareUrdu($value, $value));
+                self::assertIsBool(Text::isRtl($value));
+                self::assertIsString(Text::wrapBidi($value));
+                self::assertIsString(Text::wrapBidi('x', $value));
+            } catch (Throwable $e) {
+                self::fail('Text threw ' . $e::class . ' for ' . $label . ': ' . $e->getMessage());
+            }
+            if (!is_string($value)) {
+                self::assertSame('', Text::slugify($value));
+                self::assertFalse(Text::isRtl($value));
+                self::assertSame('', Text::wrapBidi($value));
+            }
+        }
+        self::assertSame('lahore-fort-2024', Text::slugify('Lahore Fort, 2024'));
+        self::assertSame('لاہور-قلعہ', Text::slugify('لاہور قلعہ'));
+        self::assertSame('fort', Text::slugify('لاہور Fort', ['script' => Text::SCRIPT_LATIN]));
+        self::assertSame('کراچی-2024', Text::slugify('کراچی ۲۰۲۴', ['script' => Text::SCRIPT_URDU]));
+        self::assertSame('aeiou-ss-th', Text::slugify('ÀÉÎÕÜ ß Þ'));
+        self::assertSame('a-b', Text::slugify("a\u{d7}b"));
+        self::assertSame('a-b', Text::slugify("\xffa\xed\xa0\x80b\xff"));
+        $words = ['ے', 'بھائی', 'آم', 'باغ', 'اب'];
+        usort($words, Text::compareUrdu(...));
+        self::assertSame(['اب', 'آم', 'باغ', 'بھائی', 'ے'], $words);
+        self::assertSame(-1, Text::compareUrdu('10', '2'));
+        self::assertSame(-1, Text::compareUrdu('ا', 'أ'));
+        self::assertTrue(Text::isRtl('123 سلام'));
+        self::assertFalse(Text::isRtl('Order نمبر'));
+        self::assertSame("\u{2067}x\u{2069}", Text::wrapBidi('x', Text::BIDI_RTL));
+        self::assertSame("\u{2068}x\u{2069}", Text::wrapBidi('x', 'up'));
+    }
+
+    public function testIncomeTaxHandlesHostileInput(): void
+    {
+        $values = [
+            null, true, false, '2026', '', [], [2026], new \stdClass(), NAN, INF, -INF, -0.0, -1, 0, 0.0, 0.005,
+            2026.5, 2026.0, 1e12, 1e12 + 0.01, 1e300, PHP_INT_MAX, PHP_INT_MIN, 999_999_999_999.99,
+            new DateTimeImmutable('2025-07-01'), '2025-02-29', '2025-07-01',
+        ];
+        foreach ([...$values, ...self::hostile()] as $value) {
+            try {
+                IncomeTax::getSalarySlabs($value);
+                IncomeTax::getTaxYear($value);
+                IncomeTax::calculateSalary($value, ['taxYear' => 2026]);
+                IncomeTax::calculateSalary(1_800_000, ['taxYear' => $value]);
+                IncomeTax::calculateSalary(1_800_000, ['date' => $value]);
+                IncomeTax::calculateSalary($value, ['taxYear' => $value, 'date' => $value]);
+                IncomeTax::calculateMonthlySalary($value, ['taxYear' => 2027]);
+                IncomeTax::calculateMonthlySalary(150_000, ['taxYear' => $value, 'date' => $value]);
+                IncomeTax::calculateMonthlySalary($value);
+            } catch (Throwable $e) {
+                self::fail('IncomeTax threw ' . $e::class . ' for ' . var_export(is_object($value) ? 'object' : $value, true)
+                    . ': ' . $e->getMessage());
+            }
+        }
+        foreach (self::hostile() as $input) {
+            self::assertNull(IncomeTax::calculateSalary($input, ['taxYear' => 2026]));
+            self::assertNull(IncomeTax::getTaxYear($input ?? 'x'));
+            self::assertNull(IncomeTax::calculateSalary(1000, ['date' => $input ?? 'x']));
+        }
+        self::assertSame([2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027], IncomeTax::getSalaryYears());
+        self::assertSame(
+            ['tax' => 72000.0, 'monthly' => 6000.0, 'effectiveRate' => 4.0,
+                'slab' => ['over' => 1200000, 'upTo' => 2200000, 'fixed' => 6000, 'rate' => 11], 'taxYear' => 2026],
+            IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026])?->toArray(),
+        );
+        self::assertSame(6000.0, IncomeTax::calculateMonthlySalary(150_000, ['taxYear' => 2026])?->monthly);
+        self::assertSame(0.01, IncomeTax::calculateSalary(600_000.5, ['taxYear' => 2026])?->tax);
+        self::assertSame(2026, IncomeTax::getTaxYear('2025-07-01'));
+        self::assertSame(2025, IncomeTax::getTaxYear(new DateTimeImmutable('2025-06-30')));
+        self::assertSame(2026, IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026.0])?->taxYear);
+        self::assertNull(IncomeTax::calculateSalary(1_800_000, ['taxYear' => '2026']));
+        self::assertNull(IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2019]));
+        self::assertNull(IncomeTax::getSalarySlabs(2026.5));
+        self::assertNotNull(IncomeTax::calculateSalary(1_800_000));
+        // The largest income: 1.2 × 10^15 paisa at 35%, exact in 64-bit integers.
+        $top = IncomeTax::calculateMonthlySalary(1e12, ['taxYear' => 2026]);
+        self::assertNotNull($top);
+        self::assertGreaterThan(0, $top->effectiveRate);
     }
 
     private static function describe(?string $input): string

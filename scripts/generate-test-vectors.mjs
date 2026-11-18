@@ -199,7 +199,7 @@ const cnics = [
   '35202-12345671',
   '352021234567-1',
   '  35202-1234567-1  ',
-  ' 35202-1234567-2﻿',
+  '\u00a035202-1234567-2\ufeff',
   '\t3520212345672\n',
   '35202\n1234567\n1',
   '۳۵۲۰۲-۱۲۳۴۵۶۷-۱',
@@ -256,7 +256,7 @@ const phones = unique([
   'abc',
   '+',
   '0300 1234567 ',
-  ' 0300 1234567',
+  '\u00a00300\u20021234567',
   '0300—1234567',
   '+92 3001234567',
   '92 0300 1234567',
@@ -719,15 +719,15 @@ const texts = [
   'ápap',
   'ap1 ap',
   '1ap',
-  'kia haal',
+  'kia\u00a0haal',
   '  extra   spaces  ',
   '\tTabs\tand\nnewlines\n',
   '',
   ' ',
   'Price ۱۲۳ rupees',
   'Mixed ٤٥٦ and 789',
-  'Café',
-  'é è',
+  'Cafe\u0301',
+  'e\u0301 e\u0300',
   'ﬁ ligature',
   'Kr',
   'kR',
@@ -740,8 +740,8 @@ const texts = [
   'main men mein',
   '0300-1234567',
   'کیا حال ہے',
-  '﻿ap﻿',
-  'ap kr',
+  '\ufeffap\ufeff',
+  'ap\u2028kr',
   'ap\u0085kr',
   'ap\u001fkr',
 ];
@@ -1117,7 +1117,7 @@ each(
     'Ab1234567',
     '  AB1234567  ',
     '\tAB1234567\n',
-    ' AB1234567 ',
+    '\u00a0AB1234567\u00a0',
     'AB 1234567',
     'AB-1234567',
     'AB–1234567',
@@ -1166,7 +1166,7 @@ each(
     'Lea 1234',
     '  ABC-123  ',
     '\tABC-123\n',
-    ' ABC-123 ',
+    '\u00a0ABC-123\u00a0',
     'ABC–123',
     'ABC—123',
     'ABC‐123',
@@ -1751,7 +1751,7 @@ const ibanInputs = unique([
   'PK36SCBL0000001123456703',
   'ß',
   'PK36SCBLÄ',
-  'PK36 SCBL',
+  'PK36\u00a0SCBL',
 ]);
 each('input', ['formatIBANInput', 'checkIBANInput'], ibanInputs);
 
@@ -2441,6 +2441,239 @@ for (const today of [
 }
 for (const value of [null, 1, 'x', [], {}]) {
   call('fbr-invoice', 'validateFbrInvoice', [value]);
+}
+
+// Urdu text: slugs, sorting, direction ----------------------------------------
+{
+  const slugInputs = unique([
+    ...texts,
+    'Lahore Fort, 2024',
+    'لاہور قلعہ',
+    'لاہور Fort',
+    'کراچی ۲۰۲۴',
+    'Café Ünïon — ÀÉ',
+    'ŒUVRE ÆON × ÷ Þorn straße',
+    'كتاب يوم ى',
+    'م\u064fح\u064eم\u064e\u0651د',
+    'پاکستان\u200cزندہ\u200dباد',
+    'خوش آمدید!!!',
+    '---a---',
+    '  Ünited   Kingdom ',
+    'Rs. 1,500/-',
+    'ٱل\u0652ح\u064eم\u0652د\u064f',
+    'ﷲ ﻻ',
+    'naïve résumé',
+    'ğüşçö',
+    '😀 emoji 😀',
+    'مـــرحبا',
+    '\u2067سلام\u2069 world',
+    'A1-B2_C3',
+    '١٢٣ ۴۵۶',
+  ]);
+  for (const input of slugInputs) {
+    call('text', 'slugify', [input]);
+    for (const script of ['any', 'latin', 'urdu', 'cyrillic']) {
+      call('text', 'slugify', [input], { script });
+    }
+  }
+  for (const input of [null, 42, true]) call('text', 'slugify', [input]);
+
+  // Every pair from a word list that exercises the CLDR rules: digraphs with
+  // ھ, hamza variants, آ, diacritics, digits, punctuation, Arabic look-alikes,
+  // Latin case, prefixes and empty strings.
+  const words = [
+    '',
+    ' ',
+    'ا',
+    'آ',
+    'اب',
+    'آم',
+    'أب',
+    'آب',
+    'آ',
+    'ب',
+    'باغ',
+    'بھائی',
+    'بھ',
+    'بہن',
+    'ب\u064eت',
+    'ب\u0650ت',
+    'بت',
+    'ب\u0651ت',
+    'پ',
+    'پھل',
+    'تھا',
+    'ٹھیک',
+    'جھیل',
+    'چھت',
+    'دھوپ',
+    'ڈھول',
+    'رھ',
+    'ڑھ',
+    'کتاب',
+    'كتاب',
+    'کھانا',
+    'گھر',
+    'لھ',
+    'مھ',
+    'نھ',
+    'ںھ',
+    'وطن',
+    'ؤ',
+    'وھ',
+    'ہم',
+    'ۂ',
+    'ھ',
+    'ۃ',
+    'ء',
+    'یہ',
+    'يہ',
+    'ئ',
+    'یھ',
+    'ے',
+    'ۓ',
+    'ه',
+    'ة',
+    '۱',
+    '1',
+    '١',
+    '۲',
+    '10',
+    '2',
+    '،',
+    '۔',
+    'a',
+    'A',
+    'b',
+    'Zebra',
+    'zebra',
+    'پاکستان',
+    'پاک',
+    'لاہور',
+    'لاھور',
+    'کراچی',
+    'ک',
+    'گ',
+    'ے ا',
+    'اے',
+    'ـا',
+    'ا\u200cب',
+  ];
+  for (const a of unique(words))
+    for (const b of unique(words)) call('text', 'compareUrdu', [a, b]);
+  for (const [a, b] of [
+    [null, ''],
+    ['ا', null],
+    [1, 'ا'],
+    [null, null],
+  ]) {
+    call('text', 'compareUrdu', [a, b]);
+  }
+
+  const bidiInputs = [
+    '',
+    ' ',
+    'سلام',
+    '123 سلام',
+    'Order نمبر',
+    'نمبر Order',
+    '۱۲۳',
+    '123',
+    '!!! hello',
+    '- مرحبا',
+    'שלום',
+    'ހ\u07acލ\u07af',
+    '\u2067abc\u2069',
+    '😀 سلام',
+    'Ünited',
+    '١٢٣ abc',
+    'ﻻ',
+    'PDK-1042',
+  ];
+  for (const input of bidiInputs) {
+    call('text', 'isRTL', [input]);
+    call('text', 'wrapBidi', [input]);
+    for (const dir of ['auto', 'rtl', 'ltr', 'up']) {
+      call('text', 'wrapBidi', [input, dir]);
+    }
+  }
+  for (const input of [null, 7, {}]) {
+    call('text', 'isRTL', [input]);
+    call('text', 'wrapBidi', [input]);
+  }
+}
+
+// Income tax ----------------------------------------------------------------
+{
+  const years = lib.getSalaryTaxYears();
+  const incomes = [0, 0.01, 1, 599_999.99, 600_000, 600_000.01, 1_000_000];
+  for (const y of years) {
+    for (const slab of lib.getSalaryTaxSlabs(y).slabs) {
+      incomes.push(slab.over, slab.over + 0.01, slab.over + 1);
+      if (slab.upTo !== null) incomes.push(slab.upTo - 0.01, slab.upTo);
+    }
+  }
+  incomes.push(
+    1_234_567.89,
+    1_800_000,
+    2_400_000,
+    3_456_789.5,
+    5_000_000,
+    12_345_678.91,
+    99_999_999.99,
+    250_000_000,
+    1e12,
+    1.005,
+    2_000_000.005,
+    0.004,
+    0.005,
+  );
+  const invalid = [-1, -0.01, 1e12 + 1, NUM('NaN'), NUM('Infinity'), '100000'];
+  for (const y of [...years, 2019, 2028, 2026.5]) {
+    call('incometax', 'getSalaryTaxSlabs', [y]);
+    for (const income of unique(incomes)) {
+      call('incometax', 'calculateSalaryTax', [income], { taxYear: y });
+    }
+    for (const income of invalid) {
+      call('incometax', 'calculateSalaryTax', [income], { taxYear: y });
+    }
+    for (const monthly of [
+      0, 50_000, 100_000, 150_000, 183_333.33, 250_000, 1_000_000, 0.01,
+    ]) {
+      call('incometax', 'calculateMonthlySalaryTax', [monthly], { taxYear: y });
+    }
+  }
+  call('incometax', 'getSalaryTaxYears', []);
+  for (const date of [
+    '2019-07-01',
+    '2020-06-30',
+    '2025-06-30',
+    '2025-07-01',
+    '2026-11-18',
+    '2026-02-29',
+    'x',
+  ]) {
+    call('incometax', 'getTaxYear', [date]);
+    call('incometax', 'calculateSalaryTax', [1_500_000], { date });
+  }
+  for (const date of [D('2025-07-01T00:00:00'), D('2025-06-30T23:59:59')]) {
+    call('incometax', 'getTaxYear', [date]);
+  }
+  // taxYear wins over date.
+  call('incometax', 'calculateSalaryTax', [1_500_000], {
+    taxYear: 2024,
+    date: '2026-01-01',
+  });
+  for (const options of [
+    { taxYear: '2026' },
+    { taxYear: null, date: '2023-01-01' },
+  ]) {
+    call('incometax', 'calculateSalaryTax', [1_500_000], options);
+  }
+  for (const value of [null, 'x', true]) {
+    call('incometax', 'calculateSalaryTax', [value], { taxYear: 2026 });
+    call('incometax', 'calculateMonthlySalaryTax', [value], { taxYear: 2026 });
+  }
 }
 
 // Data version --------------------------------------------------------------

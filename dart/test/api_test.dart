@@ -4,6 +4,7 @@ import 'package:pakdatakit/bills.dart' as bills;
 import 'package:pakdatakit/cnic.dart' as cnic;
 import 'package:pakdatakit/courier.dart' as courier;
 import 'package:pakdatakit/fbr_invoice.dart' as fbr;
+import 'package:pakdatakit/incometax.dart' as incometax;
 import 'package:pakdatakit/pakdatakit.dart';
 import 'package:pakdatakit/phone.dart' as phone;
 import 'package:pakdatakit/salestax.dart' as salestax;
@@ -294,6 +295,188 @@ void main() {
       expect(calculateSalesTax(1e13, rate: 18), isNull);
       expect(calculateSalesTax(100, rate: 16.666), isNull);
       expect(calculateSalesTax(100), isNull);
+    });
+
+    test('Urdu text', () {
+      expect(slugify('Lahore Fort, 2024'), 'lahore-fort-2024');
+      expect(slugify('  Ünited   Kingdom '), 'united-kingdom');
+      expect(slugify('Straße ÆON'), 'strasse-aeon');
+      expect(slugify('---a---'), 'a');
+      expect(slugify('لاہور قلعہ'), 'لاہور-قلعہ');
+      expect(slugify('كتاب'), 'کتاب');
+      expect(slugify('لاہور Fort', script: SlugScript.latin), 'fort');
+      expect(slugify('لاہور Fort', script: SlugScript.urdu), 'لاہور');
+      expect(slugify('کراچی ۲۰۲۴', script: SlugScript.urdu), 'کراچی-2024');
+      expect(SlugScript.latin.value, 'latin');
+
+      expect(
+        ['ے', 'بھائی', 'آم', 'باغ', 'اب']..sort(compareUrdu),
+        ['اب', 'آم', 'باغ', 'بھائی', 'ے'],
+      );
+      expect(compareUrdu('بہن', 'بھائی'), -1);
+      expect(compareUrdu('ہم', 'ھ'), -1);
+      expect(compareUrdu('اب', 'أب'), -1);
+      expect(compareUrdu('أب', 'اج'), -1);
+      expect(compareUrdu('۲', '3'), -1);
+      expect(compareUrdu('10', '۲'), -1);
+      expect(compareUrdu(' ', '1'), -1);
+      expect(compareUrdu('ے', 'ك'), -1);
+      expect(compareUrdu('ے', 'a'), -1);
+      expect(compareUrdu('ا', 'ا'), 0);
+      expect(compareUrdu('a', 'A'), 1);
+
+      expect(isRTL('سلام'), isTrue);
+      expect(isRTL('123 سلام'), isTrue);
+      expect(isRTL('Order نمبر'), isFalse);
+      expect(isRTL('שלום'), isTrue);
+      expect(isRTL('123'), isFalse);
+      final fsi = String.fromCharCode(0x2068);
+      final pdi = String.fromCharCode(0x2069);
+      expect(wrapBidi('PDK-1042'), '${fsi}PDK-1042$pdi');
+      expect(
+        wrapBidi('abc', BidiDirection.rtl),
+        '${String.fromCharCode(0x2067)}abc$pdi',
+      );
+      expect(
+        wrapBidi('abc', BidiDirection.ltr),
+        '${String.fromCharCode(0x2066)}abc$pdi',
+      );
+    });
+
+    test('Urdu text functions never throw', () {
+      final strings = [
+        '',
+        ' ',
+        String.fromCharCode(0xd800),
+        '${String.fromCharCode(0xdc00)} near ${String.fromCharCode(0xd83d)}',
+        'ا${String.fromCharCode(0x0653)}',
+        'بھ',
+        'أ${String.fromCharCode(0x0653)}ھ',
+        String.fromCharCodes([0x0654, 0x0670, 0x0640, 0x200c, 0xfeff]),
+        '🇵🇰 𐤀 𞤀',
+        'x' * 100000,
+        'ب' * 100000,
+      ];
+      for (final a in strings) {
+        for (final script in SlugScript.values) {
+          expect(() => slugify(a, script: script), returnsNormally);
+        }
+        expect(() => isRTL(a), returnsNormally);
+        for (final direction in BidiDirection.values) {
+          expect(() => wrapBidi(a, direction), returnsNormally);
+        }
+        for (final b in strings) {
+          expect(() => compareUrdu(a, b), returnsNormally);
+          expect(compareUrdu(a, b), -compareUrdu(b, a));
+        }
+      }
+      expect(isRTL(String.fromCharCode(0x10900)), isTrue);
+    });
+
+    test('salary income tax', () {
+      expect(
+        calculateSalaryTax(1800000, taxYear: 2026),
+        const SalaryTax(
+          tax: 72000,
+          monthly: 6000,
+          effectiveRate: 4,
+          slab: SalaryTaxSlab(
+              over: 1200000, upTo: 2200000, fixed: 6000, rate: 11),
+          taxYear: 2026,
+        ),
+      );
+      expect(calculateSalaryTax(1800000, taxYear: 2025)?.tax, 120000);
+      expect(calculateSalaryTax(8000000, taxYear: 2027)?.tax, 1774000);
+      expect(calculateSalaryTax(3000000, taxYear: 2020)?.tax, 282500);
+      expect(calculateSalaryTax(600000, taxYear: 2026)?.tax, 0);
+      expect(calculateSalaryTax(1200000, taxYear: 2026)?.slab.over, 600000);
+      expect(calculateSalaryTax(1200000.01, taxYear: 2026)?.slab.over, 1200000);
+      expect(calculateSalaryTax(600000.5, taxYear: 2026)?.tax, 0.01);
+      expect(calculateSalaryTax(600000.49, taxYear: 2026)?.tax, 0);
+      expect(getTaxYear('2025-06-30'), 2025);
+      expect(getTaxYear('2025-07-01'), 2026);
+      expect(getTaxYear(DateTime(2025, 7, 1)), 2026);
+      expect(calculateSalaryTax(1800000, date: '2025-07-01')?.taxYear, 2026);
+      expect(
+        calculateSalaryTax(1500000, taxYear: 2024, date: '2026-01-01')?.taxYear,
+        2024,
+      );
+      expect(calculateSalaryTax(-1, taxYear: 2026), isNull);
+      expect(calculateSalaryTax(double.nan, taxYear: 2026), isNull);
+      expect(calculateSalaryTax(1, taxYear: 2019), isNull);
+      expect(calculateSalaryTax(1, date: '2026-02-30'), isNull);
+      expect(getSalaryTaxSlabs(2030), isNull);
+      expect(getTaxYear('2026-02-30'), isNull);
+      expect(getSalaryTaxYears(),
+          [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027]);
+      final year = getSalaryTaxSlabs(2026)!;
+      expect(year.from, '2025-07-01');
+      expect(year.slabs.first,
+          const SalaryTaxSlab(over: 0, upTo: 600000, fixed: 0, rate: 0));
+      expect(year.slabs.last.upTo, isNull);
+      expect(() => year.slabs.add(year.slabs.first), throwsUnsupportedError);
+      expect(getSalaryTaxSlabs(2026), year);
+      expect(calculateMonthlySalaryTax(150000, taxYear: 2026)?.monthly, 6000);
+      expect(calculateMonthlySalaryTax(50000, taxYear: 2026)?.tax, 0);
+      // 1.2e15 paisa a year at 35%: exact beyond 2^53 on every platform.
+      expect(
+        calculateMonthlySalaryTax(1e12, taxYear: 2026)?.tax,
+        4199999181000,
+      );
+    });
+
+    test('income tax functions never throw', () {
+      final numbers = <num>[
+        0,
+        -1,
+        -0.0,
+        1e-7,
+        5e-324,
+        0.005,
+        1e12,
+        1e12 + 0.01,
+        1e13,
+        double.nan,
+        double.infinity,
+        double.negativeInfinity,
+        double.maxFinite,
+      ];
+      final dates = <Object?>[
+        null,
+        '',
+        String.fromCharCode(0xd800),
+        '۲۰۲۶-۱۱-۱۸',
+        '2026-1-1',
+        '0000-00-00',
+        '9999-12-31',
+        'x' * 100000,
+        DateTime(-5),
+        DateTime(275000),
+        42,
+        true,
+      ];
+      final years = <int?>[null, -1, 0, 2019, 2026, 2028, 1 << 31];
+      for (final date in dates) {
+        expect(() => getTaxYear(date), returnsNormally);
+      }
+      for (final taxYear in years) {
+        expect(() => getSalaryTaxSlabs(taxYear), returnsNormally);
+      }
+      for (final amount in numbers) {
+        for (final taxYear in years) {
+          for (final date in dates) {
+            expect(
+              () => calculateSalaryTax(amount, taxYear: taxYear, date: date),
+              returnsNormally,
+            );
+            expect(
+              () => calculateMonthlySalaryTax(amount,
+                  taxYear: taxYear, date: date),
+              returnsNormally,
+            );
+          }
+        }
+      }
     });
 
     test('utility bills', () {
@@ -674,6 +857,7 @@ void main() {
     expect(phone.getPhonePrefix('+923451234567'), '0345');
     expect(dataVersion, '2026-11-18');
     expect(salestax.splitInclusive(1180, 18)?.net, 1000);
+    expect(incometax.getTaxYear('2025-07-01'), 2026);
     expect(bills.validateElectricityRef('0400012345678'), isTrue);
     expect(courier.normalizeCityForCourier('Isb'), 'Islamabad');
     expect(fbr.expectedSalesTax({'rate': '18%', 'valueSalesExcludingST': 100}),

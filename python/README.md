@@ -159,6 +159,66 @@ pdk.calculate_sales_tax(1150, province="Sindh", inclusive=True).net  # 1000.0
 pdk.split_inclusive(99.99, 18)            # SalesTaxAmounts(net=84.74, tax=15.25, gross=99.99, rate=18.0)
 ```
 
+Income tax on salary:
+
+| Function                                                         | Returns                                                                      |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `calculate_salary_tax(annual_income, tax_year=None, date=None)`  | `SalaryTax(tax, monthly, effective_rate, slab, tax_year)`, or `None`         |
+| `calculate_monthly_salary_tax(monthly_salary, tax_year=, date=)` | The same for `monthly_salary × 12`; `monthly` is the tax to withhold a month |
+| `get_salary_tax_slabs(tax_year=None)`                            | `SalaryTaxYear(tax_year, from_, to, law, source, slabs)`, or `None`          |
+| `get_salary_tax_years()`                                         | The tax years covered, oldest first (`[2020, …, 2027]`)                      |
+| `get_tax_year(date=None)`                                        | The tax year (July to June) a date falls in, or `None` for an invalid date   |
+
+The salaried rate table of the Income Tax Ordinance 2001 (First Schedule,
+Part I, Division I, clause (2), which applies when salary is more than 75% of
+taxable income), for tax years 2020 to 2027. A tax year runs from 1 July to
+30 June and is named after the June it ends in. `tax_year` (an integer) takes
+precedence over `date` (`YYYY-MM-DD` or a `datetime.date`); with neither, the
+current tax year is used, and a year that is not covered returns `None`. Each
+slab is `SalaryTaxSlab(over, up_to, fixed, rate)`. Tax is rounded half up to
+the paisa. Only the rate table is applied: the surcharge, tax credits,
+exemptions, the separate rate for pensions and withholding adjustments are
+not. Amounts from 0 to one trillion rupees are accepted; anything else
+returns `None`, never an exception.
+
+```python
+pdk.calculate_salary_tax(1_800_000, tax_year=2026)
+# SalaryTax(tax=72000.0, monthly=6000.0, effective_rate=4.0,
+#           slab=SalaryTaxSlab(over=1200000, up_to=2200000, fixed=6000, rate=11), tax_year=2026)
+pdk.calculate_monthly_salary_tax(150_000, tax_year=2026).monthly  # 6000.0
+pdk.get_salary_tax_slabs(2027).law   # 'Income Tax Ordinance 2001, First Schedule, ...'
+pdk.get_tax_year("2025-07-01")       # 2026
+```
+
+Urdu text:
+
+| Function                            | Returns                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| `slugify(text, script="any")`       | A URL slug: lower-case words joined by `-`, Urdu letters kept as they are |
+| `compare_urdu(a, b)`                | `-1`, `0` or `1` in Urdu alphabetical order (CLDR 49), for `cmp_to_key`   |
+| `is_rtl(text)`                      | Whether the first letter is from a right-to-left script                   |
+| `wrap_bidi(text, direction="auto")` | The text wrapped in Unicode directional isolates                          |
+
+`slugify` drops diacritics and zero-width characters, writes the Arabic
+look-alikes ك ي ى as ک ی ی, turns Urdu digits into `0-9` and folds accented
+Latin-1 letters (`é` → `e`, `ß` → `ss`); `script` is `any`, `latin` or `urdu`
+(`SlugScript`). `compare_urdu` follows the CLDR collation for Urdu (ا آ ب بھ پ
+پھ … ی یھ ے, a letter joined with ھ is a letter of its own), the same in every
+port without depending on ICU: digits come before letters one digit at a time
+(`10` before `2`), and other scripts after. `wrap_bidi` uses FSI … PDI, or
+RLI/LRI with `"rtl"`/`"ltr"` (`BidiDirection`). None of these raise; a value
+that is not a string gives `""` (or `False`).
+
+```python
+pdk.slugify("Lahore Fort, 2024")                # 'lahore-fort-2024'
+pdk.slugify("لاہور Fort", script="latin")      # 'fort'
+pdk.slugify("کراچی ۲۰۲۴", script="urdu")       # 'کراچی-2024'
+sorted(["ے", "بھائی", "آم", "باغ", "اب"], key=functools.cmp_to_key(pdk.compare_urdu))
+# ['اب', 'آم', 'باغ', 'بھائی', 'ے']
+pdk.is_rtl("123 سلام")                          # True
+f"آرڈر {pdk.wrap_bidi('PDK-1042')} بھیج دیا گیا"
+```
+
 FBR digital invoicing:
 
 | Function                                    | Returns                                                                             |

@@ -425,3 +425,40 @@ jobs:
       # Builds the Angular package format with ng-packagr.
       - run: npm run build
         working-directory: angular
+
+  # The one required status check on main (see the "main" ruleset). It passes
+  # only when every other job in this workflow succeeded. Failed, cancelled
+  # and skipped jobs all fail it: no job here is meant to be skipped. If a job
+  # is ever made conditional on purpose, add its id to OPTIONAL so that a skip
+  # is accepted for that job alone.
+  ci-pass:
+    name: ci-pass
+    if: always()
+    needs:
+      [ci, react, python, faker, pay, dart, flutter, dotnet, php, vue, angular]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            .github/workflows/ci.yml
+            .github/scripts/ci-pass.py
+          sparse-checkout-cone-mode: false
+
+      - name: Check that needs lists every job
+        run: |
+          python3 - <<'PY'
+          import yaml
+          jobs = yaml.safe_load(open('.github/workflows/ci.yml'))['jobs']
+          needs = set(jobs['ci-pass']['needs'])
+          missing = sorted(set(jobs) - needs - {'ci-pass'})
+          if missing:
+              raise SystemExit(f"::error::ci-pass does not need: {', '.join(missing)}")
+          print(f"ci-pass needs all {len(needs)} jobs")
+          PY
+
+      - name: Check every job succeeded
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          OPTIONAL: ''
+        run: python3 .github/scripts/ci-pass.py

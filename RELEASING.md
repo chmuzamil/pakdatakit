@@ -306,6 +306,56 @@ first version is on npm.
   publisher is added (steps 2 and 3 of
   [Your one-time steps](#your-one-time-steps-in-order)).
 
+## Website (`site/`, pakdatakit.dev)
+
+`.github/workflows/site.yml` builds the site and deploys it to the VPS. It runs
+on pushes to `main` that touch `site/`, on core release tags (`v…`) and by
+hand. Pull requests only build it and attach the result to the run as an
+artifact (`site-<release>`), which is the preview.
+
+- **Deploys:**
+  - The workflow uploads each build with rsync into a new release folder on
+    the server, `/var/www/pakdatakit.dev/releases/<release>/`.
+  - It then runs `activate <release>`, which switches the `current` symlink
+    and checks the site through Nginx on the server: `/` returns 200, a
+    missing page returns 404, and `/healthz.json` reports the new release.
+    If that check fails, it switches back to the previous release and the
+    workflow fails.
+  - The last 5 releases are kept.
+- **Release names:** `YYYYMMDD-HHMMSS-<commit>`.
+- **Public check:** once the environment variable `PDK_SITE_LIVE` is `true`,
+  the workflow also checks `https://pakdatakit.dev/healthz.json` from outside
+  and runs `rollback` if it doesn't report the new release.
+- **Credentials:** the `pakdatakit-site` environment (deployable from `main`
+  and `v*` tags only) holds the secret `PDK_DEPLOY_SSH_KEY` and the variables
+  `PDK_DEPLOY_HOST`, `PDK_DEPLOY_USER`, `PDK_DEPLOY_KNOWN_HOSTS` (the server's
+  pinned host key) and `PDK_SITE_LIVE`.
+- **What the key can do:** it belongs to the server account
+  `pakdatakit-deploy` and can only run `/usr/local/bin/pdk-deploy`, which
+  accepts these commands:
+  - an rsync upload into `incoming/`
+  - `activate <release>`
+  - `rollback`
+  - `status`
+
+  It has no shell and no port forwarding.
+
+Roll back by hand from a machine that has the key:
+
+```bash
+ssh -i <key> pakdatakit-deploy@45.86.155.120 status
+ssh -i <key> pakdatakit-deploy@45.86.155.120 rollback
+```
+
+**Server files:**
+
+| Path                                             | What it is                                  |
+| ------------------------------------------------ | ------------------------------------------- |
+| `/etc/nginx/sites-available/pakdatakit.dev.conf` | The Nginx site                              |
+| `snippets/pakdatakit-headers.conf`               | Security headers and CSP                    |
+| `snippets/pakdatakit-mime.conf`                  | The stock MIME types plus `.mjs` and `.whl` |
+| `/var/log/pdk-deploy.log`                        | The deploy log                              |
+
 ## Release a new version
 
 1. On a branch:

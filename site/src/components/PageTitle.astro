@@ -1,0 +1,133 @@
+---
+/**
+ * Starlight's page title, plus:
+ * - breadcrumbs (the same trail as the BreadcrumbList in the page's JSON-LD)
+ * - "View as Markdown" and "Copy page" on pages that have a Markdown copy
+ *   (src/pages/[...slug].md.ts)
+ */
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+import { getCollection } from 'astro:content';
+import { breadcrumbs } from '../lib/seo';
+
+const route = Astro.locals.starlightRoute;
+const crumbs = breadcrumbs(Astro.url.pathname, route.entry.data.title);
+// The pages that have a Markdown copy: exactly the docs-collection entries
+// that src/pages/[...slug].md.ts writes (custom pages such as tools and the
+// playground have none), and only when this URL is that entry's own page.
+const withMarkdown = new Set(
+  (await getCollection('docs', (e) => !!e.body && !['index', '404'].includes(e.id))).map((e) => e.id),
+);
+const path = Astro.url.pathname.replace(/^\/|\/$/g, '');
+const markdown = withMarkdown.has(path) ? `/${path}.md` : null;
+---
+
+{
+  crumbs.length > 2 && (
+    <nav aria-label="Breadcrumbs" class="pdk-breadcrumbs">
+      <ol>
+        {crumbs.slice(0, -1).map((c) => (
+          <li>
+            <a href={c.url}>{c.name}</a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+<Default />
+{
+  markdown && (
+    <div class="pdk-page-actions">
+      <a href={markdown} type="text/markdown">
+        View as Markdown
+      </a>
+      <button type="button" class="pdk-copy-page" data-src={markdown}>
+        Copy page
+      </button>
+      <span class="sr-only" role="status" aria-live="polite" />
+    </div>
+  )
+}
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.pdk-copy-page')) {
+    const status = button.nextElementSibling as HTMLElement | null;
+    let timer: number | undefined;
+    button.addEventListener('click', async () => {
+      let message: string;
+      try {
+        const res = await fetch(button.dataset.src ?? '');
+        if (!res.ok) throw new Error(String(res.status));
+        await navigator.clipboard.writeText(await res.text());
+        message = 'Copied';
+      } catch {
+        message = 'Could not copy';
+      }
+      button.textContent = message;
+      if (status) status.textContent = message === 'Copied' ? 'Page copied as Markdown' : 'Could not copy the page';
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        button.textContent = 'Copy page';
+        if (status) status.textContent = '';
+      }, 1800);
+    });
+  }
+</script>
+
+<style>
+  .pdk-breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    list-style: none;
+    font-size: var(--sl-text-sm);
+  }
+  .pdk-breadcrumbs li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pdk-breadcrumbs li + li::before {
+    content: '/';
+    color: var(--sl-color-gray-4);
+  }
+  .pdk-breadcrumbs a {
+    color: var(--sl-color-gray-3);
+    text-decoration: none;
+  }
+  .pdk-breadcrumbs a:hover {
+    color: var(--sl-color-white);
+    text-decoration: underline;
+  }
+  .pdk-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    font-size: var(--sl-text-sm);
+  }
+  .pdk-page-actions a,
+  .pdk-copy-page {
+    min-height: 2rem;
+    color: var(--sl-color-gray-2);
+  }
+  .pdk-copy-page {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.375rem;
+    background: transparent;
+    padding: 0.2rem 0.65rem;
+    font: inherit;
+    cursor: pointer;
+  }
+  .pdk-copy-page:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-white);
+  }
+  .pdk-copy-page:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+</style>

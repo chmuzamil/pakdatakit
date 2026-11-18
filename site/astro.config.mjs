@@ -1,9 +1,11 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 import { readFileSync } from 'node:fs';
+import { lastModified } from './src/lib/lastmod.mjs';
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 import { GITHUB, INDEXABLE, SITE } from './site.config.mjs';
 
@@ -43,8 +45,17 @@ export default defineConfig({
     },
   },
   integrations: [
+    // Added here (Starlight would add a plain one) to give every URL a
+    // <lastmod>: the last commit that changed the page's source.
+    sitemap({
+      serialize(item) {
+        item.lastmod = lastModified(new URL(item.url).pathname);
+        return item;
+      },
+    }),
     starlight({
       title: 'PakDataKit',
+      routeMiddleware: './src/routeData.ts',
       plugins: [
         starlightTypeDoc({
           entryPoints: rootTypedoc.entryPoints.map((e) => `../${e}`),
@@ -82,6 +93,7 @@ export default defineConfig({
       components: {
         Head: './src/components/Head.astro',
         Footer: './src/components/Footer.astro',
+        PageTitle: './src/components/PageTitle.astro',
       },
       head: INDEXABLE
         ? []

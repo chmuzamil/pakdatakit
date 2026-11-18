@@ -1,6 +1,6 @@
 ---
 title: Install for Dart
-description: Install pakdatakit from pub.dev for Dart.
+description: Install pakdatakit from pub.dev for Dart, then validate CNICs, phones and IBANs and calculate Pakistani taxes in Dart and Flutter.
 ---
 
 ```bash

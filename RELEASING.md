@@ -212,6 +212,18 @@ skips the publish with a notice. If all three are already on NuGet at that
 version, it skips the publish and still creates the GitHub release (step 4 of
 [Your one-time steps](#your-one-time-steps-in-order)).
 
+The `.nupkg` files it builds are attested and attached to the GitHub release
+(and kept as the run's `nupkg-attested` artifact). nuget.org adds its own
+signature to every package it receives, so the copies downloaded from NuGet
+have different digests; check the attached files instead:
+
+```bash
+gh release download dotnet-vx.y.z --pattern '*.nupkg'
+gh attestation verify PakDataKit.x.y.z.nupkg --repo chmuzamil/pakdatakit
+```
+
+2.5.0 was released before this, so its release has no attached files.
+
 - The datasets are embedded from `data/*.json` when the project is built, so
   a data change needs no extra step for .NET.
 - `dataVersion` is read from `src/data-version.ts` at build time.

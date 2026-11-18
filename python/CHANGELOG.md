@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- The source distribution (sdist) no longer includes `tests/`. The tests need the shared `data/` and `test-vectors/` from the repository (about 5 MB), which the sdist does not ship, so they could not run from it. Run the tests from a clone of the repository instead.
+
 ## 2.5.0
 
 Includes everything prepared for 2.4.0, which was never published on its own: the 2.4.0 changes are listed here with the 2.5.0 ones.

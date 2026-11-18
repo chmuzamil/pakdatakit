@@ -6,7 +6,7 @@ name: Release pakdatakit-pay
 
 on:
   push:
-    tags: ['pay-v*.*.*']
+    tags: ['pay-v[0-9]+.[0-9]+.[0-9]+*']
 
 permissions:
   contents: write # create the GitHub release

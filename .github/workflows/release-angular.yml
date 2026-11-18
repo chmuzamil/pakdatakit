@@ -7,7 +7,7 @@ name: Release pakdatakit-angular
 
 on:
   push:
-    tags: ['angular-v*.*.*']
+    tags: ['angular-v[0-9]+.[0-9]+.[0-9]+*']
 
 permissions:
   contents: write # create the GitHub release

@@ -13,7 +13,9 @@ name: Release .NET packages
 # 3. Neither set: the packages are built, tested and attested, and the
 #    publish is skipped with a notice (the run still succeeds). Configure one
 #    of the above and re-run the workflow.
-# Versions already on NuGet are skipped, so a re-run is safe.
+# If all three packages are already on NuGet at this version (for example
+# uploaded by hand), the publish is skipped with a notice and the GitHub
+# release is still created, so a re-run is safe.
 
 on:
   push:
@@ -66,8 +68,22 @@ jobs:
         with:
           subject-path: dotnet/artifacts/*.nupkg
 
+      # Skip the publish when every package is already on NuGet (for example
+      # after a first upload by hand); the GitHub release is still created.
+      - name: Check which packages are already on NuGet
+        id: published
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          exists=true
+          for id in PakDataKit PakDataKit.DataAnnotations PakDataKit.FluentValidation; do
+            found="$(bash scripts/check-published.sh nuget "$id" "$version")"
+            if [ "$found" = "false" ]; then exists=false; fi
+          done
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
+
       - name: Choose how to authenticate
         id: auth
+        if: steps.published.outputs.exists == 'false'
         run: |
           if [ -n "${NUGET_USER}" ]; then
             echo "Using NuGet trusted publishing as ${NUGET_USER}"
@@ -88,8 +104,9 @@ jobs:
           user: ${{ env.NUGET_USER }}
 
       # PakDataKit first: the two adapters depend on the same version of it.
+      # --skip-duplicate covers a package that is already there.
       - name: Push to NuGet
-        if: steps.auth.outputs.mode != 'none'
+        if: steps.auth.outputs.mode == 'trusted' || steps.auth.outputs.mode == 'key'
         working-directory: dotnet/artifacts
         env:
           NUGET_KEY: ${{ steps.login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
@@ -100,8 +117,9 @@ jobs:
               --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
 
+      # Created when the packages are on NuGet (already, or pushed above).
       - name: Create GitHub release
-        if: steps.auth.outputs.mode != 'none'
+        if: steps.published.outputs.exists == 'true' || steps.auth.outputs.mode == 'trusted' || steps.auth.outputs.mode == 'key'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

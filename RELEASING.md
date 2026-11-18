@@ -2,7 +2,7 @@
 
 This repository publishes its packages from GitHub Actions when each one's
 own tag is pushed. Nobody publishes from their own computer, except the very
-first release of a new npm package (see
+first release of a new npm or NuGet package (see
 [Your one-time steps](#your-one-time-steps-in-order)).
 
 | Package                 | Registry     | Tag              | Workflow              | Version lives in               |
@@ -22,90 +22,136 @@ first release of a new npm package (see
 
 Each workflow checks that the tag matches the package's version, runs the
 checks, publishes with provenance, and creates a GitHub release. If any step
-fails, nothing is published. A version that is already on its registry is
-skipped, so re-running a workflow is safe.
+fails, nothing is published. If the exact version is already on its registry,
+the workflow skips the publish with a notice, still creates the GitHub release
+and succeeds, so re-running a workflow (or tagging a version published by
+hand) is safe. The check is `scripts/check-published.sh`; if a registry can't
+be reached, the workflow fails instead of guessing.
 
 ## Your one-time steps, in order
 
-These need your own accounts (a passkey, a token or a web form), so they
-can't be done from CI. Do them once, in this order; after that every release
-is a tag push.
+These need your own accounts (a passkey or a web form), so they can't be done
+from CI. Each new package goes through the same three steps:
 
-1. **`pakdatakit-pay`: first publish by hand**, then let CI publish the rest.
-   npm can only add a trusted publisher to a package that already exists.
+1. **Publish it by hand**, from a clean build of the commit you will tag.
+   npm and NuGet can only trust a workflow for a package that already exists.
+2. **Add the trusted publisher** on the registry.
+3. **Push the tag.** The tag records the release: its workflow sees that the
+   version is already on the registry, skips the publish with a notice and
+   creates the GitHub release. From then on every release is a tag push.
 
-   ```bash
-   git checkout main && git pull
-   cd pay && npm ci && npm run build && npm publish --auth-type=web --access public && cd ..
-   ```
+The clean build comes from a separate worktree of the tagged commit, so
+nothing uncommitted or left over from earlier builds ends up in the package.
+Run these from your clone of `chmuzamil/pakdatakit` (the commands assume the
+folder is called `pakdatakit`), after the release PR is merged and the
+`pakdatakit` version the package needs is on its registry.
 
-   On npmjs.com: `pakdatakit-pay` → **Settings** → **Trusted Publisher** →
-   **GitHub Actions**: owner `chmuzamil`, repository `pakdatakit`, workflow
-   `release-pay.yml`, environment `npm`. Then push the tag, which creates the
-   GitHub release (the publish is skipped because the version exists):
-
-   ```bash
-   git tag pay-v0.1.0 && git push origin pay-v0.1.0
-   ```
-
-2. **`pakdatakit-vue`**: the same, with workflow `release-vue.yml`. It builds
-   against the local `pakdatakit`, so build the core first:
+1. **`pakdatakit-pay`** (workflow `release-pay.yml`):
 
    ```bash
+   git fetch origin
+   git tag pay-v0.1.0 origin/main
+   git worktree add --detach ../pdk-pay-v0.1.0 pay-v0.1.0
+   cd ../pdk-pay-v0.1.0/pay
    npm ci && npm run build
-   cd vue && npm ci && npm publish --auth-type=web --access public && cd ..
-   git tag vue-v0.1.0 && git push origin vue-v0.1.0
+   npm publish --auth-type=web --access public
    ```
 
-   (`prepublishOnly` lints, type-checks, tests and builds before publishing.)
-
-3. **`pakdatakit-angular`**: the same, with workflow `release-angular.yml`.
-   Publish from **`angular/dist`**, which `npm run build` writes:
+   (`prepublishOnly` lints, type-checks, tests and builds again before
+   uploading.) On npmjs.com: `pakdatakit-pay` → **Settings** → **Trusted
+   Publisher** → **GitHub Actions**: owner `chmuzamil`, repository
+   `pakdatakit`, workflow `release-pay.yml`, environment `npm`. Then:
 
    ```bash
-   npm ci && npm run build
-   cd angular && npm ci && npm run lint && npm run typecheck && npm test && npm run build
-   cd dist && npm publish --auth-type=web --access public && cd ../..
-   git tag angular-v0.1.0 && git push origin angular-v0.1.0
+   cd ../../pakdatakit
+   git push origin pay-v0.1.0
+   git worktree remove ../pdk-pay-v0.1.0
    ```
 
-4. **NuGet (`PakDataKit`, `PakDataKit.DataAnnotations`,
-   `PakDataKit.FluentValidation`)**, published by `release-dotnet.yml`:
+2. **`pakdatakit-vue`** (workflow `release-vue.yml`). It builds against the
+   `pakdatakit` in the same checkout, so build the core first:
+
+   ```bash
+   git fetch origin
+   git tag vue-v0.1.0 origin/main
+   git worktree add --detach ../pdk-vue-v0.1.0 vue-v0.1.0
+   cd ../pdk-vue-v0.1.0
+   npm ci && npm run build
+   cd vue
+   npm ci && npm run build
+   npm publish --auth-type=web --access public
+   ```
+
+   Add the trusted publisher for `pakdatakit-vue` as in step 1, with workflow
+   `release-vue.yml`, then:
+
+   ```bash
+   cd ../../pakdatakit
+   git push origin vue-v0.1.0
+   git worktree remove ../pdk-vue-v0.1.0
+   ```
+
+3. **`pakdatakit-angular`** (workflow `release-angular.yml`). `npm run build`
+   in `angular/` runs ng-packagr (`ng-packagr -p ng-package.json`), which
+   writes the Angular package format to `angular/dist`. Publish from
+   **`angular/dist`**, not from `angular/`:
+
+   ```bash
+   git fetch origin
+   git tag angular-v0.1.0 origin/main
+   git worktree add --detach ../pdk-angular-v0.1.0 angular-v0.1.0
+   cd ../pdk-angular-v0.1.0
+   npm ci && npm run build
+   cd angular
+   npm ci && npm run lint && npm run typecheck && npm test && npm run build
+   cd dist
+   npm publish --auth-type=web --access public
+   ```
+
+   Add the trusted publisher for `pakdatakit-angular` as in step 1, with
+   workflow `release-angular.yml`, then:
+
+   ```bash
+   cd ../../../pakdatakit
+   git push origin angular-v0.1.0
+   git worktree remove ../pdk-angular-v0.1.0
+   ```
+
+4. **NuGet: `PakDataKit`, `PakDataKit.DataAnnotations` and
+   `PakDataKit.FluentValidation`** (workflow `release-dotnet.yml`). Build,
+   test and pack them exactly as the workflow does:
+
+   ```bash
+   git fetch origin
+   git tag dotnet-v2.5.0 origin/main
+   git worktree add --detach ../pdk-dotnet-v2.5.0 dotnet-v2.5.0
+   cd ../pdk-dotnet-v2.5.0/dotnet
+   dotnet build -c Release && dotnet test -c Release --no-build && dotnet pack -c Release --no-build -o artifacts
+   ```
+
    1. Sign in at https://www.nuget.org (a Microsoft account). Optionally
-      request an ID prefix reservation for `PakDataKit` (nuget.org → your
-      account → **Reserved prefixes**, or the process in NuGet's docs), so
-      nobody else can publish `PakDataKit.*`.
-   2. Your username menu → **Trusted Publishing** → **Create**: repository
+      request an ID prefix reservation for `PakDataKit`, so nobody else can
+      publish `PakDataKit.*`.
+   2. **Upload** (https://www.nuget.org/packages/manage/upload) the three
+      files in `dotnet/artifacts`, `PakDataKit.2.5.0.nupkg` first. Wait until
+      each package's page shows 2.5.0 as published (validation takes a few
+      minutes).
+   3. Your username menu → **Trusted Publishing** → **Create**: repository
       owner `chmuzamil`, repository `pakdatakit`, workflow file
       `release-dotnet.yml`, environment `nuget`.
-   3. Tell the workflow your nuget.org **profile name** (not your email):
+   4. Tell the workflow your nuget.org **profile name** (not your email), then
+      push the tag:
 
       ```bash
+      cd ../../pakdatakit
       gh variable set NUGET_USER --body "<your nuget.org profile name>"
+      git push origin dotnet-v2.5.0
+      git worktree remove ../pdk-dotnet-v2.5.0
       ```
 
-   4. Push the tag (or re-run its workflow if it was already pushed):
-
-      ```bash
-      git tag dotnet-v2.5.0 && git push origin dotnet-v2.5.0
-      ```
-
-   If trusted publishing refuses the first push of a new package ID, create
-   an API key on nuget.org (**API Keys** → scope **Push new packages and
-   package versions**, glob `PakDataKit*`) and store it, then re-run the
-   workflow. NuGet keys now expire within 30 days, so delete the secret once
-   the IDs exist and trusted publishing works:
-
-   ```bash
-   gh secret set NUGET_API_KEY
-   gh run rerun <run id> # from: gh run list --workflow release-dotnet.yml
-   ```
-
-   With neither `NUGET_USER` nor `NUGET_API_KEY` set, the workflow builds,
-   tests and attests the packages and skips the publish with a notice.
-
-5. **PHP on Packagist**: create the mirror and token
-   ([details below](#one-time-setup)):
+5. **PHP on Packagist** (workflow `split-php.yml`). Nothing is published by
+   hand: the tag copies `php/` to a mirror repository, which Packagist reads
+   ([details below](#one-time-setup)).
 
    ```bash
    gh repo create chmuzamil/pakdatakit-php --public --description "Read-only mirror of pakdatakit/php. Send issues and pull requests to chmuzamil/pakdatakit"
@@ -118,7 +164,8 @@ is a tag push.
 
    ```bash
    gh secret set PHP_SPLIT_TOKEN
-   git tag php-v2.5.0 && git push origin php-v2.5.0
+   git fetch origin
+   git tag php-v2.5.0 origin/main && git push origin php-v2.5.0
    ```
 
    Check that the mirror has a `v2.5.0` tag, then on https://packagist.org
@@ -160,8 +207,10 @@ version number as `pakdatakit` on npm. CI builds, tests and packs them (the
 A `dotnet-v…` tag runs `release-dotnet.yml`, which builds, tests, packs and
 attests them, then pushes all three to NuGet: with NuGet trusted publishing
 if the repository variable `NUGET_USER` is set, otherwise with the secret
-`NUGET_API_KEY`, and skips the publish with a notice if neither is set (step
-4 of [Your one-time steps](#your-one-time-steps-in-order)).
+`NUGET_API_KEY` (NuGet API keys expire within 30 days). If neither is set, it
+skips the publish with a notice. If all three are already on NuGet at that
+version, it skips the publish and still creates the GitHub release (step 4 of
+[Your one-time steps](#your-one-time-steps-in-order)).
 
 - The datasets are embedded from `data/*.json` when the project is built, so
   a data change needs no extra step for .NET.

@@ -51,13 +51,8 @@ jobs:
       - name: Check whether this version is already on pub.dev
         id: published
         run: |
-          status="$(curl -s -o /dev/null -w '%{http_code}' "https://pub.dev/api/packages/pakdatakit_flutter/versions/${{ steps.version.outputs.version }}")"
-          if [ "$status" = "200" ]; then
-            echo "pakdatakit_flutter ${{ steps.version.outputs.version }} is already on pub.dev; skipping publish"
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          exists="$(bash scripts/check-published.sh pub pakdatakit_flutter "${{ steps.version.outputs.version }}")"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
       # Use the published pakdatakit, not the in-repo path override.
       - name: Remove the development override

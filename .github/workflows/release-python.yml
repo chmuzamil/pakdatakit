@@ -61,14 +61,8 @@ jobs:
       - name: Check whether this version is already on PyPI
         id: published
         run: |
-          version="${GITHUB_REF_NAME#python-v}"
-          status="$(curl -s -o /dev/null -w '%{http_code}' "https://pypi.org/pypi/pakdatakit/$version/json")"
-          if [ "$status" = "200" ]; then
-            echo "pakdatakit $version is already on PyPI; skipping publish"
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          exists="$(bash scripts/check-published.sh pypi pakdatakit "${GITHUB_REF_NAME#python-v}")"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
       - name: Publish to PyPI
         if: steps.published.outputs.exists == 'false'

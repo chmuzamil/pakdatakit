@@ -55,13 +55,8 @@ jobs:
       - name: Check whether this version is already on npm
         id: published
         run: |
-          version="$(node -p "require('./faker/package.json').version")"
-          if npm view "pakdatakit-faker@$version" version >/dev/null 2>&1; then
-            echo "pakdatakit-faker $version is already on npm; skipping publish"
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          exists="$(bash scripts/check-published.sh npm pakdatakit-faker "${GITHUB_REF_NAME#faker-v}")"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
       - run: npm publish --provenance --access public
         if: steps.published.outputs.exists == 'false'

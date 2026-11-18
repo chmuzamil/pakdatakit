@@ -1,6 +1,8 @@
 # Changelog
 
-## 2.5.0 (unreleased)
+## 2.5.0
+
+Includes everything prepared for 2.4.0, which was never published on its own: the 2.4.0 changes are listed here with the 2.5.0 ones.
 
 ### Added
 
@@ -16,11 +18,6 @@
   script); `compareUrdu()`: Urdu alphabetical order from the CLDR collation,
   for `List.sort`, without ICU; `isRTL()` and `wrapBidi()` (`BidiDirection`):
   right-to-left detection and Unicode directional isolates.
-
-## 2.4.0 (unreleased)
-
-### Added
-
 - `scoreAddress()`: scores how complete a delivery address is (0-100), with
   the `missing` `AddressPart`s and the `parseAddress` result, and warns when
   a known post office code is in a different province from the city.

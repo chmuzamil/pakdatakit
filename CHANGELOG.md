@@ -1,6 +1,8 @@
 # Changelog
 
-## 2.5.0 (unreleased)
+## 2.5.0
+
+Includes everything prepared for 2.4.0, which was never published on its own: the 2.4.0 changes are listed here with the 2.5.0 ones.
 
 ### Added
 
@@ -20,11 +22,6 @@
   The `source` for tax year 2027 is the Finance Act, 2026 as gazetted; FBR
   Circular No. 02 of 2026-27 and the consolidated Ordinance are cited in
   DATA.md.
-
-## 2.4.0 (unreleased)
-
-### Added
-
 - `scoreAddress()` and `phoneRiskSignals()` (`pakdatakit/quality`): heuristics
   for cash on delivery. `scoreAddress` scores an address 0 to 100 from its city,
   house number, street, area, postal code (a known post office scores more)

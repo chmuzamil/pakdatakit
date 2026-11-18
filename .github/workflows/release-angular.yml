@@ -1,0 +1,85 @@
+name: Release pakdatakit-angular
+
+# Publishes angular/ to npm when a tag like angular-v0.1.0 is pushed, with npm
+# trusted publishing and provenance (same setup as release.yml; see RELEASING.md).
+# pakdatakit-angular has pakdatakit as a peer dependency, so release a new
+# pakdatakit first. The first version is published by hand (RELEASING.md).
+
+on:
+  push:
+    tags: ['angular-v*.*.*']
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # OIDC token for npm trusted publishing
+
+concurrency:
+  group: release-angular
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            angular/package-lock.json
+
+      - name: Check the tag matches angular/package.json
+        run: |
+          version="$(node -p "require('./angular/package.json').version")"
+          if [ "${GITHUB_REF_NAME}" != "angular-v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match angular/package.json version ${version}"
+            exit 1
+          fi
+
+      - name: Check the pakdatakit version it needs is on npm
+        run: |
+          range="$(node -p "require('./angular/package.json').peerDependencies.pakdatakit")"
+          if ! npm view "pakdatakit@${range}" version | grep -q .; then
+            echo "::error::No published pakdatakit matches ${range}; release pakdatakit first"
+            exit 1
+          fi
+
+      - run: npm ci && npm run build
+      - run: npm ci
+        working-directory: angular
+      - run: npm run lint && npm run typecheck && npm test && npm run build
+        working-directory: angular
+      - name: Check the built package has the same version
+        run: |
+          built="$(node -p "require('./angular/dist/package.json').version")"
+          version="$(node -p "require('./angular/package.json').version")"
+          [ "$built" = "$version" ] || { echo "::error::angular/dist has $built, expected $version"; exit 1; }
+      - name: Check whether this version is already on npm
+        id: published
+        run: |
+          exists="$(bash scripts/check-published.sh npm pakdatakit-angular "${GITHUB_REF_NAME#angular-v}")"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
+
+      # The Angular package format is built into angular/dist; publish that.
+      - run: npm publish --provenance --access public
+        if: steps.published.outputs.exists == 'false'
+        working-directory: angular/dist
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#angular-v}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs angular/CHANGELOG.md "$version" "pakdatakit-angular" "https://www.npmjs.com/package/pakdatakit-angular/v/$version" > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" --title "pakdatakit-angular $version" \
+            --notes-file release-notes.md --verify-tag --latest=false

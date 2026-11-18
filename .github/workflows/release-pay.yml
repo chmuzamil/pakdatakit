@@ -46,13 +46,8 @@ jobs:
       - name: Check whether this version is already on npm
         id: published
         run: |
-          version="$(node -p "require('./pay/package.json').version")"
-          if npm view "pakdatakit-pay@$version" version >/dev/null 2>&1; then
-            echo "pakdatakit-pay $version is already on npm; skipping publish"
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
+          exists="$(bash scripts/check-published.sh npm pakdatakit-pay "${GITHUB_REF_NAME#pay-v}")"
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
 
       - run: npm publish --provenance --access public
         if: steps.published.outputs.exists == 'false'

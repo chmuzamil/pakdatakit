@@ -9,13 +9,13 @@ version in this repository and is supported from its first release.
 
 | Package                                                                   | Registry  | Language          | Supported | On the registry          |
 | ------------------------------------------------------------------------- | --------- | ----------------- | --------- | ------------------------ |
-| `pakdatakit`                                                              | npm       | TypeScript, JS    | 2.3.x     | yes                      |
-| `pakdatakit`                                                              | PyPI      | Python 3.9+       | 2.3.x     | yes                      |
-| `pakdatakit`                                                              | pub.dev   | Dart              | 2.3.x     | yes                      |
-| `PakDataKit`, `PakDataKit.DataAnnotations`, `PakDataKit.FluentValidation` | NuGet     | .NET 8+           | 2.3.x     | not yet                  |
-| `chmuzamil/pakdatakit`                                                    | Packagist | PHP 8.2+, Laravel | 2.3.x     | not yet                  |
+| `pakdatakit`                                                              | npm       | TypeScript, JS    | 2.5.x     | yes                      |
+| `pakdatakit`                                                              | PyPI      | Python 3.9+       | 2.5.x     | yes                      |
+| `pakdatakit`                                                              | pub.dev   | Dart              | 2.5.x     | yes                      |
+| `PakDataKit`, `PakDataKit.DataAnnotations`, `PakDataKit.FluentValidation` | NuGet     | .NET 8+           | 2.5.x     | not yet                  |
+| `chmuzamil/pakdatakit`                                                    | Packagist | PHP 8.2+, Laravel | 2.5.x     | not yet                  |
 | `pakdatakit-react`                                                        | npm       | React             | 0.2.x     | 0.1.x yes; 0.2.x not yet |
-| `pakdatakit-faker`                                                        | npm       | TypeScript, JS    | 0.2.x     | 0.1.x yes; 0.2.x not yet |
+| `pakdatakit-faker`                                                        | npm       | TypeScript, JS    | 0.2.x     | yes                      |
 | `pakdatakit-vue`                                                          | npm       | Vue 3             | 0.1.x     | not yet                  |
 | `pakdatakit-angular`                                                      | npm       | Angular 17 to 22  | 0.1.x     | not yet                  |
 | `pakdatakit_flutter`                                                      | pub.dev   | Flutter           | 0.2.x     | 0.1.x yes; 0.2.x not yet |

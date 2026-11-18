@@ -5,67 +5,168 @@
 <h1 align="center">🇵🇰 PakDataKit</h1>
 
 <p align="center">
-  <strong>The Standard Utility Toolkit for Pakistani Developers</strong>
+  <strong>Pakistani data utilities for TypeScript, Python, Dart/Flutter, .NET and PHP/Laravel, with React, Vue and Angular helpers</strong>
 </p>
 
 <p align="center">
-  Production-ready TypeScript utilities for CNIC validation, phone parsing, WhatsApp links, IBAN validation, postal lookup, network detection, geographic lookup, and PKR formatting.
+  <a href="https://github.com/chmuzamil/pakdatakit/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/chmuzamil/pakdatakit/ci.yml?branch=main&label=CI" alt="CI status"></a>
+  <a href="https://www.npmjs.com/package/pakdatakit"><img src="https://img.shields.io/npm/v/pakdatakit?label=npm" alt="npm"></a>
+  <a href="https://pypi.org/project/pakdatakit/"><img src="https://img.shields.io/pypi/v/pakdatakit?label=PyPI" alt="PyPI"></a>
+  <a href="https://pub.dev/packages/pakdatakit"><img src="https://img.shields.io/pub/v/pakdatakit?label=pub.dev" alt="pub.dev pakdatakit"></a>
+  <a href="https://pub.dev/packages/pakdatakit_flutter"><img src="https://img.shields.io/pub/v/pakdatakit_flutter?label=pakdatakit_flutter" alt="pub.dev pakdatakit_flutter"></a>
+  <a href="https://www.nuget.org/packages/PakDataKit"><img src="https://img.shields.io/nuget/v/PakDataKit?label=NuGet" alt="NuGet"></a>
+  <a href="https://packagist.org/packages/chmuzamil/pakdatakit"><img src="https://img.shields.io/packagist/v/chmuzamil/pakdatakit?label=Packagist" alt="Packagist"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/chmuzamil/pakdatakit" alt="license"></a>
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/pakdatakit">
-    <img src="https://img.shields.io/npm/v/pakdatakit" alt="npm version">
-  </a>
-  <a href="https://www.npmjs.com/package/pakdatakit">
-    <img src="https://img.shields.io/npm/dm/pakdatakit" alt="npm downloads">
-  </a>
-  <img src="https://img.shields.io/npm/l/pakdatakit" alt="license">
-  <img src="https://img.shields.io/badge/TypeScript-ready-blue" alt="TypeScript">
-  <a href="https://pakdatakit-playground.vercel.app/">
-    <img src="https://img.shields.io/badge/playground-try%20it%20live-brightgreen" alt="Playground">
-  </a>
-  <a href="https://chmuzamil.github.io/pakdatakit/">
-    <img src="https://img.shields.io/badge/docs-API%20reference-blue" alt="API docs">
-  </a>
+  <a href="https://www.npmjs.com/package/pakdatakit-react"><img src="https://img.shields.io/npm/v/pakdatakit-react?label=pakdatakit-react" alt="pakdatakit-react"></a>
+  <a href="https://www.npmjs.com/package/pakdatakit-vue"><img src="https://img.shields.io/npm/v/pakdatakit-vue?label=pakdatakit-vue" alt="pakdatakit-vue"></a>
+  <a href="https://www.npmjs.com/package/pakdatakit-angular"><img src="https://img.shields.io/npm/v/pakdatakit-angular?label=pakdatakit-angular" alt="pakdatakit-angular"></a>
+  <a href="https://www.npmjs.com/package/pakdatakit-faker"><img src="https://img.shields.io/npm/v/pakdatakit-faker?label=pakdatakit-faker" alt="pakdatakit-faker"></a>
+  <a href="https://www.npmjs.com/package/pakdatakit-pay"><img src="https://img.shields.io/npm/v/pakdatakit-pay?label=pakdatakit-pay" alt="pakdatakit-pay"></a>
+  <a href="https://www.npmjs.com/package/pakdatakit"><img src="https://img.shields.io/npm/dm/pakdatakit?label=downloads" alt="npm downloads"></a>
+  <a href="https://www.npmjs.com/package/pakdatakit#provenance"><img src="https://img.shields.io/badge/npm-provenance-2ea44f?logo=npm" alt="npm provenance"></a>
+  <a href="https://chmuzamil.github.io/pakdatakit/"><img src="https://img.shields.io/badge/docs-API%20reference-blue" alt="API docs"></a>
 </p>
 
----
+PakDataKit validates, formats and looks up Pakistani data: CNICs, mobile and landline numbers, IBANs and banks, NTN/STRN, passports and vehicle plates, Raast QR codes, sales tax and salary income tax, FBR digital invoices, electricity and gas bill references, cities, districts, tehsils, postal codes and post offices, Urdu text, Hijri dates and public holidays.
 
-## 🌐 Playground
+- **Five languages, one behaviour.** The TypeScript library has ports for Python, Dart/Flutter, .NET and PHP/Laravel. All five run the same 32,388 shared test vectors, so they give the same answer for the same input.
+- **UI helpers.** React, Vue and Angular inputs that format as you type, plus Flutter formatters and form fields.
+- **Offline and dependency-free.** All data is bundled and no function makes a network call. The npm package has no runtime dependencies and ships ESM, CommonJS and types.
+- **Sourced data.** Every dataset lists its official sources in [DATA.md](./DATA.md).
 
-Try PakDataKit in your browser, no installation needed:
-
-👉 **[pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/)**
-
-Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, check IBANs and banks, look up postal codes, cities and provinces, format PKR amounts, and try the text and Hijri utilities. Use it to preview outputs before you integrate the library.
+**[Try it in the playground](https://pakdatakit-playground.vercel.app/)** · **[API reference](https://chmuzamil.github.io/pakdatakit/)** · **[llms.txt](https://chmuzamil.github.io/pakdatakit/llms.txt)** / **[llms-full.txt](https://chmuzamil.github.io/pakdatakit/llms-full.txt)** for AI coding assistants
 
 ---
 
 ## 📦 Packages
 
-| Package                                                                               | Install                                  | For                                                                                            |
-| ------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [`pakdatakit`](https://www.npmjs.com/package/pakdatakit)                              | `npm install pakdatakit`                 | JavaScript and TypeScript (Node, browsers, Bun, Deno)                                          |
-| [`pakdatakit` (Python)](https://github.com/chmuzamil/pakdatakit/tree/main/python)     | `pip install pakdatakit`                 | Python 3.9+, same functions in snake_case, same data                                           |
-| [`pakdatakit-react`](https://github.com/chmuzamil/pakdatakit/tree/main/react)         | `npm install pakdatakit-react`           | React inputs that format as you type, and a Raast QR component                                 |
-| [`pakdatakit-faker`](https://github.com/chmuzamil/pakdatakit/tree/main/faker)         | `npm install -D pakdatakit-faker`        | Seeded mock data: CNICs, phones, IBANs, addresses and whole personas that pass every validator |
-| [`pakdatakit` (Dart)](https://github.com/chmuzamil/pakdatakit/tree/main/dart)         | `dart pub add pakdatakit`                | Dart and Flutter (including web), same functions and data                                      |
-| [`pakdatakit_flutter`](https://github.com/chmuzamil/pakdatakit/tree/main/flutter)     | `flutter pub add pakdatakit_flutter`     | Flutter input formatters, form fields and a Raast QR widget                                    |
-| [`PakDataKit` (.NET)](https://github.com/chmuzamil/pakdatakit/tree/main/dotnet)       | Build from `dotnet/` (not on NuGet yet)  | .NET 8, same functions and data, with DataAnnotations and FluentValidation packages            |
-| [`chmuzamil/pakdatakit` (PHP)](https://github.com/chmuzamil/pakdatakit/tree/main/php) | Build from `php/` (not on Packagist yet) | PHP 8.2+, same functions and data, with Laravel rules, rule objects and Eloquent casts         |
-| [`pakdatakit-vue`](https://github.com/chmuzamil/pakdatakit/tree/main/vue)             | Build from `vue/` (not on npm yet)       | Vue 3 composables and a `v-pak-input` directive that format as you type                        |
-| [`pakdatakit-angular`](https://github.com/chmuzamil/pakdatakit/tree/main/angular)     | Build from `angular/` (not on npm yet)   | Angular directives, pipes and form validators                                                  |
-| [`pakdatakit-pay`](https://github.com/chmuzamil/pakdatakit/tree/main/pay)             | Build from `pay/` (not on npm yet)       | Server-side JazzCash secure hash: build it and verify responses in constant time               |
-
-The Python, Dart, .NET and PHP packages are checked against the TypeScript library with over 25,000 shared test cases, so all five give the same results.
+| Package                                                                                              | Registry  | Install                                          | Version                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| [`pakdatakit`](https://www.npmjs.com/package/pakdatakit)                                             | npm       | `npm install pakdatakit`                         | [![npm](https://img.shields.io/npm/v/pakdatakit?label=)](https://www.npmjs.com/package/pakdatakit)                                        |
+| [`pakdatakit`](https://pypi.org/project/pakdatakit/) ([Python](./python))                            | PyPI      | `pip install pakdatakit`                         | [![PyPI](https://img.shields.io/pypi/v/pakdatakit?label=)](https://pypi.org/project/pakdatakit/)                                          |
+| [`pakdatakit`](https://pub.dev/packages/pakdatakit) ([Dart](./dart))                                 | pub.dev   | `dart pub add pakdatakit`                        | [![pub.dev](https://img.shields.io/pub/v/pakdatakit?label=)](https://pub.dev/packages/pakdatakit)                                         |
+| [`pakdatakit_flutter`](https://pub.dev/packages/pakdatakit_flutter) ([Flutter](./flutter))           | pub.dev   | `flutter pub add pakdatakit_flutter`             | [![pub.dev](https://img.shields.io/pub/v/pakdatakit_flutter?label=)](https://pub.dev/packages/pakdatakit_flutter)                         |
+| [`PakDataKit`](https://www.nuget.org/packages/PakDataKit) ([.NET](./dotnet))                         | NuGet     | `dotnet add package PakDataKit`                  | [![NuGet](https://img.shields.io/nuget/v/PakDataKit?label=)](https://www.nuget.org/packages/PakDataKit)                                   |
+| [`PakDataKit.DataAnnotations`](https://www.nuget.org/packages/PakDataKit.DataAnnotations)            | NuGet     | `dotnet add package PakDataKit.DataAnnotations`  | [![NuGet](https://img.shields.io/nuget/v/PakDataKit.DataAnnotations?label=)](https://www.nuget.org/packages/PakDataKit.DataAnnotations)   |
+| [`PakDataKit.FluentValidation`](https://www.nuget.org/packages/PakDataKit.FluentValidation)          | NuGet     | `dotnet add package PakDataKit.FluentValidation` | [![NuGet](https://img.shields.io/nuget/v/PakDataKit.FluentValidation?label=)](https://www.nuget.org/packages/PakDataKit.FluentValidation) |
+| [`chmuzamil/pakdatakit`](https://packagist.org/packages/chmuzamil/pakdatakit) ([PHP/Laravel](./php)) | Packagist | `composer require chmuzamil/pakdatakit`          | [![Packagist](https://img.shields.io/packagist/v/chmuzamil/pakdatakit?label=)](https://packagist.org/packages/chmuzamil/pakdatakit)       |
+| [`pakdatakit-react`](https://www.npmjs.com/package/pakdatakit-react) ([React](./react))              | npm       | `npm install pakdatakit-react`                   | [![npm](https://img.shields.io/npm/v/pakdatakit-react?label=)](https://www.npmjs.com/package/pakdatakit-react)                            |
+| [`pakdatakit-vue`](https://www.npmjs.com/package/pakdatakit-vue) ([Vue](./vue))                      | npm       | `npm install pakdatakit-vue`                     | [![npm](https://img.shields.io/npm/v/pakdatakit-vue?label=)](https://www.npmjs.com/package/pakdatakit-vue)                                |
+| [`pakdatakit-angular`](https://www.npmjs.com/package/pakdatakit-angular) ([Angular](./angular))      | npm       | `npm install pakdatakit-angular`                 | [![npm](https://img.shields.io/npm/v/pakdatakit-angular?label=)](https://www.npmjs.com/package/pakdatakit-angular)                        |
+| [`pakdatakit-faker`](https://www.npmjs.com/package/pakdatakit-faker) ([mock data](./faker))          | npm       | `npm install -D pakdatakit-faker`                | [![npm](https://img.shields.io/npm/v/pakdatakit-faker?label=)](https://www.npmjs.com/package/pakdatakit-faker)                            |
+| [`pakdatakit-pay`](https://www.npmjs.com/package/pakdatakit-pay) ([JazzCash hash](./pay))            | npm       | `npm install pakdatakit-pay`                     | [![npm](https://img.shields.io/npm/v/pakdatakit-pay?label=)](https://www.npmjs.com/package/pakdatakit-pay)                                |
 
 ---
 
-## 📚 Documentation
+## 🧩 Modules
 
-- **[API reference](https://chmuzamil.github.io/pakdatakit/)**: every function, option and return type
-- **[llms.txt](https://chmuzamil.github.io/pakdatakit/llms.txt)** and **[llms-full.txt](https://chmuzamil.github.io/pakdatakit/llms-full.txt)**: the library in a form AI coding assistants can read
-- **[DATA.md](./DATA.md)**: where every dataset comes from
+Every module is in every port unless noted. In npm, each is also a subpath import (`pakdatakit/cnic`, `pakdatakit/salestax` and so on) to keep bundles small.
+
+| Area                     | What it covers                                                                                                                                                                                                                           | npm modules                                                               |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Identity**             | CNIC validation with province and gender, passports, vehicle registration plates                                                                                                                                                         | `cnic`, `passport`, `vehicle`                                             |
+| **Phone**                | Mobile numbers and their original network, landline, UAN, toll-free and premium numbers, WhatsApp links, phone risk signals for cash on delivery                                                                                         | `phone`, `networks`, `numbers`, `whatsapp`, `quality`                     |
+| **Banking and payments** | IBAN checksum and bank lookup, Raast QR codes (create, parse, validate), electricity and gas bill references, PKR and lakh/crore formatting, amounts in words; JazzCash secure hash in `pakdatakit-pay`                                  | `iban`, `raast`, `bills`, `format`, `words`                               |
+| **Tax and FBR**          | NTN and STRN, federal and provincial sales tax rates, salary income tax (tax years 2020 to 2027), FBR Digital Invoicing build and offline validation                                                                                     | `tax`, `salestax`, `incometax`, `fbr-invoice`                             |
+| **Geography and postal** | Provinces, cities, districts, divisions and tehsils (2023 census), postal codes and about 2,560 post offices, address parsing and delivery-address scoring, courier status and city matching (experimental)                              | `geo`, `postal`, `address`, `quality`, `courier`                          |
+| **Text and Urdu**        | Roman Urdu normalization, Urdu and English digits, Urdu-aware slugs, Urdu alphabetical order, right-to-left detection and bidi isolation                                                                                                 | `text`                                                                    |
+| **Dates**                | Hijri dates, Ramadan, public holidays with observed moon-sighting dates                                                                                                                                                                  | `hijri`, `holidays`                                                       |
+| **Forms**                | As-you-type formatting and checking; schemas for Zod, Valibot, Yup, Joi and Superstruct; class-validator decorators for NestJS; Laravel rules, DataAnnotations and FluentValidation in the ports; React, Vue, Angular and Flutter inputs | `input`, `zod`, `valibot`, `yup`, `joi`, `superstruct`, `class-validator` |
+
+---
+
+## 🚀 Quick start
+
+**TypeScript / JavaScript** (Node 20+, browsers, Bun, Deno; `import` or `require`)
+
+```ts
+import { validateCNIC, getBankFromIBAN, calculateSalaryTax } from 'pakdatakit';
+
+validateCNIC('35202-1234567-1'); // true
+getBankFromIBAN('PK36SCBL0000001123456702'); // "Standard Chartered Bank (Pakistan) Limited"
+calculateSalaryTax(5_000_000, { taxYear: 2027 })?.tax; // 802000
+```
+
+**Python** (3.9+)
+
+```python
+from pakdatakit import validate_cnic, get_bank_from_iban, calculate_salary_tax
+
+validate_cnic("35202-1234567-1")  # True
+get_bank_from_iban("PK36SCBL0000001123456702")  # "Standard Chartered Bank (Pakistan) Limited"
+calculate_salary_tax(5_000_000, tax_year=2027).tax  # 802000
+```
+
+**Dart / Flutter**
+
+```dart
+import 'package:pakdatakit/pakdatakit.dart';
+
+validateCNIC('35202-1234567-1'); // true
+getBankFromIBAN('PK36SCBL0000001123456702'); // Standard Chartered Bank (Pakistan) Limited
+calculateSalaryTax(5000000, taxYear: 2027)?.tax; // 802000
+
+// pakdatakit_flutter
+TextFormField(inputFormatters: [CnicInputFormatter()], validator: PakValidators.cnic());
+```
+
+**.NET** (8+)
+
+```csharp
+using PakDataKit;
+
+Cnic.Validate("35202-1234567-1"); // true
+Iban.GetBank("PK36SCBL0000001123456702"); // "Standard Chartered Bank (Pakistan) Limited"
+IncomeTax.CalculateSalaryTax(5_000_000, new SalaryTaxOptions { TaxYear = 2027 })?.Tax; // 802000
+
+// PakDataKit.DataAnnotations: [Cnic] public string Cnic { get; set; }
+// PakDataKit.FluentValidation: RuleFor(x => x.Cnic).IsCnic();
+```
+
+**PHP / Laravel** (8.2+)
+
+```php
+use PakDataKit\Cnic;
+use PakDataKit\Iban;
+use PakDataKit\IncomeTax;
+
+Cnic::validate('35202-1234567-1'); // true
+Iban::getBank('PK36SCBL0000001123456702'); // "Standard Chartered Bank (Pakistan) Limited"
+IncomeTax::calculateSalary(5000000, ['taxYear' => 2027])?->tax; // 802000
+
+// Laravel: $request->validate(['cnic' => ['required', 'pk_cnic'], 'phone' => 'pk_phone']);
+```
+
+**React, Vue and Angular**
+
+```tsx
+// React
+import { CNICInput } from 'pakdatakit-react';
+<CNICInput onValueChange={(value, state, info) => {}} />;
+```
+
+```vue
+<!-- Vue -->
+<input v-model="cnic" v-pak-input:cnic />
+```
+
+```html
+<!-- Angular: import PakCnicInputDirective; validate with PakValidators.cnic -->
+<input pakCnicInput [formControl]="cnic" />
+```
+
+**CLI**
+
+```bash
+npx pakdatakit validate-cnic 35202-1234567-1
+npx pakdatakit analyze-phone 03001234567
+npx pakdatakit parse-address "House 12, Gulberg III, Lahore, Punjab 54660"
+```
+
+The CLI exits with 0 when the input is valid or found, 1 when it is not, and 2 for usage errors. Run `npx pakdatakit --help` for every command.
 
 ---
 
@@ -73,137 +174,17 @@ The Python, Dart, .NET and PHP packages are checked against the TypeScript libra
 
 Most Pakistani apps validate CNICs, mobile numbers and IBANs with a regex copied from somewhere. A regex checks the shape. PakDataKit checks what the shape can't show:
 
-| Task              | Typical regex                | PakDataKit                                                                                      |
-| ----------------- | ---------------------------- | ----------------------------------------------------------------------------------------------- |
-| CNIC              | 13 digits, maybe with dashes | Province code, province and gender decoding, Urdu digits                                        |
-| Mobile number     | `03` + 9 digits              | Allocated `03XX` prefixes only, `+92` / `0092` / `0` forms, original network                    |
-| IBAN              | `PK` + 22 characters         | Mod-97 checksum, bank name and type from the bank code                                          |
-| NTN / STRN        | Digit count                  | CNIC-based and business NTNs, display formats                                                   |
-| Passport, plates  | Usually not handled          | Common-shape checks, with sources and limits in [DATA.md](./DATA.md)                            |
-| Raast QR          | Not possible                 | Create, parse and check payment QR codes (CRC, IBAN, amount, expiry)                            |
-| Holidays, Hijri   | Not possible                 | Observed Eid/Ashura/Milad dates from official notifications, Hijri conversion                   |
-| Amounts, currency | Not possible                 | Lakh/crore formatting, amounts in words in English and Urdu                                     |
-| Forms             | Write each rule per library  | Ready rules for Zod, Valibot, Yup, Joi, Superstruct and class-validator (NestJS)                |
-| Other languages   | Rewrite it                   | Python and Dart packages with the core functions, checked against over 25,000 shared test cases |
-
-The npm package has no runtime dependencies, ships ESM and CommonJS with TypeScript types, and works offline: all data is bundled. Every dataset lists its sources in [DATA.md](./DATA.md).
-
----
-
-## Features
-
-- ✅ CNIC Validation
-- ✅ CNIC Province & Gender Decoding
-- ✅ Phone Number Validation
-- ✅ Phone Number Normalization
-- ✅ Phone Intelligence (`analyzePhone`)
-- ✅ WhatsApp Link Generator
-- ✅ IBAN Validation
-- ✅ Bank Detection from IBAN
-- ✅ Postal Code Lookup
-- ✅ Address Parsing
-- ✅ Roman Urdu Normalization
-- ✅ Hijri Date Utilities
-- ✅ CLI Tool
-- ✅ Mobile Network Detection
-- ✅ City → Province Lookup
-- ✅ PKR Formatting
-- ✅ Lakh / Crore Formatting
-- ✅ Amounts in Words (English & Urdu, cheque style)
-- ✅ Zod, Valibot & Yup Form Validation
-- ✅ As-You-Type Formatting for CNIC, Phone & IBAN
-- ✅ NTN & STRN Validation
-- ✅ Landline, UAN (111), Toll-Free (0800) & Premium (0900) Numbers
-- ✅ Raast QR Codes (SBP standard)
-- ✅ Pakistan Public Holidays (moon-sighting aware)
-
-### Developer Friendly
-
-- Fully Typed (TypeScript)
-- Zero Runtime Dependencies (form libraries are optional peers)
-- Tree-Shakeable
-- Lightweight & Fast
-- ESM and CommonJS, with per-module subpath imports
-- Production Ready
-
----
-
-## Installation
-
-```bash
-npm install pakdatakit
-```
-
-Requirements:
-
-- Node.js 20+
-- Works with both `import` and `require()`
-
-Import everything from `pakdatakit`, or a single module to keep bundles small:
-
-```ts
-import { validateCNIC } from 'pakdatakit/cnic';
-const { analyzePhone } = require('pakdatakit/phone');
-```
-
-Subpaths: `address`, `cnic`, `format`, `geo`, `hijri`, `holidays`, `iban`, `input`, `networks`, `numbers`, `passport`, `phone`, `postal`, `raast`, `tax`, `text`, `vehicle`, `whatsapp`, `words`, plus the form adapters `zod`, `valibot`, `yup`, `joi`, `superstruct` and `class-validator`.
-
----
-
-## Quick Start
-
-```ts
-import {
-  validateCNIC,
-  analyzePhone,
-  createWhatsAppLink,
-  validateIBAN,
-  getBankFromIBAN,
-  getPostalCode,
-  getCityByPostalCode,
-  getNetwork,
-  formatLakh,
-} from 'pakdatakit';
-
-validateCNIC('35202-1234567-1');
-// true
-
-analyzePhone('03001234567');
-// { valid: true, formatted: "+923001234567", network: "Jazz" }
-
-createWhatsAppLink('03001234567', 'Assalamualaikum');
-// "https://wa.me/923001234567?text=Assalamualaikum"
-
-validateIBAN('PK36SCBL0000001123456702');
-// true
-
-getBankFromIBAN('PK36SCBL0000001123456702');
-// "Standard Chartered Bank (Pakistan) Limited"
-
-getPostalCode('Multan');
-// "60000"
-
-getCityByPostalCode('60000');
-// "Multan"
-
-getNetwork('03001234567');
-// "Jazz"
-
-formatLakh(2500000);
-// "25 Lakh"
-```
-
-### CLI
-
-```bash
-npx pakdatakit validate-cnic 35202-1234567-1
-npx pakdatakit analyze-phone 03001234567
-npx pakdatakit parse-address "House 12, Gulberg III, Lahore, Punjab 54660"
-npx pakdatakit hijri
-npx pakdatakit normalize-urdu "ap kia ker rhe ho"
-```
-
-The CLI exits with status 0 when the input is valid or found, 1 when it is invalid or not found, and 2 for usage errors, so it can be used in scripts. Run `npx pakdatakit --help` for all commands.
+| Task                  | Typical regex                | PakDataKit                                                                                                          |
+| --------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| CNIC                  | 13 digits, maybe with dashes | Province code, province and gender decoding, Urdu digits                                                            |
+| Mobile number         | `03` + 9 digits              | Allocated `03XX` prefixes only, `+92` / `0092` / `0` forms, original network                                        |
+| IBAN                  | `PK` + 22 characters         | Mod-97 checksum, bank name and type from the bank code                                                              |
+| NTN / STRN            | Digit count                  | CNIC-based and business NTNs, display formats                                                                       |
+| Sales tax, income tax | Hard-coded rates             | Rates by authority and date with their legal source; exact amounts in whole paisa                                   |
+| FBR invoices          | Found out at submission      | Offline validation with FBR's own error codes                                                                       |
+| Raast QR              | Not possible                 | Create, parse and check payment QR codes (CRC, IBAN, amount, expiry)                                                |
+| Holidays, Hijri       | Not possible                 | Observed Eid/Ashura/Milad dates from official notifications, Hijri conversion                                       |
+| Forms                 | Write each rule per library  | Ready rules for Zod, Valibot, Yup, Joi, Superstruct, class-validator, Laravel, DataAnnotations and FluentValidation |
 
 ---
 
@@ -1331,67 +1312,6 @@ const province = getProvince('Lahore');
 const amount = formatPKR(150000);
 const budget = formatLakh(2500000);
 ```
-
----
-
-# Roadmap
-
-### v0.2 ✅
-
-- Phone Intelligence (`analyzePhone`)
-- WhatsApp Link Generator
-- IBAN Validation
-- Bank Detection from IBAN
-- Postal Code Lookup
-- Expanded datasets (cities, districts, postal codes, banks)
-
-### v0.3 ✅
-
-- Address Parsing (`parseAddress`, `formatAddress`)
-- Expanded Postal Data (`getPostalAreas`, `searchPostalCodes`)
-
-### v0.4 ✅
-
-- Roman Urdu Utilities (`normalizeRomanUrdu`)
-- Text Normalization (`normalizeText`, `toUrduDigits`, `toEnglishDigits`)
-
-### v0.5 ✅
-
-- Islamic Calendar Utilities (`toHijri`, `fromHijri`, `formatHijri`)
-- Hijri Date Helpers (`getHijriMonthName`, `isRamadan`)
-
-### v1.0 ✅
-
-- CLI Tool (`pakdatakit` command)
-- Dataset-backed lookup APIs
-- Community Contributions (see CONTRIBUTING.md)
-
-### v1.1 ✅
-
-- Interactive Playground ([pakdatakit-playground.vercel.app](https://pakdatakit-playground.vercel.app/))
-
-### v2.0 ✅
-
-- Bug-fix release; see [CHANGELOG.md](./CHANGELOG.md) for breaking changes
-- CommonJS build and subpath imports
-- Corrected Hijri dates, datasets and validation
-
-### v2.1 ✅
-
-- CNIC province & gender decoding (`getCNICInfo`)
-- Amounts in words in English and Urdu (`amountInWords`, `numberToWords`)
-- Zod, Valibot and Yup adapters
-- NTN and STRN validation
-- Landline, UAN, toll-free and premium numbers
-- Raast QR codes
-- Public holidays with observed moon-sighting dates
-
-### v2.2 ✅
-
-- Python package on PyPI, Dart package on pub.dev
-- `pakdatakit-react` form inputs, `pakdatakit-faker` test data and
-  `pakdatakit_flutter` widgets
-- Bank details (`getBankInfo`, `getBanks`), API docs and `llms.txt`
 
 ---
 

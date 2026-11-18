@@ -8,7 +8,7 @@ parsing, as-you-type form helpers and Raast QR codes. Includes a Laravel bridge:
 Eloquent casts, with English and Urdu messages.
 
 This is the PHP port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
-It ships **the same datasets** and is tested against **the same 25,000+ test
+It ships **the same datasets** and is tested against **the same 32,000+ test
 vectors** generated from the TypeScript library (also used by the Python, Dart
 and .NET ports), so all of them give identical results.
 

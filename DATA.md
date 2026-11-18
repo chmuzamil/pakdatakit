@@ -378,13 +378,40 @@ rate on its width (the tests check this). All documents retrieved 2026-11-18.
 | 2024 (2023-24) | Finance Act 2023                                | https://download1.fbr.gov.pk/Docs/202412215122448762IncomeTaxOrdinance,2001Amendedupto30.06.2023.pdf     |
 | 2025 (2024-25) | Finance Act 2024                                | https://download1.fbr.gov.pk/Docs/2024751675120641IncomeTaxOrdinance,2001-amended-upto30.06.2024.pdf     |
 | 2026 (2025-26) | Finance Act 2025                                | https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf |
-| 2027 (2026-27) | Finance Act 2026                                | https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf                            |
+| 2027 (2026-27) | Finance Act 2026                                | Finance Act 2026 (primary) and two further sources, listed below                                         |
+
+Tax year 2027 has three sources, all retrieved 2026-11-18:
+
+1. **Primary: the Finance Act, 2026**, Gazette of Pakistan (Extraordinary),
+   Part I, 26 June 2026
+   (https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf).
+   - Section 5(44)(a)(i) substitutes the table in clause (2) of Division I,
+     Part I, First Schedule (Gazette page 580). Its eight bands, fixed
+     amounts and rates match `income-tax-slabs.json` exactly.
+   - Section 1(2) brings the Act into force on 1 July 2026, the first day of
+     tax year 2027.
+   - Section 5(2)(b) replaces the 9% salaried surcharge in the proviso to
+     section 4AB with "no surcharge shall be payable".
+2. **FBR's explanation: Circular No. 02 of 2026-27 (Income Tax)**, C. No.
+   1(50)S(ITP)/2026, 8 September 2026
+   (https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf).
+   - Paragraph 7 restates the same table.
+   - Paragraph 8 confirms that the 9% surcharge on salaried individuals is
+     withdrawn, while the 10% surcharge on other individuals and associations
+     of persons continues.
+   - The circular does not name a tax year, which is why the commencement
+     comes from the Act.
+3. **FBR's consolidated Ordinance**
+   (https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf).
+   It prints the same table, with a footnote quoting the 2026 table it
+   replaced. This is the URL in the dataset's `source` field.
 
 How sure we are, and what is left out:
 
-- **Verified** from FBR's consolidated Ordinance for each year. The Finance
-  Act texts themselves (Gazette) were not read; FBR's consolidations are the
-  source.
+- **Verified** from FBR's consolidated Ordinance for each year. For 2027 the
+  table was also checked against the Finance Act, 2026 as gazetted and FBR
+  Circular No. 02 of 2026-27. For earlier years the Finance Act texts
+  (Gazette) were not read; FBR's consolidations are the source.
 - **Not applied** (out of scope): the surcharge under section 4AB (from tax
   year 2025: 10% of the tax over Rs 10 million of taxable income; 9% for
   salaried individuals in 2026; none for salaried individuals in 2027), tax

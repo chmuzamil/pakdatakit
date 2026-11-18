@@ -1,0 +1,72 @@
+name: Release pakdatakit-pay
+
+# Publishes pay/ to npm when a tag like pay-v0.1.0 is pushed, with npm
+# trusted publishing and provenance (same setup as release.yml; see RELEASING.md).
+# pakdatakit-pay does not depend on pakdatakit.
+
+on:
+  push:
+    tags: ['pay-v*.*.*']
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # OIDC token for npm trusted publishing
+
+concurrency:
+  group: release-pay
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            pay/package-lock.json
+
+      - name: Check the tag matches pay/package.json
+        run: |
+          version="$(node -p "require('./pay/package.json').version")"
+          if [ "${GITHUB_REF_NAME}" != "pay-v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match pay/package.json version ${version}"
+            exit 1
+          fi
+
+      - run: npm ci
+        working-directory: pay
+      - name: Check whether this version is already on npm
+        id: published
+        run: |
+          version="$(node -p "require('./pay/package.json').version")"
+          if npm view "pakdatakit-pay@$version" version >/dev/null 2>&1; then
+            echo "pakdatakit-pay $version is already on npm; skipping publish"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - run: npm publish --provenance --access public
+        if: steps.published.outputs.exists == 'false'
+        working-directory: pay
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#pay-v}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs pay/CHANGELOG.md "$version" "pakdatakit-pay" "https://www.npmjs.com/package/pakdatakit-pay/v/$version" > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" --title "pakdatakit-pay $version" \
+            --notes-file release-notes.md --verify-tag --latest=false

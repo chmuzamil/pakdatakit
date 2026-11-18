@@ -1,0 +1,79 @@
+{
+  "name": "pakdatakit-pay",
+  "version": "0.1.0",
+  "description": "Payment gateway helpers for Pakistan: JazzCash secure hash (HMAC-SHA256) building and constant-time response verification, for Node.js and Web Crypto",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./web": {
+      "import": {
+        "types": "./dist/web.d.ts",
+        "default": "./dist/web.js"
+      },
+      "require": {
+        "types": "./dist/web.d.cts",
+        "default": "./dist/web.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --config ../.prettierrc --write src tests README.md *.ts *.js",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build"
+  },
+  "keywords": [
+    "pakistan",
+    "payments",
+    "jazzcash",
+    "hmac",
+    "sha256",
+    "secure-hash",
+    "payment-gateway",
+    "webhook",
+    "pakdatakit"
+  ],
+  "author": "Muzamil Chaudhery",
+  "license": "MIT",
+  "homepage": "https://github.com/chmuzamil/pakdatakit/tree/main/pay#readme",
+  "bugs": {
+    "url": "https://github.com/chmuzamil/pakdatakit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chmuzamil/pakdatakit.git",
+    "directory": "pay"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.4",
+    "@types/node": "^26.6.5"
+  }
+}

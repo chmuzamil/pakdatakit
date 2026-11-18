@@ -14,11 +14,12 @@ version in this repository and is supported from its first release.
 | `pakdatakit`                                                              | pub.dev   | Dart              | 2.3.x     | yes                      |
 | `PakDataKit`, `PakDataKit.DataAnnotations`, `PakDataKit.FluentValidation` | NuGet     | .NET 8+           | 2.3.x     | not yet                  |
 | `chmuzamil/pakdatakit`                                                    | Packagist | PHP 8.2+, Laravel | 2.3.x     | not yet                  |
-| `pakdatakit-react`                                                        | npm       | React             | 0.1.x     | yes                      |
+| `pakdatakit-react`                                                        | npm       | React             | 0.2.x     | 0.1.x yes; 0.2.x not yet |
 | `pakdatakit-faker`                                                        | npm       | TypeScript, JS    | 0.2.x     | 0.1.x yes; 0.2.x not yet |
 | `pakdatakit-vue`                                                          | npm       | Vue 3             | 0.1.x     | not yet                  |
 | `pakdatakit-angular`                                                      | npm       | Angular 17 to 22  | 0.1.x     | not yet                  |
-| `pakdatakit_flutter`                                                      | pub.dev   | Flutter           | 0.1.x     | yes                      |
+| `pakdatakit_flutter`                                                      | pub.dev   | Flutter           | 0.2.x     | 0.1.x yes; 0.2.x not yet |
+| `pakdatakit-pay`                                                          | npm       | TypeScript, JS    | 0.1.x     | not yet                  |
 
 All ports of `pakdatakit` share one version number and give the same results
 (see [test-vectors/](test-vectors/README.md)), so a security fix is released
@@ -36,6 +37,11 @@ You can expect a reply within a week. Once a fix is released, the advisory is
 published with credit to you unless you prefer otherwise.
 
 ## Scope
+
+`pakdatakit-pay` computes and checks payment gateway hashes. A flaw that lets
+a forged or replayed gateway response pass `verifyJazzCashResponse` is in
+scope. Never include a real Integrity Salt, merchant ID or password in a
+report.
 
 PakDataKit validates and formats data; it does not store or send it anywhere.
 This applies to every port. Issues we especially want to hear about:

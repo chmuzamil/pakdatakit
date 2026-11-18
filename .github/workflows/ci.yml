@@ -143,6 +143,34 @@ jobs:
       - run: npm run build
         working-directory: faker
 
+  pay:
+    name: pay (pakdatakit-pay)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: pay/package-lock.json
+
+      - run: npm ci
+        working-directory: pay
+
+      - run: npm run lint
+        working-directory: pay
+
+      - run: npm run typecheck
+        working-directory: pay
+
+      - run: npm test
+        working-directory: pay
+
+      - run: npm run build
+        working-directory: pay
+
   dart:
     name: dart (pakdatakit)
     runs-on: ubuntu-latest

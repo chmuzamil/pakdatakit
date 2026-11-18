@@ -40,7 +40,7 @@ const LICENSE = 'MIT';
 // Manifests
 // ---------------------------------------------------------------------------
 
-const npmDirs = ['.', 'react', 'faker', 'vue', 'angular'];
+const npmDirs = ['.', 'react', 'faker', 'vue', 'angular', 'pay'];
 const npm = Object.fromEntries(
   npmDirs.map((dir) => [dir, json(join(dir, 'package.json'))]),
 );
@@ -152,6 +152,7 @@ const changelogs = {
   'php/CHANGELOG.md': version,
   'react/CHANGELOG.md': npm.react.version,
   'faker/CHANGELOG.md': npm.faker.version,
+  'pay/CHANGELOG.md': npm.pay.version,
   'vue/CHANGELOG.md': npm.vue.version,
   'angular/CHANGELOG.md': npm.angular.version,
   'flutter/CHANGELOG.md': yamlScalar(pubspec.flutter, 'version'),
@@ -177,10 +178,16 @@ const compare = (a, b) => {
   for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i];
   return 0;
 };
+// Versions the core CHANGELOG lists as "(unreleased)": an add-on may already
+// require one of them, as it is released first (see RELEASING.md).
+const unreleased = [
+  ...read('CHANGELOG.md').matchAll(/^## (\d+\.\d+\.\d+) \(unreleased\)/gm),
+].map((m) => m[1]);
 function checkRange(where, range, current) {
   const min = range?.match(/(\d+\.\d+\.\d+)/)?.[1];
   if (!min)
     return fail(`${where}: cannot read the pakdatakit range "${range}"`);
+  if (unreleased.includes(min) && parse(min)[0] === parse(current)[0]) return;
   if (parse(min)[0] !== parse(current)[0] || compare(min, current) > 0) {
     fail(
       `${where}: requires pakdatakit ${range}, but the current version is ${current}`,
@@ -302,6 +309,7 @@ for (const dir of [
   'faker',
   'vue',
   'angular',
+  'pay',
   'python',
   'dart',
   'flutter',
@@ -372,7 +380,7 @@ for (const [where, list] of Object.entries(keywords)) {
   if (missingWords.length)
     fail(`${where}: keywords lack ${missingWords.join(', ')}`);
 }
-for (const dir of ['react', 'faker', 'vue', 'angular']) {
+for (const dir of ['react', 'faker', 'vue', 'angular', 'pay']) {
   for (const word of ['pakistan', 'pakdatakit']) {
     if (!npm[dir].keywords?.includes(word))
       fail(`${dir}/package.json: keywords lack ${word}`);
@@ -400,6 +408,7 @@ const supported = {
   'pakdatakit-faker': minor(npm.faker.version),
   'pakdatakit-vue': minor(npm.vue.version),
   'pakdatakit-angular': minor(npm.angular.version),
+  'pakdatakit-pay': minor(npm.pay.version),
   pakdatakit_flutter: minor(yamlScalar(pubspec.flutter, 'version')),
 };
 for (const [name, v] of Object.entries(supported)) {

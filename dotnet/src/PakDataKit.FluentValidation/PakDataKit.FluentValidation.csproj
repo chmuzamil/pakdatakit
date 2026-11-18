@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="[11.0.0,13.0.0)" />
+    <PackageReference Include="FluentValidation" Version="[12.2.0, 13.0.0)" />
     <ProjectReference Include="..\PakDataKit\PakDataKit.csproj" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>

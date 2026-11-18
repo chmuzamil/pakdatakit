@@ -1,10 +1,53 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 (unreleased)
+
+### Added
+
+- `scoreAddress()`: scores how complete a delivery address is (0-100), with
+  the `missing` `AddressPart`s and the `parseAddress` result, and warns when
+  a known post office code is in a different province from the city.
+  `phoneRiskSignals()`: `PhoneRiskFlag`s for a phone number a courier cannot
+  reach or that looks made up (landline, service number, repeated or
+  sequential digits, placeholder numbers). Also `addressWeights`, and as
+  `package:pakdatakit/quality.dart`.
+- `getSalesTaxRate()`: the standard sales tax rate on goods (FBR) or on
+  services in a province or Islamabad Capital Territory on a date, from 1 July
+  2019, with the authority, law and source (`SalesTaxRate`, `SalesTaxKind`).
+  `calculateSalesTax()` adds tax at a rate or a looked-up rate, or splits it
+  out with `inclusive: true`; `splitInclusive()` splits a tax-inclusive amount.
+  Both return `SalesTaxAmounts`, rounded half up to the paisa, exactly on
+  every platform. Also as `package:pakdatakit/salestax.dart`.
+- `parseElectricityRef()` and `validateElectricityRef()`: a DISCO (WAPDA)
+  14-digit reference number with optional U/R, a DISCO customer ID (10 or 11
+  digits) or a 13-digit K-Electric account number, as an `ElectricityRef`
+  (`type` as an `ElectricityRefType`, `digits`, `formatted`, `urbanRural`,
+  `disco`). `validateGasConsumerNumber()` checks an SNGPL (11-digit) or SSGC
+  (10-digit) consumer number (`GasCompany`). Format checks only; no utility
+  publishes a check digit. Also as `package:pakdatakit/bills.dart`.
+- `mapCourierStatus()`: maps a courier's own status (name, numeric ID or
+  code) to one vocabulary, `CourierStatus`, from PostEx's merchant API guide
+  and Leopards' "Returned to Shipper" (`Courier` names the couriers).
+  `normalizeCityForCourier()` maps short forms (`LHR`, `Khi`, `Pindi`), the
+  old name Lyallpur, a trailing "city" and Urdu script to the city list. No
+  API is called. Also as `package:pakdatakit/courier.dart`.
+- `buildFbrInvoice()` and `validateFbrInvoice()`: FBR Digital Invoicing, for
+  the invoice JSON (`Map<String, Object?>`, typedef `FbrInvoice`) posted to
+  PRAL's DI API (specification 1.12, `fbrDiSpecVersion`). The builder works
+  out each line's sales tax (`expectedSalesTax()`: `N%` or `Rs.N` per unit,
+  with `calculateSalesTax`), fills FBR's defaults and adds up the columns
+  (`FbrInvoiceBuild`, `FbrInvoiceTotals`); the validator returns every
+  problem it can find offline with FBR's error code (`FbrInvoiceValidation`,
+  `FbrInvoiceError`), optionally rejecting future dates with `today:`. Also
+  `FbrInvoiceType` and `FbrRegistrationType`. No HTTP client and no token
+  handling. Also as `package:pakdatakit/fbr_invoice.dart`.
+
+### Changed
 
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,
   licence and author agree across ports (`npm run check:metadata`).
+- `dataVersion` is now `2026-11-18` (new dataset: sales tax rates).
 
 ## 2.3.0
 

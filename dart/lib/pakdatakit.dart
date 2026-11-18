@@ -1,6 +1,7 @@
 /// Utilities for Pakistani data: CNIC, phone, IBAN, postal codes, address
-/// parsing, Hijri dates, holidays, amounts in words, Raast QR codes, and
-/// passport and vehicle registration number formats.
+/// parsing, Hijri dates, holidays, amounts in words, Raast QR codes, sales
+/// tax, FBR digital invoices, passport and vehicle registration number
+/// formats, utility bill numbers, and courier statuses and city names.
 ///
 /// A pure-Dart port of the `pakdatakit` npm package. It uses the same
 /// datasets and gives identical results, checked against test vectors
@@ -19,8 +20,11 @@
 library;
 
 export 'src/address.dart';
+export 'src/bills.dart';
 export 'src/cnic.dart';
+export 'src/courier.dart';
 export 'src/data_version.dart';
+export 'src/fbr_invoice.dart';
 export 'src/format.dart';
 export 'src/geo.dart';
 export 'src/hijri.dart';
@@ -32,7 +36,9 @@ export 'src/numbers.dart';
 export 'src/passport.dart';
 export 'src/phone.dart' hide getPhonePrefix, normalizePhoneDigits;
 export 'src/postal.dart';
+export 'src/quality.dart';
 export 'src/raast.dart';
+export 'src/salestax.dart';
 export 'src/tax.dart';
 export 'src/text.dart';
 export 'src/vehicle.dart';

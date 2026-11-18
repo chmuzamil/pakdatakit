@@ -6,8 +6,11 @@ namespace PakDataKit\Tests;
 
 use DateTimeImmutable;
 use PakDataKit\Address;
+use PakDataKit\Bills;
 use PakDataKit\Cnic;
+use PakDataKit\Courier;
 use PakDataKit\Currency;
+use PakDataKit\FbrInvoice;
 use PakDataKit\Geo;
 use PakDataKit\Hijri;
 use PakDataKit\HijriDate;
@@ -19,7 +22,9 @@ use PakDataKit\Numbers;
 use PakDataKit\Passport;
 use PakDataKit\Phone;
 use PakDataKit\Postal;
+use PakDataKit\Quality;
 use PakDataKit\RaastQr;
+use PakDataKit\SalesTax;
 use PakDataKit\Tax;
 use PakDataKit\Text;
 use PakDataKit\VehiclePlate;
@@ -40,9 +45,9 @@ use Throwable;
 final class FuzzTest extends TestCase
 {
     private const CLASSES = [
-        Address::class, Cnic::class, Geo::class, Holidays::class, Iban::class, Input::class, Networks::class,
-        Numbers::class, Passport::class, Phone::class, Postal::class, RaastQr::class, Tax::class, Text::class,
-        VehiclePlate::class, WhatsApp::class,
+        Address::class, Bills::class, Cnic::class, Courier::class, Geo::class, Holidays::class, Iban::class, Input::class,
+        Networks::class, Numbers::class, Passport::class, Phone::class, Postal::class, Quality::class, RaastQr::class,
+        Tax::class, Text::class, VehiclePlate::class, WhatsApp::class,
     ];
 
     /** @return list<string|null> Inputs that can never be valid for any validator or parser. */
@@ -142,7 +147,8 @@ final class FuzzTest extends TestCase
             'Geo::getDivisionOfDistrict', 'Geo::getTehsils', 'Geo::getTehsilDistrict', 'WhatsApp::createLink', 'Text::normalize',
             'Text::normalizeRomanUrdu', 'Address::parse', 'Input::formatCnic', 'Input::checkIban',
             'RaastQr::parse', 'RaastQr::validate', 'Holidays::isHoliday', 'Holidays::getHolidaysOn',
-            'Holidays::tryGetHolidaysOn',
+            'Holidays::tryGetHolidaysOn', 'Quality::scoreAddress', 'Quality::phoneRiskSignals',
+            'Bills::parseElectricityRef', 'Bills::validateElectricityRef', 'Courier::normalizeCity',
         ] as $expected) {
             self::assertContains($expected, $names);
         }
@@ -229,6 +235,28 @@ final class FuzzTest extends TestCase
         self::assertSame('https://wa.me/923001234567?text=hi', WhatsApp::createLink('0300 1234567', 'hi'));
     }
 
+    public function testGasConsumerNumberHandlesHostileInput(): void
+    {
+        $companies = [null, '', 'SNGPL', 'SSGC', 'sngpl', 'ssgc', '__proto__', 'constructor', 'toString', "ÿ", 'ßgc'];
+        foreach (self::hostile() as $input) {
+            foreach ([...$companies, $input] as $company) {
+                try {
+                    $result = Bills::validateGasConsumerNumber($input, $company);
+                } catch (Throwable $e) {
+                    self::fail('Bills::validateGasConsumerNumber(' . self::describe($input) . ', ' . self::describe($company)
+                        . ') threw ' . $e::class . ': ' . $e->getMessage());
+                }
+                self::assertFalse($result, self::describe($input) . ', ' . self::describe($company));
+            }
+        }
+        mt_srand(crc32('Bills::validateGasConsumerNumber'));
+        for ($i = 0; $i < 300; $i++) {
+            Bills::validateGasConsumerNumber(self::randomString(), self::randomString());
+            Bills::validateGasConsumerNumber(self::randomString(), 'SSGC');
+        }
+        self::assertTrue(Bills::validateGasConsumerNumber('1234567890', 'ßgc')); // 'ß'.toUpperCase() is 'SS'
+    }
+
     public function testAddressFormatHandlesHostileInput(): void
     {
         foreach (self::hostile() as $input) {
@@ -236,6 +264,178 @@ final class FuzzTest extends TestCase
         }
         self::assertSame('', Address::format([]));
         self::assertSame('', Address::format(['street' => 5, 'raw' => null]));
+    }
+
+    public function testSalesTaxHandlesHostileInput(): void
+    {
+        $numbers = [
+            null, true, false, '18', '', [], [18], new \stdClass(), NAN, INF, -INF, -0.0, -1, -0.01, 0, 0.0,
+            5e-324, 1e-7, 0.005, 1.005, 99.999, 100.01, 1e12, 1e12 + 0.01, 1e300, PHP_INT_MAX, PHP_INT_MIN,
+            999_999_999_999.99, 999_999_999_999.995,
+        ];
+        foreach ($numbers as $value) {
+            try {
+                SalesTax::splitInclusive($value, 18);
+                SalesTax::splitInclusive(1000, $value);
+                SalesTax::calculate($value, ['rate' => 18]);
+                SalesTax::calculate(1000, ['rate' => $value]);
+                SalesTax::calculate($value, ['rate' => $value, 'inclusive' => true]);
+                SalesTax::calculate(1000, ['kind' => $value, 'province' => $value, 'date' => $value, 'inclusive' => $value]);
+                SalesTax::getRate(['kind' => 'goods', 'province' => $value, 'date' => $value]);
+            } catch (Throwable $e) {
+                self::fail('SalesTax threw ' . $e::class . ' for ' . var_export($value, true) . ': ' . $e->getMessage());
+            }
+        }
+        foreach (self::hostile() as $input) {
+            $label = 'SalesTax(' . self::describe($input) . ')';
+            try {
+                self::assertNull(SalesTax::getRate(['kind' => $input, 'date' => '2026-11-18']), $label);
+                self::assertNull(SalesTax::getRate(['kind' => 'services', 'province' => $input, 'date' => '2026-11-18']), $label);
+                self::assertNull(SalesTax::getRate(['kind' => 'goods', 'province' => 'Punjab', 'date' => $input ?? 'x']), $label);
+                self::assertNull(SalesTax::calculate(1000, ['province' => $input ?? 'x']), $label);
+                self::assertNull(SalesTax::calculate($input, ['rate' => 18]), $label);
+                self::assertNull(SalesTax::splitInclusive(1180, $input), $label);
+            } catch (Throwable $e) {
+                self::fail($label . ' threw ' . $e::class . ': ' . $e->getMessage());
+            }
+        }
+        self::assertNull(SalesTax::getRate(null));
+        self::assertNull(SalesTax::getRate([]));
+        self::assertNull(SalesTax::calculate(1000, null));
+        self::assertNull(SalesTax::calculate(1000, []));
+        self::assertNull(SalesTax::splitInclusive(true, 18));
+        self::assertNull(SalesTax::splitInclusive(1000, true));
+        self::assertNull(SalesTax::splitInclusive(1e12 + 1, 18));
+        self::assertNull(SalesTax::splitInclusive(1000, 16.666));
+        self::assertSame(['net' => 1000.0, 'tax' => 180.0, 'gross' => 1180.0, 'rate' => 18.0], SalesTax::splitInclusive(1180, 18)?->toArray());
+        self::assertSame(1.01, SalesTax::calculate(1.005, ['rate' => 0])?->net);
+        self::assertSame(1e12, SalesTax::calculate(1e12, ['rate' => 100])?->net);
+        self::assertSame(2e12, SalesTax::calculate(1e12, ['rate' => 100])?->gross);
+        self::assertSame(18, SalesTax::getRate(['kind' => 'goods', 'date' => new DateTimeImmutable('2026-11-18')])?->rate);
+        self::assertSame(15, SalesTax::getRate(['kind' => 'services', 'province' => ' ict ', 'date' => ' 2026-11-18 '])?->rate);
+        self::assertNull(SalesTax::getRate(['kind' => 'goods', 'date' => '2023-02-29']));
+        self::assertNotNull(SalesTax::getRate(['kind' => 'goods']));
+    }
+
+    public function testFbrInvoiceHandlesHostileInput(): void
+    {
+        $values = [
+            null, true, false, '', '18', [], [[]], ['items' => null], new \stdClass(), NAN, INF, -INF, -0.0, -1, 0,
+            0.001, 1e300, PHP_INT_MAX, PHP_INT_MIN, '__proto__', 'constructor', ['a', 'b'], [1 => 'x'],
+        ];
+        $line = [
+            'hsCode' => '0101.2100', 'productDescription' => 'Horses', 'rate' => '18%', 'uoM' => 'Numbers, pieces, units',
+            'quantity' => 1, 'valueSalesExcludingST' => 1000, 'saleType' => 'Goods at standard rate (default)',
+        ];
+        $invoice = [
+            'invoiceType' => 'Sale Invoice', 'invoiceDate' => '2025-04-21', 'sellerNTNCNIC' => '1234567',
+            'sellerBusinessName' => 'Example Traders', 'sellerProvince' => 'Sindh', 'sellerAddress' => 'Karachi',
+            'buyerNTNCNIC' => '7654321', 'buyerBusinessName' => 'Example Buyer', 'buyerProvince' => 'Punjab',
+            'buyerAddress' => 'Lahore', 'buyerRegistrationType' => 'Registered', 'items' => [$line],
+        ];
+        $keys = [...array_keys($invoice), 'invoiceRefNo', 'scenarioId'];
+        $lineKeys = [
+            ...array_keys($line), 'totalValues', 'fixedNotifiedValueOrRetailPrice', 'salesTaxApplicable',
+            'salesTaxWithheldAtSource', 'extraTax', 'furtherTax', 'fedPayable', 'discount', 'sroScheduleNo', 'sroItemSerialNo',
+        ];
+        foreach ([...$values, ...self::hostile()] as $value) {
+            try {
+                FbrInvoice::build($value);
+                self::assertFalse(FbrInvoice::validate($value)->valid);
+                FbrInvoice::expectedSalesTax($value);
+                FbrInvoice::validate($invoice, ['today' => $value]);
+                foreach ($keys as $key) {
+                    FbrInvoice::build([...$invoice, $key => $value]);
+                    FbrInvoice::validate([...$invoice, $key => $value]);
+                    FbrInvoice::validate((object) [...$invoice, $key => $value]);
+                }
+                foreach ($lineKeys as $key) {
+                    $item = [...$line, $key => $value];
+                    FbrInvoice::expectedSalesTax($item);
+                    FbrInvoice::expectedSalesTax([...$item, 'rate' => 'Rs.3']);
+                    FbrInvoice::expectedSalesTax([...$item, 'saleType' => '3rd Schedule Goods']);
+                    FbrInvoice::build([...$invoice, 'items' => [$item, (object) $item]]);
+                    FbrInvoice::validate([...$invoice, 'items' => [$item, [...$item, 'rate' => 'Rs 3'], (object) $item]]);
+                }
+            } catch (Throwable $e) {
+                self::fail('FbrInvoice threw ' . $e::class . ' for ' . self::describe(is_string($value) ? $value : null)
+                    . ': ' . $e->getMessage());
+            }
+        }
+
+        self::assertSame('1.12', FbrInvoice::SPEC_VERSION);
+        $full = FbrInvoice::build($invoice)['invoice'] ?? null;
+        self::assertTrue(FbrInvoice::validate($full)->valid);
+        self::assertTrue(FbrInvoice::validate(json_decode((string) json_encode($full)))->valid);
+        self::assertFalse(FbrInvoice::validate($invoice)->valid); // totalValues … are required
+        self::assertSame('The invoice must be an object', FbrInvoice::validate([])->errors[0]->message);
+        self::assertSame('0011', FbrInvoice::validate(new \stdClass())->errors[0]->code);
+        $built = FbrInvoice::build(json_decode((string) json_encode($invoice)));
+        self::assertSame(180.0, $built['invoice']['items'][0]['salesTaxApplicable'] ?? null);
+        self::assertSame('', $built['invoice']['invoiceRefNo'] ?? null);
+        self::assertSame(1.0, $built['totals']['quantity'] ?? null);
+        self::assertNull(FbrInvoice::build([...$invoice, 'items' => [[]]]));
+        self::assertSame(
+            ['code' => '0104', 'field' => 'items[0].salesTaxApplicable', 'message' => 'Sales tax should be 180.00 for this rate'],
+            FbrInvoice::validate([...$invoice, 'items' => [[...$line, 'salesTaxApplicable' => 170, 'totalValues' => 0,
+                'fixedNotifiedValueOrRetailPrice' => 0, 'salesTaxWithheldAtSource' => 0]]])->errors[0]->toArray(),
+        );
+        // Per-unit tax beyond 64-bit integers, rounded as the npm package's BigInt.
+        self::assertSame(1e24, FbrInvoice::expectedSalesTax(['rate' => 'Rs.1000000000000', 'quantity' => 1e12]));
+        self::assertSame(
+            9.999999999999899e+23,
+            FbrInvoice::expectedSalesTax(['rate' => 'Rs.999999999999.99', 'quantity' => 999999999999.9999]),
+        );
+        self::assertSame(
+            1.2193263113702222e+23,
+            FbrInvoice::expectedSalesTax(['rate' => 'Rs.987654321098.76', 'quantity' => 123456789012.3468]),
+        );
+        self::assertNull(FbrInvoice::expectedSalesTax(['rate' => 'ſ3', 'quantity' => 1]));
+        self::assertSame(0.18, FbrInvoice::expectedSalesTax(['rate' => "18%\n", 'valueSalesExcludingST' => 1]));
+        self::assertSame('0005', FbrInvoice::validate([...$invoice, 'invoiceDate' => "2025-04-21\n"])->errors[0]->code);
+    }
+
+    public function testCourierStatusHandlesHostileInput(): void
+    {
+        $values = [
+            null, true, false, [], ['PostEx'], new \stdClass(), NAN, INF, -INF, -0.0, -1, -1.0, 1.5, 0.5,
+            PHP_INT_MAX, PHP_INT_MIN, 1e300, -1e300, 'constructor', '__proto__', 'hasOwnProperty', 'toString',
+        ];
+        foreach ([...$values, ...self::hostile()] as $value) {
+            try {
+                Courier::mapStatus($value, 'Delivered');
+                Courier::mapStatus('PostEx', $value);
+                Courier::mapStatus($value, $value);
+            } catch (Throwable $e) {
+                self::fail('Courier::mapStatus threw ' . $e::class . ' for ' . var_export($value, true) . ': ' . $e->getMessage());
+            }
+        }
+        foreach ([...$values, ...self::hostile()] as $value) {
+            self::assertNull(Courier::mapStatus($value, 'Delivered'));
+        }
+        foreach (self::hostile() as $input) {
+            self::assertNull(Courier::mapStatus('PostEx', $input), 'Courier::mapStatus(PostEx, ' . self::describe($input) . ')');
+        }
+        foreach (['constructor', '__proto__', 'hasOwnProperty', true, null, [], NAN, INF, -1, -1.0, 1.5, 1e300] as $raw) {
+            self::assertNull(Courier::mapStatus('PostEx', $raw));
+        }
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', 5));
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', 5.0));
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', '5'));
+        self::assertSame(Courier::DELIVERED, Courier::mapStatus('PostEx', '0005'));
+        self::assertSame(Courier::PENDING, Courier::mapStatus(' postex ', 1));
+        self::assertNull(Courier::mapStatus('PostEx', 0));
+        self::assertNull(Courier::mapStatus('PostEx', -0.0));
+        self::assertSame(Courier::ATTEMPTED, Courier::mapStatus('PostEx', 'Attempt Made: Customer not available'));
+        self::assertNull(Courier::mapStatus('PostEx', 'Attempt Madel'));
+        self::assertSame(Courier::RETURNED, Courier::mapStatus('LCS', 'Returned to Shipper'));
+        self::assertNull(Courier::mapStatus('TCS', 'Delivered'));
+        foreach (['constructor', '__proto__', 'hasOwnProperty', 'toString'] as $name) {
+            self::assertNull(Courier::normalizeCity($name));
+            self::assertNull(Courier::normalizeCity($name . ' city'));
+        }
+        self::assertSame('Karachi', Courier::normalizeCity('Karachi City'));
+        self::assertSame('Lahore', Courier::normalizeCity('لاہور'));
     }
 
     private static function describe(?string $input): string

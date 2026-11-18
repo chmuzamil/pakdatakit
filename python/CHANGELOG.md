@@ -1,10 +1,48 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 (unreleased)
+
+### Added
+
+- `score_address()`: scores how complete a delivery address is (0 to 100),
+  returning `AddressScore(score, missing, parsed)` with the parts not found,
+  weighted by `ADDRESS_WEIGHTS`. `phone_risk_signals()`: flags a delivery
+  phone number that is invalid, a landline or service number, or looks made
+  up (repeated, sequential or placeholder digits).
+- `get_sales_tax_rate()`: standard sales tax rate, with its law and source,
+  for goods (FBR) or for services in a province or Islamabad Capital
+  Territory on a date, from 1 July 2019. `calculate_sales_tax()` adds the tax
+  to an amount (or splits it out with `inclusive=True`) and
+  `split_inclusive()` splits a tax-inclusive amount, rounding half up to the
+  paisa exactly, as `SalesTaxAmounts(net, tax, gross, rate)`.
+- `parse_electricity_ref()` / `validate_electricity_ref()`: reads an
+  electricity bill identifier, a DISCO 14-digit reference number (with an
+  optional `U`/`R`), a DISCO customer ID (10 digits, 11 for LESCO) or a
+  K-Electric 13-digit account number, as `ElectricityRef(type, digits,
+formatted, urban_rural, disco)`. `validate_gas_consumer_number()` checks an
+  SNGPL (11 digits) or SSGC (10 digits) consumer number. Formats only; no
+  check digit is published.
+- `map_courier_status()`: maps a courier's own status name, code or numeric
+  ID to one `CourierStatus` vocabulary (`pending` ... `cancelled`), for the
+  statuses couriers document publicly (PostEx's merchant API guide and
+  Leopards' "Returned to Shipper"). `normalize_city_for_courier()`: maps short
+  forms (`LHR`, `Khi`, `Pindi`), the old name Lyallpur, a trailing "city" and
+  Urdu-script names to the city list.
+- `build_fbr_invoice()` / `validate_fbr_invoice()` / `expected_sales_tax()`:
+  FBR Digital Invoicing, following PRAL's DI API specification v1.12
+  (`FBR_DI_SPEC_VERSION`). The builder works out each line's sales tax
+  (`N%` and `Rs.N` rates), fills FBR's defaults and adds up the columns, as
+  `FbrInvoiceBuild(invoice, totals)`; the validator returns every problem it
+  can find offline with FBR's error code, as `FbrInvoiceValidation(valid,
+errors)`. The invoice is a plain `dict` with FBR's camelCase keys
+  (`FbrInvoice` / `FbrInvoiceItem` `TypedDict`s). No HTTP client, no tokens.
+
+### Changed
 
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,
   licence and author agree across ports (`npm run check:metadata`).
+- `DATA_VERSION` is now `2026-11-18` (new dataset: sales tax rates).
 
 ## 2.3.0
 

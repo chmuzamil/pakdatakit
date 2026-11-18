@@ -40,6 +40,16 @@
         "default": "./dist/address.cjs"
       }
     },
+    "./bills": {
+      "import": {
+        "types": "./dist/bills.d.ts",
+        "default": "./dist/bills.js"
+      },
+      "require": {
+        "types": "./dist/bills.d.cts",
+        "default": "./dist/bills.cjs"
+      }
+    },
     "./cnic": {
       "import": {
         "types": "./dist/cnic.d.ts",
@@ -48,6 +58,26 @@
       "require": {
         "types": "./dist/cnic.d.cts",
         "default": "./dist/cnic.cjs"
+      }
+    },
+    "./courier": {
+      "import": {
+        "types": "./dist/courier.d.ts",
+        "default": "./dist/courier.js"
+      },
+      "require": {
+        "types": "./dist/courier.d.cts",
+        "default": "./dist/courier.cjs"
+      }
+    },
+    "./fbr-invoice": {
+      "import": {
+        "types": "./dist/fbr-invoice.d.ts",
+        "default": "./dist/fbr-invoice.js"
+      },
+      "require": {
+        "types": "./dist/fbr-invoice.d.cts",
+        "default": "./dist/fbr-invoice.cjs"
       }
     },
     "./format": {
@@ -160,6 +190,16 @@
         "default": "./dist/postal.cjs"
       }
     },
+    "./quality": {
+      "import": {
+        "types": "./dist/quality.d.ts",
+        "default": "./dist/quality.js"
+      },
+      "require": {
+        "types": "./dist/quality.d.cts",
+        "default": "./dist/quality.cjs"
+      }
+    },
     "./raast": {
       "import": {
         "types": "./dist/raast.d.ts",
@@ -168,6 +208,16 @@
       "require": {
         "types": "./dist/raast.d.cts",
         "default": "./dist/raast.cjs"
+      }
+    },
+    "./salestax": {
+      "import": {
+        "types": "./dist/salestax.d.ts",
+        "default": "./dist/salestax.js"
+      },
+      "require": {
+        "types": "./dist/salestax.d.cts",
+        "default": "./dist/salestax.cjs"
       }
     },
     "./tax": {

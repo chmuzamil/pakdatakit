@@ -3,7 +3,10 @@ import { defineConfig } from 'tsup';
 /** Public modules; each is also exposed as a subpath (e.g. `pakdatakit/cnic`). */
 export const modules = [
   'address',
+  'bills',
   'cnic',
+  'courier',
+  'fbr-invoice',
   'format',
   'geo',
   'hijri',
@@ -15,7 +18,9 @@ export const modules = [
   'passport',
   'phone',
   'postal',
+  'quality',
   'raast',
+  'salestax',
   'tax',
   'text',
   'vehicle',

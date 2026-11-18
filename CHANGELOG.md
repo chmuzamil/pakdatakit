@@ -1,6 +1,41 @@
 # Changelog
 
-## Unreleased
+## 2.4.0 (unreleased)
+
+### Added
+
+- `scoreAddress()` and `phoneRiskSignals()` (`pakdatakit/quality`): heuristics
+  for cash on delivery. `scoreAddress` scores an address 0 to 100 from its city,
+  house number, street, area, postal code (a known post office scores more)
+  and landmark words in English, Roman Urdu and Urdu, and lists what is
+  missing. `phoneRiskSignals` flags invalid, landline, service, repeated-digit,
+  sequential and placeholder numbers. The form adapters gain `pk.codPhone()`
+  (`IsCodPhone` for class-validator).
+- `getSalesTaxRate()`, `calculateSalesTax()` and `splitInclusive()`
+  (`pakdatakit/salestax`): standard sales tax rates with the dates they
+  applied, from 1 July 2019, for goods (federal) and for services in Punjab,
+  Sindh, Khyber Pakhtunkhwa, Balochistan and Islamabad Capital Territory, each
+  with its law and official source (new dataset `sales-tax-rates.json`).
+  Amounts are rounded half up to the paisa.
+- `parseElectricityRef()`, `validateElectricityRef()` and
+  `validateGasConsumerNumber()` (`pakdatakit/bills`): DISCO 14-digit reference
+  numbers (with U/R), DISCO customer IDs, K-Electric account numbers, and SNGPL
+  and SSGC consumer numbers, in the formats the utilities' bill pages ask for.
+  `disco` is `null` for DISCO bills, as no official source maps the digits to a
+  company.
+- `mapCourierStatus()` and `normalizeCityForCourier()` (`pakdatakit/courier`):
+  one status vocabulary for courier statuses, mapping only publicly documented
+  statuses (PostEx's API guide v4.1.9 and Leopards' "Returned to Shipper"; TCS,
+  M&P, Trax and BlueEx publish none), and city short forms (`LHR`, `Khi`,
+  `Pindi`, `Isb`, Lyallpur, Urdu names) mapped to the city list. No API clients
+  and no tracking-number detection, as no courier documents its format.
+- `buildFbrInvoice()` and `validateFbrInvoice()` (`pakdatakit/fbr-invoice`):
+  types for FBR's Digital Invoicing JSON, a builder that works out each line's
+  sales tax, and an offline validator that reports FBR's error codes, following
+  PRAL's "Technical Specification for DI API" v1.12. No HTTP client and no
+  tokens.
+
+### Changed
 
 - Package metadata: the description, keywords and homepage now follow the same
   style in every registry, and CI checks that the version, repository URL,
@@ -11,6 +46,7 @@
   attribution" section in the README.
 - `test-vectors/README.md` documents the shared test vectors;
   `npm run test:ports` regenerates them and runs every port against them.
+- `dataVersion` is now `2026-11-18` (new dataset: sales tax rates).
 
 ## 2.3.0
 

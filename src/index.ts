@@ -117,4 +117,53 @@ export {
   parseVehiclePlate,
   type VehiclePlate,
 } from './vehicle.js';
+export {
+  scoreAddress,
+  phoneRiskSignals,
+  ADDRESS_WEIGHTS,
+  type AddressScore,
+  type AddressPart,
+  type PhoneRiskFlag,
+} from './quality.js';
+export {
+  getSalesTaxRate,
+  calculateSalesTax,
+  splitInclusive,
+  type SalesTaxKind,
+  type SalesTaxRate,
+  type SalesTaxRateQuery,
+  type SalesTaxAmounts,
+  type SalesTaxOptions,
+} from './salestax.js';
+export {
+  parseElectricityRef,
+  validateElectricityRef,
+  validateGasConsumerNumber,
+  type ElectricityRef,
+  type ElectricityRefType,
+  type GasCompany,
+} from './bills.js';
+export {
+  mapCourierStatus,
+  normalizeCityForCourier,
+  type Courier,
+  type CourierStatus,
+} from './courier.js';
+export {
+  buildFbrInvoice,
+  validateFbrInvoice,
+  expectedSalesTax,
+  FBR_DI_SPEC_VERSION,
+  type FbrInvoice,
+  type FbrInvoiceItem,
+  type FbrInvoiceInput,
+  type FbrInvoiceItemInput,
+  type FbrInvoiceBuild,
+  type FbrInvoiceTotals,
+  type FbrInvoiceError,
+  type FbrInvoiceValidation,
+  type FbrInvoiceValidationOptions,
+  type FbrInvoiceType,
+  type FbrRegistrationType,
+} from './fbr-invoice.js';
 export { dataVersion } from './data-version.js';

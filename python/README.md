@@ -110,6 +110,162 @@ including towns and villages, as `PostOffice(code, office, town, district,
 province)`. `district` is set only when the town is the headquarters a
 district is named after.
 
+Delivery checks:
+
+| Function                    | Returns                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| `score_address(address)`    | `AddressScore(score, missing, parsed)`: how complete a delivery address is   |
+| `phone_risk_signals(phone)` | Reasons to double-check a delivery phone number; `[]` for an ordinary mobile |
+
+`score_address` builds on `parse_address` and adds up `ADDRESS_WEIGHTS` for
+the parts it finds: `city` 30, `houseNumber` 20, `street` 15, `area` 10,
+`postalCode` 15 (5 for a code that is not a known post office) and `landmark`
+10 ("near", "opp", "nazd", "qareeb", "سامنے" ...). A post office in a different
+province from the city takes 15 off and adds a warning to `parsed.warnings`.
+`missing` lists the parts not found, in that order. `phone_risk_signals`
+returns any of `invalid`, `landline`, `not-mobile`, `repeated-digits`,
+`sequential-digits` and `test-number`. Both are heuristics and never raise.
+
+```python
+pdk.score_address("House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660").score  # 100
+pdk.score_address("Lahore").missing   # ['houseNumber', 'street', 'area', 'postalCode', 'landmark']
+pdk.phone_risk_signals("03001234567")  # ['sequential-digits', 'test-number']
+```
+
+Sales tax:
+
+| Function                                                                       | Returns                                                                  |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `get_sales_tax_rate(kind=, province=None, date=None)`                          | `SalesTaxRate` for goods or a province's services on a date, or `None`   |
+| `calculate_sales_tax(amount, rate=, province=, kind=, date=, inclusive=False)` | `SalesTaxAmounts(net, tax, gross, rate)`, or `None`                      |
+| `split_inclusive(gross, rate)`                                                 | `SalesTaxAmounts` for an amount that already includes the tax, or `None` |
+
+Standard rates only, from 1 July 2019: federal sales tax on goods (FBR) and
+sales tax on services in Punjab, Sindh, Khyber Pakhtunkhwa, Balochistan and
+Islamabad Capital Territory, each with its `law` and `source`.
+`SalesTaxRate` has the npm package's fields, with `from` named `from_`.
+`province` accepts `KP`, `KPK`, `ICT` and `Islamabad`; `date` is
+`YYYY-MM-DD` or a `datetime.date` and defaults to today. `calculate_sales_tax`
+uses `rate` if given, otherwise looks one up (`kind` defaults to `services`
+when a province is given). Amounts are rounded half up to the paisa as
+written (`1.005` is Rs 1.01), and `net + tax` always equals `gross`. Amounts
+from 0 to one trillion rupees and rates from 0 to 100 with at most two
+decimals are accepted; anything else returns `None`, never an exception.
+
+```python
+pdk.get_sales_tax_rate(kind="services", province="Sindh", date="2024-06-30").rate  # 13
+pdk.calculate_sales_tax(1000, rate=18)    # SalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)
+pdk.calculate_sales_tax(1150, province="Sindh", inclusive=True).net  # 1000.0
+pdk.split_inclusive(99.99, 18)            # SalesTaxAmounts(net=84.74, tax=15.25, gross=99.99, rate=18.0)
+```
+
+FBR digital invoicing:
+
+| Function                                    | Returns                                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `build_fbr_invoice(input)`                  | `FbrInvoiceBuild(invoice, totals)` with the sales tax worked out, or `None`         |
+| `validate_fbr_invoice(invoice, today=None)` | `FbrInvoiceValidation(valid, errors)`, each `FbrInvoiceError(code, field, message)` |
+| `expected_sales_tax(item)`                  | The sales tax FBR expects on a line, in rupees, or `None`                           |
+
+The invoice JSON for FBR's Digital Invoicing API (`postinvoicedata` and
+`validateinvoicedata`), following PRAL's "Technical Specification for DI API"
+version 1.12 (`FBR_DI_SPEC_VERSION`) and PRAL's Error Message Guide. The
+invoice is a plain `dict` with FBR's camelCase keys (described by the
+`FbrInvoice` and `FbrInvoiceItem` `TypedDict`s), ready for `json.dumps`; there
+is no HTTP client and no token handling. `build_fbr_invoice` works out each
+line's `salesTaxApplicable` when you leave it out (`N%` rates on the value
+excluding sales tax, or the retail price for Third Schedule goods; `Rs.N`
+rates on the quantity; other rates get 0), defaults `totalValues`,
+`fixedNotifiedValueOrRetailPrice` and `salesTaxWithheldAtSource` to 0 and
+`buyerNTNCNIC` and `invoiceRefNo` to `""`, and adds up the columns in
+`totals` (a `dict`). `validate_fbr_invoice` returns every problem it can find
+without calling FBR, with FBR's error code (`None` where FBR gives none):
+required fields, formats (date, NTN/CNIC, FBR invoice number, sandbox
+scenario), amounts (not negative, at most 2 decimals, 4 for quantity), SRO
+rules and the sales tax arithmetic (to within one paisa). Pass
+`today="YYYY-MM-DD"` to also reject future dates. Whether a province, HS code,
+unit, rate, sale type or SRO is in FBR's lists is not checked. None of these
+raise.
+
+```python
+built = pdk.build_fbr_invoice({
+    "invoiceType": "Sale Invoice", "invoiceDate": "2025-04-21",
+    "sellerNTNCNIC": "1234567", "sellerBusinessName": "Example Traders",
+    "sellerProvince": "Sindh", "sellerAddress": "Karachi",
+    "buyerNTNCNIC": "7654321", "buyerBusinessName": "Example Buyer",
+    "buyerProvince": "Punjab", "buyerAddress": "Lahore",
+    "buyerRegistrationType": "Registered",
+    "items": [{"hsCode": "0101.2100", "productDescription": "Horses", "rate": "18%",
+               "uoM": "Numbers, pieces, units", "quantity": 2,
+               "valueSalesExcludingST": 1234, "saleType": "Goods at standard rate (default)"}],
+})
+built.invoice["items"][0]["salesTaxApplicable"]  # 222.12
+built.totals["salesTaxApplicable"]               # 222.12
+pdk.validate_fbr_invoice(built.invoice)          # FbrInvoiceValidation(valid=True, errors=[])
+pdk.validate_fbr_invoice({**built.invoice, "invoiceDate": "21-04-2025"}).errors
+# [FbrInvoiceError(code='0005', field='invoiceDate', message='Invoice date must be in YYYY-MM-DD format')]
+```
+
+Utility bills:
+
+| Function                                        | Returns                                                                       |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| `parse_electricity_ref(ref)`                    | `ElectricityRef(type, digits, formatted, urban_rural, disco)`, or `None`      |
+| `validate_electricity_ref(ref)`                 | Whether the input is an electricity bill reference, customer ID or KE account |
+| `validate_gas_consumer_number(number, company)` | Whether the input is an SNGPL (11 digits) or SSGC (10 digits) consumer number |
+
+`type` is `reference` (DISCO reference number: 14 digits, optionally followed
+by `U` or `R`), `customer-id` (DISCO customer ID: 10 digits, 11 for LESCO) or
+`k-electric` (13 digits starting `04000`). Spaces, dashes and dots are ignored
+and Urdu digits are accepted. `disco` is `K-Electric` for a K-Electric account
+and `None` otherwise: no official source maps DISCO digits to a distribution
+company. No utility publishes a check digit, so only the format is checked.
+`company` is `SNGPL` or `SSGC` (any case); anything else returns `False`.
+None of these raise.
+
+```python
+pdk.parse_electricity_ref("02-12624-0045901 R")
+# ElectricityRef(type='reference', digits='02126240045901', formatted='02 12624 0045901 R', urban_rural='R', disco=None)
+pdk.parse_electricity_ref("0400012345678").disco      # 'K-Electric'
+pdk.validate_electricity_ref("12345")                 # False
+pdk.validate_gas_consumer_number("12345678901", "SNGPL")  # True
+```
+
+Couriers:
+
+| Function                            | Returns                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| `map_courier_status(courier, raw)`  | A courier's status as one `CourierStatus`, or `None`                      |
+| `normalize_city_for_courier(input)` | The city-list name for how a customer or courier writes a city, or `None` |
+
+**Experimental:** `map_courier_status` and the `CourierStatus` values may
+change in a minor release while more couriers' status lists are added. See
+[CONTRIBUTING.md](https://github.com/chmuzamil/pakdatakit/blob/main/CONTRIBUTING.md#courier-status-lists) to add one.
+
+`CourierStatus` is one of `pending`, `booked`, `picked-up`, `in-transit`,
+`out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`,
+`returned` or `cancelled`. `courier` is `TCS`, `Leopards`, `PostEx`, `M&P`,
+`Trax` or `BlueEx` (any case; `LCS`, `MnP` and `Blue Ex` are accepted), and
+`raw` is the courier's status name, code or a non-negative integer ID (`5`,
+`5.0` and `"5"` are the same). Only statuses a courier documents publicly are
+mapped: every order status and tracking code in PostEx's merchant API guide
+(v4.1.9), and Leopards' "Returned to Shipper". TCS, M&P, Trax and BlueEx
+publish no status list, so they return `None`, as does any unknown status.
+`normalize_city_for_courier` accepts the name in any case, short forms
+(`LHR`, `Khi`, `Pindi`, `Isb`, `FSD`), the old name Lyallpur, a trailing
+"city" and the main cities in Urdu script. No API is called, and neither
+raises.
+
+```python
+pdk.map_courier_status("PostEx", "Out For Delivery")   # 'out-for-delivery'
+pdk.map_courier_status("PostEx", 5)                    # 'delivered'
+pdk.map_courier_status("PostEx", "Attempt Made: Customer not available")  # 'attempted'
+pdk.map_courier_status("TCS", "Delivered")             # None
+pdk.normalize_city_for_courier("LHR")                  # 'Lahore'
+pdk.normalize_city_for_courier("Karachi City")         # 'Karachi'
+pdk.normalize_city_for_courier("Atlantis")             # None
+```
+
 `BankInfo.type` is one of `commercial`, `public-sector`, `islamic`,
 `microfinance`, `digital`, `emi`, `foreign`, `specialized` or `central`.
 `BankInfo.active` is `False` for a bank that merged into another or has closed.

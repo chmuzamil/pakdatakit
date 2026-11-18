@@ -3,6 +3,8 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using PakDataKit.Internal;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -188,11 +190,14 @@ public sealed class VectorTests(ITestOutputHelper output)
         switch (value)
         {
             case null or bool or string: return value;
+            case JsonNode node: return PlainNode(node);
             case double d when double.IsNaN(d): return new Dictionary<string, object?> { ["$num"] = "NaN" };
             case double d when double.IsInfinity(d):
                 return new Dictionary<string, object?> { ["$num"] = d > 0 ? "Infinity" : "-Infinity" };
             case double d: return d;
             case int or long or float or decimal: return Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            // TypeScript's AddressPart values are camelCase ("houseNumber").
+            case AddressPart part: return char.ToLowerInvariant(part.ToString()[0]) + part.ToString()[1..];
             case Enum e: return Kebab(e.ToString());
             case DateOnly date:
                 return new Dictionary<string, object?>
@@ -215,6 +220,35 @@ public sealed class VectorTests(ITestOutputHelper output)
         }
         return result;
     }
+
+    /// <summary>Converts a JSON result (an FBR invoice) into the vector encoding.</summary>
+    private static object? PlainNode(JsonNode? node) => node switch
+    {
+        null => null,
+        JsonObject obj => obj.ToDictionary(p => p.Key, p => PlainNode(p.Value), StringComparer.Ordinal),
+        JsonArray array => array.Select(PlainNode).ToList(),
+        JsonValue v when v.TryGetValue(out JsonElement e) => Decode(e, raw: true),
+        // Decode reads {"$num": …} in `expected` as a double, so NaN stays a double.
+        JsonValue v when v.TryGetValue(out double d) => d,
+        JsonValue v when v.TryGetValue(out string? s) => s,
+        JsonValue v when v.TryGetValue(out bool b) => b,
+        _ => throw new InvalidOperationException("Unexpected JSON value " + node),
+    };
+
+    /// <summary>
+    /// A decoded vector argument as JSON for the FBR functions. Numbers stay
+    /// numbers (<c>{"$num":"NaN"}</c> becomes a NaN <see cref="JsonValue"/>).
+    /// </summary>
+    private static JsonNode? ToNode(object? value) => value switch
+    {
+        null => null,
+        double d => JsonValue.Create(d),
+        string s => JsonValue.Create(s),
+        bool b => JsonValue.Create(b),
+        List<object?> list => new JsonArray(list.Select(ToNode).ToArray()),
+        Dictionary<string, object?> map => new JsonObject(map.Select(p => KeyValuePair.Create(p.Key, ToNode(p.Value)))),
+        _ => throw new Unrepresentable($"{Describe(value)} is not JSON"),
+    };
 
     private static string Kebab(string name)
     {
@@ -343,6 +377,30 @@ public sealed class VectorTests(ITestOutputHelper output)
         };
     }
 
+    /// <summary>
+    /// TypeScript upper-cases the company name, so "sngpl" is SNGPL. Any other
+    /// string ("OGDCL", "__proto__") is an unknown company, for which TypeScript
+    /// returns false: it maps to an undefined enum value, which the .NET method
+    /// also rejects with false.
+    /// </summary>
+    private static GasCompany Gas(object? value) => value switch
+    {
+        string s => Js.ToUpper(s) switch
+        {
+            "SNGPL" => GasCompany.Sngpl,
+            "SSGC" => GasCompany.Ssgc,
+            _ => (GasCompany)(-1),
+        },
+        _ => throw new Unrepresentable($"{Describe(value)} is not a GasCompany"),
+    };
+
+    private static SalesTaxKind Kind(object? value, string? option = null) => value switch
+    {
+        "goods" => SalesTaxKind.Goods,
+        "services" => SalesTaxKind.Services,
+        _ => throw new Unrepresentable($"{Describe(value)} is not a SalesTaxKind", option),
+    };
+
     private delegate object? Call(List<object?> a, Dictionary<string, object?> k);
 
     private static Call One(Func<string, object?> fn) => (a, _) => fn(Str(a[0]));
@@ -375,6 +433,9 @@ public sealed class VectorTests(ITestOutputHelper output)
         ],
         // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
         ["formatAddress"] = ["raw", "street", "area", "city", "district", "province", "postalCode", "warnings"],
+        ["getSalesTaxRate"] = ["kind", "province", "date"],
+        ["calculateSalesTax"] = ["rate", "province", "kind", "date", "inclusive"],
+        ["validateFbrInvoice"] = ["today"],
     };
 
     private static readonly Dictionary<string, Call> Functions = new()
@@ -512,6 +573,47 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["checkPhoneInput"] = One(v => Input.CheckPhone(v)),
         ["formatIBANInput"] = One(Input.FormatIban),
         ["checkIBANInput"] = One(v => Input.CheckIban(v)),
+        ["scoreAddress"] = One(Quality.ScoreAddress),
+        ["phoneRiskSignals"] = One(Quality.PhoneRiskSignals),
+        ["getSalesTaxRate"] = (_, k) =>
+        {
+            var date = k.GetValueOrDefault("date");
+            return SalesTax.GetRate(new SalesTaxRateQuery
+            {
+                Kind = Kind(k.GetValueOrDefault("kind")),
+                Province = OptStr(k.GetValueOrDefault("province")),
+                Date = date as string ?? (date is null or DateTime ? null : Str(date)),
+                OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,
+            });
+        },
+        ["calculateSalesTax"] = (a, k) =>
+        {
+            var date = k.GetValueOrDefault("date");
+            return SalesTax.Calculate(Number(a[0]), new SalesTaxOptions
+            {
+                Rate = OptNumber(k.GetValueOrDefault("rate")),
+                Province = OptStr(k.GetValueOrDefault("province")),
+                Kind = k.GetValueOrDefault("kind") is { } kind ? Kind(kind, "kind") : null,
+                Date = date as string ?? (date is null or DateTime ? null : Str(date)),
+                OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,
+                Inclusive = OptBool(k.GetValueOrDefault("inclusive")) ?? false,
+            });
+        },
+        ["splitInclusive"] = (a, _) => SalesTax.SplitInclusive(Number(a[0]), Number(a[1])),
+        ["parseElectricityRef"] = One(Bills.ParseElectricityRef),
+        ["validateElectricityRef"] = One(v => Bills.ValidateElectricityRef(v)),
+        ["validateGasConsumerNumber"] = (a, _) => Bills.ValidateGasConsumerNumber(Str(a[0]), Gas(a[1])),
+        // A number (5, 5.0, 1.5, -1, NaN) goes to the numeric overload.
+        ["mapCourierStatus"] = (a, _) => a[1] switch
+        {
+            double raw => Courier.MapStatus(Str(a[0]), raw),
+            string or null => Courier.MapStatus(Str(a[0]), (string?)a[1]),
+            _ => throw new Unrepresentable($"{Describe(a[1])} is not a string or number"),
+        },
+        ["normalizeCityForCourier"] = One(Courier.NormalizeCity),
+        ["buildFbrInvoice"] = (a, _) => FbrInvoice.Build(ToNode(a[0])),
+        ["validateFbrInvoice"] = (a, k) => FbrInvoice.Validate(ToNode(a[0]), OptStr(k.GetValueOrDefault("today"))),
+        ["expectedSalesTax"] = (a, _) => FbrInvoice.ExpectedSalesTax(ToNode(a[0])),
     };
 
     private static string FindVectorsDir()

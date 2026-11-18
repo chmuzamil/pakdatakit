@@ -24,7 +24,15 @@ final class PakDataKitServiceProvider extends ServiceProvider
         'pk_landline' => [\PakDataKit\Numbers::class, 'validateLandline'],
         'pk_passport' => [\PakDataKit\Passport::class, 'validate'],
         'pk_vehicle_plate' => [\PakDataKit\VehiclePlate::class, 'validate'],
+        'pk_electricity_ref' => [\PakDataKit\Bills::class, 'validateElectricityRef'],
+        'pk_cod_phone' => [self::class, 'isCodPhone'],
     ];
+
+    /** Passes when Quality::phoneRiskSignals() finds nothing: a mobile number a courier can call. */
+    public static function isCodPhone(string $value): bool
+    {
+        return \PakDataKit\Quality::phoneRiskSignals($value) === [];
+    }
 
     public function boot(): void
     {

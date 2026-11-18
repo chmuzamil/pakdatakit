@@ -67,6 +67,7 @@ const OPTIONS_ONLY = new Set([
   'createRaastP2PQr',
   'createMerchantQr',
   'formatAddress',
+  'getSalesTaxRate',
 ]);
 
 /** A date argument: 'YYYY-MM-DD' or 'YYYY-MM-DDTHH:mm[:ss]' (local time). */
@@ -1753,6 +1754,694 @@ const ibanInputs = unique([
   'PK36 SCBL',
 ]);
 each('input', ['formatIBANInput', 'checkIBANInput'], ibanInputs);
+
+// Quality (COD) -------------------------------------------------------------
+const qualityAddresses = unique([
+  ...addresses,
+  'House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660',
+  'Makan 5, gali 3, masjid ke samne, Multan',
+  'H 5 nazd Jamia Masjid, Multan',
+  'مکان 5، گلی 3، مسجد کے سامنے، Multan',
+  'مکان نمبر ۱۲، گلی ۴، بلاک بی، نزد جامع مسجد، Lahore',
+  'Flat 2, opp. Civil Hospital, Karachi',
+  'Flat 2, opp Civil Hospital, Karachi 75500',
+  'Plot 7, Phase 2, Hayatabad, behind KTH, Peshawar',
+  'House 1, Lahore 54999',
+  'House 1, Street 2, Lahore 75500',
+  'qareeb Data Darbar, Lahore',
+  'Shop 4 Saddar Bazaar Rawalpindi 46000',
+  '12b Model Town, 4th street, Lahore',
+  'Lahore 54660',
+  'near',
+  'NEAR THE PARK',
+  ...postOffices
+    .filter((_, i) => i % 40 === 0)
+    .map((o, i) => `House ${i + 1}, Street ${i + 2}, ${o.office} ${o.code}`),
+]);
+each('quality', ['scoreAddress'], qualityAddresses);
+each(
+  'quality',
+  ['phoneRiskSignals'],
+  unique([
+    ...phones,
+    ...landlines,
+    '03000000000',
+    '03001111112',
+    '03001234567',
+    '03217654321',
+    '03123456789',
+    '03002345678',
+    '03009876543',
+    '0301-2945716',
+    '+92 333 5820147',
+    '۰۳۰۰۱۲۳۴۵۶۷',
+    '0800-12345',
+    '021-111-825-888',
+    '111-825-888',
+  ]),
+);
+
+// Sales tax ------------------------------------------------------------------
+// Every case passes a date, so nothing depends on when vectors are made.
+const taxDates = [
+  '2019-06-30',
+  '2019-07-01',
+  '2022-06-30',
+  '2022-07-01',
+  '2023-02-22',
+  '2023-02-23',
+  '2024-06-30',
+  '2024-07-01',
+  '2026-11-18',
+  '2099-12-31',
+  '2024-02-29',
+  '2023-02-29',
+  '2026-13-01',
+  '2026-1-1',
+  ' 2026-11-18 ',
+  '',
+  'today',
+];
+const taxProvinces = [
+  undefined,
+  'Punjab',
+  'punjab',
+  'Sindh',
+  'SINDH',
+  'Khyber Pakhtunkhwa',
+  'KP',
+  'kpk',
+  'Balochistan',
+  'Baluchistan',
+  'Islamabad Capital Territory',
+  'ICT',
+  'Islamabad',
+  'Azad Jammu and Kashmir',
+  'AJK',
+  'Gilgit-Baltistan',
+  'GB',
+  'Lahore',
+  '',
+  'constructor',
+];
+for (const kind of ['goods', 'services', 'food']) {
+  for (const province of taxProvinces) {
+    for (const date of taxDates) {
+      call('salestax', 'getSalesTaxRate', [], {
+        kind,
+        ...(province === undefined ? {} : { province }),
+        date,
+      });
+    }
+  }
+}
+const taxAmounts = [
+  0,
+  0.01,
+  0.25,
+  1,
+  1.005,
+  1.004,
+  0.125,
+  99.99,
+  100,
+  1000,
+  1234,
+  1180,
+  1150,
+  123456789.99,
+  1e-7,
+  1e12,
+  1e12 + 1,
+  -1,
+  -0.01,
+  NUM('NaN'),
+  NUM('Infinity'),
+];
+const taxRates = [
+  0,
+  1,
+  1.43,
+  5,
+  13,
+  15,
+  16,
+  17,
+  18,
+  19.5,
+  100,
+  100.01,
+  -1,
+  16.666,
+  0.001,
+  NUM('NaN'),
+];
+for (const amount of taxAmounts) {
+  for (const rate of taxRates) {
+    call('salestax', 'calculateSalesTax', [amount], { rate });
+    call('salestax', 'splitInclusive', [amount, rate]);
+  }
+  for (const options of [
+    { province: 'Punjab', date: '2026-11-18' },
+    { province: 'Sindh', date: '2024-06-30' },
+    { province: 'Sindh', date: '2026-11-18', inclusive: true },
+    { province: 'ICT', date: '2022-06-30', inclusive: true },
+    { kind: 'goods', date: '2022-01-01' },
+    { kind: 'goods', date: '2026-11-18', inclusive: true },
+    { kind: 'goods', province: 'AJK', date: '2026-11-18' },
+    { kind: 'services', date: '2026-11-18' },
+    { province: 'Mars', date: '2026-11-18' },
+    { province: 'Punjab', date: '2019-01-01' },
+    { rate: 18, province: 'Punjab', date: '2026-11-18' },
+    { rate: 18, inclusive: true },
+    { rate: 18, inclusive: false },
+    {},
+  ]) {
+    call('salestax', 'calculateSalesTax', [amount], options);
+  }
+}
+
+// Bills ----------------------------------------------------------------------
+const billInputs = unique([
+  '01141111234567',
+  '01 14111 1234567',
+  '01-14111-1234567',
+  '01.14111.1234567',
+  '02 12624 0045901 R',
+  '02126240045901R',
+  '02126240045901r',
+  '02126240045901 u',
+  '02126240045901 X',
+  '02126240045901UR',
+  '۰۱۱۴۱۱۱۱۲۳۴۵۶۷',
+  '٠١١٤١١١١٢٣٤٥٦٧',
+  '1234567890',
+  '12345678901',
+  '1234567890R',
+  '0400012345678',
+  '0400-0123-45678',
+  '0500012345678',
+  '0400112345678',
+  '040001234567',
+  '123',
+  '123456789',
+  '123456789012',
+  '012345678901234',
+  'abcdefghijklmn',
+  '0114111123456X',
+  '  01141111234567  ',
+  '01141111234567\n',
+  '',
+  ' ',
+  '+921141111234567',
+  '0114111123456٧',
+  'Ⅰ234567890',
+]);
+each('bills', ['parseElectricityRef', 'validateElectricityRef'], billInputs);
+for (const input of unique([
+  ...billInputs,
+  '12345678901',
+  '1234567890',
+  '1234 5678 90',
+  '1234-5678-901',
+  '۱۲۳۴۵۶۷۸۹۰',
+])) {
+  for (const company of [
+    'SNGPL',
+    'SSGC',
+    'sngpl',
+    'ssgc',
+    'OGDCL',
+    '',
+    '__proto__',
+    'constructor',
+  ]) {
+    call('bills', 'validateGasConsumerNumber', [input, company]);
+  }
+}
+
+// Courier -------------------------------------------------------------------
+const courierNames = [
+  'TCS',
+  'tcs',
+  'Leopards',
+  'LCS',
+  'leopards courier',
+  'PostEx',
+  'postex',
+  'POSTEX',
+  'M&P',
+  'MnP',
+  'm and p',
+  'Muller & Phipps',
+  'Trax',
+  'BlueEx',
+  'Blue Ex',
+  'blue-ex',
+  'DHL',
+  '',
+  'constructor',
+  '__proto__',
+];
+const courierStatuses = [
+  'Unbooked',
+  'UnBooked',
+  'Booked',
+  'PostEx WareHouse',
+  'Out For Delivery',
+  'out  for   delivery',
+  'Delivered',
+  'DELIVERED',
+  'Returned',
+  'Un-Assigned By Me',
+  'Expired',
+  'Delivery Under Review',
+  'Picked By PostEx',
+  'Out For Return',
+  'Attempted',
+  'En-Route to PostEx warehouse',
+  "At Merchant's Warehouse",
+  'At Merchant’s Warehouse',
+  'At PostEx Warehouse',
+  'Package on Root',
+  'Package on Route',
+  'Attempt Made: Customer not available',
+  'attempt made',
+  'Attempt Made:',
+  'attempt madex',
+  'Returned to Shipper',
+  'returned  to shipper',
+  '0001',
+  '0002',
+  '0005',
+  '0008',
+  '0009',
+  '0013',
+  '1',
+  '9',
+  '10',
+  '15',
+  '18',
+  '19',
+  'teleported',
+  '',
+  ' ',
+  'constructor',
+  'hasOwnProperty',
+  1,
+  2,
+  5,
+  9,
+  10,
+  12,
+  15,
+  18,
+  0,
+  -1,
+  1.5,
+  NUM('NaN'),
+];
+for (const courier of courierNames) {
+  for (const status of courierStatuses) {
+    call('courier', 'mapCourierStatus', [courier, status]);
+  }
+}
+each(
+  'courier',
+  ['normalizeCityForCourier'],
+  unique([
+    ...cityNames,
+    ...cityNames.map((c) => c.toUpperCase()),
+    ...cityNames.slice(0, 40).map((c) => `${c} City`),
+    'LHR',
+    'lhe',
+    'Lahor',
+    'Khi',
+    'KHI',
+    'Krachi',
+    'Pindi',
+    'RWP',
+    'Rawal Pindi',
+    'Isb',
+    'ISL',
+    'Lyallpur',
+    'LYP',
+    'FSD',
+    'Faisal Abad',
+    'MUX',
+    'Mtn',
+    'PEW',
+    'Psh',
+    'UET',
+    'Qta',
+    'Hyd',
+    'SKT',
+    'GRW',
+    'DGK',
+    'D.G. Khan',
+    'D.G.Khan',
+    'DG Khan',
+    'DIK',
+    'D.I. Khan',
+    'DI Khan',
+    'RYK',
+    'BWP',
+    'SGD',
+    'MZD',
+    'لاہور',
+    'کراچی',
+    'راولپنڈی',
+    'اسلام آباد',
+    'فیصل آباد',
+    'ملتان',
+    'پشاور',
+    'کوئٹہ',
+    'حیدرآباد',
+    'حیدر آباد',
+    'سیالکوٹ',
+    'گوجرانوالہ',
+    '  karachi  ',
+    'Karachi City',
+    'Karachi city city',
+    'lhr city',
+    'Karachi, ',
+    'Lahore.',
+    'city',
+    ' city',
+    'Atlantis',
+    '',
+    ' ',
+    'constructor',
+    '__proto__',
+    'toString',
+  ]),
+);
+
+// FBR Digital Invoicing -----------------------------------------------------
+const fbrLine = (overrides = {}) => ({
+  hsCode: '0101.2100',
+  productDescription: 'Horses',
+  rate: '18%',
+  uoM: 'Numbers, pieces, units',
+  quantity: 1,
+  valueSalesExcludingST: 1000,
+  saleType: 'Goods at standard rate (default)',
+  ...overrides,
+});
+const fbrInput = (overrides = {}, lines = [fbrLine()]) => ({
+  invoiceType: 'Sale Invoice',
+  invoiceDate: '2025-04-21',
+  sellerNTNCNIC: '1234567',
+  sellerBusinessName: 'Example Traders',
+  sellerProvince: 'Sindh',
+  sellerAddress: 'Karachi',
+  buyerNTNCNIC: '7654321',
+  buyerBusinessName: 'Example Buyer',
+  buyerProvince: 'Punjab',
+  buyerAddress: 'Lahore',
+  buyerRegistrationType: 'Registered',
+  items: lines,
+  ...overrides,
+});
+const fbrInputs = [
+  fbrInput(),
+  fbrInput({ scenarioId: 'SN001' }),
+  fbrInput({}, [
+    fbrLine(),
+    fbrLine({ quantity: 2, valueSalesExcludingST: 1234 }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: 'Rs.3',
+      quantity: 12,
+      sroScheduleNo: 'EIGHTH SCHEDULE Table 1',
+      sroItemSerialNo: '82',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: 'Rs.200',
+      quantity: 123,
+      sroScheduleNo: '6th Schd Table I',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({}, [fbrLine({ rate: 'rs 2.5', quantity: 1.2345 })]),
+  fbrInput({}, [
+    fbrLine({
+      saleType: '3rd Schedule Goods',
+      valueSalesExcludingST: 0,
+      fixedNotifiedValueOrRetailPrice: 1000,
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      saleType: '3rd schedule goods',
+      fixedNotifiedValueOrRetailPrice: 100,
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: '1.43%',
+      valueSalesExcludingST: 100,
+      sroScheduleNo: '297(I)/2023-Table-I',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: 'Exempt',
+      sroScheduleNo: 'SIXTH SCHEDULE',
+      sroItemSerialNo: '100',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({ rate: '18% along with rupees 60 per kilogram', uoM: 'KG' }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      salesTaxApplicable: 7,
+      salesTaxWithheldAtSource: 7,
+      totalValues: 1007,
+      furtherTax: 40,
+      extraTax: 0,
+      fedPayable: 0,
+      discount: 10,
+    }),
+  ]),
+  fbrInput({}, [fbrLine({ valueSalesExcludingST: 0.25 })]),
+  fbrInput({}, [fbrLine({ valueSalesExcludingST: 1.005 })]),
+  fbrInput({}, [fbrLine({ valueSalesExcludingST: 999999.99 })]),
+  fbrInput({}, [
+    fbrLine({
+      rate: '0%',
+      sroScheduleNo: 'FIFTH SCHEDULE',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({}, [
+    fbrLine({
+      rate: '25%',
+      sroScheduleNo: 'NINTH SCHEDULE',
+      sroItemSerialNo: '1',
+    }),
+  ]),
+  fbrInput({ buyerNTNCNIC: undefined, buyerRegistrationType: 'Unregistered' }),
+  fbrInput({
+    invoiceRefNo: '7327556DI1744111990654',
+    invoiceType: 'Debit Note',
+  }),
+  fbrInput({}, []),
+  null,
+  'invoice',
+  fbrInput({ items: 'x' }),
+  fbrInput({}, [null]),
+  fbrInput({}, [fbrLine({ quantity: NUM('NaN') })]),
+];
+for (const input of fbrInputs) {
+  call('fbr-invoice', 'buildFbrInvoice', [input]);
+}
+for (const item of [
+  fbrLine(),
+  fbrLine({ rate: '17%' }),
+  fbrLine({ rate: ' 18% ' }),
+  fbrLine({ rate: '18 %' }),
+  fbrLine({ rate: '100%' }),
+  fbrLine({ rate: '101%' }),
+  fbrLine({ rate: '16.666%' }),
+  fbrLine({ rate: 'Rs.3', quantity: 12 }),
+  fbrLine({ rate: 'Rs 3', quantity: 12 }),
+  fbrLine({ rate: 'RS.3', quantity: 0.0001 }),
+  fbrLine({ rate: 'Rs.0.005', quantity: 1 }),
+  fbrLine({ rate: 'Rs.3' }),
+  fbrLine({ rate: 'Exempt' }),
+  fbrLine({ rate: '' }),
+  fbrLine({
+    saleType: '3rd Schedule Goods',
+    fixedNotifiedValueOrRetailPrice: 100,
+  }),
+  fbrLine({
+    saleType: '3rd  Schedule  GOODS',
+    fixedNotifiedValueOrRetailPrice: 100,
+  }),
+  fbrLine({ saleType: '3rd Schedule Goods' }),
+  fbrLine({ valueSalesExcludingST: NUM('Infinity') }),
+  fbrLine({ valueSalesExcludingST: -5 }),
+  fbrLine({ quantity: NUM('NaN'), rate: 'Rs.3' }),
+  { rate: 5 },
+  null,
+]) {
+  call('fbr-invoice', 'expectedSalesTax', [item]);
+}
+
+// Built invoices, then mutated one field at a time, through the validator.
+const fbrBase = lib.buildFbrInvoice(fbrInput()).invoice;
+const fbrWith = (mutate) => {
+  const copy = JSON.parse(JSON.stringify(fbrBase));
+  mutate(copy);
+  return copy;
+};
+const fbrInvoices = [
+  fbrBase,
+  ...fbrInputs
+    .map((input) => lib.buildFbrInvoice(input))
+    .filter((built) => built !== null)
+    .map((built) => JSON.parse(JSON.stringify(built.invoice))),
+  fbrWith((i) => (i.invoiceType = 'Sales Invoice')),
+  fbrWith((i) => (i.invoiceType = '')),
+  fbrWith((i) => delete i.invoiceType),
+  fbrWith((i) => (i.invoiceType = 'Debit Note')),
+  fbrWith((i) => {
+    i.invoiceType = 'Debit Note';
+    i.invoiceRefNo = '7327556DI1744111990654';
+  }),
+  fbrWith((i) => (i.invoiceRefNo = '3520212345671DI1744111990654')),
+  fbrWith((i) => (i.invoiceRefNo = '7327556-1744111990654')),
+  fbrWith((i) => (i.invoiceRefNo = ' 7327556DI1744111990654 ')),
+  fbrWith((i) => (i.invoiceDate = '21-04-2025')),
+  fbrWith((i) => (i.invoiceDate = '2025-02-30')),
+  fbrWith((i) => (i.invoiceDate = '2024-02-29')),
+  fbrWith((i) => (i.invoiceDate = '2027-01-01')),
+  fbrWith((i) => (i.invoiceDate = '')),
+  fbrWith((i) => (i.invoiceDate = 20250421)),
+  fbrWith((i) => (i.sellerNTNCNIC = '12345-6789012-3')),
+  fbrWith((i) => (i.sellerNTNCNIC = '3520212345671')),
+  fbrWith((i) => (i.sellerNTNCNIC = '123456789')),
+  fbrWith((i) => (i.sellerNTNCNIC = 1234567)),
+  fbrWith((i) => (i.sellerBusinessName = '  ')),
+  fbrWith((i) => (i.sellerProvince = '')),
+  fbrWith((i) => (i.sellerAddress = '')),
+  fbrWith((i) => (i.buyerRegistrationType = 'registered')),
+  fbrWith((i) => (i.buyerRegistrationType = '')),
+  fbrWith((i) => (i.buyerNTNCNIC = '')),
+  fbrWith((i) => {
+    i.buyerNTNCNIC = '';
+    i.buyerRegistrationType = 'Unregistered';
+  }),
+  fbrWith((i) => {
+    i.buyerNTNCNIC = '12';
+    i.buyerRegistrationType = 'Unregistered';
+  }),
+  fbrWith((i) => (i.buyerNTNCNIC = '1234567')),
+  fbrWith((i) => (i.buyerBusinessName = '')),
+  fbrWith((i) => (i.buyerProvince = ' ')),
+  fbrWith((i) => (i.buyerAddress = '')),
+  fbrWith((i) => (i.scenarioId = 'SN028')),
+  fbrWith((i) => (i.scenarioId = 'SN029')),
+  fbrWith((i) => (i.scenarioId = 'SN000')),
+  fbrWith((i) => (i.scenarioId = '')),
+  fbrWith((i) => (i.scenarioId = 1)),
+  fbrWith((i) => (i.items = [])),
+  fbrWith((i) => delete i.items),
+  fbrWith((i) => (i.items = [null, 'x'])),
+  fbrWith((i) => (i.items[0].hsCode = '')),
+  fbrWith((i) => delete i.items[0].productDescription),
+  fbrWith((i) => (i.items[0].productDescription = '')),
+  fbrWith((i) => (i.items[0].rate = '')),
+  fbrWith((i) => (i.items[0].uoM = '')),
+  fbrWith((i) => (i.items[0].saleType = '')),
+  fbrWith((i) => delete i.items[0].quantity),
+  fbrWith((i) => delete i.items[0].valueSalesExcludingST),
+  fbrWith((i) => delete i.items[0].salesTaxApplicable),
+  fbrWith((i) => delete i.items[0].salesTaxWithheldAtSource),
+  fbrWith((i) => delete i.items[0].totalValues),
+  fbrWith((i) => delete i.items[0].fixedNotifiedValueOrRetailPrice),
+  fbrWith((i) => (i.items[0].quantity = 1.23456)),
+  fbrWith((i) => (i.items[0].quantity = 1.2345)),
+  fbrWith((i) => (i.items[0].valueSalesExcludingST = 1000.001)),
+  fbrWith((i) => (i.items[0].valueSalesExcludingST = '1000')),
+  fbrWith((i) => (i.items[0].valueSalesExcludingST = -1)),
+  fbrWith((i) => (i.items[0].discount = -1)),
+  fbrWith((i) => (i.items[0].discount = '')),
+  fbrWith((i) => (i.items[0].discount = 'ten')),
+  fbrWith((i) => (i.items[0].furtherTax = 1.234)),
+  fbrWith((i) => (i.items[0].salesTaxWithheldAtSource = '')),
+  fbrWith((i) => (i.items[0].rate = '17%')),
+  fbrWith((i) => {
+    i.items[0].rate = '17%';
+    i.items[0].sroScheduleNo = 'EIGHTH SCHEDULE Table 1';
+  }),
+  fbrWith((i) => {
+    i.items[0].rate = '17%';
+    i.items[0].sroScheduleNo = 'EIGHTH SCHEDULE Table 1';
+    i.items[0].sroItemSerialNo = '82';
+    i.items[0].salesTaxApplicable = 170;
+  }),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 180.01)),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 179.99)),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 180.02)),
+  fbrWith((i) => (i.items[0].salesTaxApplicable = 0)),
+  fbrWith((i) => {
+    i.items[0].saleType = '3rd Schedule Goods';
+    i.items[0].fixedNotifiedValueOrRetailPrice = 0;
+  }),
+  fbrWith((i) => {
+    i.items[0].saleType = '3rd Schedule Goods';
+    i.items[0].fixedNotifiedValueOrRetailPrice = 1000;
+  }),
+  fbrWith((i) => {
+    i.items[0].saleType = 'Goods at Reduced Rate';
+    i.items[0].extraTax = 0;
+  }),
+  fbrWith((i) => {
+    i.items[0].saleType = 'goods at reduced rate';
+    i.items[0].extraTax = '';
+  }),
+  fbrWith((i) => {
+    i.items[0].rate = 'Rs.3';
+    i.items[0].quantity = 12;
+    i.items[0].salesTaxApplicable = 36;
+    i.items[0].sroScheduleNo = 'X';
+    i.items[0].sroItemSerialNo = '1';
+  }),
+  fbrWith((i) => {
+    i.items[0].rate = 'Rs.3';
+    i.items[0].quantity = 12;
+    i.items[0].salesTaxApplicable = 30;
+  }),
+  fbrWith((i) => (i.items[0].sroScheduleNo = 'X')),
+];
+for (const invoice of fbrInvoices) {
+  call('fbr-invoice', 'validateFbrInvoice', [invoice]);
+}
+for (const today of [
+  '2026-11-18',
+  '2025-04-21',
+  '2025-04-20',
+  'bad',
+  '2025-02-30',
+]) {
+  call('fbr-invoice', 'validateFbrInvoice', [fbrBase], { today });
+  call(
+    'fbr-invoice',
+    'validateFbrInvoice',
+    [fbrWith((i) => (i.invoiceDate = '2027-01-01'))],
+    { today },
+  );
+}
+for (const value of [null, 1, 'x', [], {}]) {
+  call('fbr-invoice', 'validateFbrInvoice', [value]);
+}
 
 // Data version --------------------------------------------------------------
 vectors.set('data-version', [

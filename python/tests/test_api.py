@@ -148,3 +148,273 @@ def test_bank_info() -> None:
     assert smes is not None and not smes.active and smes.merged_into is None
     with pytest.raises(ValueError):
         pdk.number_to_words(5, language="fr")
+
+
+def test_score_address() -> None:
+    result = pdk.score_address(
+        "House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660"
+    )
+    assert result == pdk.AddressScore(score=100, missing=[], parsed=result.parsed)
+    assert result.parsed.city == "Lahore"
+    assert result.parsed.postal_code == "54660"
+    assert sum(pdk.ADDRESS_WEIGHTS.values()) == 100
+    with pytest.raises(TypeError):
+        pdk.ADDRESS_WEIGHTS["city"] = 0  # type: ignore[index]
+
+    lahore = pdk.score_address("Lahore")
+    assert lahore.score == 30
+    assert lahore.missing == ["houseNumber", "street", "area", "postalCode", "landmark"]
+
+    for address in (
+        "Makan 5, gali 3, masjid ke samne, Multan",
+        "H 5 nazd Jamia Masjid, Multan",
+        "مکان 5، گلی 3، مسجد کے سامنے، Multan",
+        "Flat 2, opp. Civil Hospital, Karachi",
+    ):
+        assert "landmark" not in pdk.score_address(address).missing, address
+    assert "landmark" in pdk.score_address("Flat 2, Karachi").missing
+
+    known = pdk.score_address("House 1, Lahore 54660").score
+    unknown = pdk.score_address("House 1, Lahore 54999")
+    assert known - unknown.score == pdk.ADDRESS_WEIGHTS["postalCode"] - 5
+    assert "postalCode" in unknown.missing
+
+    mismatch = pdk.score_address("House 1, Street 2, Lahore 75500")
+    assert "75500 is in Sindh" in " ".join(mismatch.parsed.warnings)
+    assert mismatch.score == 30 + 20 + 15 + 10 + 15 - 15
+    assert "houseNumber" in pdk.score_address("Lahore 54660").missing
+
+
+def test_phone_risk_signals() -> None:
+    assert pdk.phone_risk_signals("0301-2945716") == []
+    assert pdk.phone_risk_signals("+92 333 5820147") == []
+    assert pdk.phone_risk_signals("12345") == ["invalid"]
+    assert pdk.phone_risk_signals("042 35761234") == ["landline"]
+    assert pdk.phone_risk_signals("0800-12345") == ["not-mobile"]
+    assert pdk.phone_risk_signals("03001111112") == ["repeated-digits"]
+    assert pdk.phone_risk_signals("03123456789") == ["sequential-digits", "test-number"]
+
+
+HOSTILE_INPUTS = [
+    None,
+    123,
+    "",
+    "   ",
+    "!!!",
+    "\u0000",
+    "x" * 10000,
+    "1 " * 5000,
+    "\ud800",
+    "\udfff abc \ud83d",
+    "\U0001f600 Lahore 54660",
+    "İ K ß ΣΑΣ",
+    "۰۳۰۰۱۲۳۴۵۶۷",
+    "near, near,,, , ,54660,54660",
+]
+
+
+def test_quality_never_raises() -> None:
+    for value in HOSTILE_INPUTS:
+        result = pdk.score_address(value)  # type: ignore[arg-type]
+        assert 0 <= result.score <= 100
+        flags = pdk.phone_risk_signals(value)  # type: ignore[arg-type]
+        assert isinstance(flags, list)
+    assert pdk.score_address("").score == 0
+    assert pdk.score_address(None).score == 0  # type: ignore[arg-type]
+    assert pdk.phone_risk_signals(None) == ["invalid"]  # type: ignore[arg-type]
+
+
+def test_bills() -> None:
+    ref = pdk.parse_electricity_ref("02-12624-0045901 r")
+    assert ref == pdk.ElectricityRef("reference", "02126240045901", "02 12624 0045901 R", "R", None)
+    assert pdk.parse_electricity_ref("۰۴۰۰۰۱۲۳۴۵۶۷۸") == pdk.ElectricityRef(
+        "k-electric", "0400012345678", "0400012345678", None, "K-Electric"
+    )
+    assert pdk.parse_electricity_ref("12345678901").type == "customer-id"  # type: ignore[union-attr]
+    assert pdk.parse_electricity_ref("1234567890U") is None
+    assert not pdk.validate_electricity_ref("12345")
+    assert pdk.validate_gas_consumer_number("123-4567-8901", "sngpl")
+    assert pdk.validate_gas_consumer_number("1234567890", "SSGC")
+    assert not pdk.validate_gas_consumer_number("1234567890", "SNGPL")
+    assert not pdk.validate_gas_consumer_number("1234567890", "__proto__")  # type: ignore[arg-type]
+
+
+def test_bills_never_raise() -> None:
+    for value in HOSTILE_INPUTS:
+        result = pdk.parse_electricity_ref(value)  # type: ignore[arg-type]
+        assert result is None or isinstance(result, pdk.ElectricityRef)
+        assert isinstance(pdk.validate_electricity_ref(value), bool)  # type: ignore[arg-type]
+        for company in HOSTILE_INPUTS + ["SNGPL", "ssgc", "constructor"]:
+            assert isinstance(pdk.validate_gas_consumer_number(value, company), bool)  # type: ignore[arg-type]
+
+
+def test_sales_tax() -> None:
+    rate = pdk.get_sales_tax_rate(kind="services", province="Sindh", date="2024-06-30")
+    assert rate is not None and rate.rate == 13 and rate.authority == "SRB"
+    goods = pdk.get_sales_tax_rate(kind="goods", date=dt.date(2026, 11, 18))
+    assert goods is not None and goods.rate == 18 and goods.from_ == "2023-02-23" and goods.to is None
+    assert pdk.get_sales_tax_rate(kind="goods", date=dt.datetime(2026, 11, 18, 23, 59)) == goods
+    assert pdk.get_sales_tax_rate(kind="services", province="ICT") is not None  # today
+    assert pdk.get_sales_tax_rate(kind="goods", province="AJK", date="2026-11-18") is None
+    assert pdk.get_sales_tax_rate(kind="services", date="2026-11-18") is None
+
+    assert pdk.calculate_sales_tax(1000, rate=18) == pdk.SalesTaxAmounts(1000, 180, 1180, 18)
+    assert pdk.calculate_sales_tax(1000, province="Punjab", date="2026-11-18").tax == 160  # type: ignore[union-attr]
+    split = pdk.calculate_sales_tax(1150, province="Sindh", date="2026-11-18", inclusive=True)
+    assert split == pdk.SalesTaxAmounts(1000, 150, 1150, 15)
+    assert pdk.split_inclusive(99.99, 18) == pdk.SalesTaxAmounts(84.74, 15.25, 99.99, 18)
+    assert pdk.calculate_sales_tax(1.005, rate=0).net == 1.01  # type: ignore[union-attr]
+    assert pdk.calculate_sales_tax(1000) is None
+    assert pdk.calculate_sales_tax(1000, rate=16.666) is None
+    assert pdk.calculate_sales_tax(10**12 + 1, rate=18) is None
+
+
+def test_sales_tax_never_raises() -> None:
+    values = HOSTILE_INPUTS + [
+        True,
+        -1,
+        float("nan"),
+        float("inf"),
+        1e300,
+        10**40,
+        1e-7,
+        [],
+        {},
+        dt.date(1, 1, 1),
+        dt.datetime(9999, 12, 31, 23, 59),
+        "goods",
+        "services",
+        "2026-11-18",
+        "Sindh",
+    ]
+    for value in values:
+        for other in values:
+            pdk.get_sales_tax_rate(kind=value, province=other, date="2026-11-18")
+            pdk.get_sales_tax_rate(kind="services", province=value, date=other)
+            pdk.split_inclusive(value, other)
+            pdk.calculate_sales_tax(value, rate=other)
+            pdk.calculate_sales_tax(1000, province=value, kind=other, inclusive=True)
+            pdk.calculate_sales_tax(value, province="Sindh", date=other, inclusive=value)
+
+
+def test_courier() -> None:
+    assert pdk.map_courier_status("PostEx", "Out For Delivery") == "out-for-delivery"
+    assert pdk.map_courier_status("postex", 5) == "delivered"
+    assert pdk.map_courier_status("PostEx", 5.0) == "delivered"
+    assert pdk.map_courier_status("PostEx", "5") == "delivered"
+    assert pdk.map_courier_status("PostEx", 5.5) is None
+    assert pdk.map_courier_status("PostEx", -1) is None
+    assert pdk.map_courier_status("PostEx", True) is None
+    assert pdk.map_courier_status("PostEx", "At Merchant’s Warehouse") == "booked"
+    assert pdk.map_courier_status("PostEx", "Attempt Made: Customer not available") == "attempted"
+    assert pdk.map_courier_status("PostEx", "attempt madez") is None
+    assert pdk.map_courier_status("LCS", "Returned to Shipper") == "returned"
+    assert pdk.map_courier_status("TCS", "Delivered") is None
+    assert pdk.map_courier_status("constructor", "1") is None
+    assert pdk.map_courier_status("PostEx", "__proto__") is None
+    assert pdk.normalize_city_for_courier("LHR") == "Lahore"
+    assert pdk.normalize_city_for_courier("lyallpur") == "Faisalabad"
+    assert pdk.normalize_city_for_courier("Karachi City") == "Karachi"
+    assert pdk.normalize_city_for_courier("D.G. Khan") == "Dera Ghazi Khan"
+    assert pdk.normalize_city_for_courier("لاہور") == "Lahore"
+    assert pdk.normalize_city_for_courier("hasOwnProperty") is None
+    assert pdk.normalize_city_for_courier("Atlantis") is None
+
+
+def test_courier_never_raises() -> None:
+    values = HOSTILE_INPUTS + [True, -1, 1.5, float("nan"), float("inf"), 1e300, 10**40, [], {}, "PostEx"]
+    for value in values:
+        result = pdk.normalize_city_for_courier(value)  # type: ignore[arg-type]
+        assert result is None or isinstance(result, str)
+        for other in values:
+            status = pdk.map_courier_status(value, other)  # type: ignore[arg-type]
+            assert status is None or isinstance(status, str)
+            pdk.map_courier_status("PostEx", other)
+
+
+FBR_INPUT = {
+    "invoiceType": "Sale Invoice",
+    "invoiceDate": "2025-04-21",
+    "sellerNTNCNIC": "1234567",
+    "sellerBusinessName": "Example Traders",
+    "sellerProvince": "Sindh",
+    "sellerAddress": "Karachi",
+    "buyerNTNCNIC": "7654321",
+    "buyerBusinessName": "Example Buyer",
+    "buyerProvince": "Punjab",
+    "buyerAddress": "Lahore",
+    "buyerRegistrationType": "Registered",
+    "items": [
+        {
+            "hsCode": "0101.2100",
+            "productDescription": "Horses",
+            "rate": "18%",
+            "uoM": "Numbers, pieces, units",
+            "quantity": 2,
+            "valueSalesExcludingST": 1234,
+            "saleType": "Goods at standard rate (default)",
+        }
+    ],
+}
+
+
+def test_fbr_invoice() -> None:
+    assert pdk.FBR_DI_SPEC_VERSION == "1.12"
+    built = pdk.build_fbr_invoice(FBR_INPUT)
+    assert built is not None
+    item = built.invoice["items"][0]
+    assert item["salesTaxApplicable"] == 222.12
+    assert item["totalValues"] == 0 and item["salesTaxWithheldAtSource"] == 0
+    assert built.invoice["invoiceRefNo"] == "" and built.invoice["buyerNTNCNIC"] == "7654321"
+    assert built.totals["salesTaxApplicable"] == 222.12 and built.totals["quantity"] == 2
+    assert pdk.validate_fbr_invoice(built.invoice) == pdk.FbrInvoiceValidation(True, [])
+    assert pdk.build_fbr_invoice({"items": [1]}) is None
+    assert pdk.build_fbr_invoice([]) is None
+
+    bad = {**built.invoice, "invoiceDate": "21-04-2025", "buyerNTNCNIC": "1234567"}
+    assert pdk.validate_fbr_invoice(bad).errors == [
+        pdk.FbrInvoiceError("0005", "invoiceDate", "Invoice date must be in YYYY-MM-DD format"),
+        pdk.FbrInvoiceError(
+            "0058", "buyerNTNCNIC", "Buyer and seller must be different (self-invoicing is not allowed)"
+        ),
+    ]
+    assert pdk.validate_fbr_invoice({**built.invoice, "invoiceDate": "2025-04-21\n"}).errors[0].code == "0005"
+    future = pdk.validate_fbr_invoice(built.invoice, today="2025-04-20")
+    assert [e.code for e in future.errors] == ["0043"]
+    wrong = {**built.invoice, "items": [{**item, "salesTaxApplicable": 200}]}
+    assert pdk.validate_fbr_invoice(wrong).errors == [
+        pdk.FbrInvoiceError("0104", "items[0].salesTaxApplicable", "Sales tax should be 222.12 for this rate")
+    ]
+    assert pdk.expected_sales_tax({"rate": "Rs.3", "quantity": 12}) == 36
+    assert pdk.expected_sales_tax({"rate": "ſs.3", "quantity": 12}) is None  # long s: not "rs" in JS
+    assert pdk.expected_sales_tax({"rate": "١٨%", "valueSalesExcludingST": 1000}) is None
+    assert pdk.validate_fbr_invoice(None).errors == [
+        pdk.FbrInvoiceError(None, "invoice", "The invoice must be an object")
+    ]
+
+
+def test_fbr_invoice_never_raises() -> None:
+    values = HOSTILE_INPUTS + [True, -1, 1.5, float("nan"), float("inf"), 1e300, 10**40, 1e-7, [], {}, [None], [{}]]
+    keys = ["invoiceType", "invoiceDate", "sellerNTNCNIC", "buyerNTNCNIC", "buyerRegistrationType",
+            "invoiceRefNo", "scenarioId", "items"]
+    item_keys = ["rate", "saleType", "quantity", "valueSalesExcludingST", "salesTaxApplicable",
+                 "fixedNotifiedValueOrRetailPrice", "extraTax", "sroScheduleNo", "discount"]
+    base_item = FBR_INPUT["items"][0]  # type: ignore[index]
+    for value in values:
+        pdk.build_fbr_invoice(value)  # type: ignore[arg-type]
+        pdk.expected_sales_tax(value)
+        pdk.validate_fbr_invoice(value, today=value)
+        for key in keys:
+            invoice = {**FBR_INPUT, key: value}
+            pdk.build_fbr_invoice(invoice)  # type: ignore[arg-type]
+            result = pdk.validate_fbr_invoice(invoice, today="2026-11-18")
+            assert isinstance(result.valid, bool)
+        for key in item_keys:
+            for other in values:
+                item = {**base_item, key: value, "rate": other} if key != "rate" else {**base_item, key: value}
+                pdk.expected_sales_tax(item)
+                invoice = {**FBR_INPUT, "items": [item]}
+                built = pdk.build_fbr_invoice(invoice)  # type: ignore[arg-type]
+                assert built is not None
+                pdk.validate_fbr_invoice(built.invoice)
+                pdk.validate_fbr_invoice(invoice)

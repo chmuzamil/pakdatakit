@@ -56,7 +56,7 @@ Validate CNICs, analyze phone numbers, detect networks, build WhatsApp links, ch
 | [`pakdatakit-vue`](https://github.com/chmuzamil/pakdatakit/tree/main/vue)             | Build from `vue/` (not on npm yet)       | Vue 3 composables and a `v-pak-input` directive that format as you type                        |
 | [`pakdatakit-angular`](https://github.com/chmuzamil/pakdatakit/tree/main/angular)     | Build from `angular/` (not on npm yet)   | Angular directives, pipes and form validators                                                  |
 
-The Python, Dart, .NET and PHP packages are checked against the TypeScript library with over 12,000 shared test cases, so all five give the same results.
+The Python, Dart, .NET and PHP packages are checked against the TypeScript library with over 25,000 shared test cases, so all five give the same results.
 
 ---
 
@@ -83,7 +83,7 @@ Most Pakistani apps validate CNICs, mobile numbers and IBANs with a regex copied
 | Holidays, Hijri   | Not possible                 | Observed Eid/Ashura/Milad dates from official notifications, Hijri conversion                   |
 | Amounts, currency | Not possible                 | Lakh/crore formatting, amounts in words in English and Urdu                                     |
 | Forms             | Write each rule per library  | Ready rules for Zod, Valibot, Yup, Joi, Superstruct and class-validator (NestJS)                |
-| Other languages   | Rewrite it                   | Python and Dart packages with the core functions, checked against over 12,000 shared test cases |
+| Other languages   | Rewrite it                   | Python and Dart packages with the core functions, checked against over 25,000 shared test cases |
 
 The npm package has no runtime dependencies, ships ESM and CommonJS with TypeScript types, and works offline: all data is bundled. Every dataset lists its sources in [DATA.md](./DATA.md).
 
@@ -655,6 +655,53 @@ Formats structured components back into a mailing address string. Only the compo
 
 ---
 
+## Cash on Delivery Checks
+
+`import { scoreAddress, phoneRiskSignals } from 'pakdatakit/quality'`
+
+Heuristics for spotting an order a rider will struggle to deliver. They look only at the text you pass: no lists of real people or numbers, no network calls, and they never throw.
+
+### scoreAddress()
+
+Scores a delivery address from 0 to 100 and lists what is missing. Built on `parseAddress` and the Pakistan Post directory: a postal code that is a known post office scores higher than an unknown one, and one in a different province from the city lowers the score.
+
+```ts
+scoreAddress(
+  'House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660',
+);
+// { score: 100, missing: [], parsed: { city: "Lahore", postalCode: "54660", ... } }
+
+scoreAddress('Lahore').missing;
+// ["houseNumber", "street", "area", "postalCode", "landmark"]
+```
+
+| Part          | Points | Found when                                                                                        |
+| ------------- | -----: | ------------------------------------------------------------------------------------------------- |
+| `city`        |     30 | `parseAddress` finds a city                                                                       |
+| `houseNumber` |     20 | a number other than the postal code ("House 12", "12b", "Flat 2")                                 |
+| `street`      |     15 | street, road, lane, gali, chowk, bazaar, mohalla, گلی, محلہ …                                     |
+| `area`        |     10 | an area segment, or block, sector, phase, town, colony, society, بلاک, سیکٹر …                    |
+| `postalCode`  |     15 | a known post office code (an unknown 5-digit code scores 5)                                       |
+| `landmark`    |     10 | near, opp, behind, next to; nazd, nazdeek, qareeb, samne, peechay, bilmuqabil; نزد، قریب، سامنے … |
+
+The weights are exported as `ADDRESS_WEIGHTS`. Importing `scoreAddress` adds about 44 kB gzipped (the post office directory); `phoneRiskSignals` alone is about 3 kB.
+
+### phoneRiskSignals()
+
+Returns the reasons to double-check a phone number given for a delivery, or `[]`.
+
+```ts
+phoneRiskSignals('0301-2945716'); // []
+phoneRiskSignals('03001234567'); // ["sequential-digits", "test-number"]
+phoneRiskSignals('03000000000'); // ["repeated-digits"]
+phoneRiskSignals('042 35761234'); // ["landline"]
+phoneRiskSignals('12345'); // ["invalid"]
+```
+
+Flags: `invalid`, `landline`, `not-mobile` (UAN, toll-free and other service numbers), `repeated-digits` (the 7-digit subscriber part uses at most two digits), `sequential-digits` (`1234567`, `7654321` …) and `test-number` (`03XX-1234567`, `03XX-7654321`, `0312-3456789`). The form adapters have a matching `pk.codPhone()` rule that passes only when there are no flags.
+
+---
+
 ## Text Utilities
 
 ### normalizeRomanUrdu()
@@ -780,6 +827,183 @@ validateSTRN('17-00-3761-882-19'); // true
 ```
 
 FBR does not publish its check-digit algorithms, so these check the format only.
+
+---
+
+## Sales Tax
+
+`import { getSalesTaxRate, calculateSalesTax, splitInclusive } from 'pakdatakit/salestax'`
+
+Standard sales tax rates with the dates they applied, from 1 July 2019: federal sales tax on goods (FBR), and sales tax on services in Punjab (PRA), Sindh (SRB), Khyber Pakhtunkhwa (KPRA), Balochistan (BRA) and Islamabad Capital Territory (FBR). Each rate carries the law and the official document it comes from ([DATA.md](DATA.md#sales-tax-rates-sales-tax-ratesjson)). Reduced, higher and sector rates are not included.
+
+### getSalesTaxRate()
+
+```ts
+getSalesTaxRate({ kind: 'goods', date: '2026-11-18' });
+// { kind: "goods", authority: "FBR", province: null, rate: 18, from: "2023-02-23", to: null, law: "Sales Tax Act 1990, s. 3(1), …", source: "https://download1.fbr.gov.pk/…" }
+
+getSalesTaxRate({ kind: 'services', province: 'Sindh', date: '2024-06-30' })
+  ?.rate; // 13
+getSalesTaxRate({ kind: 'services', province: 'ICT' })?.rate; // 15 (today)
+```
+
+`province` accepts the province names and `KP`, `KPK`, `ICT` and `Islamabad`. It returns `null` for a date before 1 July 2019, an invalid date, an unknown province, services without a province, or goods in Azad Jammu and Kashmir or Gilgit-Baltistan.
+
+### calculateSalesTax() / splitInclusive()
+
+```ts
+calculateSalesTax(1000, { rate: 18 });
+// { net: 1000, tax: 180, gross: 1180, rate: 18 }
+
+calculateSalesTax(1000, { province: 'Punjab' });
+// { net: 1000, tax: 160, gross: 1160, rate: 16 }
+
+calculateSalesTax(1150, { province: 'Sindh', inclusive: true });
+// { net: 1000, tax: 150, gross: 1150, rate: 15 }
+
+splitInclusive(99.99, 18);
+// { net: 84.74, tax: 15.25, gross: 99.99, rate: 18 }
+```
+
+Amounts are rounded half up to the paisa, reading the number as written (`1.005` is Rs 1.01). For an inclusive amount the value is rounded and the tax is the rest, so `net + tax` always equals `gross`. Amounts from 0 to one trillion rupees and rates from 0 to 100 with at most two decimals are accepted; anything else returns `null`, never an exception.
+
+---
+
+## Utility Bills
+
+`import { parseElectricityRef, validateElectricityRef, validateGasConsumerNumber } from 'pakdatakit/bills'`
+
+### parseElectricityRef() / validateElectricityRef()
+
+Reads the identifiers printed on electricity bills, in the formats the utilities' own bill pages ask for:
+
+| `type`        | Format                                                     | Example              |
+| ------------- | ---------------------------------------------------------- | -------------------- |
+| `reference`   | DISCO (WAPDA) reference number: 14 digits, optional U or R | `02 12624 0045901 R` |
+| `customer-id` | DISCO customer ID: 10 digits (11 for LESCO)                | `1234567890`         |
+| `k-electric`  | K-Electric account number: 13 digits starting `04000`      | `0400012345678`      |
+
+```ts
+parseElectricityRef('02-12624-0045901 R');
+// { type: "reference", digits: "02126240045901", formatted: "02 12624 0045901 R", urbanRural: "R", disco: null }
+
+parseElectricityRef('0400012345678');
+// { type: "k-electric", digits: "0400012345678", formatted: "0400012345678", urbanRural: null, disco: "K-Electric" }
+
+validateElectricityRef('12345'); // false
+```
+
+Spaces, dashes and dots are ignored, and Urdu digits are accepted. `disco` is `null` for DISCO bills: no official source maps reference or customer ID digits to a distribution company, so the library does not guess. No utility publishes a check digit, so only the format is checked; a well-formed number may still not exist.
+
+### validateGasConsumerNumber()
+
+```ts
+validateGasConsumerNumber('12345678901', 'SNGPL'); // true (11 digits)
+validateGasConsumerNumber('1234567890', 'SSGC'); // true (10 digits)
+```
+
+Sources are in [DATA.md](DATA.md#electricity-and-gas-bill-numbers).
+
+---
+
+## Couriers
+
+`import { mapCourierStatus, normalizeCityForCourier } from 'pakdatakit/courier'`
+
+Helpers for orders shipped with Pakistani couriers. There are no API clients: nothing is sent anywhere.
+
+### mapCourierStatus()
+
+> **Experimental.** `mapCourierStatus` and the `CourierStatus` values may change in a minor release while more couriers' status lists are added. Pin a minor version if you store these values. To add a courier, see [CONTRIBUTING.md](CONTRIBUTING.md#courier-status-lists).
+
+Maps a courier's own status (name, numeric ID or code) to one vocabulary: `pending`, `booked`, `picked-up`, `in-transit`, `out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`, `returned` or `cancelled`.
+
+```ts
+mapCourierStatus('PostEx', 'Out For Delivery'); // "out-for-delivery"
+mapCourierStatus('PostEx', 5); // "delivered"
+mapCourierStatus('PostEx', 'Attempt Made: Customer not available'); // "attempted"
+mapCourierStatus('Leopards', 'Returned to Shipper'); // "returned"
+mapCourierStatus('TCS', 'Delivered'); // null
+```
+
+Only statuses a courier documents publicly are mapped: every order status and tracking code in PostEx's merchant API guide (v4.1.9), and Leopards' "Returned to Shipper". TCS, M&P, Trax and BlueEx publish no status list outside their merchant portals, so they return `null` for now, as does any status not in the list. No courier documents its tracking number format, so there is no tracking-number detection. Details are in [DATA.md](DATA.md#couriers).
+
+### normalizeCityForCourier()
+
+Maps how a customer or a courier writes a city to its name in the city list, so orders can be matched against a courier's service list.
+
+```ts
+normalizeCityForCourier('LHR'); // "Lahore"
+normalizeCityForCourier('Khi'); // "Karachi"
+normalizeCityForCourier('Pindi'); // "Rawalpindi"
+normalizeCityForCourier('lyallpur'); // "Faisalabad"
+normalizeCityForCourier('Karachi City'); // "Karachi"
+normalizeCityForCourier('لاہور'); // "Lahore"
+normalizeCityForCourier('Atlantis'); // null
+```
+
+---
+
+## FBR Digital Invoicing
+
+`import { buildFbrInvoice, validateFbrInvoice } from 'pakdatakit/fbr-invoice'`
+
+Types, a builder and an offline validator for the invoice JSON that FBR's Digital Invoicing API accepts (`postinvoicedata` and `validateinvoicedata`), following PRAL's "Technical Specification for DI API" version 1.12 (`FBR_DI_SPEC_VERSION`) and PRAL's Error Message Guide. There is no HTTP client and no token handling: send the invoice with your own code.
+
+### buildFbrInvoice()
+
+Works out each line's `salesTaxApplicable` when you leave it out (with `calculateSalesTax`), fills FBR's defaults and adds up the columns.
+
+```ts
+const { invoice, totals } = buildFbrInvoice({
+  invoiceType: 'Sale Invoice',
+  invoiceDate: '2025-04-21',
+  sellerNTNCNIC: '1234567',
+  sellerBusinessName: 'Example Traders',
+  sellerProvince: 'Sindh',
+  sellerAddress: 'Karachi',
+  buyerNTNCNIC: '7654321',
+  buyerBusinessName: 'Example Buyer',
+  buyerProvince: 'Punjab',
+  buyerAddress: 'Lahore',
+  buyerRegistrationType: 'Registered',
+  items: [
+    {
+      hsCode: '0101.2100',
+      productDescription: 'Horses',
+      rate: '18%',
+      uoM: 'Numbers, pieces, units',
+      quantity: 2,
+      valueSalesExcludingST: 1234,
+      saleType: 'Goods at standard rate (default)',
+    },
+  ],
+})!;
+invoice.items[0].salesTaxApplicable; // 222.12
+totals.salesTaxApplicable; // 222.12
+```
+
+Rates of the form `N%` use the value excluding sales tax (or the retail price for Third Schedule goods); `Rs.N` rates use the quantity. Other rates (`Exempt`, combined rates) get 0 unless you give the tax.
+
+### validateFbrInvoice()
+
+Returns every problem it can find without calling FBR, with FBR's error code:
+
+```ts
+validateFbrInvoice(invoice);
+// { valid: true, errors: [] }
+
+validateFbrInvoice({
+  ...invoice,
+  invoiceDate: '21-04-2025',
+  buyerNTNCNIC: invoice.sellerNTNCNIC,
+});
+// { valid: false, errors: [
+//   { code: "0005", field: "invoiceDate", message: "Invoice date must be in YYYY-MM-DD format" },
+//   { code: "0058", field: "buyerNTNCNIC", message: "Buyer and seller must be different (self-invoicing is not allowed)" } ] }
+```
+
+It checks required fields, formats (date, NTN/CNIC, FBR invoice number, sandbox scenario), amounts (not negative, at most 2 decimals, 4 for quantity), SRO rules and the sales tax arithmetic (to within one paisa). Pass `{ today: 'YYYY-MM-DD' }` to also reject future dates. It cannot check what needs FBR's reference APIs: registration status, and whether a province, HS code, unit, rate, sale type or SRO is in FBR's lists. A `valid` result means FBR's own validation is likely to pass, not that it will.
 
 ---
 
@@ -951,7 +1175,7 @@ import { pk } from 'pakdatakit/superstruct';
 const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
 ```
 
-Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()` and `pk.vehiclePlate()`. Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()` and `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
 
 ### class-validator and NestJS
 
@@ -974,7 +1198,7 @@ export class CreateCustomerDto {
 }
 ```
 
-Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport` and `IsVehiclePlate`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport`, `IsVehiclePlate` and `IsCodPhone`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ### As-you-type helpers
 

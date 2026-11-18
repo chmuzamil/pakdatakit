@@ -177,7 +177,7 @@ jobs:
       - run: dart analyze --fatal-infos
         working-directory: dart
 
-      # Runs the 12,000+ shared test vectors from test-vectors/.
+      # Runs the 25,000+ shared test vectors from test-vectors/.
       - run: dart test
         working-directory: dart
 
@@ -242,7 +242,7 @@ jobs:
       - run: dotnet build -c Release
         working-directory: dotnet
 
-      # Runs the 12,000+ shared test vectors from test-vectors/.
+      # Runs the 25,000+ shared test vectors from test-vectors/.
       - run: dotnet test -c Release --no-build
         working-directory: dotnet
 
@@ -289,7 +289,7 @@ jobs:
       - run: composer install --no-interaction --no-progress
         working-directory: php
 
-      # Runs the 12,000+ shared test vectors from test-vectors/, the fuzz
+      # Runs the 25,000+ shared test vectors from test-vectors/, the fuzz
       # tests and the Laravel bridge tests.
       - run: composer test
         working-directory: php

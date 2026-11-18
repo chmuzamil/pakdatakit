@@ -9,11 +9,14 @@ port replays them and fails on any difference.
 
 <!-- vectors:count -->
 
-19,818 vectors in 20 files:
+25,116 vectors in 25 files:
 
 - `address.json`: 870
+- `bills.json`: 354
 - `cnic.json`: 96
+- `courier.json`: 1,670
 - `data-version.json`: 1
+- `fbr-invoice.json`: 158
 - `format.json`: 228
 - `geo.json`: 4,583
 - `hijri.json`: 2,222
@@ -25,7 +28,9 @@ port replays them and fails on any difference.
 - `passport.json`: 35
 - `phone.json`: 726
 - `postal.json`: 5,145
+- `quality.json`: 1,130
 - `raast.json`: 1,369
+- `salestax.json`: 1,986
 - `tax.json`: 90
 - `text.json`: 188
 - `vehicle.json`: 90

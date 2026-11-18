@@ -3,11 +3,11 @@
 Utilities for Pakistani data: CNIC, mobile numbers and networks, landlines,
 IBAN and banks, NTN/STRN, passport and vehicle numbers, postal codes, cities
 and districts, WhatsApp links, rupee formatting, amounts in words, Roman Urdu,
-Hijri dates, public holidays, address parsing, as-you-type form helpers and
-Raast QR codes.
+Hijri dates, public holidays, address parsing, delivery-quality checks for
+addresses and phone numbers, as-you-type form helpers and Raast QR codes.
 
 This is the .NET port of the [`pakdatakit` npm package](https://github.com/chmuzamil/pakdatakit).
-It ships **the same datasets** and is tested against **the same 12,000+ test
+It ships **the same datasets** and is tested against **the same 25,000+ test
 vectors** generated from the TypeScript library (also used by the Python and
 Dart ports), so all four give identical results.
 
@@ -58,8 +58,38 @@ Currency.FormatPkr(150000);                  // "Rs. 150,000"
 Currency.FormatLakh(2500000);                // "25 Lakh"
 Words.AmountInWords(125000, cheque: true);   // "Rupees One Lakh Twenty-Five Thousand Only"
 
+SalesTax.GetRate(new SalesTaxRateQuery { Kind = SalesTaxKind.Services, Province = "Sindh", Date = "2024-06-30" })?.Rate; // 13
+SalesTax.Calculate(1000, new SalesTaxOptions { Rate = 18 });          // Net = 1000, Tax = 180, Gross = 1180, Rate = 18
+SalesTax.Calculate(1150, new SalesTaxOptions { Province = "Sindh", Date = "2026-11-18", Inclusive = true });
+// Net = 1000, Tax = 150, Gross = 1150, Rate = 15
+SalesTax.SplitInclusive(99.99, 18);          // Net = 84.74, Tax = 15.25, Gross = 99.99, Rate = 18
+
+var build = FbrInvoice.Build(JsonNode.Parse(invoiceJson)); // System.Text.Json.Nodes
+build!.Totals.SalesTaxApplicable;            // 222.12 (salesTaxApplicable worked out on each line)
+FbrInvoice.Validate(build.Invoice, today: "2026-11-18");
+// Valid = true, Errors = []; otherwise FbrInvoiceError { Code = "0005", Field = "invoiceDate", Message = … }
+
+Bills.ParseElectricityRef("02-12624-0045901 R");
+// Type = Reference, Digits = 02126240045901, Formatted = 02 12624 0045901 R, UrbanRural = R, Disco = null
+Bills.ValidateElectricityRef("0400012345678");                  // true (K-Electric)
+Bills.ValidateGasConsumerNumber("12345678901", GasCompany.Sngpl); // true (11 digits)
+
 Hijri.Format(new DateOnly(2026, 3, 4));      // "15 Ramadan 1447"
 Holidays.IsHoliday(new DateOnly(2026, 8, 14)); // true
+
+Quality.ScoreAddress("House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660").Score; // 100
+Quality.ScoreAddress("Lahore").Missing;      // [HouseNumber, Street, Area, PostalCode, Landmark]
+Quality.PhoneRiskSignals("0301-2945716");    // [] (a courier can call it)
+Quality.PhoneRiskSignals("03001234567");     // [SequentialDigits, TestNumber]
+
+Courier.MapStatus("PostEx", "Out For Delivery");  // CourierStatus.OutForDelivery
+Courier.MapStatus("PostEx", 5);                   // CourierStatus.Delivered
+Courier.MapStatus("PostEx", "Attempt Made: Customer not available"); // CourierStatus.Attempted
+Courier.MapStatus("Leopards", "Returned to Shipper"); // CourierStatus.Returned
+Courier.MapStatus("TCS", "Delivered");            // null (TCS publishes no status list)
+Courier.NormalizeCity("LHR");                // "Lahore"
+Courier.NormalizeCity("Karachi City");       // "Karachi"
+Courier.NormalizeCity("لاہور");              // "Lahore"
 
 var payload = RaastQr.CreateP2P(new RaastP2POptions
 {
@@ -81,7 +111,11 @@ Unicode (unpaired surrogates, noncharacters).
 | `Validate*`, `Is*` (e.g. `Cnic.Validate`, `Holidays.IsHoliday(string)`) | `false` |
 | `Parse`, `Get*`, `Analyze*` returning one value (e.g. `VehiclePlate.Parse`, `Iban.GetBank`, `Tax.AnalyzeNtn`) | `null` |
 | `Search*`, `Get*` returning a list (e.g. `Geo.SearchCities`, `Holidays.GetHolidaysOn(string)`) | an empty list |
-| `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`), as in the npm package |
+| `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
+| `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`, `Bills.ValidateGasConsumerNumber` | `null` / `false` (also for an undefined `GasCompany` value) |
+| `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive` | `null` (also for NaN, infinite, negative or too large amounts and rates, and `null` options) |
+| `FbrInvoice.Validate`, `FbrInvoice.Build`, `FbrInvoice.ExpectedSalesTax` | `Valid = false` with the errors (any JSON, including `null`, arrays, strings where numbers belong and NaN); `null` |
+| `Courier.MapStatus`, `Courier.NormalizeCity` | `null` (also for an unknown courier, and a numeric status that is negative, fractional, NaN or infinite) |
 | `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` |
 
 Every regular expression has a one-second timeout; if one is ever hit, the
@@ -133,10 +167,16 @@ strings to every public method that takes a string and checks this contract.
 | `createWhatsAppLink`                                   | `WhatsApp.CreateLink`                                                   |
 | `formatPKR`, `formatLakh`                              | `Currency.FormatPkr`, `Currency.FormatLakh`                             |
 | `numberToWords`, `amountInWords`                       | `Words.NumberToWords`, `Words.AmountInWords`                            |
+| `getSalesTaxRate`, `calculateSalesTax`, `splitInclusive` | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive`   |
+| `parseElectricityRef`, `validateElectricityRef`        | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`            |
+| `validateGasConsumerNumber`                            | `Bills.ValidateGasConsumerNumber`                                       |
 | `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text.Normalize`, `Text.NormalizeRomanUrdu`, `Text.ToUrduDigits`        |
 | `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri.ToHijri`, `Hijri.FromHijri`, `Hijri.Format`, `Hijri.IsRamadan`   |
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays.GetHolidays`, `Holidays.GetHolidaysOn`, `Holidays.IsHoliday`  |
 | `parseAddress`, `formatAddress`                        | `Address.Parse`, `Address.Format`                                       |
+| `scoreAddress`, `phoneRiskSignals`, `ADDRESS_WEIGHTS`  | `Quality.ScoreAddress`, `Quality.PhoneRiskSignals`, `Quality.AddressWeights` |
+| `buildFbrInvoice`, `validateFbrInvoice`, `expectedSalesTax`, `FBR_DI_SPEC_VERSION` | `FbrInvoice.Build`, `FbrInvoice.Validate`, `FbrInvoice.ExpectedSalesTax`, `FbrInvoice.SpecVersion` |
+| `mapCourierStatus`, `normalizeCityForCourier`          | `Courier.MapStatus`, `Courier.NormalizeCity`                            |
 | `formatCNICInput`, `checkCNICInput`, …                 | `Input.FormatCnic`, `Input.CheckCnic`, `Input.FormatPhone`, …           |
 | `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr.CreateP2P`, `RaastQr.CreateMerchant`, `RaastQr.Parse`          |
 | `validateRaastQr`                                      | `RaastQr.Validate`                                                      |
@@ -165,7 +205,8 @@ public class CreateCustomerRequest
 ```
 
 Attributes: `[Cnic]`, `[PakPhone]`, `[PakIban]`, `[Ntn]`, `[Strn]`,
-`[PakLandline]`, `[PakPassport]` and `[VehiclePlate]`. Like the built-in
+`[PakLandline]`, `[PakPassport]`, `[VehiclePlate]` and `[CodPhone]` (a mobile
+number a courier can call: `Quality.PhoneRiskSignals` returns no flags). Like the built-in
 attributes, they accept `null` and empty strings; add `[Required]` for
 mandatory fields.
 
@@ -187,7 +228,8 @@ public class CustomerValidator : AbstractValidator<Customer>
 ```
 
 Rules: `IsCnic()`, `IsPakPhone()`, `IsPakIban()`, `IsNtn()`, `IsStrn()`,
-`IsPakLandline()`, `IsPakPassport()` and `IsVehiclePlate()`. They pass `null`
+`IsPakLandline()`, `IsPakPassport()`, `IsVehiclePlate()` and `IsCodPhone()` (a
+mobile number a courier can call: `Quality.PhoneRiskSignals` returns no flags). They pass `null`
 and empty strings; add `NotEmpty()` for mandatory fields. Works with
 FluentValidation 11 and 12.
 
@@ -212,6 +254,83 @@ FluentValidation 11 and 12.
   tehsils. Each tehsil is recorded under the district it was in at the
   census, so `Geo.GetTehsils("Rawalpindi")` still lists Murree, and
   `Geo.GetDivisionOfDistrict` returns `null` for districts created since.
+- **Delivery quality.** `Quality.ScoreAddress` returns an `AddressScore`
+  (`Score` from 0 to 100, the `Missing` parts as `AddressPart` values in the
+  order of `Quality.AddressWeights`, and the `Parsed` address with any extra
+  warnings, e.g. a post office in another province). An unknown postal code
+  scores 5 of its 15 points. `Quality.PhoneRiskSignals` returns
+  `PhoneRiskFlag` values (`Invalid`, `Landline`, `NotMobile`,
+  `RepeatedDigits`, `SequentialDigits`, `TestNumber`; `not-mobile` and so on
+  in the npm package). Both are heuristics on the text alone: they say how
+  much an address or number tells a courier, not whether it exists.
+- **Sales tax.** `SalesTax.GetRate` returns the standard rate (a
+  `SalesTaxRate` with its `Authority`, `Law` and `Source`) for
+  `SalesTaxKind.Goods` (federal, FBR) or `SalesTaxKind.Services` in Punjab,
+  Sindh, Khyber Pakhtunkhwa (`KP`, `KPK`), Balochistan or Islamabad Capital
+  Territory (`ICT`, `Islamabad`), from 1 July 2019. Reduced, higher and sector
+  rates are not included. Give the date as `Date` (`YYYY-MM-DD`) or `OnDate`
+  (a `DateOnly`); it defaults to today's local date. It returns `null` for a
+  date before 1 July 2019, an invalid date, an unknown province, services
+  without a province, or goods in Azad Jammu and Kashmir or Gilgit-Baltistan.
+  `SalesTax.Calculate` takes a `SalesTaxOptions` with a `Rate`, or a
+  `Province` (and `Kind`, default services) to look one up; `Inclusive = true`
+  splits the tax out. Amounts are rounded half up to the paisa in exact
+  integer arithmetic, reading the number as written (`1.005` is Rs 1.01); for
+  an inclusive amount the value is rounded and the tax is the rest, so
+  `Net + Tax` always equals `Gross`. Amounts from 0 to one trillion rupees and
+  rates from 0 to 100 with at most two decimals are accepted.
+- **Utility bills.** `Bills.ParseElectricityRef` reads a DISCO (WAPDA)
+  reference number (14 digits, optional `U` or `R`), a DISCO customer ID (10
+  digits, 11 for LESCO) or a K-Electric account number (13 digits starting
+  `04000`), as an `ElectricityRef` (`Type` is an `ElectricityRefType`:
+  `Reference`, `CustomerId` or `KElectric`; `customer-id` and `k-electric` in
+  the npm package). A reference is formatted 2 + 5 + 7 digits, plus the
+  letter. `Disco` is `"K-Electric"` for a K-Electric account and `null`
+  otherwise: no official source maps the digits to a distribution company.
+  `Bills.ValidateGasConsumerNumber` takes a `GasCompany` (`Sngpl`, 11 digits;
+  `Ssgc`, 10 digits). Spaces, dashes and dots are ignored and Urdu digits are
+  accepted. No utility publishes a check digit, so only the format is checked.
+- **Couriers (experimental).** `Courier.MapStatus` and `CourierStatus` may
+  change in a minor release while more couriers' status lists are added (see
+  [CONTRIBUTING.md](https://github.com/chmuzamil/pakdatakit/blob/main/CONTRIBUTING.md#courier-status-lists)).
+  `Courier.MapStatus(courier, raw)` maps a courier's own
+  status to a `CourierStatus`: `Pending`, `Booked`, `PickedUp`, `InTransit`,
+  `OutForDelivery`, `Attempted`, `UnderReview`, `Delivered`, `Returning`,
+  `Returned` or `Cancelled` (`picked-up`, `out-for-delivery` and so on in the
+  npm package). The courier is a string (`TCS`, `Leopards`, `PostEx`, `M&P`,
+  `Trax`, `BlueEx`, case-insensitive; `LCS`, `MnP` and `Blue Ex` work too);
+  `raw` is the status text or, through the `double` overload, a numeric ID,
+  which must be a non-negative whole number and is matched as its decimal
+  text (`5` matches `"5"`, not `"0005"`). Only statuses a courier documents
+  publicly are mapped: PostEx's merchant API guide (v4.1.9) and Leopards'
+  "Returned to Shipper". TCS, M&P, Trax and BlueEx publish no list, so they
+  return `null`, as does any other status. `Courier.NormalizeCity` maps how a
+  city is written (`LHR`, `Khi`, `Pindi`, `lyallpur`, `Karachi City`, Urdu
+  script) to its name in the city list, or `null`. No API is called.
+- **FBR Digital Invoicing.** `FbrInvoice` follows PRAL's "Technical
+  Specification for DI API" version 1.12 (`FbrInvoice.SpecVersion`) and
+  PRAL's Error Message Guide. The invoice is JSON (`JsonNode`, or a
+  `JsonElement` for `Validate`) with the specification's camelCase keys, since
+  that is what is posted to FBR. `FbrInvoice.Build(input)` works out each
+  line's `salesTaxApplicable` when it is left out (`N%` rates on the value
+  excluding sales tax, or the retail price for Third Schedule goods; `Rs.N`
+  rates on the quantity; other rates get 0), fills FBR's defaults (0 for
+  `totalValues`, `fixedNotifiedValueOrRetailPrice` and
+  `salesTaxWithheldAtSource`, `""` for `buyerNTNCNIC` and `invoiceRefNo`),
+  keeps every other key, and returns a new `JsonObject` with
+  `FbrInvoiceTotals` (column totals, not sent to FBR), or `null` if the input
+  is not an object with an `items` array of objects.
+  `FbrInvoice.Validate(invoice, today)` returns an `FbrInvoiceValidation`
+  with every problem it can find offline as an `FbrInvoiceError` (FBR's
+  `Code` or `null`, the `Field` such as `items[0].rate`, and a `Message`):
+  required fields, formats (date, NTN/CNIC, FBR invoice number, sandbox
+  scenario), amounts (a JSON number, not negative, at most 2 decimals, 4 for
+  quantity; `5.0` is a number, `"5"` is not), SRO rules and the sales tax
+  arithmetic to within one paisa; `today` (`YYYY-MM-DD`) also rejects future
+  dates. It cannot check what needs FBR's reference APIs (registration
+  status, and whether a province, HS code, unit, rate, sale type or SRO is in
+  FBR's lists). `FbrInvoiceType` and `FbrRegistrationType` hold the allowed
+  strings. There is no HTTP client and no token handling.
 - **Sorting** of search results follows the same order as the npm package for
   the names in the datasets.
 

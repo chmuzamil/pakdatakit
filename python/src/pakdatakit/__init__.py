@@ -2,16 +2,41 @@
 
 CNIC, phone, networks, WhatsApp, IBAN, postal codes, geography, address
 parsing, Roman Urdu, Hijri dates, holidays, currency formatting, amounts in
-words, tax numbers, landlines, Raast QR codes, and passport and vehicle
-registration number formats.
+words, tax numbers, sales tax, FBR digital invoices, landlines, Raast QR codes, and passport and vehicle
+registration number formats, and electricity and gas bill numbers.
 
 A Python port of the ``pakdatakit`` npm package: it ships the same datasets and
 is tested against shared test vectors, so both give identical results.
 """
 
 from .address import ParsedAddress, format_address, parse_address
+from .bills import (
+    ElectricityRef,
+    ElectricityRefType,
+    GasCompany,
+    parse_electricity_ref,
+    validate_electricity_ref,
+    validate_gas_consumer_number,
+)
 from .cnic import CNICInfo, get_cnic_info, validate_cnic
+from .courier import Courier, CourierStatus, map_courier_status, normalize_city_for_courier
 from .data_version import DATA_VERSION, data_version
+from .fbr_invoice import (
+    FBR_DI_SPEC_VERSION,
+    FbrInvoice,
+    FbrInvoiceBuild,
+    FbrInvoiceError,
+    FbrInvoiceInput,
+    FbrInvoiceItem,
+    FbrInvoiceItemInput,
+    FbrInvoiceTotals,
+    FbrInvoiceType,
+    FbrInvoiceValidation,
+    FbrRegistrationType,
+    build_fbr_invoice,
+    expected_sales_tax,
+    validate_fbr_invoice,
+)
 from .format import format_lakh, format_pkr
 from .geo import (
     get_district_province,
@@ -62,6 +87,14 @@ from .postal import (
     search_post_offices,
     search_postal_codes,
 )
+from .quality import (
+    ADDRESS_WEIGHTS,
+    AddressPart,
+    AddressScore,
+    PhoneRiskFlag,
+    phone_risk_signals,
+    score_address,
+)
 from .raast import (
     EmvField,
     MerchantAccountInfo,
@@ -71,6 +104,14 @@ from .raast import (
     create_raast_p2p_qr,
     parse_raast_qr,
     validate_raast_qr,
+)
+from .salestax import (
+    SalesTaxAmounts,
+    SalesTaxKind,
+    SalesTaxRate,
+    calculate_sales_tax,
+    get_sales_tax_rate,
+    split_inclusive,
 )
 from .tax import NTNInfo, analyze_ntn, validate_ntn, validate_strn
 from .text import normalize_roman_urdu, normalize_text, to_english_digits, to_urdu_digits
@@ -124,6 +165,18 @@ __all__ = [
     "ParsedAddress",
     "parse_address",
     "format_address",
+    # courier
+    "Courier",
+    "CourierStatus",
+    "map_courier_status",
+    "normalize_city_for_courier",
+    # quality
+    "AddressPart",
+    "AddressScore",
+    "ADDRESS_WEIGHTS",
+    "score_address",
+    "PhoneRiskFlag",
+    "phone_risk_signals",
     # text
     "normalize_text",
     "normalize_roman_urdu",
@@ -146,11 +199,40 @@ __all__ = [
     "analyze_ntn",
     "validate_ntn",
     "validate_strn",
+    # sales tax
+    "SalesTaxKind",
+    "SalesTaxRate",
+    "SalesTaxAmounts",
+    "get_sales_tax_rate",
+    "calculate_sales_tax",
+    "split_inclusive",
+    # FBR digital invoicing
+    "FBR_DI_SPEC_VERSION",
+    "FbrInvoiceType",
+    "FbrRegistrationType",
+    "FbrInvoiceItem",
+    "FbrInvoice",
+    "FbrInvoiceItemInput",
+    "FbrInvoiceInput",
+    "FbrInvoiceTotals",
+    "FbrInvoiceBuild",
+    "FbrInvoiceError",
+    "FbrInvoiceValidation",
+    "expected_sales_tax",
+    "build_fbr_invoice",
+    "validate_fbr_invoice",
     # passport / vehicle
     "validate_passport",
     "VehiclePlate",
     "parse_vehicle_plate",
     "validate_vehicle_plate",
+    # bills
+    "ElectricityRef",
+    "ElectricityRefType",
+    "GasCompany",
+    "parse_electricity_ref",
+    "validate_electricity_ref",
+    "validate_gas_consumer_number",
     # numbers
     "NumberInfo",
     "analyze_number",

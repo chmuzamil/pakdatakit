@@ -26,6 +26,7 @@ const DATASETS = {
   tehsils: 'sub-tehsil',
   divisions: 'Mekran',
   'area codes': 'Naushero Feroze',
+  'sales tax rates': 'authority:"',
 };
 
 const CASES = [
@@ -65,6 +66,50 @@ const CASES = [
     limit: 4 * 1024,
     allowed: ['area codes'],
   },
+  {
+    name: "phoneRiskSignals from 'pakdatakit/quality'",
+    code: "import { phoneRiskSignals } from 'pakdatakit/quality'; console.log(phoneRiskSignals('03001234567'));",
+    limit: 4 * 1024,
+    allowed: ['area codes'],
+  },
+  {
+    name: "scoreAddress from 'pakdatakit/quality'",
+    code: "import { scoreAddress } from 'pakdatakit/quality'; console.log(scoreAddress('House 1, Lahore 54660'));",
+    limit: 64 * 1024,
+    allowed: ['post offices', 'postal codes'],
+  },
+  {
+    name: "calculateSalesTax from 'pakdatakit/salestax'",
+    code: "import { calculateSalesTax } from 'pakdatakit/salestax'; console.log(calculateSalesTax(1000, { rate: 18 }));",
+    limit: 4 * 1024,
+    allowed: ['sales tax rates'],
+  },
+  {
+    name: "validateElectricityRef from 'pakdatakit/bills'",
+    code: "import { validateElectricityRef } from 'pakdatakit/bills'; console.log(validateElectricityRef('01141111234567'));",
+    limit: 2 * 1024,
+    allowed: [],
+  },
+  {
+    name: "mapCourierStatus from 'pakdatakit/courier'",
+    code: "import { mapCourierStatus } from 'pakdatakit/courier'; console.log(mapCourierStatus('PostEx', 5));",
+    limit: 4 * 1024,
+    allowed: [],
+  },
+  {
+    name: "validateFbrInvoice from 'pakdatakit/fbr-invoice'",
+    code: "import { validateFbrInvoice } from 'pakdatakit/fbr-invoice'; console.log(validateFbrInvoice({}));",
+    limit: 8 * 1024,
+    allowed: ['sales tax rates'],
+  },
+  {
+    // Every rule of the adapter; zod itself is the app's own dependency.
+    name: "pk from 'pakdatakit/zod' (zod external)",
+    code: "import { pk } from 'pakdatakit/zod'; console.log(pk.cnic());",
+    external: ['zod'],
+    limit: 8 * 1024,
+    allowed: ['area codes'],
+  },
 ];
 
 /** Resolves `pakdatakit` and its subpaths through package.json "exports". */
@@ -90,6 +135,7 @@ for (const c of CASES) {
     platform: 'browser',
     write: false,
     plugins: [selfPackage],
+    external: c.external ?? [],
     logLevel: 'silent',
   });
   const text = result.outputFiles[0].text;

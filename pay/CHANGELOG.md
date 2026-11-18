@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1
+
+Published by the release workflow with npm provenance (0.1.0 was published
+by hand, without provenance). No API changes.
+
+### Changed
+
+- Development dependencies updated (tsup 9).
+
 ## 0.1.0
 
 First release.

@@ -141,7 +141,7 @@ from .vehicle import VehiclePlate, parse_vehicle_plate, validate_vehicle_plate
 from .whatsapp import create_whatsapp_link
 from .words import amount_in_words, number_to_words
 
-__version__ = "2.5.0"
+__version__ = "2.5.1"
 
 __all__ = [
     "__version__",

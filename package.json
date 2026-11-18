@@ -1,6 +1,6 @@
 {
   "name": "pakdatakit",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Pakistani data utilities for TypeScript and JavaScript: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates and amounts in words. No dependencies, with Zod, Valibot, Yup, Joi, Superstruct and class-validator adapters.",
   "type": "module",
   "main": "./dist/index.cjs",

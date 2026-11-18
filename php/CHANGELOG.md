@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.5.1
+
+Patch release: documentation, packaging and dependency updates. No API,
+behaviour or data changes; every port still gives the same results on the
+shared test vectors.
+
+### Changed
+
+- The README is rewritten for what PakDataKit is now: one library in
+  TypeScript, Python, Dart/Flutter, .NET and PHP/Laravel with React, Vue and
+  Angular helpers, with a table of every published package, an overview of
+  the modules by area and a quick start for each language. The old roadmap
+  is removed. The Dart, .NET and PHP READMEs now say 32,000+ shared test
+  vectors.
+- The Python source distribution (sdist) no longer includes `tests/`: the
+  tests need `data/` and `test-vectors/` from the repository, so they could
+  not run from the sdist.
+- Release workflows only start on their own tags (`v1.2.3` no longer also
+  matches `vue-v1.2.3`), and a version that is already on its registry is
+  skipped with a notice instead of failing.
+- The .NET release keeps the attested `.nupkg` files and attaches them to
+  the GitHub release, since nuget.org re-signs packages and its copies
+  cannot be checked against the build attestation.
+- Development dependencies updated (tsup 9, jsdom 31, Vitest 5.1, ESLint
+  10.15, Prettier 3.10, xunit 2.9.3, Microsoft.NET.Test.Sdk 18, and
+  actions/attest-build-provenance 4).
+
 ## 2.5.0
 
 Includes everything prepared for 2.4.0, which was never published on its own: the 2.4.0 changes are listed here with the 2.5.0 ones.

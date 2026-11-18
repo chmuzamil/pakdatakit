@@ -1,6 +1,6 @@
 {
   "name": "pakdatakit-vue",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vue composables, a directive and ready-made checkout and KYC forms for Pakistani CNIC, mobile numbers, IBANs and addresses, built on pakdatakit",
   "type": "module",
   "main": "./dist/index.cjs",

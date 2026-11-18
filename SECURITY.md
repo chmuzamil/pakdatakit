@@ -7,19 +7,19 @@ Older versions do not get fixes; upgrade within the same major version (no
 breaking changes). A package not yet on its registry is listed with the
 version in this repository and is supported from its first release.
 
-| Package                                                                   | Registry  | Language          | Supported | On the registry          |
-| ------------------------------------------------------------------------- | --------- | ----------------- | --------- | ------------------------ |
-| `pakdatakit`                                                              | npm       | TypeScript, JS    | 2.5.x     | yes                      |
-| `pakdatakit`                                                              | PyPI      | Python 3.9+       | 2.5.x     | yes                      |
-| `pakdatakit`                                                              | pub.dev   | Dart              | 2.5.x     | yes                      |
-| `PakDataKit`, `PakDataKit.DataAnnotations`, `PakDataKit.FluentValidation` | NuGet     | .NET 8+           | 2.5.x     | not yet                  |
-| `chmuzamil/pakdatakit`                                                    | Packagist | PHP 8.2+, Laravel | 2.5.x     | not yet                  |
-| `pakdatakit-react`                                                        | npm       | React             | 0.2.x     | 0.1.x yes; 0.2.x not yet |
-| `pakdatakit-faker`                                                        | npm       | TypeScript, JS    | 0.2.x     | yes                      |
-| `pakdatakit-vue`                                                          | npm       | Vue 3             | 0.1.x     | not yet                  |
-| `pakdatakit-angular`                                                      | npm       | Angular 17 to 22  | 0.1.x     | not yet                  |
-| `pakdatakit_flutter`                                                      | pub.dev   | Flutter           | 0.2.x     | 0.1.x yes; 0.2.x not yet |
-| `pakdatakit-pay`                                                          | npm       | TypeScript, JS    | 0.1.x     | not yet                  |
+| Package                                                                   | Registry  | Language          | Supported | On the registry |
+| ------------------------------------------------------------------------- | --------- | ----------------- | --------- | --------------- |
+| `pakdatakit`                                                              | npm       | TypeScript, JS    | 2.5.x     | yes             |
+| `pakdatakit`                                                              | PyPI      | Python 3.9+       | 2.5.x     | yes             |
+| `pakdatakit`                                                              | pub.dev   | Dart              | 2.5.x     | yes             |
+| `PakDataKit`, `PakDataKit.DataAnnotations`, `PakDataKit.FluentValidation` | NuGet     | .NET 8+           | 2.5.x     | yes             |
+| `chmuzamil/pakdatakit`                                                    | Packagist | PHP 8.2+, Laravel | 2.5.x     | yes             |
+| `pakdatakit-react`                                                        | npm       | React             | 0.2.x     | yes             |
+| `pakdatakit-faker`                                                        | npm       | TypeScript, JS    | 0.2.x     | yes             |
+| `pakdatakit-vue`                                                          | npm       | Vue 3             | 0.1.x     | yes             |
+| `pakdatakit-angular`                                                      | npm       | Angular 17 to 22  | 0.1.x     | yes             |
+| `pakdatakit_flutter`                                                      | pub.dev   | Flutter           | 0.2.x     | yes             |
+| `pakdatakit-pay`                                                          | npm       | TypeScript, JS    | 0.1.x     | yes             |
 
 All ports of `pakdatakit` share one version number and give the same results
 (see [test-vectors/](test-vectors/README.md)), so a security fix is released

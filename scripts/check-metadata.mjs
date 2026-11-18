@@ -421,6 +421,23 @@ for (const [name, v] of Object.entries(supported)) {
 }
 
 // ---------------------------------------------------------------------------
+// 7. The API reference documents every public subpath
+// ---------------------------------------------------------------------------
+
+const typedoc = JSON.parse(read('typedoc.json'));
+const documented = new Set(
+  typedoc.entryPoints.map((entry) =>
+    entry.replace(/^src\/(adapters\/)?/, '').replace(/\.ts$/, ''),
+  ),
+);
+for (const key of Object.keys(core.exports ?? {})) {
+  if (key === '.' || key === './package.json') continue;
+  const subpath = key.slice(2);
+  if (!documented.has(subpath))
+    fail(`typedoc.json: add the entry point for pakdatakit/${subpath}`);
+}
+
+// ---------------------------------------------------------------------------
 
 if (problems.length) {
   console.error(`Metadata check failed (${problems.length}):`);

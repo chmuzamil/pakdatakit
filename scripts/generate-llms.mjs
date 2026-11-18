@@ -89,6 +89,42 @@ const MODULES = [
     'holidays',
     'Federal public holidays with observed Eid dates (getPakistanHolidays, isPakistanHoliday)',
   ],
+  ['passport', 'passport', 'Passport number format check (validatePassport)'],
+  [
+    'vehicle',
+    'vehicle',
+    'Vehicle registration plates: series, number, year (parseVehiclePlate, validateVehiclePlate)',
+  ],
+  [
+    'salestax',
+    'salestax',
+    'Standard sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) by date, and exact amounts (getSalesTaxRate, calculateSalesTax, splitInclusive)',
+  ],
+  [
+    'incometax',
+    'incometax',
+    'Income tax on salary, tax years 2020 to 2027 (calculateSalaryTax, calculateMonthlySalaryTax, getSalaryTaxSlabs, getSalaryTaxYears, getTaxYear)',
+  ],
+  [
+    'fbr-invoice',
+    'fbr-invoice',
+    'FBR Digital Invoicing: build an invoice and validate it offline with FBR error codes (buildFbrInvoice, validateFbrInvoice, expectedSalesTax)',
+  ],
+  [
+    'bills',
+    'bills',
+    'Electricity bill references and gas consumer numbers (parseElectricityRef, validateElectricityRef, validateGasConsumerNumber)',
+  ],
+  [
+    'courier',
+    'courier',
+    'Courier status mapping and city name matching; experimental (mapCourierStatus, normalizeCityForCourier)',
+  ],
+  [
+    'quality',
+    'quality',
+    'Cash-on-delivery checks: address completeness score and phone risk signals (scoreAddress, phoneRiskSignals)',
+  ],
   [
     'zod',
     'adapters_zod',
@@ -96,7 +132,30 @@ const MODULES = [
   ],
   ['valibot', 'adapters_valibot', 'Valibot schemas with the same names'],
   ['yup', 'adapters_yup', 'Yup schemas with the same names'],
+  ['joi', 'adapters_joi', 'Joi schemas with the same names'],
+  [
+    'superstruct',
+    'adapters_superstruct',
+    'Superstruct structs with the same names',
+  ],
+  [
+    'class-validator',
+    'adapters_class-validator',
+    'class-validator decorators for DTOs and NestJS (IsCNIC, IsPakPhone, IsPakIBAN, IsNTN, IsSTRN and more)',
+  ],
 ];
+
+// Every public subpath must be listed, so new modules can't be left out.
+const listed = new Set(MODULES.map(([subpath]) => subpath));
+const unlisted = Object.keys(pkg.exports)
+  .filter((key) => key !== '.' && key !== './package.json')
+  .map((key) => key.slice(2))
+  .filter((subpath) => subpath !== 'data-version' && !listed.has(subpath));
+if (unlisted.length > 0) {
+  throw new Error(
+    `llms.txt: add these subpaths to MODULES: ${unlisted.join(', ')}`,
+  );
+}
 
 const index = `# PakDataKit
 

@@ -19,10 +19,21 @@
     "src/format.ts",
     "src/hijri.ts",
     "src/holidays.ts",
+    "src/passport.ts",
+    "src/vehicle.ts",
+    "src/salestax.ts",
+    "src/incometax.ts",
+    "src/fbr-invoice.ts",
+    "src/bills.ts",
+    "src/courier.ts",
+    "src/quality.ts",
     "src/data-version.ts",
     "src/adapters/zod.ts",
     "src/adapters/valibot.ts",
-    "src/adapters/yup.ts"
+    "src/adapters/yup.ts",
+    "src/adapters/joi.ts",
+    "src/adapters/superstruct.ts",
+    "src/adapters/class-validator.ts"
   ],
   "entryPointStrategy": "resolve",
   "out": "docs-site",
@@ -40,5 +51,23 @@
   },
   "hostedBaseUrl": "https://chmuzamil.github.io/pakdatakit/",
   "useHostedBaseUrlForAbsoluteLinks": false,
-  "treatWarningsAsErrors": false
+  "treatWarningsAsErrors": false,
+  "highlightLanguages": [
+    "bash",
+    "console",
+    "css",
+    "html",
+    "javascript",
+    "json",
+    "jsonc",
+    "json5",
+    "yaml",
+    "tsx",
+    "typescript",
+    "python",
+    "dart",
+    "csharp",
+    "php",
+    "vue"
+  ]
 }

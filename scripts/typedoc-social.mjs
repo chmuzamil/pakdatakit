@@ -7,7 +7,7 @@
 import { copyFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { JSX, RendererEvent } from 'typedoc';
+import { Application, JSX, RendererEvent } from 'typedoc';
 
 const docsDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
 const description =
@@ -15,6 +15,11 @@ const description =
 
 /** @param {import('typedoc').Application} app */
 export function load(app) {
+  // Link only real URLs: by default "DATA.md" in a doc comment became a link
+  // to http://DATA.md (.md is a top-level domain).
+  app.on(Application.EVENT_BOOTSTRAP_END, () =>
+    app.options.setValue('markdownItLoader', (md) => md.linkify.set({ fuzzyLink: false })),
+  );
   app.renderer.hooks.on('head.end', (context) => {
     const base = app.options.getValue('hostedBaseUrl') ?? '';
     const pageUrl = base + context.page.url.replace(/(^|\/)index\.html$/, '$1');

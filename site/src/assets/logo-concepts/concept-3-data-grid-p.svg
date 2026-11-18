@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PakDataKit logo concept 3: a letter P built from data cells">
+  <title>Concept 3: data-grid P</title>
+  <rect width="64" height="64" rx="14" fill="#f4f7f5"/>
+  <g fill="#0b3d2e">
+    <rect x="16" y="12" width="9" height="9" rx="2"/>
+    <rect x="27" y="12" width="9" height="9" rx="2"/>
+    <rect x="38" y="12" width="9" height="9" rx="2"/>
+    <rect x="16" y="23" width="9" height="9" rx="2"/>
+    <rect x="38" y="23" width="9" height="9" rx="2"/>
+    <rect x="16" y="34" width="9" height="9" rx="2"/>
+    <rect x="27" y="34" width="9" height="9" rx="2"/>
+    <rect x="16" y="45" width="9" height="9" rx="2"/>
+  </g>
+  <rect x="38" y="34" width="9" height="9" rx="2" fill="#15803d"/>
+</svg>

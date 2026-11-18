@@ -1,0 +1,55 @@
+---
+title: Postal codes and post offices
+description: Postal codes of Pakistani cities and every delivery post office in Pakistan Post's directory, including villages.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import PostalWidget from '../../../components/widgets/PostalWidget.tsx';
+
+`import { getPostalCode, getCityByPostalCode, getPostOffice, searchPostOffices } from 'pakdatakit/postal'`
+
+Two datasets: the main postal codes of the cities the package lists, and Pakistan Post's full directory of about 2,560 delivery post offices, including towns and villages.
+
+<PostalWidget client:visible />
+
+## Examples
+
+<LangTabs module="postal" />
+
+## Reference
+
+### getPostalCode()
+
+```ts
+function getPostalCode(city: string): string | null;
+```
+
+**Returns** the primary postal code of a city (case-insensitive), or `null` for an unknown city.
+
+### getCityByPostalCode()
+
+```ts
+function getCityByPostalCode(postalCode: string): string | null;
+```
+
+**Returns** the city for one of its own post offices. A village code returns `null`; use `getPostOffice()` for those.
+
+### getPostOffice()
+
+```ts
+function getPostOffice(code: string): PostOffice | null;
+
+interface PostOffice {
+  code: string;
+  office: string;
+  town: string;
+  district: string | null;
+  province: string;
+}
+```
+
+**Returns** any delivery post office by its five-digit code.
+
+**Caveats.** The directory is a separate data file, loaded only when these functions are first called.
+
+**Related:** [`searchPostOffices()`](/api/typescript/postal/functions/searchpostoffices/), [`scoreAddress()`](/api/typescript/quality/functions/scoreaddress/), [data sources](/data/).

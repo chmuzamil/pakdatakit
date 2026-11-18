@@ -1,0 +1,80 @@
+{
+  "module": "salestax",
+  "title": "Sales tax",
+  "examples": [
+    {
+      "id": "rate",
+      "title": "Punjab services rate on a date",
+      "fn": "getSalesTaxRate",
+      "args": [],
+      "kwargs": {
+        "kind": "services",
+        "province": "Punjab",
+        "date": "2026-11-18"
+      },
+      "expected": {
+        "kind": "services",
+        "authority": "PRA",
+        "province": "Punjab",
+        "rate": 16,
+        "from": "2019-07-01",
+        "to": null,
+        "law": "Punjab Sales Tax on Services Act 2012, s. 2(41A) and Second Schedule",
+        "source": "https://pra.punjab.gov.pk/Downloads/THE-PUNJAB-SALES-TAX-ON-SERVICES-ACT-2012-17th-Edition-2026-2027.pdf"
+      }
+    },
+    {
+      "id": "calculate",
+      "title": "Sales tax on Rs. 1,000 of goods",
+      "fn": "calculateSalesTax",
+      "args": [
+        1000
+      ],
+      "kwargs": {
+        "kind": "goods",
+        "date": "2026-11-18"
+      },
+      "expected": {
+        "net": 1000,
+        "tax": 180,
+        "gross": 1180,
+        "rate": 18
+      }
+    },
+    {
+      "id": "inclusive",
+      "title": "Split a tax-inclusive amount",
+      "fn": "calculateSalesTax",
+      "args": [
+        1150
+      ],
+      "kwargs": {
+        "province": "Sindh",
+        "kind": "services",
+        "date": "2026-11-18",
+        "inclusive": true
+      },
+      "expected": {
+        "net": 1000,
+        "tax": 150,
+        "gross": 1150,
+        "rate": 15
+      }
+    },
+    {
+      "id": "split",
+      "title": "Split at a given rate",
+      "fn": "splitInclusive",
+      "args": [
+        1180,
+        18
+      ],
+      "expected": {
+        "net": 1000,
+        "tax": 180,
+        "gross": 1180,
+        "rate": 18
+      }
+    }
+  ]
+}

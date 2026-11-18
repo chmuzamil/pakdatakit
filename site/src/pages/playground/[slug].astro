@@ -1,0 +1,74 @@
+---
+/** /playground/<slug>/: one page per tool, from the former playground app. */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import registry from '../../components/playground/registry.json';
+import '../../styles/playground.css';
+import { CNICPlayground } from '../../components/playground/pages/CNICPlayground';
+import { PassportPlatesPlayground } from '../../components/playground/pages/PassportPlatesPlayground';
+import { FormInputsPlayground } from '../../components/playground/pages/FormInputsPlayground';
+import { PhonePlayground } from '../../components/playground/pages/PhonePlayground';
+import { NumbersPlayground } from '../../components/playground/pages/NumbersPlayground';
+import { WhatsAppPlayground } from '../../components/playground/pages/WhatsAppPlayground';
+import { GeoPlayground } from '../../components/playground/pages/GeoPlayground';
+import { PostalPlayground } from '../../components/playground/pages/PostalPlayground';
+import { PostOfficesPlayground } from '../../components/playground/pages/PostOfficesPlayground';
+import { AddressPlayground } from '../../components/playground/pages/AddressPlayground';
+import { CodChecksPlayground } from '../../components/playground/pages/CodChecksPlayground';
+import { CourierPlayground } from '../../components/playground/pages/CourierPlayground';
+import { CurrencyPlayground } from '../../components/playground/pages/CurrencyPlayground';
+import { IBANPlayground } from '../../components/playground/pages/IBANPlayground';
+import { RaastPlayground } from '../../components/playground/pages/RaastPlayground';
+import { BillsPlayground } from '../../components/playground/pages/BillsPlayground';
+import { TaxPlayground } from '../../components/playground/pages/TaxPlayground';
+import { SalesTaxPlayground } from '../../components/playground/pages/SalesTaxPlayground';
+import { IncomeTaxPlayground } from '../../components/playground/pages/IncomeTaxPlayground';
+import { FbrInvoicePlayground } from '../../components/playground/pages/FbrInvoicePlayground';
+import { TextPlayground } from '../../components/playground/pages/TextPlayground';
+import { SlugifyPlayground } from '../../components/playground/pages/SlugifyPlayground';
+import { HijriPlayground } from '../../components/playground/pages/HijriPlayground';
+import { HolidaysPlayground } from '../../components/playground/pages/HolidaysPlayground';
+import { FakerPlayground } from '../../components/playground/pages/FakerPlayground';
+
+export function getStaticPaths() {
+  return registry.map((tool) => ({ params: { slug: tool.slug }, props: { tool } }));
+}
+
+const { tool } = Astro.props;
+---
+
+<StarlightPage
+  frontmatter={{
+    title: `${tool.label.replace(/ (experimental)$/, '')} · Playground`,
+    description: tool.description,
+    tableOfContents: false,
+  }}
+>
+  <p class="pdk-note">
+    {tool.group} · <a href="/playground/">All playground tools</a> · Runs in your browser; nothing is uploaded.
+  </p>
+  {tool.slug === 'cnic' && <CNICPlayground client:load />}
+  {tool.slug === 'passport-plates' && <PassportPlatesPlayground client:load />}
+  {tool.slug === 'forms' && <FormInputsPlayground client:load />}
+  {tool.slug === 'phone' && <PhonePlayground client:load />}
+  {tool.slug === 'numbers' && <NumbersPlayground client:load />}
+  {tool.slug === 'whatsapp' && <WhatsAppPlayground client:load />}
+  {tool.slug === 'geo' && <GeoPlayground client:load />}
+  {tool.slug === 'postal' && <PostalPlayground client:load />}
+  {tool.slug === 'post-offices' && <PostOfficesPlayground client:load />}
+  {tool.slug === 'address' && <AddressPlayground client:load />}
+  {tool.slug === 'cod' && <CodChecksPlayground client:load />}
+  {tool.slug === 'courier' && <CourierPlayground client:load />}
+  {tool.slug === 'currency' && <CurrencyPlayground client:load />}
+  {tool.slug === 'iban' && <IBANPlayground client:load />}
+  {tool.slug === 'raast' && <RaastPlayground client:load />}
+  {tool.slug === 'bills' && <BillsPlayground client:load />}
+  {tool.slug === 'tax' && <TaxPlayground client:load />}
+  {tool.slug === 'sales-tax' && <SalesTaxPlayground client:load />}
+  {tool.slug === 'income-tax' && <IncomeTaxPlayground client:load />}
+  {tool.slug === 'fbr-invoice' && <FbrInvoicePlayground client:load />}
+  {tool.slug === 'text' && <TextPlayground client:load />}
+  {tool.slug === 'slugify' && <SlugifyPlayground client:load />}
+  {tool.slug === 'hijri' && <HijriPlayground client:load />}
+  {tool.slug === 'holidays' && <HolidaysPlayground client:load />}
+  {tool.slug === 'faker' && <FakerPlayground client:load />}
+</StarlightPage>

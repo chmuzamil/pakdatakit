@@ -1,0 +1,39 @@
+{
+  "module": "postal",
+  "title": "Postal codes and post offices",
+  "examples": [
+    {
+      "id": "code",
+      "title": "Postal code of a city",
+      "fn": "getPostalCode",
+      "args": [
+        "Lahore"
+      ],
+      "expected": "54000"
+    },
+    {
+      "id": "city",
+      "title": "City of a postal code",
+      "fn": "getCityByPostalCode",
+      "args": [
+        "54000"
+      ],
+      "expected": "Lahore"
+    },
+    {
+      "id": "office",
+      "title": "Any post office, including villages",
+      "fn": "getPostOffice",
+      "args": [
+        "12380"
+      ],
+      "expected": {
+        "code": "12380",
+        "office": "Chak Dhamni",
+        "town": "Chak Dhamni",
+        "district": null,
+        "province": "Azad Jammu and Kashmir"
+      }
+    }
+  ]
+}

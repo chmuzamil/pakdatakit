@@ -1,0 +1,46 @@
+{
+  "name": "pakdatakit-site",
+  "private": true,
+  "type": "module",
+  "description": "pakdatakit.dev: docs, tools and playground",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/generate.mjs && astro build && node scripts/csp-hashes.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "check:links": "linkinator http://localhost:4329/ --config linkinator.config.json",
+    "check:quality": "playwright test",
+    "check:redirects": "node scripts/api-redirects.mjs --check"
+  },
+  "dependencies": {
+    "@astrojs/react": "7.1.9",
+    "@astrojs/starlight": "0.43.1",
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@fontsource/noto-naskh-arabic": "5.3.0",
+    "astro": "7.4.12",
+    "pakdatakit": "file:..",
+    "pakdatakit-faker": "0.2.0",
+    "pakdatakit-react": "0.2.0",
+    "qrcode": "1.5.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@expo-google-fonts/inter": "0.4.2",
+    "@expo-google-fonts/noto-naskh-arabic": "0.4.5",
+    "@playwright/test": "1.65.1",
+    "@resvg/resvg-js": "2.6.2",
+    "@tailwindcss/vite": "4.3.5",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "linkinator": "8.1.0",
+    "starlight-typedoc": "0.23.2",
+    "tailwindcss": "4.3.5",
+    "typedoc": "0.28.20",
+    "typedoc-plugin-markdown": "4.14.1",
+    "typescript": "5.9.3"
+  }
+}

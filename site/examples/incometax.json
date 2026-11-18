@@ -1,0 +1,61 @@
+{
+  "module": "incometax",
+  "title": "Income tax on salary",
+  "examples": [
+    {
+      "id": "annual",
+      "title": "Tax on Rs. 5,000,000 a year (tax year 2027)",
+      "fn": "calculateSalaryTax",
+      "args": [
+        5000000
+      ],
+      "kwargs": {
+        "taxYear": 2027
+      },
+      "expected": {
+        "tax": 802000,
+        "monthly": 66833.33,
+        "effectiveRate": 16.04,
+        "slab": {
+          "over": 4100000,
+          "upTo": 5600000,
+          "fixed": 541000,
+          "rate": 29
+        },
+        "taxYear": 2027
+      }
+    },
+    {
+      "id": "monthly",
+      "title": "Tax on Rs. 150,000 a month (tax year 2027)",
+      "fn": "calculateMonthlySalaryTax",
+      "args": [
+        150000
+      ],
+      "kwargs": {
+        "taxYear": 2027
+      },
+      "expected": {
+        "tax": 72000,
+        "monthly": 6000,
+        "effectiveRate": 4,
+        "slab": {
+          "over": 1200000,
+          "upTo": 2200000,
+          "fixed": 6000,
+          "rate": 11
+        },
+        "taxYear": 2027
+      }
+    },
+    {
+      "id": "year",
+      "title": "Tax year of a date",
+      "fn": "getTaxYear",
+      "args": [
+        "2026-11-18"
+      ],
+      "expected": 2027
+    }
+  ]
+}

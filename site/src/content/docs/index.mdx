@@ -1,0 +1,72 @@
+---
+title: Pakistani data utilities
+description: Validate, format and look up Pakistani data (CNIC, mobile numbers, IBANs, sales and income tax, Raast QR, postal codes, Urdu text) in TypeScript, Python, Dart/Flutter, .NET and PHP/Laravel.
+template: splash
+hero:
+  title: Pakistani data, done right, in five languages
+  tagline: CNICs, mobile numbers, IBANs and banks, sales tax and salary income tax, Raast QR, FBR invoices, postal codes and Urdu text, for TypeScript, Python, Dart/Flutter, .NET and PHP/Laravel. One behaviour everywhere, checked on 32,000+ shared test vectors. Offline and dependency-free.
+  actions:
+    - text: Get started
+      link: /install/typescript/
+      icon: right-arrow
+    - text: Try the tools
+      link: /tools/cnic/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import LangTabs from '../../components/LangTabs.astro';
+import CnicWidget from '../../components/widgets/CnicWidget.tsx';
+
+## Try it
+
+This is the real library, running in your browser. Nothing you type leaves your device.
+
+<CnicWidget client:visible />
+
+## The same call in every language
+
+<LangTabs module="home" />
+
+Every result above is checked in all five ports on every change: the examples on this site are part of the shared test suite.
+
+## Packages
+
+| Package | Registry | Install |
+| --- | --- | --- |
+| [`pakdatakit`](/install/typescript/) | npm | `npm install pakdatakit` |
+| [`pakdatakit`](/install/python/) (Python) | PyPI | `pip install pakdatakit` |
+| [`pakdatakit`](/install/dart/) (Dart) | pub.dev | `dart pub add pakdatakit` |
+| [`pakdatakit_flutter`](/install/flutter/) | pub.dev | `flutter pub add pakdatakit_flutter` |
+| [`PakDataKit`](/install/dotnet/) (.NET), plus DataAnnotations and FluentValidation | NuGet | `dotnet add package PakDataKit` |
+| [`chmuzamil/pakdatakit`](/install/php/) (PHP/Laravel) | Packagist | `composer require chmuzamil/pakdatakit` |
+| [`pakdatakit-react`](/install/react/) | npm | `npm install pakdatakit-react` |
+| [`pakdatakit-vue`](/install/vue/) | npm | `npm install pakdatakit-vue` |
+| [`pakdatakit-angular`](/install/angular/) | npm | `npm install pakdatakit-angular` |
+| `pakdatakit-faker` (seeded mock data) | npm | `npm install -D pakdatakit-faker` |
+| `pakdatakit-pay` (JazzCash secure hash) | npm | `npm install pakdatakit-pay` |
+
+## Modules
+
+<CardGrid>
+  <Card title="Identity" icon="seti:lock">
+    [CNIC](/docs/cnic/), passports and vehicle plates.
+  </Card>
+  <Card title="Phone" icon="phone">
+    [Mobile numbers](/docs/phone/), networks, landlines, WhatsApp links, COD phone risk.
+  </Card>
+  <Card title="Banking and payments" icon="seti:config">
+    [IBAN and banks](/docs/iban/), [Raast QR](/docs/raast/), bills, PKR and amounts in words.
+  </Card>
+  <Card title="Tax and FBR" icon="document">
+    [Sales tax](/docs/salestax/), [income tax on salary](/docs/incometax/), NTN/STRN, FBR digital invoices.
+  </Card>
+  <Card title="Geography and postal" icon="seti:pipeline">
+    [Postal codes and post offices](/docs/postal/), cities, districts, tehsils, addresses.
+  </Card>
+  <Card title="Text, dates and forms" icon="pencil">
+    Urdu text and slugs, Hijri dates, holidays, and form rules for Zod, NestJS, Laravel and more.
+  </Card>
+</CardGrid>
+
+<LinkCard title="Every function: the API reference" href="/api/typescript/" description="Generated from the TypeScript source, with every type and option." />

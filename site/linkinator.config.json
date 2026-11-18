@@ -1,0 +1,7 @@
+{
+  "recurse": true,
+  "concurrency": 8,
+  "retryErrors": true,
+  "skip": "^https?://(?!localhost:4329/)|^mailto:|/a[.]js$|/api/typescript/media/(LICENSE|NOTICE)$",
+  "verbosity": "error"
+}

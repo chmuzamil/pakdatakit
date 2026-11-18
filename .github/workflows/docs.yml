@@ -4,6 +4,11 @@ name: Docs
 # publishes them to GitHub Pages at https://chmuzamil.github.io/pakdatakit/.
 # Runs on each release tag so the docs match the version on npm, and can be
 # run by hand. Requires Settings → Pages → Source: GitHub Actions.
+#
+# Once pakdatakit.dev is live, setting the repository variable
+# PDK_DOCS_STUB=true turns this site into redirects only: every old page
+# points (canonical + meta refresh) to its new address on pakdatakit.dev,
+# from site/api-redirects.json. Off until then.
 
 on:
   push:
@@ -31,8 +36,15 @@ jobs:
           cache: npm
 
       - run: npm ci
+        if: vars.PDK_DOCS_STUB != 'true'
       - run: npm run build
+        if: vars.PDK_DOCS_STUB != 'true'
       - run: npm run docs
+        if: vars.PDK_DOCS_STUB != 'true'
+
+      - name: Redirect-only site (pakdatakit.dev is live)
+        if: vars.PDK_DOCS_STUB == 'true'
+        run: node scripts/docs-stub.mjs docs-site
 
       - uses: actions/upload-pages-artifact@v5
         with:

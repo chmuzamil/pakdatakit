@@ -1,0 +1,47 @@
+{
+  "module": "home",
+  "title": "Home page",
+  "examples": [
+    {
+      "id": "cnic",
+      "title": "Validate a CNIC",
+      "fn": "validateCNIC",
+      "args": [
+        "35202-1234567-1"
+      ],
+      "expected": true
+    },
+    {
+      "id": "bank",
+      "title": "Bank from an IBAN",
+      "fn": "getBankFromIBAN",
+      "args": [
+        "PK36SCBL0000001123456702"
+      ],
+      "expected": "Standard Chartered Bank (Pakistan) Limited"
+    },
+    {
+      "id": "salary",
+      "title": "Tax on a salary",
+      "fn": "calculateSalaryTax",
+      "args": [
+        5000000
+      ],
+      "kwargs": {
+        "taxYear": 2027
+      },
+      "expected": {
+        "tax": 802000,
+        "monthly": 66833.33,
+        "effectiveRate": 16.04,
+        "slab": {
+          "over": 4100000,
+          "upTo": 5600000,
+          "fixed": 541000,
+          "rate": 29
+        },
+        "taxYear": 2027
+      }
+    }
+  ]
+}

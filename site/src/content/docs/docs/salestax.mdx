@@ -1,0 +1,54 @@
+---
+title: Sales tax
+description: Standard sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) on any date from 1 July 2019, with the law behind each rate, and exact amounts in whole paisa.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import SalesTaxWidget from '../../../components/widgets/SalesTaxWidget.tsx';
+
+`import { getSalesTaxRate, calculateSalesTax, splitInclusive } from 'pakdatakit/salestax'`
+
+Sales tax on goods is federal (FBR). Sales tax on services is provincial: PRA in Punjab, SRB in Sindh, KPRA in Khyber Pakhtunkhwa, BRA in Balochistan, and the federal ICT tax in Islamabad. Each rate carries the law and source it comes from.
+
+<SalesTaxWidget client:visible />
+
+## Examples
+
+<LangTabs module="salestax" />
+
+## Reference
+
+### getSalesTaxRate()
+
+```ts
+function getSalesTaxRate(query: {
+  kind: 'goods' | 'services';
+  province?: string; // required for services
+  date?: string | Date; // default: today
+}): SalesTaxRate | null;
+```
+
+**Returns** the standard rate in force on that date, with `authority`, `rate`, `from`, `to`, `law` and `source`.
+
+**Caveats.** Returns `null` for dates before 1 July 2019, unknown provinces, services without a province, or goods in Azad Jammu and Kashmir or Gilgit-Baltistan. Standard rates only: reduced rates, exemptions, the Third Schedule and further tax are not covered.
+
+### calculateSalesTax()
+
+```ts
+function calculateSalesTax(
+  amount: number,
+  options: { rate?: number; province?: string; kind?: 'goods' | 'services'; date?: string | Date; inclusive?: boolean },
+): SalesTaxAmounts | null; // { net, tax, gross, rate }
+```
+
+**Returns** the net amount, tax and gross amount in whole paisa. With `inclusive: true`, `amount` already includes tax and is split.
+
+### splitInclusive()
+
+```ts
+function splitInclusive(gross: number, rate: number): SalesTaxAmounts | null;
+```
+
+**Returns** the net and tax parts of a tax-inclusive amount at a given rate.
+
+**Related:** the [sales tax calculator](/tools/sales-tax/), [FBR digital invoicing](/api/typescript/fbr-invoice/).

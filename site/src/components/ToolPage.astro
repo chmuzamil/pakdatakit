@@ -1,0 +1,32 @@
+---
+/** Layout for a /tools/ page: Starlight chrome plus WebApplication structured data. */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { SITE } from '../../site.config.mjs';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Short name for structured data, e.g. "CNIC format checker". */
+  appName: string;
+  path: string;
+}
+
+const { title, description, appName, path } = Astro.props;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: appName,
+  url: new URL(path, SITE).href,
+  description,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Any (runs in the browser)',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'PKR' },
+  publisher: { '@type': 'Organization', name: 'PakDataKit', url: SITE },
+};
+---
+
+<StarlightPage frontmatter={{ title, description, tableOfContents: false }}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+  <slot />
+</StarlightPage>

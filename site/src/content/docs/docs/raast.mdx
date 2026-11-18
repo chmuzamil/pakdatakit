@@ -1,0 +1,61 @@
+---
+title: Raast QR
+description: Create, read and check Raast payment QR codes following the State Bank of Pakistan's QR standard.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import LangTabs from '../../../components/LangTabs.astro';
+import RaastWidget from '../../../components/widgets/RaastWidget.tsx';
+
+`import { createRaastP2PQr, createMerchantQr, parseRaastQr, validateRaastQr } from 'pakdatakit/raast'`
+
+Builds and reads payment QR payloads following the State Bank of Pakistan's QR standard (Circular Letter No. 1 of 2022). Turn the returned string into an image with any QR library.
+
+<RaastWidget client:visible />
+
+<LinkCard
+  title="Generate a printable Raast QR → raast-qr.com"
+  description="For a QR to print or share, with your bank's name and a download."
+  href="https://raast-qr.com/"
+/>
+
+## Example
+
+<LangTabs module="raast" />
+
+## Reference
+
+### createRaastP2PQr()
+
+```ts
+function createRaastP2PQr(options: {
+  iban: string;
+  amount?: number;
+  expiresAt?: Date;
+  expiresIn?: string | number; // e.g. '1d', '2h', or milliseconds
+  bankName?: string;
+  particulars?: string;
+}): string;
+```
+
+**Returns** the QR payload text.
+
+**Caveats.** Person-to-person QR codes use scheme `00`: banking apps reject the `30` in SBP's document. A QR with an amount needs `expiresAt` or `expiresIn`. Test-scan with your bank's app before using a QR for payments.
+
+### parseRaastQr()
+
+```ts
+function parseRaastQr(payload: string): ParsedRaastQr | null;
+```
+
+**Returns** the decoded fields (IBAN, bank, amount, expiry), or `null` when the text is not a Raast QR.
+
+### validateRaastQr()
+
+```ts
+function validateRaastQr(payload: string, now?: Date): RaastQrValidation;
+```
+
+**Returns** whether a scanned QR is safe to pay: the CRC, IBAN checksum, amount and expiry, with readable problems.
+
+**Related:** [IBAN and banks](/docs/iban/), [`createMerchantQr()`](/api/typescript/raast/functions/createmerchantqr/).

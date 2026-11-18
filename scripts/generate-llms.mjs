@@ -3,14 +3,29 @@
  * so AI coding assistants can learn the library.
  *
  * Run after `npm run build` and `typedoc`: node scripts/generate-llms.mjs
+ *
+ * Options (for pakdatakit.dev, see site/scripts/generate.mjs):
+ *   --out <dir>    where to write (default docs-site/)
+ *   --site <url>   base URL of the site (default the GitHub Pages docs)
+ *   --api <url>    base URL of the TypeDoc reference (default --site)
+ *   --pages        also list the site's guide pages (pakdatakit.dev only)
  */
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const out = join(root, 'docs-site');
-const site = 'https://chmuzamil.github.io/pakdatakit';
+const arg = (name) => {
+  const i = process.argv.indexOf(`--${name}`);
+  return i > 0 ? process.argv[i + 1] : undefined;
+};
+const out = arg('out') ?? join(root, 'docs-site');
+const site = (arg('site') ?? 'https://chmuzamil.github.io/pakdatakit').replace(
+  /\/$/,
+  '',
+);
+const api = (arg('api') ?? site).replace(/\/$/, '');
+const sitePages = process.argv.includes('--pages');
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const { dataVersion } = await import('../dist/index.js');
 
@@ -170,18 +185,25 @@ Key facts an assistant should know:
 
 ## Modules
 
-${MODULES.map(([subpath, page, text]) => `- [pakdatakit/${subpath}](${site}/modules/${page}.html): ${text}`).join('\n')}
+${MODULES.map(([subpath, page, text]) => `- [pakdatakit/${subpath}](${api}/modules/${page}.html): ${text}`).join('\n')}
 
 ## Guides
 
-- [README](${site}/index.html): overview and examples for every function
-- [Data sources](${site}/documents/DATA.html): where each dataset comes from and how sure we are
-- [Changelog](${site}/documents/CHANGELOG.html)
+${
+  sitePages
+    ? `- [Install](${site}/install/typescript/): every language (TypeScript, Python, Dart, Flutter, .NET, PHP, React, Vue, Angular)
+- [Module guides](${site}/docs/cnic/): CNIC, phone, IBAN, Raast QR, sales tax, income tax and postal, with examples in all five languages
+- [Data sources](${site}/data/): where each dataset comes from, with counts and dates
+- [Releases](${site}/releases/): every version of every package`
+    : `- [README](${api}/index.html): overview and examples for every function
+- [Data sources](${api}/documents/DATA.html): where each dataset comes from and how sure we are
+- [Changelog](${api}/documents/CHANGELOG.html)`
+}
 
 ## Optional
 
 - [Full text for LLMs](${site}/llms-full.txt): README, data sources and every type signature in one file
-- [Playground](https://pakdatakit-playground.vercel.app/): try the functions in a browser
+- [Playground](${sitePages ? `${site}/playground/` : 'https://pakdatakit-playground.vercel.app/'}): try the functions in a browser
 - [Source code](https://github.com/chmuzamil/pakdatakit)
 `;
 

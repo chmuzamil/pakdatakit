@@ -1,0 +1,45 @@
+/* Tailwind utilities for the playground tools only (no preflight: Starlight
+   styles the page). The old playground's colour names map onto the site's
+   light and dark tokens. */
+@layer base, starlight, theme, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@source '../components/playground';
+
+@theme inline {
+  --color-surface: var(--sl-color-black);
+  --color-surface-raised: var(--pdk-surface);
+  --color-surface-overlay: var(--sl-color-gray-6);
+  --color-border: var(--sl-color-gray-5);
+  --color-border-strong: var(--sl-color-gray-4);
+  --color-border-muted: var(--sl-color-gray-6);
+  --color-text: var(--sl-color-gray-1);
+  --color-text-muted: var(--sl-color-gray-3);
+  --color-text-heading: var(--sl-color-white);
+  --color-accent: var(--sl-color-accent);
+  --color-accent-muted: var(--sl-color-accent-low);
+  --color-success: var(--pdk-valid);
+  --color-success-muted: color-mix(in srgb, var(--pdk-valid) 18%, transparent);
+  --color-error: var(--pdk-invalid);
+  --color-error-muted: color-mix(in srgb, var(--pdk-invalid) 18%, transparent);
+  --color-code: var(--sl-color-gray-6);
+  --color-brand: var(--sl-color-accent);
+  --font-mono: var(--sl-font-mono);
+}
+
+.pdk-pg :where(input, textarea, select, button) {
+  font: inherit;
+}
+/* No preflight: drop the browser's grey button face so text keeps its contrast. */
+.pdk-pg :where(button) {
+  background-color: transparent;
+  color: inherit;
+}
+.pdk-pg :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+.pdk-pg pre {
+  margin: 0;
+}

@@ -1,0 +1,129 @@
+#!/bin/bash
+# pdk-deploy: the only command the pakdatakit.dev deploy key can run
+# (authorized_keys: restrict,command="/usr/local/bin/pdk-deploy").
+#
+# Commands, taken from SSH_ORIGINAL_COMMAND:
+#   rsync --server ...   upload a build into incoming/<id>/ (via rrsync, write-only)
+#   activate <id>        move incoming/<id> to releases/<id>, switch current to it,
+#                        health-check it, and switch back automatically on failure
+#   rollback             switch current to the previous release (health-checked)
+#   status               print the current release and the ones kept
+#
+# <id> is YYYYMMDD-HHMMSS-<git sha>. The last 5 releases are kept.
+set -euo pipefail
+umask 022
+
+BASE=/var/www/pakdatakit.dev
+INCOMING=$BASE/incoming
+RELEASES=$BASE/releases
+FAILED=$BASE/failed   # releases that failed activation; never a rollback target
+CURRENT=$BASE/current
+KEEP=5
+HOST=pakdatakit.dev
+LOG=/var/log/pdk-deploy.log
+ID_RE='^[0-9]{8}-[0-9]{6}-[0-9a-f]{7,40}$'
+
+log() { echo "$(date -u +%FT%TZ) $*" | tee -a "$LOG" >&2; }
+die() { log "error: $*"; exit 1; }
+
+# Release ids, newest first (empty when there are none).
+list_releases() { ls -1 "$RELEASES" | grep -E "$ID_RE" | sort -r || true; }
+
+current_id() { [ -L "$CURRENT" ] && basename "$(readlink "$CURRENT")" || true; }
+
+switch_to() { # atomic: a new symlink renamed over the old one
+  ln -sfn "$RELEASES/$1" "$BASE/.current.tmp"
+  mv -T "$BASE/.current.tmp" "$CURRENT"
+}
+
+# Ask Nginx (on this machine) for the site and check it serves release $1.
+health() {
+  local id=$1 url body
+  # HTTPS once the site has a certificate (this account can't read
+  # /etc/letsencrypt, so try it); plain HTTP only before that.
+  if curl -s -o /dev/null --max-time 10 --resolve "$HOST:443:127.0.0.1" "https://$HOST/"; then
+    url="https://$HOST"; set -- --resolve "$HOST:443:127.0.0.1"
+  else
+    url="http://$HOST"; set -- --resolve "$HOST:80:127.0.0.1"
+  fi
+  # The home page, plus each main section the release has (so an older
+  # release without them can still be a rollback target), must return 200;
+  # a missing page must return 404.
+  local path code
+  for path in / /docs/ /playground/ /api/typescript/; do
+    [ "$path" = / ] || [ -f "$RELEASES/$id${path}index.html" ] || continue
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$@" "$url$path") || code=000
+    if [ "$code" != 200 ]; then log "health: $path returned $code"; return 1; fi
+  done
+  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$@" "$url/404-check-does-not-exist") || code=000
+  if [ "$code" != 404 ]; then log "health: a missing page returned $code, expected 404"; return 1; fi
+  body=$(curl -s --max-time 10 "$@" "$url/healthz.json") || { log "health: healthz.json unreachable"; return 1; }
+  case "$body" in
+    *"\"release\":\"$id\""*) return 0 ;;
+    *) log "health: healthz.json does not report release $id"; return 1 ;;
+  esac
+}
+
+prune() {
+  local keep_current; keep_current=$(current_id)
+  list_releases | tail -n +$((KEEP + 1)) | while read -r old; do
+    [ "$old" = "$keep_current" ] && continue
+    rm -rf -- "${RELEASES:?}/$old"; log "pruned $old"
+  done
+  # Failed releases: keep the newest 3 for inspection.
+  [ -d "$FAILED" ] && ls -1 "$FAILED" | sort -r | tail -n +4 | while read -r f; do rm -rf -- "${FAILED:?}/$f"; done
+  # Uploads that were never activated, older than a day.
+  find "$INCOMING" -mindepth 1 -maxdepth 1 -type d -mtime +0 -exec rm -rf -- {} + 2>/dev/null || true
+}
+
+cmd=${SSH_ORIGINAL_COMMAND:-}
+case "$cmd" in
+  "rsync --server"*)
+    # Write-only into incoming/; rrsync rejects anything outside it.
+    exec /usr/bin/rrsync -wo "$INCOMING"
+    ;;
+  "activate "*)
+    id=${cmd#activate }
+    [[ $id =~ $ID_RE ]] || die "bad release id: $id"
+    [ -d "$INCOMING/$id" ] || die "no upload for $id"
+    [ -e "$RELEASES/$id" ] && die "release $id already exists"
+    for f in index.html 404.html healthz.json docs/index.html playground/index.html api/typescript/index.html; do
+      [ -f "$INCOMING/$id/$f" ] || die "upload $id has no $f"
+    done
+    mv -T "$INCOMING/$id" "$RELEASES/$id"
+    chmod -R u=rwX,go=rX "$RELEASES/$id"
+    previous=$(current_id)
+    switch_to "$id"
+    if health "$id"; then
+      log "activated $id (previous: ${previous:-none})"
+      prune
+      echo "activated $id"
+    else
+      if [ -n "$previous" ] && [ -d "$RELEASES/$previous" ]; then
+        switch_to "$previous"
+        mkdir -p "$FAILED" && mv -T "$RELEASES/$id" "$FAILED/$id"
+        log "health check failed for $id; rolled back to $previous (kept in failed/)"
+      else
+        log "health check failed for $id; no previous release to roll back to"
+      fi
+      exit 2
+    fi
+    ;;
+  rollback)
+    now=$(current_id)
+    target=$(list_releases | awk -v c="$now" 'f{print; exit} $0==c{f=1}')
+    [ -n "$target" ] || die "no release before ${now:-none}"
+    switch_to "$target"
+    if health "$target"; then log "rolled back $now -> $target"; echo "rolled back to $target"
+    else switch_to "$now"; die "rollback target $target failed its health check; stayed on $now"; fi
+    ;;
+  status)
+    echo "current: $(current_id)"
+    list_releases
+    ;;
+  *)
+    log "rejected command: ${cmd:-<none>}"
+    echo "pdk-deploy: commands are rsync upload, activate <id>, rollback, status" >&2
+    exit 1
+    ;;
+esac

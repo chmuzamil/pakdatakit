@@ -1,0 +1,64 @@
+---
+title: IBAN and banks
+description: Validate Pakistani IBANs with the mod-97 checksum and look up the bank, its type and status from the bank code.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import IbanWidget from '../../../components/widgets/IbanWidget.tsx';
+
+`import { validateIBAN, getBankFromIBAN, getBankInfo } from 'pakdatakit/iban'`
+
+A Pakistani IBAN is 24 characters: `PK`, two check digits, a four-letter bank code and a 16-digit account number. These functions check the format and checksum and name the bank.
+
+<IbanWidget client:visible />
+
+:::caution[A valid IBAN is not a verified account]
+The checksum catches typos. It does not confirm the account exists or who owns it; only the bank (or a payment through it) can.
+:::
+
+## Examples
+
+<LangTabs module="iban" />
+
+## Reference
+
+### validateIBAN()
+
+```ts
+function validateIBAN(iban: string): boolean;
+```
+
+**Parameters.** `iban`: with or without spaces, any case.
+
+**Returns** `true` when the IBAN is a Pakistani IBAN of the right length and its ISO 13616 mod-97 checksum is correct.
+
+**Related:** [`getBankFromIBAN()`](#getbankfromiban), the [IBAN checker](/tools/iban/).
+
+### getBankFromIBAN()
+
+```ts
+function getBankFromIBAN(iban: string): string | null;
+```
+
+**Returns** the bank's name for a valid IBAN, or `null` when the IBAN is invalid or the bank code is unknown.
+
+### getBankInfo()
+
+```ts
+function getBankInfo(ibanOrCode: string): BankInfo | null;
+
+interface BankInfo {
+  code: string; // e.g. MEZN
+  name: string;
+  type: string; // 'commercial' | 'islamic' | 'microfinance' | 'digital' | 'emi' | ...
+  active: boolean;
+  mergedInto: string | null;
+  aliasOf: string | null;
+}
+```
+
+**Parameters.** `ibanOrCode`: an IBAN or a four-letter bank code.
+
+**Returns** the bank's details, including whether it still operates and what it merged into.
+
+**Caveats.** Bank codes are checked against real IBANs and the State Bank of Pakistan's lists; see [data sources](/data/).

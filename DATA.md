@@ -392,6 +392,7 @@ Tax year 2027 has three sources, all retrieved 2026-11-18:
      tax year 2027.
    - Section 5(2)(b) replaces the 9% salaried surcharge in the proviso to
      section 4AB with "no surcharge shall be payable".
+   - This is the URL in the dataset's `source` field for 2027.
 2. **FBR's explanation: Circular No. 02 of 2026-27 (Income Tax)**, C. No.
    1(50)S(ITP)/2026, 8 September 2026
    (https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf).
@@ -404,7 +405,7 @@ Tax year 2027 has three sources, all retrieved 2026-11-18:
 3. **FBR's consolidated Ordinance**
    (https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf).
    It prints the same table, with a footnote quoting the 2026 table it
-   replaced. This is the URL in the dataset's `source` field.
+   replaced.
 
 How sure we are, and what is left out:
 

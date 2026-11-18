@@ -452,7 +452,7 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
     'law':
         'Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2), as substituted by the Finance Act 2026',
     'source':
-        'https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf',
+        'https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf',
     'slabs': <Object?>[
       <String, Object?>{
         'over': 0,

@@ -133,7 +133,7 @@ return [
         'from' => '2026-07-01',
         'to' => '2027-06-30',
         'law' => 'Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2), as substituted by the Finance Act 2026',
-        'source' => 'https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf',
+        'source' => 'https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf',
         'slabs' => [
             ['over' => 0, 'upTo' => 600000, 'fixed' => 0, 'rate' => 0],
             ['over' => 600000, 'upTo' => 1200000, 'fixed' => 0, 'rate' => 1],

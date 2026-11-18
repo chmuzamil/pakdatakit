@@ -17,6 +17,9 @@
   for tax years 2020 to 2027 from FBR's consolidated Income Tax Ordinance.
   Returns the tax, the monthly amount, the effective rate and the slab, rounded
   half up to the paisa. Surcharge, credits and exemptions are not applied.
+  The `source` for tax year 2027 is the Finance Act, 2026 as gazetted; FBR
+  Circular No. 02 of 2026-27 and the consolidated Ordinance are cited in
+  DATA.md.
 
 ## 2.4.0 (unreleased)
 

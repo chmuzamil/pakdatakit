@@ -46,6 +46,13 @@ export {
   normalizeRomanUrdu,
   toUrduDigits,
   toEnglishDigits,
+  slugify,
+  compareUrdu,
+  isRTL,
+  wrapBidi,
+  type SlugScript,
+  type SlugifyOptions,
+  type BidiDirection,
 } from './text.js';
 export {
   toHijri,
@@ -166,4 +173,15 @@ export {
   type FbrInvoiceType,
   type FbrRegistrationType,
 } from './fbr-invoice.js';
+export {
+  getSalaryTaxSlabs,
+  getSalaryTaxYears,
+  getTaxYear,
+  calculateSalaryTax,
+  calculateMonthlySalaryTax,
+  type SalaryTax,
+  type SalaryTaxOptions,
+  type SalaryTaxSlab,
+  type SalaryTaxYear,
+} from './incometax.js';
 export { dataVersion } from './data-version.js';

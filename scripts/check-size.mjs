@@ -27,6 +27,7 @@ const DATASETS = {
   divisions: 'Mekran',
   'area codes': 'Naushero Feroze',
   'sales tax rates': 'authority:"',
+  'income tax slabs': '2026724177725705IncomeTaxOrdinanace',
 };
 
 const CASES = [
@@ -83,6 +84,18 @@ const CASES = [
     code: "import { calculateSalesTax } from 'pakdatakit/salestax'; console.log(calculateSalesTax(1000, { rate: 18 }));",
     limit: 4 * 1024,
     allowed: ['sales tax rates'],
+  },
+  {
+    name: "calculateSalaryTax from 'pakdatakit/incometax'",
+    code: "import { calculateSalaryTax } from 'pakdatakit/incometax'; console.log(calculateSalaryTax(1800000, { taxYear: 2026 }));",
+    limit: 4 * 1024,
+    allowed: ['income tax slabs'],
+  },
+  {
+    name: "compareUrdu, slugify, isRTL, wrapBidi from 'pakdatakit/text'",
+    code: "import { compareUrdu, slugify, isRTL, wrapBidi } from 'pakdatakit/text'; console.log(['b', 'a'].sort(compareUrdu), slugify('a b'), isRTL('a'), wrapBidi('a'));",
+    limit: 4 * 1024,
+    allowed: [],
   },
   {
     name: "validateElectricityRef from 'pakdatakit/bills'",

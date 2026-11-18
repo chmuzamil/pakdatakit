@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.0 (unreleased)
+
+### Added
+
+- Urdu text helpers in `pakdatakit.text`: `slugify` (URL slugs that keep Urdu letters, with `script="any" | "latin" | "urdu"`), `compare_urdu` (Urdu alphabetical order from CLDR 49, for `functools.cmp_to_key`), `is_rtl` and `wrap_bidi` (Unicode directional isolates), with the `SlugScript` and `BidiDirection` types.
+- Income tax on salary (`pakdatakit.incometax`): `calculate_salary_tax`, `calculate_monthly_salary_tax`, `get_salary_tax_slabs`, `get_salary_tax_years` and `get_tax_year`, with the `SalaryTax`, `SalaryTaxSlab` and `SalaryTaxYear` dataclasses, from the salaried rate table of the Income Tax Ordinance 2001 for tax years 2020 to 2027 (new dataset `income-tax-slabs.json`).
+
 ## 2.4.0 (unreleased)
 
 ### Added
@@ -27,7 +34,8 @@ formatted, urban_rural, disco)`. `validate_gas_consumer_number()` checks an
   statuses couriers document publicly (PostEx's merchant API guide and
   Leopards' "Returned to Shipper"). `normalize_city_for_courier()`: maps short
   forms (`LHR`, `Khi`, `Pindi`), the old name Lyallpur, a trailing "city" and
-  Urdu-script names to the city list.
+  Urdu-script names to the city list. The status mapping is experimental and
+  may change in a minor release as more couriers' lists are added.
 - `build_fbr_invoice()` / `validate_fbr_invoice()` / `expected_sales_tax()`:
   FBR Digital Invoicing, following PRAL's DI API specification v1.12
   (`FBR_DI_SPEC_VERSION`). The builder works out each line's sales tax

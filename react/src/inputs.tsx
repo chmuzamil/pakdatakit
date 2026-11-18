@@ -75,10 +75,13 @@ function createInput<Info>(
  * @example
  * <CNICInput onValueChange={(value, state, info) => console.log(state, info?.province)} />
  */
-export const CNICInput = createInput(useCNICInput, 'CNICInput');
+export const CNICInput = /* @__PURE__ */ createInput(useCNICInput, 'CNICInput');
 
 /** Pakistani mobile number input that formats as `0300-1234567` or `+92 300 1234567`. */
-export const PhoneInput = createInput(usePhoneInput, 'PhoneInput');
+export const PhoneInput = /* @__PURE__ */ createInput(
+  usePhoneInput,
+  'PhoneInput',
+);
 
 /** Pakistani IBAN input that formats as `PK36 SCBL 0000 0011 2345 6702`. */
-export const IBANInput = createInput(useIBANInput, 'IBANInput');
+export const IBANInput = /* @__PURE__ */ createInput(useIBANInput, 'IBANInput');

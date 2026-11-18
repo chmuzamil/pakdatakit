@@ -9,7 +9,7 @@ port replays them and fails on any difference.
 
 <!-- vectors:count -->
 
-25,116 vectors in 25 files:
+32,388 vectors in 26 files:
 
 - `address.json`: 870
 - `bills.json`: 354
@@ -22,6 +22,7 @@ port replays them and fails on any difference.
 - `hijri.json`: 2,222
 - `holidays.json`: 214
 - `iban.json`: 514
+- `incometax.json`: 1,181
 - `input.json`: 1,302
 - `networks.json`: 242
 - `numbers.json`: 1,380
@@ -32,7 +33,7 @@ port replays them and fails on any difference.
 - `raast.json`: 1,369
 - `salestax.json`: 1,986
 - `tax.json`: 90
-- `text.json`: 188
+- `text.json`: 6,279
 - `vehicle.json`: 90
 - `whatsapp.json`: 45
 - `words.json`: 478

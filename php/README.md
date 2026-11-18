@@ -68,40 +68,44 @@ package; call `->toArray()` for an array.
 
 ### API map
 
-| npm                                                    | PHP                                                                        |
-| ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `validateCNIC`, `getCNICInfo`                          | `Cnic::validate`, `Cnic::getInfo`                                          |
-| `validatePhone`, `formatPhone`, `analyzePhone`         | `Phone::validate`, `Phone::format`, `Phone::analyze`                       |
-| `getNetwork`                                           | `Networks::getNetwork`                                                     |
-| `analyzeNumber`, `validateLandline`, `getAreaCode`     | `Numbers::analyze`, `Numbers::validateLandline`, `Numbers::getAreaCode`    |
-| `validateIBAN`, `getBankFromIBAN`, `getBankInfo`       | `Iban::validate`, `Iban::getBank`, `Iban::getBankInfo`, `Iban::getBanks`   |
-| `analyzeNTN`, `validateNTN`, `validateSTRN`            | `Tax::analyzeNtn`, `Tax::validateNtn`, `Tax::validateStrn`                 |
-| `validatePassport`                                     | `Passport::validate`                                                       |
-| `parseVehiclePlate`, `validateVehiclePlate`            | `VehiclePlate::parse`, `VehiclePlate::validate`                            |
-| `parseElectricityRef`, `validateElectricityRef`        | `Bills::parseElectricityRef`, `Bills::validateElectricityRef`              |
-| `validateGasConsumerNumber`                            | `Bills::validateGasConsumerNumber`                                         |
-| `getCityByPostalCode`, `getPostalCode`, …              | `Postal::getCity`, `Postal::getCode`, `Postal::getCodes`, `Postal::search` |
-| `getPostOffice`, `searchPostOffices`                   | `Postal::getPostOffice`, `Postal::searchPostOffices`                       |
-| `getProvince`, `searchCities`, `searchDistricts`, …    | `Geo::getProvince`, `Geo::searchCities`, `Geo::searchDistricts`, …         |
-| `getDivisions`, `getDivisionOfDistrict`                | `Geo::getDivisions`, `Geo::getDivisionOfDistrict`                          |
-| `getTehsils`, `getTehsilDistrict`                      | `Geo::getTehsils`, `Geo::getTehsilDistrict`                                |
-| `createWhatsAppLink`                                   | `WhatsApp::createLink`                                                     |
-| `formatPKR`, `formatLakh`                              | `Currency::formatPkr`, `Currency::formatLakh`                              |
-| `numberToWords`, `amountInWords`                       | `Words::numberToWords`, `Words::amountInWords`                             |
-| `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text::normalize`, `Text::normalizeRomanUrdu`, `Text::toUrduDigits`        |
-| `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri::toHijri`, `Hijri::fromHijri`, `Hijri::format`, `Hijri::isRamadan`  |
-| `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays::getHolidays`, `Holidays::getHolidaysOn`, `Holidays::isHoliday`  |
-| `parseAddress`, `formatAddress`                        | `Address::parse`, `Address::format`                                        |
-| `scoreAddress`, `phoneRiskSignals`, `ADDRESS_WEIGHTS`  | `Quality::scoreAddress`, `Quality::phoneRiskSignals`, …                    |
-| `formatCNICInput`, `checkCNICInput`, …                 | `Input::formatCnic`, `Input::checkCnic`, `Input::formatPhone`, …           |
-| `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr::createP2P`, `RaastQr::createMerchant`, `RaastQr::parse`          |
-| `validateRaastQr`                                      | `RaastQr::validate`                                                        |
-| `getSalesTaxRate`, `calculateSalesTax`                 | `SalesTax::getRate`, `SalesTax::calculate`                                 |
-| `splitInclusive`                                       | `SalesTax::splitInclusive`                                                 |
-| `buildFbrInvoice`, `validateFbrInvoice`                | `FbrInvoice::build`, `FbrInvoice::validate`                                |
-| `expectedSalesTax`, `FBR_DI_SPEC_VERSION`              | `FbrInvoice::expectedSalesTax`, `FbrInvoice::SPEC_VERSION`                 |
-| `mapCourierStatus`, `normalizeCityForCourier`          | `Courier::mapStatus`, `Courier::normalizeCity`                             |
-| `dataVersion`                                          | `PakData::version()`                                                       |
+| npm                                                    | PHP                                                                               |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `validateCNIC`, `getCNICInfo`                          | `Cnic::validate`, `Cnic::getInfo`                                                 |
+| `validatePhone`, `formatPhone`, `analyzePhone`         | `Phone::validate`, `Phone::format`, `Phone::analyze`                              |
+| `getNetwork`                                           | `Networks::getNetwork`                                                            |
+| `analyzeNumber`, `validateLandline`, `getAreaCode`     | `Numbers::analyze`, `Numbers::validateLandline`, `Numbers::getAreaCode`           |
+| `validateIBAN`, `getBankFromIBAN`, `getBankInfo`       | `Iban::validate`, `Iban::getBank`, `Iban::getBankInfo`, `Iban::getBanks`          |
+| `analyzeNTN`, `validateNTN`, `validateSTRN`            | `Tax::analyzeNtn`, `Tax::validateNtn`, `Tax::validateStrn`                        |
+| `validatePassport`                                     | `Passport::validate`                                                              |
+| `parseVehiclePlate`, `validateVehiclePlate`            | `VehiclePlate::parse`, `VehiclePlate::validate`                                   |
+| `parseElectricityRef`, `validateElectricityRef`        | `Bills::parseElectricityRef`, `Bills::validateElectricityRef`                     |
+| `validateGasConsumerNumber`                            | `Bills::validateGasConsumerNumber`                                                |
+| `getCityByPostalCode`, `getPostalCode`, …              | `Postal::getCity`, `Postal::getCode`, `Postal::getCodes`, `Postal::search`        |
+| `getPostOffice`, `searchPostOffices`                   | `Postal::getPostOffice`, `Postal::searchPostOffices`                              |
+| `getProvince`, `searchCities`, `searchDistricts`, …    | `Geo::getProvince`, `Geo::searchCities`, `Geo::searchDistricts`, …                |
+| `getDivisions`, `getDivisionOfDistrict`                | `Geo::getDivisions`, `Geo::getDivisionOfDistrict`                                 |
+| `getTehsils`, `getTehsilDistrict`                      | `Geo::getTehsils`, `Geo::getTehsilDistrict`                                       |
+| `createWhatsAppLink`                                   | `WhatsApp::createLink`                                                            |
+| `formatPKR`, `formatLakh`                              | `Currency::formatPkr`, `Currency::formatLakh`                                     |
+| `numberToWords`, `amountInWords`                       | `Words::numberToWords`, `Words::amountInWords`                                    |
+| `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text::normalize`, `Text::normalizeRomanUrdu`, `Text::toUrduDigits`               |
+| `slugify`, `compareUrdu`                               | `Text::slugify`, `Text::compareUrdu`                                              |
+| `isRTL`, `wrapBidi`                                    | `Text::isRtl`, `Text::wrapBidi`                                                   |
+| `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri::toHijri`, `Hijri::fromHijri`, `Hijri::format`, `Hijri::isRamadan`         |
+| `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays::getHolidays`, `Holidays::getHolidaysOn`, `Holidays::isHoliday`         |
+| `parseAddress`, `formatAddress`                        | `Address::parse`, `Address::format`                                               |
+| `scoreAddress`, `phoneRiskSignals`, `ADDRESS_WEIGHTS`  | `Quality::scoreAddress`, `Quality::phoneRiskSignals`, …                           |
+| `formatCNICInput`, `checkCNICInput`, …                 | `Input::formatCnic`, `Input::checkCnic`, `Input::formatPhone`, …                  |
+| `createRaastP2PQr`, `createMerchantQr`, `parseRaastQr` | `RaastQr::createP2P`, `RaastQr::createMerchant`, `RaastQr::parse`                 |
+| `validateRaastQr`                                      | `RaastQr::validate`                                                               |
+| `getSalesTaxRate`, `calculateSalesTax`                 | `SalesTax::getRate`, `SalesTax::calculate`                                        |
+| `splitInclusive`                                       | `SalesTax::splitInclusive`                                                        |
+| `calculateSalaryTax`, `calculateMonthlySalaryTax`      | `IncomeTax::calculateSalary`, `IncomeTax::calculateMonthlySalary`                 |
+| `getSalaryTaxSlabs`, `getSalaryTaxYears`, `getTaxYear` | `IncomeTax::getSalarySlabs`, `IncomeTax::getSalaryYears`, `IncomeTax::getTaxYear` |
+| `buildFbrInvoice`, `validateFbrInvoice`                | `FbrInvoice::build`, `FbrInvoice::validate`                                       |
+| `expectedSalesTax`, `FBR_DI_SPEC_VERSION`              | `FbrInvoice::expectedSalesTax`, `FbrInvoice::SPEC_VERSION`                        |
+| `mapCourierStatus`, `normalizeCityForCourier`          | `Courier::mapStatus`, `Courier::normalizeCity`                                    |
+| `dataVersion`                                          | `PakData::version()`                                                              |
 
 Divisions and tehsils come from the 2023 census (30 divisions, 591 tehsils).
 Each tehsil is recorded under the district it was in at the census, so
@@ -177,6 +181,42 @@ part uses at most two digits), `sequential-digits` (`1234567`, `7654321` …) an
 `test-number` (`03XX-1234567`, `03XX-7654321`, `0312-3456789`). The
 `pk_cod_phone` Laravel rule passes only when there are no flags.
 
+### Urdu text: slugs, sorting and direction
+
+```php
+use PakDataKit\Text;
+
+Text::slugify('Lahore Fort, 2024');                             // 'lahore-fort-2024'
+Text::slugify('لاہور قلعہ');                                    // 'لاہور-قلعہ'
+Text::slugify('لاہور Fort', ['script' => Text::SCRIPT_LATIN]);  // 'fort'
+Text::slugify('کراچی ۲۰۲۴', ['script' => Text::SCRIPT_URDU]);   // 'کراچی-2024'
+
+$words = ['ے', 'بھائی', 'آم', 'باغ', 'اب'];
+usort($words, Text::compareUrdu(...));                          // ['اب', 'آم', 'باغ', 'بھائی', 'ے']
+
+Text::isRtl('123 سلام');                                        // true
+Text::isRtl('Order نمبر');                                      // false
+'آرڈر ' . Text::wrapBidi('PDK-1042') . ' بھیج دیا گیا';
+```
+
+`Text::slugify()` keeps Urdu letters as they are (Urdu does not write short
+vowels, so there is no single Roman spelling), drops diacritics, tatweel and
+zero-width characters, turns ك ي ى into ک ی ی and Urdu digits into `0-9`, and
+folds accented Latin-1 letters (`é` to `e`, `ß` to `ss`). `script` is `any`
+(the default), `latin` or `urdu` (`Text::SCRIPT_*`).
+
+`Text::compareUrdu()` sorts in the Unicode CLDR order for Urdu (CLDR 49):
+ا آ ب بھ پ پھ ت تھ ٹ … ی یھ ے, where a letter joined with ھ is a letter of its
+own. Punctuation comes first, then digits (one at a time, so `10` before `2`),
+then Urdu letters, then other Arabic-script characters (the look-alikes ك ي ه)
+and other scripts. It needs neither intl nor ICU, so the order is the same as
+in the npm package and the other ports.
+
+`Text::isRtl()` is true when the first letter is from a right-to-left script.
+`Text::wrapBidi()` wraps text in Unicode directional isolates (FSI … PDI, or
+RLI/LRI with `Text::BIDI_RTL` / `Text::BIDI_LTR`). All four take any value:
+anything that is not a string gives `''`, `false` or is sorted as `''`.
+
 ### Sales tax
 
 Standard sales tax rates with the dates they applied, from 1 July 2019:
@@ -216,6 +256,36 @@ inclusive amount the value is rounded and the tax is the rest, so `net + tax`
 always equals `gross`. Amounts from 0 to one trillion rupees and rates from 0
 to 100 with at most two decimals are accepted; anything else, including a
 string or boolean, returns `null`, never an exception.
+
+### Income tax on salary
+
+Income tax on a salaried individual's taxable income, from the salaried rate
+table in the Income Tax Ordinance 2001 (First Schedule, Part I, Division I,
+clause (2), which applies when salary is more than 75% of taxable income).
+Tax years 2020 to 2027 are covered; a tax year runs from 1 July to 30 June and
+is named after the June it ends in.
+
+```php
+use PakDataKit\IncomeTax;
+
+IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026]);
+// SalaryTax { tax: 72000.0, monthly: 6000.0, effectiveRate: 4.0,
+//   slab: SalaryTaxSlab { over: 1200000, upTo: 2200000, fixed: 6000, rate: 11 }, taxYear: 2026 }
+
+IncomeTax::calculateMonthlySalary(150_000, ['taxYear' => 2026])?->monthly;  // 6000.0
+IncomeTax::getSalarySlabs(2027);       // SalaryTaxYear: the table, its law and FBR source
+IncomeTax::getSalaryYears();           // [2020, 2021, …, 2027]
+IncomeTax::getTaxYear('2025-07-01');   // 2026
+```
+
+Options are `taxYear` (an integer; it wins over `date`) and `date`
+(`YYYY-MM-DD` or a `DateTimeInterface`); without either, today's tax year is
+used. A year that is not covered, a non-integer `taxYear`, an invalid date, or
+an amount that is not a number from 0 to one trillion (strings and booleans
+included) returns `null`, never an exception. Tax is computed in whole paisa
+and rounded half up. Only the rate table is applied: the surcharge, tax
+credits, exemptions, the separate rate for pensions and withholding
+adjustments are not.
 
 ### FBR Digital Invoicing
 

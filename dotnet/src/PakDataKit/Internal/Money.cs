@@ -49,4 +49,14 @@ internal static class Money
         var quotient = Math.DivRem(numerator, denominator, out var remainder);
         return remainder * 2 >= denominator ? quotient + 1 : quotient;
     }
+
+    /// <summary>
+    /// <see cref="DivideHalfUp(long, long)"/> for a numerator that may not
+    /// fit in a <c>long</c> (the result must).
+    /// </summary>
+    internal static long DivideHalfUp(System.Numerics.BigInteger numerator, long denominator)
+    {
+        var quotient = System.Numerics.BigInteger.DivRem(numerator, denominator, out var remainder);
+        return (long)(remainder * 2 >= denominator ? quotient + 1 : quotient);
+    }
 }

@@ -359,6 +359,80 @@ How sure we are:
   single "standard rate": it is the rate on almost every line of the
   Schedule, which BRA's FAQ and FBR's circular call the standard rate.
 
+## Income tax on salary (`income-tax-slabs.json`)
+
+The salaried rate table for each tax year: Division I of Part I of the First
+Schedule to the Income Tax Ordinance 2001, clause (2), which applies where
+salary is more than 75% of taxable income. Edited directly. Each year was
+read from FBR's own consolidated Ordinance for that year, and checked against
+the next year's consolidation, whose footnote quotes the table it replaced.
+Every band's fixed amount equals the previous band's fixed amount plus its
+rate on its width (the tests check this). All documents retrieved 2026-11-18.
+
+| Tax year       | Law                                             | Source                                                                                                   |
+| -------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 2020 (2019-20) | Finance Act 2019                                | https://download1.fbr.gov.pk/Docs/20199191692232848IncomeTaxOrdinance,2001amendedupto30-06-2019.pdf      |
+| 2021 (2020-21) | Finance Act 2019, unchanged by Finance Act 2020 | https://download1.fbr.gov.pk/Docs/202011414113915861I.T.OrdinanceAmendedupto(30-06-2020).pdf             |
+| 2022 (2021-22) | Finance Act 2019, unchanged by Finance Act 2021 | https://download1.fbr.gov.pk/Docs/20217141672549772IncomeTaxOrdinanceAmendedupto30.06.2021.pdf           |
+| 2023 (2022-23) | Finance Act 2022                                | https://download1.fbr.gov.pk/Docs/202412215123222278IncomeTaxOrdinanceAmendedupto30.06.2022.pdf          |
+| 2024 (2023-24) | Finance Act 2023                                | https://download1.fbr.gov.pk/Docs/202412215122448762IncomeTaxOrdinance,2001Amendedupto30.06.2023.pdf     |
+| 2025 (2024-25) | Finance Act 2024                                | https://download1.fbr.gov.pk/Docs/2024751675120641IncomeTaxOrdinance,2001-amended-upto30.06.2024.pdf     |
+| 2026 (2025-26) | Finance Act 2025                                | https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf |
+| 2027 (2026-27) | Finance Act 2026                                | Finance Act 2026 (primary) and two further sources, listed below                                         |
+
+Tax year 2027 has three sources, all retrieved 2026-11-18:
+
+1. **Primary: the Finance Act, 2026**, Gazette of Pakistan (Extraordinary),
+   Part I, 26 June 2026
+   (https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf).
+   - Section 5(44)(a)(i) substitutes the table in clause (2) of Division I,
+     Part I, First Schedule (Gazette page 580). Its eight bands, fixed
+     amounts and rates match `income-tax-slabs.json` exactly.
+   - Section 1(2) brings the Act into force on 1 July 2026, the first day of
+     tax year 2027.
+   - Section 5(2)(b) replaces the 9% salaried surcharge in the proviso to
+     section 4AB with "no surcharge shall be payable".
+2. **FBR's explanation: Circular No. 02 of 2026-27 (Income Tax)**, C. No.
+   1(50)S(ITP)/2026, 8 September 2026
+   (https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf).
+   - Paragraph 7 restates the same table.
+   - Paragraph 8 confirms that the 9% surcharge on salaried individuals is
+     withdrawn, while the 10% surcharge on other individuals and associations
+     of persons continues.
+   - The circular does not name a tax year, which is why the commencement
+     comes from the Act.
+3. **FBR's consolidated Ordinance**
+   (https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf).
+   It prints the same table, with a footnote quoting the 2026 table it
+   replaced. This is the URL in the dataset's `source` field.
+
+How sure we are, and what is left out:
+
+- **Verified** from FBR's consolidated Ordinance for each year. For 2027 the
+  table was also checked against the Finance Act, 2026 as gazetted and FBR
+  Circular No. 02 of 2026-27. For earlier years the Finance Act texts
+  (Gazette) were not read; FBR's consolidations are the source.
+- **Not applied** (out of scope): the surcharge under section 4AB (from tax
+  year 2025: 10% of the tax over Rs 10 million of taxable income; 9% for
+  salaried individuals in 2026; none for salaried individuals in 2027), tax
+  credits, exemptions, the separate rate for pension from a former employer
+  (2026 onwards: 0% up to Rs 10 million, 5% above), and withholding
+  adjustments.
+- Tax is rounded half up to the paisa; the Ordinance's own rounding to whole
+  rupees is left to the caller.
+
+## Urdu alphabetical order (no dataset)
+
+`compareUrdu` follows the Unicode CLDR collation tailoring for Urdu
+(`common/collation/ur.xml`, "standard", CLDR release 49, unchanged since
+2015), https://github.com/unicode-org/cldr/blob/release-49/common/collation/ur.xml,
+retrieved 2026-11-18. Its own reference is the CRULP/PAN Localization paper
+"Urdu Encoding and Collation Sequence". The government's National Language
+Promotion Department (https://nlpd.gov.pk) does not publish a sort order
+online, so CLDR is the order cited. The implementation was checked against
+ICU's `ur` collator (Node.js, CLDR 48, identical rules) on 200,000 random
+pairs of Urdu words.
+
 ## Electricity and gas bill numbers
 
 No dataset: `parseElectricityRef` and `validateGasConsumerNumber` check the

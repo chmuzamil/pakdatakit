@@ -13,12 +13,27 @@ import 'package:test/test.dart';
 /// (e.g. `hijriOffset` for a year whose dates are all in the dataset): then
 /// the call must give the expected result without that option.
 class Unrepresentable implements Exception {
-  Unrepresentable(this.reason, [this.option]);
+  Unrepresentable(this.reason, [this.option])
+      : hasFallback = false,
+        fallback = null;
+
+  /// For input TypeScript documents a result for (e.g. `slugify(null)` is
+  /// `''`): the vector must expect [fallback], the result of the closest
+  /// call the Dart types allow.
+  Unrepresentable.withFallback(this.reason, this.fallback)
+      : option = null,
+        hasFallback = true;
 
   final String reason;
 
   /// The option (kwarg) holding the value, if it is one.
   final String? option;
+
+  /// Whether [fallback] is the expected result.
+  final bool hasFallback;
+
+  /// The result TypeScript gives for the rejected input.
+  final Object? fallback;
 
   @override
   String toString() => 'Unrepresentable: $reason';
@@ -179,6 +194,23 @@ SalesTaxKind? salesTaxKind(Object? value) => switch (value) {
       _ => throw Unrepresentable('$value is not a SalesTaxKind'),
     };
 
+SlugScript slugScript(Object? value) => switch (value) {
+      null || 'any' => SlugScript.any,
+      'latin' => SlugScript.latin,
+      'urdu' => SlugScript.urdu,
+      // TypeScript uses 'any' for an unknown script.
+      _ => throw Unrepresentable('$value is not a SlugScript', 'script'),
+    };
+
+/// A text argument of a function TypeScript documents as returning
+/// [fallback] (`''`, `false`) for a value that is not a string.
+String textOr(Object? value, Object? fallback) {
+  if (value is! String) {
+    throw Unrepresentable.withFallback('$value is not a String', fallback);
+  }
+  return value;
+}
+
 typedef Call = Object? Function(List<Object?> a, Map<String, Object?> k);
 
 Call one(Object? Function(String) fn) => (a, k) => fn(str(a[0]));
@@ -245,6 +277,9 @@ const Map<String, Set<String>> allowedKwargs = {
   'validateFbrInvoice': {'today'},
   'getSalesTaxRate': {'kind', 'province', 'date'},
   'calculateSalesTax': {'rate', 'province', 'kind', 'date', 'inclusive'},
+  'slugify': {'script'},
+  'calculateSalaryTax': {'taxYear', 'date'},
+  'calculateMonthlySalaryTax': {'taxYear', 'date'},
   // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
   'formatAddress': {
     'raw',
@@ -307,6 +342,31 @@ final Map<String, Call> functions = {
   'normalizeRomanUrdu': one(normalizeRomanUrdu),
   'toUrduDigits': one(toUrduDigits),
   'toEnglishDigits': one(toEnglishDigits),
+  'slugify': (a, k) =>
+      slugify(textOr(a[0], ''), script: slugScript(k['script'])),
+  // TypeScript compares a value that is not a string as ''.
+  'compareUrdu': (a, k) {
+    final [x, y] = [for (final v in a) v is String ? v : ''];
+    if (a[0] is! String || a[1] is! String) {
+      throw Unrepresentable.withFallback(
+          '${a[0]} or ${a[1]} is not a String', compareUrdu(x, y));
+    }
+    return compareUrdu(x, y);
+  },
+  'isRTL': (a, k) => isRTL(textOr(a[0], false)),
+  'wrapBidi': (a, k) {
+    final text = textOr(a[0], '');
+    if (a.length < 2) return wrapBidi(text);
+    final direction = switch (a[1]) {
+      'auto' => BidiDirection.auto,
+      'rtl' => BidiDirection.rtl,
+      'ltr' => BidiDirection.ltr,
+      // TypeScript uses 'auto' for any other direction.
+      final other => throw Unrepresentable.withFallback(
+          '$other is not a BidiDirection', wrapBidi(text)),
+    };
+    return wrapBidi(text, direction);
+  },
   'toHijri': (a, k) =>
       toHijri(a[0]! as DateTime, offset: intOption(k, 'offset', 0)),
   'fromHijri': (a, k) {
@@ -424,6 +484,21 @@ final Map<String, Call> functions = {
   'validateFbrInvoice': (a, k) =>
       validateFbrInvoice(a[0], today: optStr(k['today'])),
   'expectedSalesTax': (a, k) => expectedSalesTax(a[0]),
+  'getSalaryTaxSlabs': (a, k) =>
+      a.isEmpty ? getSalaryTaxSlabs() : getSalaryTaxSlabs(optInteger(a[0])),
+  'getSalaryTaxYears': (a, k) => getSalaryTaxYears(),
+  // The date is a String or a DateTime, as in TypeScript.
+  'getTaxYear': (a, k) => a.isEmpty ? getTaxYear() : getTaxYear(a[0]),
+  'calculateSalaryTax': (a, k) => calculateSalaryTax(
+        number(a[0]),
+        taxYear: optInteger(k['taxYear']),
+        date: k['date'],
+      ),
+  'calculateMonthlySalaryTax': (a, k) => calculateMonthlySalaryTax(
+        number(a[0]),
+        taxYear: optInteger(k['taxYear']),
+        date: k['date'],
+      ),
 };
 
 const Map<String, Object> constants = {
@@ -494,7 +569,11 @@ void checkVector(
     result = call!(args, kwargs);
   } on Unrepresentable catch (e) {
     unrepresentable.add('$module[$index] $fn: ${e.reason}');
-    if (!throws && e.option != null) {
+    if (e.hasFallback) {
+      // TypeScript documents the result for this input.
+      expect(throws, isFalse, reason: '$e, but TypeScript throws');
+      result = e.fallback;
+    } else if (!throws && e.option != null) {
       // TypeScript ignored the option here, so leave it out.
       result = call!(args, {...kwargs}..remove(e.option));
     } else {

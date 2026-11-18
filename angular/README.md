@@ -7,6 +7,7 @@ Angular directives, pipes and form validators for Pakistani **CNIC**, **mobile n
 - **Validators** for reactive forms: CNIC, mobile, IBAN, NTN, STRN, landline, passport and vehicle plate
 - Everything is standalone: import only what you use
 - Works with `formControl`, `formControlName` and `ngModel`
+- Ready-made, unstyled **checkout and KYC forms** in English or Urdu, with the province → district → city cascade
 - Accessible: `aria-invalid` when the value cannot become valid, sensible `inputmode` and `autocomplete`
 
 ## Install
@@ -15,7 +16,7 @@ Angular directives, pipes and form validators for Pakistani **CNIC**, **mobile n
 npm install pakdatakit-angular pakdatakit
 ```
 
-Requires Angular 17 to 22 (`@angular/core` and `@angular/forms`) and `pakdatakit` 2.3 or later. All three are peer dependencies.
+Requires Angular 17 to 22 (`@angular/core` and `@angular/forms`) and `pakdatakit` 2.4 or later. All three are peer dependencies.
 
 CI runs the tests and the build on Angular 17, 18, 19 and 22. The package is built with Angular 17 in partial-compilation mode, so one build works on all of them. Angular 20 and 21 are inside the supported range but are not in the CI matrix.
 
@@ -107,8 +108,97 @@ new FormGroup({
 | `PakValidators.landline`     | `pakLandline`     |
 | `PakValidators.passport`     | `pakPassport`     |
 | `PakValidators.vehiclePlate` | `pakVehiclePlate` |
+| `PakValidators.postalCode`   | `pakPostalCode`   |
 
-Like Angular's own validators, they pass empty values; add `Validators.required` for mandatory fields. Values that are not strings are invalid. NTN, STRN, passport and vehicle plate checks are format-only; see [DATA.md](https://github.com/chmuzamil/pakdatakit/blob/main/DATA.md).
+Like Angular's own validators, they pass empty values; add `Validators.required` for mandatory fields. Values that are not strings are invalid. NTN, STRN, passport and vehicle plate checks are format-only; see [DATA.md](https://github.com/chmuzamil/pakdatakit/blob/main/DATA.md). `pakRequiredTrimmed` is a required check that also treats a value of only spaces as empty (error key `pakRequired`).
+
+## Checkout and KYC forms
+
+`PakCheckoutFormComponent` (`<pak-checkout-form>`) asks for full name,
+mobile number, province, district, city, address, a nearby place (optional)
+and postal code (optional). `PakKycFormComponent` (`<pak-kyc-form>`) adds the
+CNIC. Both are standalone components built on reactive forms. They are
+unstyled: plain `<form>`, `<label>`, `<input>` and native `<select>`
+elements with `pak-form__*` class names for your CSS.
+
+```ts
+import { Component } from '@angular/core';
+import {
+  PakCheckoutFormComponent,
+  type PakFormValues,
+} from 'pakdatakit-angular';
+
+@Component({
+  selector: 'app-checkout',
+  standalone: true,
+  imports: [PakCheckoutFormComponent],
+  template: `<pak-checkout-form (submitted)="save($event)" />`,
+})
+export class CheckoutComponent {
+  save(values: PakFormValues) {
+    // values are trimmed; mobile is formatted as 0300-1234567
+  }
+}
+```
+
+- **Validation** uses pakdatakit through `PakValidators.phone` (mobile
+  numbers only), `PakValidators.cnic` and `PakValidators.postalCode`
+  (5 digits), plus `pakRequiredTrimmed` for name, address, province,
+  district and city. Errors show after a field is left or on submit, in a
+  `role="alert"` summary and next to each field (`aria-invalid`,
+  `aria-describedby`). The first invalid field gets focus.
+- **Mobile and CNIC** format as you type, with `pakPhoneInput` and
+  `pakCnicInput`.
+- **Location**: the district list follows the province
+  (`getDistrictsByProvince`), and the optional tehsil list (`[tehsil]="true"`)
+  follows the district (`getTehsils`). The data has no city-to-district
+  mapping, so the city is a text input with suggestions (`<datalist>`) from
+  the chosen province. Changing the province clears district, tehsil and
+  city; changing the district clears the tehsil.
+- **Inputs**: `locale` (`'en'` or `'ur'`), `labels` (override any text),
+  `tehsil`, `hints`, `idPrefix` and `value` (with `(valueChange)`, so
+  `[(value)]` works). **Outputs**: `submitted` and `valueChange`. The
+  `form` property is the `FormGroup`; content you project goes before the
+  submit button.
+- The components use `OnPush` change detection and mark themselves for
+  check after async work (loading hints), so they also suit zoneless apps.
+
+### In Urdu
+
+```html
+<pak-kyc-form
+  locale="ur"
+  [labels]="{ submit: 'آگے بڑھیں' }"
+  (submitted)="verify($event)"
+/>
+```
+
+Every label, placeholder, error and hint is in Urdu, and the form gets
+`dir="rtl"` and `lang="ur"`. What the user types is kept as typed.
+
+### Hints
+
+```html
+<pak-checkout-form [hints]="true" (submitted)="save($event)" />
+```
+
+With `hints`, the form shows how complete the address is
+(`scoreAddress`), what a rider would still need, warnings about the mobile
+number (`phoneRiskSignals`: landline, test number, repeated digits …) and a
+note when the postal code belongs to another city. Hints never block submit
+and are announced politely (`aria-live="polite"`).
+
+Hints load `pakdatakit/quality` and the post office directory (about 32 kB
+gzipped) with a dynamic `import()` only when `hints` is turned on. Without
+hints, your bundle does not include the postal data.
+
+### Your own markup
+
+`PakLocationService` gives you the cascade for your own form:
+`provinces`, `districts(province)`, `tehsils(district)`,
+`cities(query, province)` and `withField(values, field, value)`. The pure
+helpers (`validatePakForm`, `citySuggestions`, `PAK_PROVINCES`,
+`formText`, `loadPakHintEngine`, `pakFormHints`) are exported too.
 
 ## License
 

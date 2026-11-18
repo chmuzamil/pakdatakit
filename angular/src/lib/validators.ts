@@ -48,4 +48,21 @@ export const PakValidators = {
   passport: validator('pakPassport', validatePassport),
   /** The common format of a vehicle registration number. Error key: `pakVehiclePlate`. */
   vehiclePlate: validator('pakVehiclePlate', validateVehiclePlate),
+  /** A 5-digit postal code. Error key: `pakPostalCode`. */
+  postalCode: validator('pakPostalCode', (value) =>
+    /^\d{5}$/.test(value.trim()),
+  ),
 } as const;
+
+/**
+ * Like `Validators.required`, but a value of only spaces is empty too. Used
+ * by the checkout and KYC forms. Error key: `pakRequired`.
+ */
+export function pakRequiredTrimmed(
+  control: AbstractControl,
+): ValidationErrors | null {
+  const value: unknown = control.value;
+  return typeof value === 'string' && value.trim() !== ''
+    ? null
+    : { pakRequired: true };
+}

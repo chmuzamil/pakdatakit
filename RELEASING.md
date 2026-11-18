@@ -12,6 +12,7 @@ first release of each new package, see below).
 | `pakdatakit-faker`      | npm          | `faker-v0.1.0`   | `release-faker.yml`   | `faker/package.json`    |
 | `pakdatakit` (Dart)     | pub.dev      | `dart-v2.2.0`    | `release-dart.yml`    | `dart/pubspec.yaml`     |
 | `pakdatakit_flutter`    | pub.dev      | `flutter-v0.1.0` | `release-flutter.yml` | `flutter/pubspec.yaml`  |
+| `pakdatakit-pay`        | npm          | `pay-v0.1.0`     | `release-pay.yml`     | `pay/package.json`      |
 | `chmuzamil/pakdatakit`  | Packagist    | `php-v2.3.0`     | `split-php.yml`       | `php/src/PakData.php`   |
 | API docs and `llms.txt` | GitHub Pages | `v2.2.0`         | `docs.yml`            | (built from the source) |
 

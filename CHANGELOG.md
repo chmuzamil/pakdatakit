@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.5.0 (unreleased)
+
+### Added
+
+- `slugify()`, `compareUrdu()`, `isRTL()` and `wrapBidi()` (`pakdatakit/text`).
+  `slugify` makes URL slugs that keep Urdu letters (no transliteration), with
+  `script: 'any' | 'latin' | 'urdu'`. `compareUrdu` sorts in Urdu alphabetical
+  order following the Unicode CLDR collation for Urdu (CLDR 49), with letters
+  joined to ھ as letters of their own, the same in every port without ICU.
+  `isRTL` checks the first letter's direction; `wrapBidi` wraps text in
+  Unicode directional isolates.
+- `calculateSalaryTax()`, `calculateMonthlySalaryTax()`, `getSalaryTaxSlabs()`,
+  `getSalaryTaxYears()` and `getTaxYear()` (`pakdatakit/incometax`), with the
+  new dataset `data/income-tax-slabs.json`: the salaried income tax rate table
+  for tax years 2020 to 2027 from FBR's consolidated Income Tax Ordinance.
+  Returns the tax, the monthly amount, the effective rate and the slab, rounded
+  half up to the paisa. Surcharge, credits and exemptions are not applied.
+
 ## 2.4.0 (unreleased)
 
 ### Added
@@ -28,7 +46,9 @@
   statuses (PostEx's API guide v4.1.9 and Leopards' "Returned to Shipper"; TCS,
   M&P, Trax and BlueEx publish none), and city short forms (`LHR`, `Khi`,
   `Pindi`, `Isb`, Lyallpur, Urdu names) mapped to the city list. No API clients
-  and no tracking-number detection, as no courier documents its format.
+  and no tracking-number detection, as no courier documents its format. The
+  status mapping is experimental: its values may change in a minor release
+  as more couriers' lists are added (see CONTRIBUTING.md).
 - `buildFbrInvoice()` and `validateFbrInvoice()` (`pakdatakit/fbr-invoice`):
   types for FBR's Digital Invoicing JSON, a builder that works out each line's
   sales tax, and an offline validator that reports FBR's error codes, following

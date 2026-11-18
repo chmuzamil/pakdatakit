@@ -105,6 +105,7 @@ public sealed class FuzzTests
             "RaastQr.Validate", "Holidays.IsHoliday", "Holidays.GetHolidaysOn", "Holidays.TryGetHolidaysOn",
             "Quality.ScoreAddress", "Quality.PhoneRiskSignals", "Bills.ParseElectricityRef",
             "Bills.ValidateElectricityRef", "Courier.MapStatus", "Courier.NormalizeCity",
+            "Text.Slugify", "Text.CompareUrdu", "Text.IsRtl", "Text.WrapBidi", "IncomeTax.GetTaxYear",
         })
         {
             Assert.Contains(expected, names);
@@ -256,6 +257,80 @@ public sealed class FuzzTests
                 Assert.Null(SalesTax.Calculate(100, new SalesTaxOptions { Kind = kind, Date = input ?? "", Inclusive = true }));
             }
         }
+    }
+
+    [Fact]
+    public void UrduTextHandlesHostileInput()
+    {
+        var random = new Random(StableSeed("Text.CompareUrdu"));
+        var inputs = Hostile.Concat(Enumerable.Range(0, 200).Select(_ => RandomString(random))).ToList();
+        foreach (var input in inputs)
+        {
+            foreach (var script in new[] { SlugScript.Any, SlugScript.Latin, SlugScript.Urdu, (SlugScript)42 })
+            {
+                var slug = Text.Slugify(input, new SlugifyOptions { Script = script });
+                Assert.False(slug.StartsWith('-') || slug.EndsWith('-') || slug.Contains("--"), slug);
+            }
+            foreach (var direction in new[] { BidiDirection.Auto, BidiDirection.Rtl, BidiDirection.Ltr, (BidiDirection)42 })
+                Assert.NotNull(Text.WrapBidi(input, direction));
+            Text.IsRtl(input);
+        }
+        // Antisymmetric, and 0 only for identical strings.
+        for (var i = 0; i < 2000; i++)
+        {
+            var a = inputs[random.Next(inputs.Count)];
+            var b = inputs[random.Next(inputs.Count)];
+            var ab = Text.CompareUrdu(a, b);
+            Assert.InRange(ab, -1, 1);
+            Assert.Equal(-ab, Text.CompareUrdu(b, a));
+            Assert.Equal(ab == 0, (a ?? "") == (b ?? ""));
+        }
+
+        Assert.Equal("", Text.Slugify(null));
+        Assert.Equal("a-b", Text.Slugify("a b", null));
+        Assert.Equal("", Text.WrapBidi(null, BidiDirection.Rtl));
+        Assert.False(Text.IsRtl(null));
+        Assert.Equal(0, Text.CompareUrdu(null, ""));
+    }
+
+    [Fact]
+    public void IncomeTaxHandlesHostileInput()
+    {
+        double[] numbers =
+        [
+            double.NaN, double.PositiveInfinity, double.NegativeInfinity, -0.0, -1, -1e-300, double.Epsilon,
+            1e-7, 0.005, 0.0049999999999999, 1.005, 600_000.5, 1e12, 1e12 + 0.01, 1e15, double.MaxValue,
+            double.MinValue,
+        ];
+        int?[] years = [null, int.MinValue, -1, 0, 2019, 2020, 2026, 2027, 2028, int.MaxValue];
+        foreach (var amount in numbers)
+        {
+            foreach (var year in years)
+            {
+                var options = new SalaryTaxOptions { TaxYear = year };
+                IncomeTax.CalculateSalaryTax(amount, options);
+                IncomeTax.CalculateMonthlySalaryTax(amount, options);
+            }
+            IncomeTax.CalculateSalaryTax(amount);
+            IncomeTax.CalculateMonthlySalaryTax(amount, null);
+            foreach (var input in Hostile)
+            {
+                Assert.Null(IncomeTax.CalculateSalaryTax(amount, new SalaryTaxOptions { Date = input ?? "" }));
+                Assert.Null(IncomeTax.CalculateMonthlySalaryTax(amount, new SalaryTaxOptions { Date = input ?? "" }));
+            }
+        }
+        foreach (var year in years) IncomeTax.GetSalaryTaxSlabs(year);
+        IncomeTax.GetTaxYear(DateOnly.MinValue);
+        IncomeTax.GetTaxYear(DateOnly.MaxValue);
+
+        // The largest monthly salary: 1.2e15 paisa a year at the top rate.
+        var top = IncomeTax.CalculateMonthlySalaryTax(1e12, new SalaryTaxOptions { TaxYear = 2027 })!;
+        Assert.True(top.Tax > 0 && top.EffectiveRate < 100);
+        Assert.Null(IncomeTax.CalculateSalaryTax(100, new SalaryTaxOptions
+        {
+            Date = "2026-01-01", OnDate = new DateOnly(2026, 1, 1),
+        }));
+        Assert.Equal(2026, IncomeTax.CalculateSalaryTax(1, new SalaryTaxOptions { OnDate = new DateOnly(2025, 7, 1) })?.TaxYear);
     }
 
     [Fact]

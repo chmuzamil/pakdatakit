@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.5.0 (unreleased)
+
+### Added
+
+- `calculateSalaryTax()` and `calculateMonthlySalaryTax()`: income tax on a
+  salaried individual's taxable income from the salaried rate table of the
+  Income Tax Ordinance 2001 for tax years 2020 to 2027, as a `SalaryTax`
+  (`tax`, `monthly`, `effectiveRate`, `slab`, `taxYear`), rounded half up to
+  the paisa, exactly on every platform. `getSalaryTaxSlabs()` returns a
+  year's table (`SalaryTaxYear`, `SalaryTaxSlab`) with its law and FBR
+  source, `getSalaryTaxYears()` the years covered and `getTaxYear()` the tax
+  year of a date. Also as `package:pakdatakit/incometax.dart`.
+- `slugify()`: URL slugs that keep Urdu letters (`SlugScript` limits the
+  script); `compareUrdu()`: Urdu alphabetical order from the CLDR collation,
+  for `List.sort`, without ICU; `isRTL()` and `wrapBidi()` (`BidiDirection`):
+  right-to-left detection and Unicode directional isolates.
+
 ## 2.4.0 (unreleased)
 
 ### Added

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
+import functools
 import re
 
 import pytest
@@ -295,6 +296,111 @@ def test_sales_tax_never_raises() -> None:
             pdk.calculate_sales_tax(value, rate=other)
             pdk.calculate_sales_tax(1000, province=value, kind=other, inclusive=True)
             pdk.calculate_sales_tax(value, province="Sindh", date=other, inclusive=value)
+
+
+def test_salary_tax() -> None:
+    result = pdk.calculate_salary_tax(1_800_000, tax_year=2026)
+    assert result is not None
+    assert (result.tax, result.monthly, result.effective_rate, result.tax_year) == (72000, 6000, 4, 2026)
+    assert result.slab == pdk.SalaryTaxSlab(over=1_200_000, up_to=2_200_000, fixed=6000, rate=11)
+    monthly = pdk.calculate_monthly_salary_tax(150_000, tax_year=2026)
+    assert monthly is not None and monthly.monthly == 6000
+    assert pdk.calculate_salary_tax(1_500_000, date="2019-07-01").tax_year == 2020  # type: ignore[union-attr]
+    assert pdk.calculate_salary_tax(1_500_000, date=dt.date(2025, 7, 1)).tax_year == 2026  # type: ignore[union-attr]
+    assert pdk.calculate_salary_tax(1_500_000, tax_year=2024, date="2026-01-01").tax_year == 2024  # type: ignore[union-attr]
+    assert pdk.calculate_salary_tax(1_500_000, tax_year="2026") is None
+    assert pdk.calculate_salary_tax(1_500_000, tax_year=2019) is None
+    assert pdk.calculate_salary_tax("100000", tax_year=2026) is None
+    assert pdk.calculate_salary_tax(True, tax_year=2026) is None
+    assert pdk.calculate_salary_tax(1_500_000) is not None or pdk.get_tax_year() not in pdk.get_salary_tax_years()
+
+    slabs = pdk.get_salary_tax_slabs(2027)
+    assert slabs is not None and slabs.tax_year == 2027 and slabs.from_ == "2026-07-01" and slabs.to == "2027-06-30"
+    assert pdk.get_salary_tax_slabs(2026.5) is None
+    assert pdk.get_salary_tax_years() == list(range(2020, 2028))
+    assert pdk.get_tax_year("2025-07-01") == 2026
+    assert pdk.get_tax_year(dt.datetime(2025, 6, 30, 23, 59, 59)) == 2025
+    assert pdk.get_tax_year("2026-02-29") is None
+    assert isinstance(pdk.get_tax_year(), int)
+
+
+def test_salary_tax_never_raises() -> None:
+    values = HOSTILE_INPUTS + [
+        True,
+        -1,
+        0,
+        float("nan"),
+        float("inf"),
+        1e300,
+        10**40,
+        1e12,
+        1e-7,
+        2026,
+        2026.0,
+        [],
+        {},
+        dt.date(1, 1, 1),
+        dt.datetime(9999, 12, 31, 23, 59),
+        "2026-11-18",
+    ]
+    for value in values:
+        pdk.get_salary_tax_slabs(value)
+        pdk.get_tax_year(value)
+        for other in values:
+            pdk.calculate_salary_tax(value, tax_year=other)
+            pdk.calculate_salary_tax(value, date=other)
+            pdk.calculate_monthly_salary_tax(value, tax_year=other)
+            pdk.calculate_monthly_salary_tax(value, tax_year=None, date=other)
+    top = pdk.calculate_monthly_salary_tax(10**12, tax_year=2027)
+    assert top is not None and top.tax > 0
+
+
+def test_urdu_text() -> None:
+    assert pdk.slugify("Lahore Fort, 2024") == "lahore-fort-2024"
+    assert pdk.slugify("  Ünited   Kingdom ") == "united-kingdom"
+    assert pdk.slugify("Straße ÆON") == "strasse-aeon"
+    assert pdk.slugify("---a---") == "a"
+    assert pdk.slugify("لاہور قلعہ") == "لاہور-قلعہ"
+    assert pdk.slugify("مُحَمَّد") == "محمد"
+    assert pdk.slugify("كتاب") == "کتاب"
+    assert pdk.slugify("لاہور Fort", script="latin") == "fort"
+    assert pdk.slugify("لاہور Fort", script="urdu") == "لاہور"
+    assert pdk.slugify("کراچی ۲۰۲۴", script="urdu") == "کراچی-2024"
+    assert pdk.slugify("a b", script=None) == "a-b"
+
+    words = ["ے", "بھائی", "آم", "باغ", "اب"]
+    assert sorted(words, key=functools.cmp_to_key(pdk.compare_urdu)) == ["اب", "آم", "باغ", "بھائی", "ے"]
+    assert pdk.compare_urdu("بہن", "بھائی") == -1
+    assert pdk.compare_urdu("ہم", "ھ") == -1
+    assert pdk.compare_urdu("اب", "أب") == -1
+    assert pdk.compare_urdu("أب", "اج") == -1
+    assert pdk.compare_urdu("بت", "بَت") == -1
+    assert pdk.compare_urdu("۲", "3") == -1
+    assert pdk.compare_urdu("10", "۲") == -1
+    assert pdk.compare_urdu(" ", "1") == -1
+    assert pdk.compare_urdu("ے", "ك") == -1
+    assert pdk.compare_urdu("ے", "a") == -1
+    assert pdk.compare_urdu("ا", "ا") == 0
+    assert pdk.compare_urdu("a", "A") == 1
+
+    assert pdk.is_rtl("سلام") is True
+    assert pdk.is_rtl("123 سلام") is True
+    assert pdk.is_rtl("Order نمبر") is False
+    assert pdk.is_rtl("שלום") is True
+    assert pdk.is_rtl("123") is False
+    assert pdk.wrap_bidi("PDK-1042") == "⁨PDK-1042⁩"
+    assert pdk.wrap_bidi("abc", "rtl") == "⁧abc⁩"
+    assert pdk.wrap_bidi("abc", "ltr") == "⁦abc⁩"
+
+
+def test_urdu_text_never_raises() -> None:
+    values = HOSTILE_INPUTS + [True, 1.5, [], {}, "rtl", "ltr", "urdu", "latin", "آٓھٔ", "ئھ"]
+    for value in values:
+        assert isinstance(pdk.is_rtl(value), bool)  # type: ignore[arg-type]
+        for other in values:
+            assert isinstance(pdk.slugify(value, script=other), str)
+            assert pdk.compare_urdu(value, other) in (-1, 0, 1)
+            assert isinstance(pdk.wrap_bidi(value, other), str)
 
 
 def test_courier() -> None:

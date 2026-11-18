@@ -6,6 +6,7 @@ Vue 3 composables and a directive for Pakistani **CNIC**, **mobile numbers** and
 - Reports whether the value is `empty`, `incomplete`, `valid` or `invalid`, plus details once valid (province and gender, mobile network, bank name)
 - Composables for your own input components, or a one-line directive for a plain `<input>`
 - Works with `v-model`
+- Ready-made, unstyled **checkout and KYC forms** in English or Urdu, with the province → district → city cascade
 - Unstyled and accessible: `aria-invalid` when the value cannot become valid, sensible `inputmode` and `autocomplete`
 - ESM and CommonJS, TypeScript types, tree-shakeable
 
@@ -15,7 +16,7 @@ Vue 3 composables and a directive for Pakistani **CNIC**, **mobile numbers** and
 npm install pakdatakit-vue pakdatakit
 ```
 
-Requires Vue 3.3 or later and `pakdatakit` 2.3 or later (both are peer dependencies).
+Requires Vue 3.3 or later and `pakdatakit` 2.4 or later (both are peer dependencies).
 
 ## Directive
 
@@ -99,10 +100,89 @@ const phone = usePhone({
 });
 ```
 
+## Checkout and KYC forms
+
+`PakCheckoutForm` asks for full name, mobile number, province, district,
+city, address, a nearby place (optional) and postal code (optional).
+`PakKycForm` adds the CNIC. Both are unstyled: plain `<form>`, `<label>`,
+`<input>` and native `<select>` elements with `pak-form__*` class names for
+your CSS.
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { PakCheckoutForm, type PakFormValues } from 'pakdatakit-vue';
+
+const order = ref<Partial<PakFormValues>>({});
+function save(values: PakFormValues) {
+  // values are trimmed; mobile is formatted as 0300-1234567
+}
+</script>
+
+<template>
+  <PakCheckoutForm v-model="order" @submit="save" />
+</template>
+```
+
+- **Validation** uses pakdatakit: `validatePhone` (mobile numbers only),
+  `validateCNIC`, a 5-digit postal code, and required name, address,
+  province, district and city. Errors show after a field is left or on
+  submit, in a `role="alert"` summary and next to each field
+  (`aria-invalid`, `aria-describedby`). The first invalid field gets focus.
+- **Mobile and CNIC** format as you type, using `usePhone` and `useCnic`.
+- **Location**: the district list follows the province
+  (`getDistrictsByProvince`), and the optional tehsil list (`tehsil` prop)
+  follows the district (`getTehsils`). The data has no city-to-district
+  mapping, so the city is a text input with suggestions (`<datalist>`) from
+  the chosen province. Changing the province clears district, tehsil and
+  city; changing the district clears the tehsil.
+- **Props**: `locale` (`'en'` or `'ur'`), `labels` (override any text),
+  `tehsil`, `hints`, `idPrefix`. Slots: `default` (before the button) and
+  `submit` (replace the button). `validate()` and `reset()` are exposed.
+
+### In Urdu
+
+```vue
+<PakKycForm
+  v-model="customer"
+  locale="ur"
+  :labels="{ submit: 'آگے بڑھیں' }"
+  @submit="verify"
+/>
+```
+
+Every label, placeholder, error and hint is in Urdu, and the form gets
+`dir="rtl"` and `lang="ur"`. What the user types is kept as typed.
+
+### Hints
+
+```vue
+<PakCheckoutForm v-model="order" hints @submit="save" />
+```
+
+With `hints`, the form shows how complete the address is
+(`scoreAddress`), what a rider would still need, warnings about the mobile
+number (`phoneRiskSignals`: landline, test number, repeated digits …) and a
+note when the postal code belongs to another city. Hints never block submit
+and are announced politely (`aria-live="polite"`).
+
+Hints load `pakdatakit/quality` and the post office directory (about 32 kB
+gzipped) with a dynamic `import()` only when `hints` is turned on. Without
+hints, your bundle does not include the postal data.
+
+### Your own markup
+
+`usePakForm(kind, options)` (or `useCheckoutForm` / `useKycForm`) gives
+you the same logic for your own template: `values`, `setField` (with the
+cascade), `districts`, `tehsils`, `cities`, `errors`, `hints`, `text`,
+`fieldAttrs(field)` (id, `required`, ARIA attributes), `mobileProps`,
+`cnicProps` and `handleSubmit`. The pure helpers (`validatePakForm`,
+`withField`, `citySuggestions`, `PAK_PROVINCES`, `formText`) are exported too.
+
 ## Differences from pakdatakit-react
 
 - Composables are named `useCnic`, `usePhone` and `useIban`, and return refs (`cnic.state.value`).
-- There are no ready-made input components: bind `inputProps` on your own `<input>`, or use `v-pak-input`.
+- There are no ready-made input components: bind `inputProps` on your own `<input>`, or use `v-pak-input`. The checkout and KYC forms are components.
 - There is no Raast QR component yet.
 
 ## License

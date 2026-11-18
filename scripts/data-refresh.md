@@ -153,6 +153,28 @@ Checklist:
 - [ ] Rates still marked uncertain in DATA.md (Balochistan 2025-26 onwards,
       ICT after June 2025): is the official document out now?
 
+## Income tax slabs (after each budget)
+
+The Finance Act changes the salaried table from 1 July. After the budget is
+passed (June), and again when FBR publishes the consolidated Ordinance
+(usually July or August):
+
+- [ ] Get the Finance Act from https://www.fbr.gov.pk (Budget page) and FBR's
+      consolidated Income Tax Ordinance 2001 from
+      https://www.fbr.gov.pk/Categ/Income-Tax-Ordinance/326 (First Schedule,
+      Part I, Division I, clause (2)).
+- [ ] Add the new tax year to `data/income-tax-slabs.json` with its `law` and
+      `source`, and check each band's fixed amount (the tests do this).
+- [ ] If an earlier year's table was changed retrospectively, update it and
+      say so in the CHANGELOG.
+- [ ] Update the table and notes (surcharge, pension rate) in DATA.md.
+
+## Urdu alphabetical order
+
+- [ ] Has CLDR changed `common/collation/ur.xml` in a new release
+      (https://github.com/unicode-org/cldr/commits/main/common/collation/ur.xml)?
+      If so, update `compareUrdu` in `src/text.ts` and every port.
+
 ## Bill, courier and FBR invoice formats
 
 No datasets, but each follows an official document that can change.

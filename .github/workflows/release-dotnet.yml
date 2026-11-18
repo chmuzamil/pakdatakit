@@ -64,7 +64,7 @@ jobs:
       - run: dotnet pack -c Release --no-build -o artifacts
         working-directory: dotnet
 
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@v4
         with:
           subject-path: dotnet/artifacts/*.nupkg
 

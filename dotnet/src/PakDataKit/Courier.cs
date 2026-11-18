@@ -7,6 +7,10 @@ namespace PakDataKit;
 /// The npm package's strings are the names in kebab case (<c>picked-up</c>,
 /// <c>out-for-delivery</c>, …).
 /// </summary>
+/// <remarks>
+/// Experimental: the values may change in a minor release while more couriers'
+/// status lists are added.
+/// </remarks>
 public enum CourierStatus
 {
     /// <summary><c>pending</c>: the order exists but is not booked yet.</summary>
@@ -212,6 +216,11 @@ public static class Courier
     /// guide and one Leopards status. TCS, M&amp;P, Trax and BlueEx publish no
     /// list, so they always return <c>null</c>, as does any status not in the
     /// list. No API is called.
+    /// <para>
+    /// Experimental: only PostEx and one Leopards status are mapped so far. The
+    /// mapping and the <see cref="CourierStatus"/> values may change in a minor
+    /// release as other couriers' lists are added.
+    /// </para>
     /// </remarks>
     /// <param name="courier">
     /// <c>TCS</c>, <c>Leopards</c>, <c>PostEx</c>, <c>M&amp;P</c>, <c>Trax</c> or
@@ -237,6 +246,7 @@ public static class Courier
     /// <param name="courier">The courier, as for <see cref="MapStatus(string?, string?)"/>.</param>
     /// <param name="raw">The status ID as the courier returned it.</param>
     /// <returns>The status, or <c>null</c>. Never throws.</returns>
+    /// <remarks>Experimental, like <see cref="MapStatus(string?, string?)"/>.</remarks>
     public static CourierStatus? MapStatus(string? courier, double raw)
     {
         if (!double.IsFinite(raw) || Math.Floor(raw) != raw || raw < 0) return null;

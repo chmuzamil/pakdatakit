@@ -155,7 +155,10 @@ In Dart:
   `GasCompany.sngpl.value`; any other company gives `false`. Spaces, dashes,
   dots and Urdu digits are accepted. Only the format is checked. They never
   throw.
-- **Couriers:** `mapCourierStatus(courier, raw)` maps a courier's own status
+- **Couriers (experimental):** `mapCourierStatus` and `CourierStatus` may
+  change in a minor release while more couriers' status lists are added (see
+  [CONTRIBUTING.md](https://github.com/chmuzamil/pakdatakit/blob/main/CONTRIBUTING.md#courier-status-lists)).
+  `mapCourierStatus(courier, raw)` maps a courier's own status
   (name, numeric ID or code) to a `CourierStatus` (`pending`, `booked`,
   `pickedUp`, `inTransit`, `outForDelivery`, `attempted`, `underReview`,
   `delivered`, `returning`, `returned`, `cancelled`; `.value` holds the npm

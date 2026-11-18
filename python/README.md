@@ -238,6 +238,10 @@ Couriers:
 | `map_courier_status(courier, raw)`  | A courier's status as one `CourierStatus`, or `None`                      |
 | `normalize_city_for_courier(input)` | The city-list name for how a customer or courier writes a city, or `None` |
 
+**Experimental:** `map_courier_status` and the `CourierStatus` values may
+change in a minor release while more couriers' status lists are added. See
+[CONTRIBUTING.md](https://github.com/chmuzamil/pakdatakit/blob/main/CONTRIBUTING.md#courier-status-lists) to add one.
+
 `CourierStatus` is one of `pending`, `booked`, `picked-up`, `in-transit`,
 `out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`,
 `returned` or `cancelled`. `courier` is `TCS`, `Leopards`, `PostEx`, `M&P`,

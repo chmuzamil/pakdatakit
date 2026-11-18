@@ -22,7 +22,11 @@ final class Courier
     public const TRAX = 'Trax';
     public const BLUEEX = 'BlueEx';
 
-    /** Statuses mapStatus() returns, from order to delivery or return. */
+    /**
+     * Statuses mapStatus() returns, from order to delivery or return.
+     * Experimental: the values may change in a minor release while more
+     * couriers' status lists are added.
+     */
     public const PENDING = 'pending';
     public const BOOKED = 'booked';
     public const PICKED_UP = 'picked-up';
@@ -187,6 +191,10 @@ final class Courier
      * guide and one Leopards status. TCS, M&P, Trax and BlueEx publish no
      * list, so they always return null, as does any status not in the list.
      * No API is called.
+     *
+     * Experimental: only PostEx and one Leopards status are mapped so far. The
+     * mapping and the status values may change in a minor release as other
+     * couriers' lists are added.
      *
      * @param mixed $courier `TCS`, `Leopards`, `PostEx`, `M&P`, `Trax` or
      *   `BlueEx` (case-insensitive; `LCS`, `MnP` and `Blue Ex` are accepted)

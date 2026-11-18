@@ -290,7 +290,10 @@ FluentValidation 11 and 12.
   `Bills.ValidateGasConsumerNumber` takes a `GasCompany` (`Sngpl`, 11 digits;
   `Ssgc`, 10 digits). Spaces, dashes and dots are ignored and Urdu digits are
   accepted. No utility publishes a check digit, so only the format is checked.
-- **Couriers.** `Courier.MapStatus(courier, raw)` maps a courier's own
+- **Couriers (experimental).** `Courier.MapStatus` and `CourierStatus` may
+  change in a minor release while more couriers' status lists are added (see
+  [CONTRIBUTING.md](https://github.com/chmuzamil/pakdatakit/blob/main/CONTRIBUTING.md#courier-status-lists)).
+  `Courier.MapStatus(courier, raw)` maps a courier's own
   status to a `CourierStatus`: `Pending`, `Booked`, `PickedUp`, `InTransit`,
   `OutForDelivery`, `Attempted`, `UnderReview`, `Delivered`, `Returning`,
   `Returned` or `Cancelled` (`picked-up`, `out-for-delivery` and so on in the

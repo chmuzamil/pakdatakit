@@ -32,6 +32,9 @@ enum Courier {
 }
 
 /// A courier's status in one vocabulary, from order to delivery or return.
+///
+/// Experimental: the values may change in a minor release while more
+/// couriers' status lists are added.
 enum CourierStatus {
   /// Ordered, not yet booked with the courier.
   pending('pending'),
@@ -171,13 +174,17 @@ String _statusKey(String text) =>
 /// `5.0`), which matches the same status as its decimal string (`5` and
 /// `'5'`, but not `'0005'`). Anything else gives `null`.
 ///
-/// Matching ignores case and extra spaces. PostEx's "Attempt Made: <reason>"
+/// Matching ignores case and extra spaces. PostEx's `Attempt Made: <reason>`
 /// history messages map to [CourierStatus.attempted].
 ///
 /// Only statuses the courier documents publicly are mapped: PostEx's API
 /// guide and one Leopards status. TCS, M&P, Trax and BlueEx publish no list,
 /// so they always return `null`, as does any status not in the list. No API
 /// is called. Never throws.
+///
+/// Experimental: only PostEx and one Leopards status are mapped so far. The
+/// mapping and the [CourierStatus] values may change in a minor release as
+/// other couriers' lists are added.
 CourierStatus? mapCourierStatus(String courier, Object? raw) {
   final name = _courierNames[_statusKey(courier)];
   if (name == null) return null;

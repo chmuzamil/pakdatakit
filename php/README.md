@@ -311,6 +311,10 @@ Courier::normalizeCity('لاہور');         // 'Lahore'
 Courier::normalizeCity('Atlantis');      // null
 ```
 
+**Experimental:** `Courier::mapStatus()` and its status values may change in a
+minor release while more couriers' status lists are added (see
+[CONTRIBUTING.md](https://github.com/chmuzamil/pakdatakit/blob/main/CONTRIBUTING.md#courier-status-lists)).
+
 `Courier::mapStatus()` maps a courier's own status (name, numeric ID or code)
 to one vocabulary: `pending`, `booked`, `picked-up`, `in-transit`,
 `out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`,

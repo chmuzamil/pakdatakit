@@ -4,7 +4,12 @@ import { lazy, normalizeKey } from './internal/normalize.js';
 /** Couriers that {@link mapCourierStatus} knows about. */
 export type Courier = 'TCS' | 'Leopards' | 'PostEx' | 'M&P' | 'Trax' | 'BlueEx';
 
-/** A courier's status in one vocabulary, from order to delivery or return. */
+/**
+ * A courier's status in one vocabulary, from order to delivery or return.
+ *
+ * @experimental The set of values may change in a minor release while more
+ * couriers' status lists are added.
+ */
 export type CourierStatus =
   | 'pending'
   | 'booked'
@@ -121,6 +126,9 @@ const statusKey = (text: string): string =>
  *   (case-insensitive; `LCS`, `MnP` and `Blue Ex` are accepted)
  * @param raw - The status as the courier returned it
  * @returns The status, or `null`. Never throws.
+ * @experimental Only PostEx and one Leopards status are mapped so far. The
+ * mapping and the {@link CourierStatus} values may change in a minor release
+ * as other couriers' lists are added.
  */
 export function mapCourierStatus(
   courier: string,

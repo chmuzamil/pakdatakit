@@ -914,6 +914,8 @@ Helpers for orders shipped with Pakistani couriers. There are no API clients: no
 
 ### mapCourierStatus()
 
+> **Experimental.** `mapCourierStatus` and the `CourierStatus` values may change in a minor release while more couriers' status lists are added. Pin a minor version if you store these values. To add a courier, see [CONTRIBUTING.md](CONTRIBUTING.md#courier-status-lists).
+
 Maps a courier's own status (name, numeric ID or code) to one vocabulary: `pending`, `booked`, `picked-up`, `in-transit`, `out-for-delivery`, `attempted`, `under-review`, `delivered`, `returning`, `returned` or `cancelled`.
 
 ```ts

@@ -24,6 +24,8 @@ __all__ = [
 Courier = Literal["TCS", "Leopards", "PostEx", "M&P", "Trax", "BlueEx"]
 
 #: A courier's status in one vocabulary, from order to delivery or return.
+#: Experimental: the values may change in a minor release while more couriers'
+#: status lists are added.
 CourierStatus = Literal[
     "pending",
     "booked",
@@ -143,6 +145,10 @@ def map_courier_status(courier: str, raw: Any) -> Optional[CourierStatus]:
     ``courier`` is ``TCS``, ``Leopards``, ``PostEx``, ``M&P``, ``Trax`` or
     ``BlueEx`` (case-insensitive; ``LCS``, ``MnP`` and ``Blue Ex`` are
     accepted). Returns the status, or ``None``. Never raises.
+
+    Experimental: only PostEx and one Leopards status are mapped so far. The
+    mapping and the :data:`CourierStatus` values may change in a minor
+    release as other couriers' lists are added.
     """
     if not isinstance(courier, str):
         return None

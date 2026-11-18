@@ -27,7 +27,7 @@
   <a href="https://www.npmjs.com/package/pakdatakit-pay"><img src="https://img.shields.io/npm/v/pakdatakit-pay?label=pakdatakit-pay" alt="pakdatakit-pay"></a>
   <a href="https://www.npmjs.com/package/pakdatakit"><img src="https://img.shields.io/npm/dm/pakdatakit?label=downloads" alt="npm downloads"></a>
   <a href="https://www.npmjs.com/package/pakdatakit#provenance"><img src="https://img.shields.io/badge/npm-provenance-2ea44f?logo=npm" alt="npm provenance"></a>
-  <a href="https://chmuzamil.github.io/pakdatakit/"><img src="https://img.shields.io/badge/docs-API%20reference-blue" alt="API docs"></a>
+  <a href="https://pakdatakit.dev/api/typescript/"><img src="https://img.shields.io/badge/docs-API%20reference-blue" alt="API docs"></a>
 </p>
 
 PakDataKit validates, formats and looks up Pakistani data: CNICs, mobile and landline numbers, IBANs and banks, NTN/STRN, passports and vehicle plates, Raast QR codes, sales tax and salary income tax, FBR digital invoices, electricity and gas bill references, cities, districts, tehsils, postal codes and post offices, Urdu text, Hijri dates and public holidays.
@@ -37,7 +37,7 @@ PakDataKit validates, formats and looks up Pakistani data: CNICs, mobile and lan
 - **Offline and dependency-free.** All data is bundled and no function makes a network call. The npm package has no runtime dependencies and ships ESM, CommonJS and types.
 - **Sourced data.** Every dataset lists its official sources in [DATA.md](./DATA.md).
 
-**[Try it in the playground](https://pakdatakit-playground.vercel.app/)** · **[API reference](https://chmuzamil.github.io/pakdatakit/)** · **[llms.txt](https://chmuzamil.github.io/pakdatakit/llms.txt)** / **[llms-full.txt](https://chmuzamil.github.io/pakdatakit/llms-full.txt)** for AI coding assistants
+**[pakdatakit.dev](https://pakdatakit.dev/)** · **[Try it in the playground](https://pakdatakit.dev/playground/)** · **[API reference](https://pakdatakit.dev/api/typescript/)** · **[llms.txt](https://pakdatakit.dev/llms.txt)** / **[llms-full.txt](https://pakdatakit.dev/llms-full.txt)** for AI coding assistants
 
 ---
 

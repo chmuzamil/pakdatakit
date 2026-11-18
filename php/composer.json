@@ -18,11 +18,11 @@
     "urdu",
     "laravel"
   ],
-  "homepage": "https://github.com/chmuzamil/pakdatakit/tree/main/php#readme",
+  "homepage": "https://pakdatakit.dev/install/php/",
   "support": {
     "issues": "https://github.com/chmuzamil/pakdatakit/issues",
     "source": "https://github.com/chmuzamil/pakdatakit",
-    "docs": "https://chmuzamil.github.io/pakdatakit/"
+    "docs": "https://pakdatakit.dev/docs/"
   },
   "authors": [
     {

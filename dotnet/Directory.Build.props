@@ -12,7 +12,7 @@
     <Authors>Muzamil Chaudhery</Authors>
     <Copyright>Copyright (c) 2026 Muzamil Chaudhery and PakDataKit Contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/chmuzamil/pakdatakit/tree/main/dotnet#readme</PackageProjectUrl>
+    <PackageProjectUrl>https://pakdatakit.dev/install/dotnet/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/chmuzamil/pakdatakit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>

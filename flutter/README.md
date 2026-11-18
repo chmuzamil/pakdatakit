@@ -238,7 +238,7 @@ involved. You can also change `color`, `backgroundColor`, `quietZone` and
 
 ## Links
 
-- [Documentation](https://chmuzamil.github.io/pakdatakit/)
+- [Documentation](https://pakdatakit.dev/docs/)
 - [Source and issues](https://github.com/chmuzamil/pakdatakit)
 - Also available for TypeScript/JavaScript (`pakdatakit` and
   `pakdatakit-react` on npm) and Python (`pakdatakit` on PyPI).

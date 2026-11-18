@@ -4,10 +4,10 @@ description: >-
   Pakistani data utilities for Dart and Flutter: validate CNIC, mobile, IBAN,
   NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, postal codes,
   holidays and more.
-homepage: https://github.com/chmuzamil/pakdatakit/tree/main/dart#readme
+homepage: https://pakdatakit.dev/install/dart/
 repository: https://github.com/chmuzamil/pakdatakit
 issue_tracker: https://github.com/chmuzamil/pakdatakit/issues
-documentation: https://chmuzamil.github.io/pakdatakit/
+documentation: https://pakdatakit.dev/docs/
 
 topics:
   - pakistan

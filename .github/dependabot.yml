@@ -1,13 +1,18 @@
 version: 2
+
+# Development-dependency bumps arrive as one grouped PR per ecosystem each
+# week (including major versions, so they are reviewed together). Runtime
+# dependencies still get their own PRs.
 updates:
+  # The library and the add-ons built with the current toolchain.
   - package-ecosystem: npm
-    directory: /
+    directories: ['/', '/react', '/faker', '/pay', '/vue']
     schedule:
       interval: weekly
     groups:
       dev-dependencies:
         dependency-type: development
-        update-types: [minor, patch]
+        update-types: [major, minor, patch]
     open-pull-requests-limit: 5
     ignore:
       # typescript-eslint supports TypeScript <6.1 only; revisit when it
@@ -15,55 +20,69 @@ updates:
       - dependency-name: typescript
         update-types: ['version-update:semver-major']
 
+  # pakdatakit-angular is built with Angular 17, the oldest version it
+  # supports (see RELEASING.md), so its toolchain is held there: Angular 17
+  # needs TypeScript >=5.2 <5.5 and zone.js ~0.14. It is a separate entry
+  # because ignore rules apply to every directory of an entry.
   - package-ecosystem: npm
-    directory: /react
+    directory: /angular
     schedule:
       interval: weekly
     groups:
       dev-dependencies:
         dependency-type: development
-        update-types: [minor, patch]
+        update-types: [major, minor, patch]
     open-pull-requests-limit: 5
     ignore:
-      # typescript-eslint supports TypeScript <6.1 only; revisit when it
-      # supports TypeScript 7.
-      - dependency-name: typescript
+      - dependency-name: '@angular/*'
         update-types: ['version-update:semver-major']
-
-  - package-ecosystem: npm
-    directory: /faker
-    schedule:
-      interval: weekly
-    groups:
-      dev-dependencies:
-        dependency-type: development
-        update-types: [minor, patch]
-    open-pull-requests-limit: 5
-    ignore:
-      # typescript-eslint supports TypeScript <6.1 only; revisit when it
-      # supports TypeScript 7.
-      - dependency-name: typescript
+      - dependency-name: ng-packagr
         update-types: ['version-update:semver-major']
+      - dependency-name: typescript
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: zone.js
+        update-types:
+          ['version-update:semver-major', 'version-update:semver-minor']
 
   - package-ecosystem: pub
-    directory: /dart
+    directories: ['/dart', '/flutter']
     schedule:
-      interval: monthly
-
-  - package-ecosystem: pub
-    directory: /flutter
-    schedule:
-      interval: monthly
+      interval: weekly
+    groups:
+      dev-dependencies:
+        patterns: ['lints', 'flutter_lints', 'test']
     ignore:
       # qr 4 needs Dart ^3.11 (Flutter 3.41+) and drops the API we use
       # (QrCode.fromData, QrErrorCorrectLevel.L/M/Q/H). Stay on qr 3.x for now.
       - dependency-name: qr
         update-types: ['version-update:semver-major']
 
+  # The Python package has no runtime dependencies.
   - package-ecosystem: pip
     directory: /python
     schedule:
-      interval: monthly
+      interval: weekly
+    groups:
+      dev-dependencies:
+        patterns: ['*']
+
+  - package-ecosystem: nuget
+    directory: /dotnet
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        patterns: ['Microsoft.NET.Test.Sdk', 'xunit*']
+
+  - package-ecosystem: composer
+    directory: /php
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [major, minor, patch]
 
   - package-ecosystem: github-actions
     directory: /

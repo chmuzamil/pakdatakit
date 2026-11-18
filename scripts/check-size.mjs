@@ -17,18 +17,76 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
 /**
- * Text that only occurs in one dataset, to see which ones a bundle holds. A
- * field name followed by `:"` only appears in the inlined data, not in code.
+ * How to recognise each dataset in a bundle. Each marker is a field name that
+ * only that dataset has, followed by the kind of literal its records hold:
+ *
+ * - `string`: a non-empty string, as in `town:"Dulmial"`
+ * - `strings`: a non-empty array of strings, as in `cities:["Karachi"]`
+ * - `objects`: a non-empty array of objects, as in `slabs:[{over:0,…}]`
+ *
+ * Field names are part of the schema, so the markers survive data refreshes,
+ * and code never writes these fields with such a literal (it writes `null`,
+ * `[]` or a variable). The script checks both: every record must still have
+ * its marker field with a value of that kind, and each dataset is planted
+ * into unrelated bundles to prove it is caught.
  */
 const DATASETS = {
-  'post offices': 'town:"',
-  'postal codes': 'postalCode:"',
-  tehsils: 'sub-tehsil',
-  divisions: 'Mekran',
-  'area codes': 'Naushero Feroze',
-  'sales tax rates': 'authority:"',
-  'income tax slabs': '2026724177725705IncomeTaxOrdinanace',
+  'post offices': { file: 'post-offices.json', key: 'town', kind: 'string' },
+  'postal codes': {
+    file: 'postal-codes.json',
+    key: 'postalCode',
+    kind: 'string',
+  },
+  tehsils: { file: 'tehsils.json', key: 'censusDistrict', kind: 'string' },
+  divisions: { file: 'divisions.json', key: 'division', kind: 'string' },
+  'area codes': { file: 'area-codes.json', key: 'cities', kind: 'strings' },
+  'sales tax rates': {
+    file: 'sales-tax-rates.json',
+    key: 'authority',
+    kind: 'string',
+  },
+  'income tax slabs': {
+    file: 'income-tax-slabs.json',
+    key: 'slabs',
+    kind: 'objects',
+  },
 };
+
+const LITERAL = { string: '"', strings: '\\[\\s*"', objects: '\\[\\s*\\{' };
+const MARKERS = Object.fromEntries(
+  Object.entries(DATASETS).map(([dataset, { key, kind }]) => [
+    dataset,
+    // `town:"` minified, or `"town": "` if a bundler keeps quotes.
+    new RegExp(`(?:^|[{,\\s])"?${key}"?\\s*:\\s*${LITERAL[kind]}`),
+  ]),
+);
+
+/** Datasets whose marker occurs in `text`. */
+const datasetsIn = (text) =>
+  Object.keys(MARKERS).filter((dataset) => MARKERS[dataset].test(text));
+
+let failed = false;
+
+// 1. Every record still carries its marker field, with a value of that kind.
+const fits = {
+  string: (v) => typeof v === 'string' && v.length > 0,
+  strings: (v) =>
+    Array.isArray(v) && v.length > 0 && v.every((x) => typeof x === 'string'),
+  objects: (v) =>
+    Array.isArray(v) &&
+    v.length > 0 &&
+    v.every((x) => x !== null && typeof x === 'object' && !Array.isArray(x)),
+};
+for (const [dataset, { file, key, kind }] of Object.entries(DATASETS)) {
+  const records = JSON.parse(readFileSync(join(root, 'data', file), 'utf8'));
+  const bad = records.filter((r) => !fits[kind](r?.[key])).length;
+  if (bad > 0 || records.length === 0) {
+    failed = true;
+    console.log(
+      `FAIL marker for ${dataset}: ${bad} of ${records.length} records in data/${file} have no ${kind} \`${key}\``,
+    );
+  }
+}
 
 const CASES = [
   {
@@ -138,32 +196,64 @@ const selfPackage = {
   },
 };
 
-let failed = false;
-for (const c of CASES) {
+const bundle = async (code, external = []) => {
   const result = await build({
-    stdin: { contents: c.code, resolveDir: root, loader: 'js' },
+    stdin: { contents: code, resolveDir: root, loader: 'js' },
     bundle: true,
     minify: true,
     format: 'esm',
     platform: 'browser',
     write: false,
     plugins: [selfPackage],
-    external: c.external ?? [],
+    external,
     logLevel: 'silent',
   });
-  const text = result.outputFiles[0].text;
+  return result.outputFiles[0].text;
+};
+
+// 2. Each dataset is caught when it leaks into (a) an import that holds no
+//    data, and (b) an import that legitimately holds a different dataset.
+const empty = CASES[0];
+for (const [dataset, { file }] of Object.entries(DATASETS)) {
+  const other = CASES.find(
+    (c) => c.allowed.length > 0 && !c.allowed.includes(dataset),
+  );
+  const leak = `import leaked from ${JSON.stringify(join(root, 'data', file))};\nconsole.log(leaked);\n`;
+  for (const [label, host] of [
+    ['a', empty],
+    ['b', other],
+  ]) {
+    const found = datasetsIn(await bundle(host.code + '\n' + leak));
+    if (!found.includes(dataset) || host.allowed.includes(dataset)) {
+      failed = true;
+      console.log(
+        `FAIL leak test (${label}): ${dataset} planted into ${host.name} was not detected`,
+      );
+    }
+  }
+}
+console.log(
+  `ok   leak tests: each of ${Object.keys(DATASETS).length} datasets is detected in an import without data and in one with other data`,
+);
+
+for (const c of CASES) {
+  const text = await bundle(c.code, c.external);
   const gz = gzipSync(text, { level: 9 }).length;
-  const found = Object.entries(DATASETS)
-    .filter(([, marker]) => text.includes(marker))
-    .map(([dataset]) => dataset);
+  const found = datasetsIn(text);
   const extra = found.filter((dataset) => !c.allowed.includes(dataset));
-  const ok = gz <= c.limit && extra.length === 0;
+  // Positive control: every dataset a case is allowed, it really uses, so its
+  // marker must be found there (a marker that stopped matching would fail).
+  const missing = c.allowed.filter((d) => !found.includes(d));
+  const ok = gz <= c.limit && extra.length === 0 && missing.length === 0;
   if (!ok) failed = true;
   console.log(
     `${ok ? 'ok  ' : 'FAIL'} ${c.name}: ${(text.length / 1024).toFixed(1)} kB, ` +
       `${(gz / 1024).toFixed(1)} kB gzipped (limit ${(c.limit / 1024).toFixed(1)} kB)` +
       (found.length ? `; contains ${found.join(', ')}` : '') +
-      (extra.length ? `; must not contain ${extra.join(', ')}` : ''),
+      (extra.length ? `; must not contain ${extra.join(', ')}` : '') +
+      (missing.length
+        ? `; marker not found for ${missing.join(', ')} (update DATASETS)`
+        : ''),
   );
 }
 if (failed) process.exit(1);

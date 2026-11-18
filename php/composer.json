@@ -31,6 +31,8 @@
   ],
   "require": {
     "php": ">=8.2",
+    "ext-ctype": "*",
+    "ext-json": "*",
     "ext-mbstring": "*"
   },
   "require-dev": {

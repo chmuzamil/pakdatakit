@@ -12,7 +12,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -55,10 +55,54 @@ const results = [];
 function record(port, outcome) {
   results.push([port, outcome]);
 }
-function missing(port, tool) {
-  const message = `${tool} not found`;
+/** A toolchain gap: skipped, or a failure with --strict. */
+function gap(port, message, help) {
   console.warn(`\n! ${port}: ${message}; ${strict ? 'failing' : 'skipping'}`);
+  if (help) console.warn(`  ${help}`);
   record(port, strict ? `FAILED (${message})` : `skipped (${message})`);
+}
+function missing(port, tool) {
+  gap(port, `${tool} not found`);
+}
+
+/**
+ * PHP extensions the package requires (php/composer.json) and PHPUnit
+ * requires to run (its installed composer.json, or the local composer.lock),
+ * lower-cased, without `ext-`.
+ */
+function phpExtensionsNeeded(cwd) {
+  const need = new Set();
+  const add = (require) => {
+    for (const name of Object.keys(require ?? {}))
+      if (name.startsWith('ext-')) need.add(name.slice(4).toLowerCase());
+  };
+  const read = (file) => JSON.parse(readFileSync(join(cwd, file), 'utf8'));
+  add(read('composer.json').require);
+  const phpunit = join('vendor', 'phpunit', 'phpunit', 'composer.json');
+  if (existsSync(join(cwd, phpunit))) {
+    add(read(phpunit).require);
+  } else if (existsSync(join(cwd, 'composer.lock'))) {
+    add(
+      (read('composer.lock')['packages-dev'] ?? []).find(
+        (p) => p.name === 'phpunit/phpunit',
+      )?.require,
+    );
+  }
+  return [...need].sort();
+}
+
+/** Extensions the `php` on PATH has loaded (from `php -m`), lower-cased. */
+function phpExtensionsLoaded() {
+  const result = spawnSync('php', ['-m'], {
+    encoding: 'utf8',
+    shell: process.platform === 'win32',
+  });
+  return new Set(
+    (result.stdout ?? '')
+      .split(/\r?\n/)
+      .map((line) => line.trim().toLowerCase())
+      .filter((line) => line && !line.startsWith('[')),
+  );
 }
 
 // 1. Build and regenerate.
@@ -124,6 +168,18 @@ for (const port of ports) {
       const cwd = join(root, 'php');
       if (!has('php')) {
         missing(port, 'php');
+        break;
+      }
+      const loaded = phpExtensionsLoaded();
+      const absent = phpExtensionsNeeded(cwd).filter((e) => !loaded.has(e));
+      if (absent.length) {
+        gap(
+          port,
+          `PHP extension${absent.length > 1 ? 's' : ''} not loaded: ${absent.join(', ')}`,
+          `Enable ${absent.map((e) => `extension=${e}`).join(', ')} in php.ini ` +
+            '(`php --ini` shows which file PHP loads; on Windows also set ' +
+            'extension_dir to the "ext" folder next to php.exe).',
+        );
         break;
       }
       if (!existsSync(join(cwd, 'vendor'))) {

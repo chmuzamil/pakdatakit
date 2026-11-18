@@ -173,8 +173,17 @@ const addons = ADDONS.map(([file, pkg, url]) => ({
   url,
   versions: sections(file),
 }));
+/** Shift headings up so the shallowest one is h2 (the page title is the h1). */
+const fromH2 = (md) => {
+  const levels = [...md.matchAll(/^(#{2,6}) /gm)].map((m) => m[1].length);
+  const shift = levels.length ? Math.min(...levels) - 2 : 0;
+  return shift > 0
+    ? md.replace(/^(#{2,6}) /gm, (_, h) => `${'#'.repeat(h.length - shift)} `)
+    : md;
+};
 for (const a of addons) {
-  for (const [v, text] of a.versions) {
+  for (const [v, raw] of a.versions) {
+    const text = fromH2(raw);
     writeFileSync(
       join(relDir, `${a.pkg}-${v}.md`),
       `---\ntitle: ${yaml(`${a.pkg} ${v}`)}\nslug: ${yaml(`releases/${a.pkg}-${v}`)}\ndescription: ${yaml(`Release notes for ${a.pkg} ${v}, a PakDataKit companion package: what changed, what was fixed and how to upgrade.`)}\n---\n\n[${a.pkg} ${v} on its registry](${a.url}${v})\n\n${text}\n`,

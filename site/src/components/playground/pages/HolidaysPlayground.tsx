@@ -71,7 +71,7 @@ isPakistanHoliday("${checkDate}"); // → ${isHoliday}`;
               Include 26 December (Christians only)
             </label>
           </Card>
-          <Card title="Check a date">
+          <Card title="Check a date" live>
             <input
               aria-label="Date"
               type="date"
@@ -102,7 +102,7 @@ isPakistanHoliday("${checkDate}"); // → ${isHoliday}`;
                 <span className="text-sm text-text-heading">
                   {holiday.name}
                   {holiday.estimated && (
-                    <span className="ml-2 rounded bg-surface px-1.5 py-0.5 text-[10px] tracking-wide text-text-muted uppercase">
+                    <span className="ml-2 rounded bg-surface px-1.5 py-0.5 text-xs text-text-muted">
                       estimated
                     </span>
                   )}

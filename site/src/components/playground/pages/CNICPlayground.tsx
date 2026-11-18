@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { getCNICInfo, validateCNIC } from 'pakdatakit';
 import { Card } from '../components/Card';
 import { CodePreview } from '../components/CodePreview';
@@ -8,6 +8,7 @@ import { ResultBadge } from '../components/ResultBadge';
 import { escapeForCode, examples, monoInputClassName } from '../utils/examples';
 
 export function CNICPlayground() {
+  const id = useId();
   const [input, setInput] = useState<string>(examples.cnic);
 
   const isValid = useMemo(() => {
@@ -36,25 +37,31 @@ getCNICInfo("${shown}");
           title="Input"
           description="13-digit CNIC with optional separators."
         >
-          <label htmlFor="cnic-input" className="sr-only">
+          <label htmlFor={id} className="sr-only">
             CNIC number
           </label>
           <input
-            id="cnic-input"
+            id={id}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="35202-1234567-1"
+            inputMode="numeric"
+            autoComplete="off"
             spellCheck={false}
+            aria-describedby={`${id}-hint`}
             className={monoInputClassName}
           />
-          <p className="mt-2 text-xs text-text-muted">
-            Try: 35202-1234567-1 · 42101 1234567 2 · ۳۵۲۰۲-۱۲۳۴۵۶۷-۱
+          <p id={`${id}-hint`} className="mt-2 text-sm text-text-muted">
+            Try: 35202-1234567-1 · 42101 1234567 2 ·{' '}
+            <span lang="ur" dir="rtl">
+              ۳۵۲۰۲-۱۲۳۴۵۶۷-۱
+            </span>
           </p>
         </Card>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           {!input.trim() ? (
             <p className="text-sm text-text-muted">Enter a CNIC to validate.</p>
           ) : (

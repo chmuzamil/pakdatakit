@@ -70,7 +70,7 @@ getBankInfo("${shown}");
         </Card>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           {!input.trim() ? (
             <p className="text-sm text-text-muted">
               Enter an IBAN to validate.

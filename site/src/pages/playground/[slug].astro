@@ -38,14 +38,12 @@ const { tool } = Astro.props;
 
 <StarlightPage
   frontmatter={{
-    title: `${tool.label.replace(/ (experimental)$/, '')} · Playground`,
+    title: `${tool.label.replace(/ \(experimental\)$/, '')} playground`,
     description: tool.description,
     tableOfContents: false,
   }}
 >
-  <p class="pdk-note">
-    {tool.group} · <a href="/playground/">All playground tools</a> · Runs in your browser; nothing is uploaded.
-  </p>
+  <p class="pdk-privacy">Runs in your browser: nothing you type is uploaded or stored.</p>
   {tool.slug === 'cnic' && <CNICPlayground client:load />}
   {tool.slug === 'passport-plates' && <PassportPlatesPlayground client:load />}
   {tool.slug === 'forms' && <FormInputsPlayground client:load />}

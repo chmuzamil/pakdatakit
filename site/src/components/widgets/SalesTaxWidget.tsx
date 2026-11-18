@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { calculateSalesTax, getSalesTaxRate } from 'pakdatakit/salestax';
-import { Rows, rs } from './common';
+import { AMOUNT_ERROR, Rows, parseAmount, rs } from './common';
 
 const PROVINCES = [
   'Punjab',
@@ -17,7 +17,9 @@ export default function SalesTaxWidget() {
   const kind = where === 'goods' ? 'goods' : 'services';
   const province = where === 'goods' ? undefined : where;
   const rate = getSalesTaxRate({ kind, province });
-  const result = calculateSalesTax(Number(amount), { kind, province });
+  const { value, invalid } = parseAmount(amount);
+  const result =
+    value === null ? null : calculateSalesTax(value, { kind, province });
   return (
     <div className="pdk-card" data-widget="salestax">
       <div className="pdk-grid two">
@@ -29,7 +31,15 @@ export default function SalesTaxWidget() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
+            autoComplete="off"
+            aria-invalid={invalid || undefined}
+            aria-describedby={invalid ? `${id}-err` : undefined}
           />
+          {invalid ? (
+            <p id={`${id}-err`} className="pdk-error">
+              {AMOUNT_ERROR}
+            </p>
+          ) : null}
         </div>
         <div className="pdk-field">
           <label htmlFor={`${id}-w`}>Goods, or services in</label>
@@ -48,9 +58,14 @@ export default function SalesTaxWidget() {
           </select>
         </div>
       </div>
+      <p className="sr-only" aria-live="polite">
+        {result && rate
+          ? `${rs(result.tax)} sales tax at ${rate.rate}%, ${rs(result.gross)} in total`
+          : ''}
+      </p>
       <Rows
         rows={[
-          ['Authority', rate?.authority],
+          ['Authority', rate?.authority, 'text'],
           ['Rate today', rate ? `${rate.rate}%` : null],
           ['Sales tax', rs(result?.tax)],
           ['Total', rs(result?.gross)],

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
   getDistrictProvince,
   getDistrictsByProvince,
@@ -11,12 +11,13 @@ import { CodePreview } from '../components/CodePreview';
 import { OutputRow } from '../components/OutputRow';
 import { PlaygroundShell } from '../components/PlaygroundShell';
 import { ResultList } from '../components/ResultList';
-import { TabBar } from '../components/TabBar';
+import { TabBar, TabPanel } from '../components/TabBar';
 import { escapeForCode, examples, inputClassName } from '../utils/examples';
 
 type GeoMode = 'cities' | 'districts' | 'province';
 
 export function GeoPlayground() {
+  const panel = useId();
   const [mode, setMode] = useState<GeoMode>('cities');
   const [input, setInput] = useState<string>(examples.city);
 
@@ -86,23 +87,27 @@ getDistrictsByProvince("${escapeForCode(input || examples.province)}"); // → [
             ]}
             active={mode}
             onChange={handleModeChange}
+            panelId={panel}
           />
-          <label htmlFor="geo-input" className="sr-only">
-            Geo search input
-          </label>
-          <input
-            id="geo-input"
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={placeholder}
-            className={`${inputClassName} mt-3`}
-          />
-          <p className="mt-2 text-xs text-text-muted">
-            {mode === 'cities' && 'Try: Lahore · Karachi · Islam'}
-            {mode === 'districts' && 'Try: Lahore · Multan · Rawalpindi'}
-            {mode === 'province' && 'Try: Punjab · Sindh · Khyber Pakhtunkhwa'}
-          </p>
+          <TabPanel id={panel} active={mode}>
+            <label htmlFor="geo-input" className="sr-only">
+              Geo search input
+            </label>
+            <input
+              id="geo-input"
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={placeholder}
+              className={`${inputClassName} mt-3`}
+            />
+            <p className="mt-2 text-xs text-text-muted">
+              {mode === 'cities' && 'Try: Lahore · Karachi · Islam'}
+              {mode === 'districts' && 'Try: Lahore · Multan · Rawalpindi'}
+              {mode === 'province' &&
+                'Try: Punjab · Sindh · Khyber Pakhtunkhwa'}
+            </p>
+          </TabPanel>
         </Card>
       }
       output={

@@ -10,16 +10,18 @@ export function ResultBadge({
   invalidLabel = 'Invalid',
 }: ResultBadgeProps) {
   return (
-    // role="status" makes screen readers announce the result as it changes.
+    // Announced through the Result card's live region (Card `live`), which is
+    // always on the page; a live region mounted with its content often isn't.
     <span
-      role="status"
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide uppercase ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-semibold ${
         valid
           ? 'border border-success/30 bg-success-muted text-success'
           : 'border border-error/30 bg-error-muted text-error'
       }`}
     >
       <svg
+        key={String(valid)}
+        className="pdk-pop"
         width="12"
         height="12"
         viewBox="0 0 24 24"

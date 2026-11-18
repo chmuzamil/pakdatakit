@@ -58,7 +58,7 @@ analyzePhone("${escapeForCode(input || examples.phone)}");
         </Card>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           {!input.trim() || !analysis ? (
             <p className="text-sm text-text-muted">
               Enter a phone number to analyze.

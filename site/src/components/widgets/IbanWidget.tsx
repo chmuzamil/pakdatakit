@@ -21,7 +21,7 @@ export default function IbanWidget() {
           spellCheck={false}
         />
       </div>
-      <p>
+      <p aria-live="polite">
         <code>validateIBAN()</code> <Badge valid={valid} />
       </p>
       <Rows

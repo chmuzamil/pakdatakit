@@ -12,6 +12,12 @@
   --sl-font-mono:
     'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
   --pdk-font-ur: 'Noto Naskh Arabic', 'Inter Variable', serif;
+  /* One radius scale for cards, controls and small chips. */
+  --pdk-radius-sm: 0.375rem;
+  --pdk-radius: 0.5rem;
+  --pdk-radius-card: 0.75rem;
+  accent-color: var(--sl-color-accent);
+  scrollbar-color: var(--sl-color-gray-5) transparent;
 }
 
 /* Dark (Starlight's default). */
@@ -58,7 +64,7 @@
 /* ---- Widgets and tools (shared) ---- */
 .pdk-card {
   border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.75rem;
+  border-radius: var(--pdk-radius-card);
   background: var(--pdk-surface);
   padding: 1rem 1.25rem;
   margin-block: 1rem;
@@ -81,7 +87,7 @@
   width: 100%;
   min-height: 2.75rem;
   border: 1px solid var(--sl-color-gray-4);
-  border-radius: 0.5rem;
+  border-radius: var(--pdk-radius);
   background: var(--sl-color-black);
   color: var(--sl-color-white);
   padding: 0.55rem 0.75rem;
@@ -103,7 +109,7 @@
   gap: 0.4rem;
   min-height: 2.5rem;
   border: 1px solid var(--sl-color-accent);
-  border-radius: 0.5rem;
+  border-radius: var(--pdk-radius);
   background: transparent;
   color: var(--sl-color-accent-high);
   padding: 0.4rem 0.85rem;
@@ -119,10 +125,8 @@
   display: inline-block;
   border-radius: 999px;
   padding: 0.1rem 0.6rem;
-  font-size: var(--sl-text-xs);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
 }
 .pdk-badge.valid {
   background: color-mix(in srgb, var(--pdk-valid) 18%, transparent);
@@ -142,11 +146,30 @@
   color: var(--sl-color-gray-3);
   font-size: var(--sl-text-sm);
 }
+.pdk-row {
+  display: contents;
+}
 .pdk-rows dd {
+  position: relative;
+  isolation: isolate;
   margin: 0;
   font-family: var(--sl-font-mono);
   font-size: var(--sl-text-sm);
+  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+/* Prose values (e.g. a tax slab described in words) read better in sans. */
+.pdk-rows dd.text {
+  font-family: var(--sl-font);
+}
+@media (max-width: 30rem) {
+  .pdk-rows {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+  .pdk-rows dd {
+    margin-block-end: 0.5rem;
+  }
 }
 .pdk-note {
   font-size: var(--sl-text-sm);
@@ -174,9 +197,97 @@
 .pdk-table {
   width: 100%;
   font-size: var(--sl-text-sm);
+  font-variant-numeric: tabular-nums;
 }
-.pdk-table td.hl {
+/* The visitor's own row (also marked with aria-current and "(your slab)"). */
+.pdk-table tr.hl td {
   background: var(--sl-color-accent-low);
+}
+.pdk-table tr.hl td:first-child {
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
+}
+.pdk-mine {
+  font-weight: 600;
+  color: var(--sl-color-accent-high);
+}
+:root[data-theme='light'] .pdk-mine {
+  color: var(--sl-color-accent);
+}
+
+/* The headline answer of a tool, announced as it changes. */
+.pdk-result {
+  font-size: var(--sl-text-xl);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--sl-color-white);
+  font-variant-numeric: tabular-nums;
+  text-wrap: balance;
+}
+.pdk-error {
+  margin: 0;
+  font-size: var(--sl-text-sm);
+  font-weight: 500;
+  color: var(--pdk-invalid);
+}
+/* Kept on the page while empty (a live region must exist before it changes),
+   without taking space. */
+.sl-markdown-content .pdk-error:empty,
+.pdk-error:empty {
+  margin: 0;
+}
+.pdk-input[aria-invalid='true'] {
+  border-color: var(--pdk-invalid);
+}
+.pdk-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  font-size: var(--sl-text-sm);
+  cursor: pointer;
+}
+.pdk-check input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.pdk-privacy-icon {
+  flex: none;
+  margin-top: 0.15rem;
+  color: var(--sl-color-accent);
+}
+.pdk-share {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+.pdk-share .pdk-field {
+  justify-self: stretch;
+}
+/* The Raast QR keeps its space while it's being made, so nothing jumps. */
+.pdk-qr {
+  display: grid;
+  place-items: center;
+  width: 188px;
+  height: 188px;
+  border-radius: var(--pdk-radius);
+  background: #fff;
+  padding: 4px;
+}
+.pdk-qr .pdk-note {
+  color: #55695e;
+  text-align: center;
+  padding: 0.5rem;
+}
+.pdk-payload {
+  overflow-wrap: anywhere;
+  font-family: var(--sl-font-mono);
+}
+.pdk-crumbs {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.pdk-crumbs a {
+  color: var(--sl-color-gray-2);
 }
 
 /* Starlight spaces every element in page content; our widget layouts set
@@ -187,4 +298,152 @@
 }
 .sl-markdown-content .pdk-card > * + * {
   margin-top: 0.75rem;
+}
+
+/* ---- Modern finish: depth and feedback motion ----
+   Glass only where something sits behind it (the sticky header). Motion is
+   feedback only, transform and opacity, 150-250ms, and only when the visitor
+   hasn't asked for reduced motion. */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  header.header {
+    background-color: color-mix(
+      in srgb,
+      var(--sl-color-bg-nav) 82%,
+      transparent
+    );
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(12px) saturate(150%);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  header.header {
+    background-color: var(--sl-color-bg-nav);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+/* A hairline accent fade under the header instead of a flat border. */
+header.header {
+  border-bottom-color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--sl-color-accent) 45%, transparent),
+    transparent
+  );
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+  background-position: bottom;
+}
+
+/* Type: tighter headings, balanced headings, no lone last words. */
+.sl-markdown-content :is(h1, h2, h3),
+h1#_top {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.sl-markdown-content p {
+  text-wrap: pretty;
+}
+::selection {
+  background: color-mix(in srgb, var(--sl-color-accent) 32%, transparent);
+}
+
+/* Controls: hover, press, disabled. */
+.pdk-button:hover {
+  background: var(--sl-color-accent-low);
+}
+.pdk-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pdk-input:hover,
+.pdk-select:hover {
+  border-color: var(--sl-color-gray-3);
+}
+.pdk-input[aria-invalid='true']:hover {
+  border-color: var(--pdk-invalid);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pdk-button {
+    transition:
+      background-color 0.15s,
+      transform 0.15s;
+  }
+  .pdk-button:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .pdk-input,
+  .pdk-select {
+    transition: border-color 0.15s;
+  }
+  /* The focus ring settles in as it appears. */
+  :is(.pdk-input, .pdk-select, .pdk-button):focus-visible {
+    animation: pdk-ring 0.15s ease-out;
+  }
+  /* A result badge, check mark or copy confirmation pops in. */
+  .pdk-pop {
+    animation: pdk-pop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  }
+  /* A changed result value flashes once (each value is keyed on its content). */
+  .pdk-rows dd::after {
+    content: '';
+    position: absolute;
+    inset: -0.1rem -0.3rem;
+    z-index: -1;
+    border-radius: var(--pdk-radius-sm);
+    background: var(--sl-color-accent-low);
+    opacity: 0;
+    pointer-events: none;
+    animation: pdk-flash 0.25s ease-out;
+  }
+  /* Starlight's code-language tabs fade between panels. */
+  starlight-tabs [role='tabpanel']:not([hidden]) {
+    animation: pdk-fade 0.15s ease-out;
+  }
+}
+@keyframes pdk-ring {
+  from {
+    outline-offset: 5px;
+    outline-color: transparent;
+  }
+}
+@keyframes pdk-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pdk-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes pdk-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Cross-page navigation fades instead of flashing (browsers without view
+   transitions ignore this). */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.18s;
+  }
+}
+header.header {
+  view-transition-name: pdk-header;
 }

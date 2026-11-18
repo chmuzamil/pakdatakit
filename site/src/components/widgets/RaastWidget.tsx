@@ -43,6 +43,8 @@ export default function RaastWidget() {
               onChange={(e) => setIban(e.target.value)}
               autoComplete="off"
               spellCheck={false}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={`${id}-e`}
             />
           </div>
           <div className="pdk-field">
@@ -55,41 +57,36 @@ export default function RaastWidget() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               inputMode="decimal"
+              autoComplete="off"
+              aria-describedby={`${id}-e`}
             />
           </div>
-          {error ? <p className="pdk-note">{error}</p> : null}
+          <p id={`${id}-e`} className="pdk-error" role="alert">
+            {error}
+          </p>
           <Rows
             rows={[
-              ['Bank', parsed?.bank ?? null],
+              ['Bank', parsed?.bankName ?? null],
               ['Amount', parsed?.amount ?? null],
             ]}
           />
         </div>
         <div>
-          {svg ? (
-            <img
-              src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
-              alt="Raast QR code for the IBAN above"
-              width={180}
-              height={180}
-              style={{
-                background: '#fff',
-                borderRadius: '0.5rem',
-                padding: '0.25rem',
-              }}
-            />
-          ) : null}
-          {payload ? (
-            <p
-              className="pdk-note"
-              style={{
-                overflowWrap: 'anywhere',
-                fontFamily: 'var(--sl-font-mono)',
-              }}
-            >
-              {payload}
-            </p>
-          ) : null}
+          <div className="pdk-qr">
+            {svg ? (
+              <img
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`}
+                alt="Raast QR code for the IBAN above"
+                width={180}
+                height={180}
+              />
+            ) : (
+              <span className="pdk-note">
+                {error ? 'No QR code' : 'Making the QR code…'}
+              </span>
+            )}
+          </div>
+          {payload ? <p className="pdk-note pdk-payload">{payload}</p> : null}
         </div>
       </div>
     </div>

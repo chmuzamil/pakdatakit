@@ -97,7 +97,7 @@ amountInWords(${shown}, { language: "ur" });
               <OutputRow label="formatLakh()" value={lakh} />
               {words && (
                 <div className="mt-4 space-y-3 border-t border-border pt-4">
-                  <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+                  <p className="text-sm font-semibold text-text-muted">
                     In words
                   </p>
                   <WordsBlock label="English" text={words.en} />

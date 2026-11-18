@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import {
   normalizeRomanUrdu,
   normalizeText,
@@ -9,12 +9,16 @@ import { Card } from '../components/Card';
 import { CodePreview } from '../components/CodePreview';
 import { OutputRow } from '../components/OutputRow';
 import { PlaygroundShell } from '../components/PlaygroundShell';
-import { TabBar } from '../components/TabBar';
+import { TabBar, TabPanel } from '../components/TabBar';
 import { escapeForCode, examples, inputClassName } from '../utils/examples';
 
 type TextMode = 'normalize' | 'roman' | 'digits';
 
 export function TextPlayground() {
+  const panel = useId();
+  const inputId = useId();
+  // Once the visitor has typed, switching modes keeps their text.
+  const edited = useRef(false);
   const [mode, setMode] = useState<TextMode>('normalize');
   const [input, setInput] = useState<string>(
     mode === 'roman'
@@ -58,6 +62,7 @@ toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${e
 
   function handleModeChange(next: TextMode) {
     setMode(next);
+    if (edited.current && input.trim()) return;
     if (next === 'normalize') setInput(examples.text);
     else if (next === 'roman') setInput(examples.romanUrdu);
     else setInput('0300 ۱۲۳۴۵۶۷');
@@ -77,24 +82,31 @@ toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${e
             ]}
             active={mode}
             onChange={handleModeChange}
+            panelId={panel}
           />
-          <label htmlFor="text-input" className="sr-only">
-            Text input
-          </label>
-          <input
-            id="text-input"
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={
-              mode === 'roman'
-                ? 'ap kia ker rhe ho'
-                : mode === 'digits'
-                  ? '0300 ۱۲۳۴۵۶۷'
-                  : '  Hello   World  '
-            }
-            className={`${inputClassName} mt-3`}
-          />
+          <TabPanel id={panel} active={mode}>
+            <label htmlFor={inputId} className="sr-only">
+              Text input
+            </label>
+            <input
+              id={inputId}
+              type="text"
+              dir="auto"
+              value={input}
+              onChange={(e) => {
+                edited.current = true;
+                setInput(e.target.value);
+              }}
+              placeholder={
+                mode === 'roman'
+                  ? 'ap kia ker rhe ho'
+                  : mode === 'digits'
+                    ? '0300 ۱۲۳۴۵۶۷'
+                    : '  Hello   World  '
+              }
+              className={`${inputClassName} mt-3`}
+            />
+          </TabPanel>
         </Card>
       }
       output={
@@ -103,8 +115,12 @@ toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${e
             <p className="text-sm text-text-muted">Enter text to transform.</p>
           ) : mode === 'digits' ? (
             <>
-              <OutputRow label="toUrduDigits()" value={output} />
-              <OutputRow label="toEnglishDigits()" value={englishDigits} />
+              <OutputRow label="toUrduDigits()" value={output} dir="auto" />
+              <OutputRow
+                label="toEnglishDigits()"
+                value={englishDigits}
+                dir="auto"
+              />
             </>
           ) : (
             <OutputRow
@@ -115,6 +131,7 @@ toEnglishDigits("${escapeForCode(input || '0300 ۱۲۳۴۵۶۷')}"); // → "${e
               }
               value={output}
               mono={false}
+              dir="auto"
             />
           )}
         </Card>

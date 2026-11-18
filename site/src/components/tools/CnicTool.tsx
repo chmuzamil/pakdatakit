@@ -60,7 +60,12 @@ export default function CnicTool() {
           rows={[
             ['Formatted', info?.formatted],
             ['Province of registration', info?.province],
-            ['Gender', info?.gender],
+            [
+              'Gender',
+              info?.gender
+                ? info.gender.charAt(0).toUpperCase() + info.gender.slice(1)
+                : null,
+            ],
           ]}
         />
         <ShareButton state={state} personal />

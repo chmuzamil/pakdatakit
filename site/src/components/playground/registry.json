@@ -1,0 +1,177 @@
+[
+  {
+    "slug": "cnic",
+    "label": "CNIC Validator & Info",
+    "group": "Identity",
+    "component": "CNICPlayground",
+    "description": "Validate Pakistani CNIC numbers and read the province and gender they encode."
+  },
+  {
+    "slug": "passport-plates",
+    "label": "Passport & Vehicle Plates",
+    "group": "Identity",
+    "component": "PassportPlatesPlayground",
+    "description": "Check the shape of a Pakistani passport number, and split a vehicle registration plate into series, number and year."
+  },
+  {
+    "slug": "forms",
+    "label": "Form Inputs",
+    "group": "Identity",
+    "component": "FormInputsPlayground",
+    "description": "Fields that format as you type and only show an error when the value can no longer become valid. Built with the pakdatakit-react components."
+  },
+  {
+    "slug": "phone",
+    "label": "Phone Analyzer",
+    "group": "Phone & Messaging",
+    "component": "PhonePlayground",
+    "description": "Validate Pakistani mobile numbers, format to E.164, and detect the issuing network."
+  },
+  {
+    "slug": "numbers",
+    "label": "Landline & UAN",
+    "group": "Phone & Messaging",
+    "component": "NumbersPlayground",
+    "description": "Identify mobile, landline, UAN, toll-free, premium-rate and personal numbers, with area code and city."
+  },
+  {
+    "slug": "whatsapp",
+    "label": "WhatsApp Link",
+    "group": "Phone & Messaging",
+    "component": "WhatsAppPlayground",
+    "description": "Generate wa.me click-to-chat links for Pakistani mobile numbers."
+  },
+  {
+    "slug": "geo",
+    "label": "Geo Lookup",
+    "group": "Geography",
+    "component": "GeoPlayground",
+    "description": "Look up provinces, search cities and districts, or list districts by province."
+  },
+  {
+    "slug": "postal",
+    "label": "Postal Codes",
+    "group": "Geography",
+    "component": "PostalPlayground",
+    "description": "Look up postal codes by city, find cities by code, or search postal entries."
+  },
+  {
+    "slug": "post-offices",
+    "label": "Post Offices & Tehsils",
+    "group": "Geography",
+    "component": "PostOfficesPlayground",
+    "description": "Every delivery post office in Pakistan Post's directory (about 2,560, including villages), and the tehsils of each district from the 2023 census."
+  },
+  {
+    "slug": "address",
+    "label": "Address Parser",
+    "group": "Geography",
+    "component": "AddressPlayground",
+    "description": "Parse free-form Pakistani addresses into structured components and format them back."
+  },
+  {
+    "slug": "cod",
+    "label": "COD Checks",
+    "group": "Geography",
+    "component": "CodChecksPlayground",
+    "description": "Spot cash-on-delivery orders a rider will struggle to deliver: score how complete an address is, and flag phone numbers a courier cannot use."
+  },
+  {
+    "slug": "courier",
+    "label": "Courier Cities (experimental)",
+    "group": "Geography",
+    "component": "CourierPlayground",
+    "description": "Match the short forms, old names and Urdu spellings customers type to the city list, and map a courier's own status to one vocabulary. No courier API is called."
+  },
+  {
+    "slug": "currency",
+    "label": "Currency & Words",
+    "group": "Finance",
+    "component": "CurrencyPlayground",
+    "description": "Format Pakistani Rupee amounts with lakh/crore conventions and write them in words for cheques, in English and Urdu."
+  },
+  {
+    "slug": "iban",
+    "label": "IBAN Validator",
+    "group": "Finance",
+    "component": "IBANPlayground",
+    "description": "Validate Pakistani IBANs with the mod-97 checksum and see which bank issued them, what kind of bank it is and whether it still exists."
+  },
+  {
+    "slug": "raast",
+    "label": "Raast QR & Checker",
+    "group": "Finance",
+    "component": "RaastPlayground",
+    "description": "Create Raast payment QR codes, and check any Pakistani payment QR for tampering, expiry or a bad IBAN before paying."
+  },
+  {
+    "slug": "bills",
+    "label": "Electricity & Gas Bills",
+    "group": "Finance",
+    "component": "BillsPlayground",
+    "description": "Check and format electricity bill references (DISCO reference numbers and customer IDs, K-Electric accounts) and SNGPL or SSGC gas consumer numbers."
+  },
+  {
+    "slug": "tax",
+    "label": "NTN & STRN",
+    "group": "Tax & FBR",
+    "component": "TaxPlayground",
+    "description": "Check the format of FBR National Tax Numbers and Sales Tax Registration Numbers."
+  },
+  {
+    "slug": "sales-tax",
+    "label": "Sales Tax",
+    "group": "Tax & FBR",
+    "component": "SalesTaxPlayground",
+    "description": "Standard sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) on any date from 1 July 2019, with the law behind each rate, and exact amounts in whole paisa."
+  },
+  {
+    "slug": "income-tax",
+    "label": "Salary Income Tax",
+    "group": "Tax & FBR",
+    "component": "IncomeTaxPlayground",
+    "description": "Income tax on salary from the salaried rate table of the Income Tax Ordinance 2001, for tax years 2020 to 2027, computed exactly in whole paisa."
+  },
+  {
+    "slug": "fbr-invoice",
+    "label": "FBR Invoice Validator",
+    "group": "Tax & FBR",
+    "component": "FbrInvoicePlayground",
+    "description": "Check an FBR Digital Invoicing invoice offline against PRAL's DI API specification v1.12, with FBR's own error codes. Nothing is sent to FBR."
+  },
+  {
+    "slug": "text",
+    "label": "Text Utils",
+    "group": "Locale",
+    "component": "TextPlayground",
+    "description": "Normalize text, Roman Urdu spellings, and convert between English and Urdu digits."
+  },
+  {
+    "slug": "slugify",
+    "label": "Urdu Slugify",
+    "group": "Locale",
+    "component": "SlugifyPlayground",
+    "description": "URL slugs that keep Urdu letters instead of dropping them, with the option to keep only Latin or only Urdu words."
+  },
+  {
+    "slug": "hijri",
+    "label": "Hijri Calendar",
+    "group": "Locale",
+    "component": "HijriPlayground",
+    "description": "Convert Gregorian dates to Hijri, format Islamic dates, and check for Ramadan."
+  },
+  {
+    "slug": "holidays",
+    "label": "Public Holidays",
+    "group": "Locale",
+    "component": "HolidaysPlayground",
+    "description": "Pakistan's federal public holidays, using the Eid, Ashura and Milad dates actually observed after moon sighting."
+  },
+  {
+    "slug": "faker",
+    "label": "Mock Data (Faker)",
+    "group": "Tools",
+    "component": "FakerPlayground",
+    "description": "Generate realistic Pakistani test data where everything fits together: the CNIC matches the province and gender, and the city, postal code, area code and bank all agree."
+  }
+]

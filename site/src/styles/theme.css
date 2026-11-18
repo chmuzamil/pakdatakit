@@ -1,0 +1,190 @@
+/* PakDataKit: design direction 1, deep green and restrained.
+   Self-hosted fonts only; Urdu (Noto Naskh Arabic) is used only for lang="ur". */
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/noto-naskh-arabic/arabic-400.css';
+@import '@fontsource/noto-naskh-arabic/arabic-600.css';
+
+:root {
+  --sl-font:
+    'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --sl-font-mono:
+    'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --pdk-font-ur: 'Noto Naskh Arabic', 'Inter Variable', serif;
+}
+
+/* Dark (Starlight's default). */
+:root {
+  --sl-color-accent-low: #0f2e22;
+  --sl-color-accent: #34a36b;
+  --sl-color-accent-high: #a7e8c3;
+  --sl-color-white: #f2f6f3;
+  --sl-color-gray-1: #dfe7e2;
+  --sl-color-gray-2: #b8c5bd;
+  --sl-color-gray-3: #85978c;
+  --sl-color-gray-4: #556a5e;
+  --sl-color-gray-5: #34463b;
+  --sl-color-gray-6: #1c2a22;
+  --sl-color-black: #0c1611;
+  --pdk-valid: #4ade80;
+  --pdk-invalid: #fca5a5;
+  --pdk-surface: #122019;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #dcf3e5;
+  --sl-color-accent: #0b6b41;
+  --sl-color-accent-high: #063b26;
+  --sl-color-white: #10221a;
+  --sl-color-gray-1: #1d3328;
+  --sl-color-gray-2: #34493e;
+  --sl-color-gray-3: #55695e;
+  --sl-color-gray-4: #8b9b91;
+  --sl-color-gray-5: #c8d3cc;
+  --sl-color-gray-6: #e9efeb;
+  --sl-color-gray-7: #f4f7f5;
+  --sl-color-black: #fbfcfa;
+  --pdk-valid: #166534;
+  --pdk-invalid: #991b1b;
+  --pdk-surface: #f1f6f2;
+}
+
+:lang(ur) {
+  font-family: var(--pdk-font-ur);
+  line-height: 1.9;
+}
+
+/* ---- Widgets and tools (shared) ---- */
+.pdk-card {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  background: var(--pdk-surface);
+  padding: 1rem 1.25rem;
+  margin-block: 1rem;
+}
+.pdk-card > :first-child {
+  margin-top: 0;
+}
+.pdk-field {
+  display: grid;
+  gap: 0.35rem;
+  margin-block-end: 0.75rem;
+}
+.pdk-field label {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  color: var(--sl-color-gray-2);
+}
+.pdk-input,
+.pdk-select {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.5rem;
+  background: var(--sl-color-black);
+  color: var(--sl-color-white);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  font-size: 1rem;
+}
+.pdk-input.mono {
+  font-family: var(--sl-font-mono);
+}
+.pdk-input:focus-visible,
+.pdk-select:focus-visible,
+.pdk-button:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+.pdk-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--sl-color-accent);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--sl-color-accent-high);
+  padding: 0.4rem 0.85rem;
+  font: inherit;
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+:root[data-theme='light'] .pdk-button {
+  color: var(--sl-color-accent);
+}
+.pdk-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: var(--sl-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.pdk-badge.valid {
+  background: color-mix(in srgb, var(--pdk-valid) 18%, transparent);
+  color: var(--pdk-valid);
+}
+.pdk-badge.invalid {
+  background: color-mix(in srgb, var(--pdk-invalid) 18%, transparent);
+  color: var(--pdk-invalid);
+}
+.pdk-rows {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.75rem 0 0;
+}
+.pdk-rows dt {
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+}
+.pdk-rows dd {
+  margin: 0;
+  font-family: var(--sl-font-mono);
+  font-size: var(--sl-text-sm);
+  overflow-wrap: anywhere;
+}
+.pdk-note {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.pdk-privacy {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+  border-inline-start: 3px solid var(--sl-color-accent);
+  padding-inline-start: 0.75rem;
+  margin-block: 1rem;
+}
+.pdk-grid {
+  display: grid;
+  gap: 1rem;
+}
+@media (min-width: 50rem) {
+  .pdk-grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.pdk-table {
+  width: 100%;
+  font-size: var(--sl-text-sm);
+}
+.pdk-table td.hl {
+  background: var(--sl-color-accent-low);
+}
+
+/* Starlight spaces every element in page content; our widget layouts set
+   their own spacing. */
+.sl-markdown-content :is(.pdk-grid, .pdk-field, .pdk-rows) > *,
+.sl-markdown-content .pdk-rows > div > * {
+  margin-top: 0;
+}
+.sl-markdown-content .pdk-card > * + * {
+  margin-top: 0.75rem;
+}

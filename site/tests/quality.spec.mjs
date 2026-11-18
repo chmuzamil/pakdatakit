@@ -1,0 +1,150 @@
+// Quality gates: accessibility (axe), no network requests while a tool runs,
+// and no CSP violations. Links are checked separately (npm run check:links)
+// and the old API URLs by npm run check:redirects.
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test } from '@playwright/test';
+
+const PAGES = [
+  '/',
+  '/install/typescript/',
+  '/docs/cnic/',
+  '/docs/salestax/',
+  '/docs/raast/',
+  '/tools/cnic/',
+  '/tools/iban/',
+  '/tools/salary-tax/',
+  '/tools/sales-tax/',
+  '/playground/',
+  '/playground/cnic/',
+  '/playground/fbr-invoice/',
+  '/api/typescript/',
+  '/api/typescript/cnic/',
+  '/api/typescript/salestax/functions/calculatesalestax/',
+  '/api/typescript/salestax/interfaces/salestaxoptions/',
+  '/releases/',
+  '/data/',
+  '/about/',
+];
+
+/** Fails the test on any Content-Security-Policy violation. */
+async function watchCsp(page) {
+  const violations = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error' && /Content Security Policy/i.test(msg.text()))
+      violations.push(msg.text().slice(0, 200));
+  });
+  return violations;
+}
+
+for (const path of PAGES) {
+  for (const scheme of ['light', 'dark']) {
+    test(`axe: no serious issues on ${path} (${scheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      const csp = await watchCsp(page);
+      await page.goto(path);
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); // hydrate client:visible widgets
+      await page.waitForTimeout(500);
+      const { violations } = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+        .exclude('astro-dev-toolbar')
+        .analyze();
+      const serious = violations
+        .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+        // Starlight's search button is labelled "Search" but also shows its
+        // keyboard shortcut (Ctrl K); that is Starlight's markup, not ours, and
+        // the name still starts with the visible word.
+        .map((v) =>
+          v.id === 'label-content-name-mismatch'
+            ? {
+                ...v,
+                nodes: v.nodes.filter(
+                  (n) => !String(n.target).includes('data-open-modal'),
+                ),
+              }
+            : v,
+        )
+        .filter((v) => v.nodes.length > 0);
+      expect(
+        serious.map(
+          (v) => `${v.id}: ${v.help} (${v.nodes.length}) ${v.nodes[0]?.target}`,
+        ),
+        `axe found serious issues on ${path}`,
+      ).toEqual([]);
+      expect(csp, `CSP violations on ${path}`).toEqual([]);
+    });
+  }
+}
+
+const TOOLS = [
+  { path: '/tools/cnic/', text: '42101-1234567-2' },
+  { path: '/tools/iban/', text: 'PK36SCBL0000001123456702' },
+  { path: '/tools/salary-tax/', text: '987654' },
+  { path: '/tools/sales-tax/', text: '45678' },
+  { path: '/playground/cnic/', text: '61101-7654321-3' },
+];
+
+for (const tool of TOOLS) {
+  test(`no network requests while ${tool.path} runs`, async ({ page }) => {
+    await page.goto(tool.path);
+    await page.waitForLoadState('networkidle');
+    const requests = [];
+    page.on('request', (req) => requests.push(req));
+    const input = page.locator('main input').first();
+    await input.fill('');
+    await input.pressSequentially(tool.text, { delay: 20 });
+    await page.waitForTimeout(1500);
+    const problems = [];
+    for (const req of requests) {
+      const url = new URL(req.url());
+      const sameOrigin = url.origin === new URL(page.url()).origin;
+      // The only request allowed is the same-origin analytics event, and it must
+      // not contain anything that was typed.
+      if (
+        sameOrigin &&
+        url.pathname === '/api/send' &&
+        req.method() === 'POST'
+      ) {
+        const body = req.postData() ?? '';
+        if (
+          body.includes(tool.text) ||
+          body.includes(tool.text.replace(/\D/g, '')) ||
+          body.includes('#')
+        )
+          problems.push(
+            `analytics payload contains input: ${body.slice(0, 120)}`,
+          );
+        continue;
+      }
+      // Chromium re-reads the tab icon when the URL hash changes; it is a static
+      // file and carries nothing that was typed.
+      if (
+        sameOrigin &&
+        req.method() === 'GET' &&
+        url.pathname === '/favicon.svg' &&
+        !url.search
+      )
+        continue;
+      problems.push(`${req.method()} ${req.url()}`);
+    }
+    expect(problems, `requests made while ${tool.path} was running`).toEqual(
+      [],
+    );
+  });
+}
+
+test('personal-data tools keep input out of the URL until "Copy share link"', async ({
+  page,
+}) => {
+  await page.goto('/tools/cnic/');
+  await page.locator('main input').first().fill('35202-1234567-1');
+  await page.waitForTimeout(300);
+  expect(page.url()).not.toContain('35202');
+});
+
+test('?lang=python selects Python in every code tab', async ({ page }) => {
+  await page.goto('/docs/cnic/?lang=python');
+  const selected = page
+    .locator('starlight-tabs [role="tab"][aria-selected="true"]')
+    .first();
+  await expect(selected).toHaveText('Python');
+});

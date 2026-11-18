@@ -1,0 +1,61 @@
+---
+title: Income tax on salary
+description: Income tax on salary from the salaried rate table of the Income Tax Ordinance 2001, tax years 2020 to 2027, exact to the paisa.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import SalaryTaxWidget from '../../../components/widgets/SalaryTaxWidget.tsx';
+
+`import { calculateSalaryTax, calculateMonthlySalaryTax, getTaxYear } from 'pakdatakit/incometax'`
+
+The salaried rate table is in the First Schedule, Part I, Division I, clause (2) of the Income Tax Ordinance 2001. It applies when salary is more than 75% of taxable income. Tax year 2027 runs from 1 July 2026 to 30 June 2027 and uses the table substituted by the Finance Act 2026.
+
+<SalaryTaxWidget client:visible />
+
+## Examples
+
+<LangTabs module="incometax" />
+
+## Reference
+
+### calculateSalaryTax()
+
+```ts
+function calculateSalaryTax(
+  annualIncome: number,
+  options?: { taxYear?: number; date?: string | Date },
+): SalaryTax | null;
+
+interface SalaryTax {
+  tax: number; // for the year, rounded half up to the paisa
+  monthly: number;
+  effectiveRate: number; // percent
+  slab: { over: number; upTo: number | null; fixed: number; rate: number };
+  taxYear: number;
+}
+```
+
+**Returns** the tax on an annual taxable salary. Without `taxYear` or `date`, the current tax year is used; a year that is not covered returns `null`.
+
+**Caveats.** Only the rate table is applied. The surcharge, tax credits, exemptions and allowances are not. (For tax year 2027 the surcharge on salaried individuals was withdrawn by the Finance Act 2026.) This is an estimate, not tax advice.
+
+### calculateMonthlySalaryTax()
+
+```ts
+function calculateMonthlySalaryTax(
+  monthlySalary: number,
+  options?: { taxYear?: number; date?: string | Date },
+): SalaryTax | null;
+```
+
+**Returns** the same result for a monthly salary (twelve times the month).
+
+### getTaxYear()
+
+```ts
+function getTaxYear(date?: string | Date): number | null;
+```
+
+**Returns** the tax year a date falls in: 18 November 2026 is in tax year 2027.
+
+**Related:** the [salary tax calculator](/tools/salary-tax/), [data sources](/data/) for the law and the date it was last checked.

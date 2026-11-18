@@ -1,0 +1,14 @@
+---
+import { dataVersion } from 'pakdatakit';
+import ToolPage from '../../components/ToolPage.astro';
+import SalesTaxTool from '../../components/tools/SalesTaxTool.tsx';
+---
+
+<ToolPage
+  title="Sales tax calculator: FBR goods and provincial services"
+  description="Sales tax on goods (FBR) and on services in Punjab (PRA), Sindh (SRB), Khyber Pakhtunkhwa (KPRA), Balochistan (BRA) and Islamabad, on any date since July 2019, with the law cited."
+  appName="Pakistan sales tax calculator"
+  path="/tools/sales-tax/"
+>
+  <SalesTaxTool client:load dataChecked={dataVersion} />
+</ToolPage>

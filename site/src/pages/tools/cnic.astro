@@ -1,0 +1,13 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import CnicTool from '../../components/tools/CnicTool.tsx';
+---
+
+<ToolPage
+  title="CNIC format checker and decoder"
+  description="Check that a CNIC number is correctly formatted and read the province and gender it encodes. Free, runs in your browser, nothing uploaded. Not NADRA verification."
+  appName="CNIC format checker"
+  path="/tools/cnic/"
+>
+  <CnicTool client:load />
+</ToolPage>

@@ -1,0 +1,33 @@
+---
+/** /playground/: every tool, grouped. */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { LinkCard } from '@astrojs/starlight/components';
+import registry from '../../components/playground/registry.json';
+
+const groups = [...new Set(registry.map((t) => t.group))];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Playground',
+    description:
+      'Try every pakdatakit module in your browser: CNIC, phone, IBAN, Raast QR, sales and income tax, FBR invoices, postal codes, Urdu text, Hijri dates and seeded mock data.',
+  }}
+>
+  <p>
+    The TypeScript library, running in your browser. Nothing you type is uploaded. Each tool shows the code for what
+    you've entered.
+  </p>
+  {
+    groups.map((group) => (
+      <>
+        <h2>{group}</h2>
+        {registry
+          .filter((t) => t.group === group)
+          .map((t) => (
+            <LinkCard title={t.label} href={`/playground/${t.slug}/`} description={t.description} />
+          ))}
+      </>
+    ))
+  }
+</StarlightPage>

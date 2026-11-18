@@ -1,17 +1,21 @@
 name: Site
 
-# Builds pakdatakit.dev and deploys it to the VPS (see RELEASING.md and
-# site/build-placeholder.sh).
+# Builds pakdatakit.dev (site/, Astro + Starlight) and deploys it to the VPS.
 #
-# - Pull requests: build only, and attach the built site to the run as an
-#   artifact (there is no preview server).
-# - main (site changes), core release tags and manual runs: build, upload
-#   with rsync into a new release folder, then "activate" it. Activation
-#   switches the site to the new release, checks it through Nginx on the
-#   server, and switches back automatically if that check fails.
+# - Pull requests: build, run the quality gates, and attach the built site to
+#   the run as an artifact (there is no preview server).
+# - main, core release tags and manual runs: the same, then upload with rsync
+#   into a new release folder and "activate" it. Activation switches the site
+#   to the new release, checks it through Nginx on the server, and switches
+#   back automatically if that check fails.
 # - Once the site is live (environment variable PDK_SITE_LIVE = true), the
-#   workflow also checks https://pakdatakit.dev/healthz.json from outside
-#   and rolls back if it doesn't report the new release.
+#   workflow also checks https://pakdatakit.dev/ from outside: healthz.json
+#   must report the new release and the main pages must load; otherwise it
+#   rolls back.
+#
+# Quality gates: accessibility (axe, no serious issues, light and dark,
+# mobile and desktop), no network requests while a tool runs, no CSP
+# violations, internal links, and the old API URL redirect map.
 #
 # The SSH key can only run /usr/local/bin/pdk-deploy on the server
 # (upload, activate, rollback, status); it has no shell.
@@ -20,9 +24,32 @@ on:
   push:
     branches: [main]
     tags: ['v[0-9]+.[0-9]+.[0-9]+*']
-    paths: ['site/**', '.github/workflows/site.yml']
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+      # The site is generated from these too.
+      - 'src/**'
+      - 'data/**'
+      - 'DATA.md'
+      - '**/CHANGELOG.md'
+      - 'typedoc.json'
+      - 'tsconfig.json'
+      - 'scripts/generate-llms.mjs'
+      - 'scripts/generate-test-vectors.mjs'
+      - 'scripts/docs-stub.mjs'
   pull_request:
-    paths: ['site/**', '.github/workflows/site.yml']
+    paths:
+      - 'site/**'
+      - '.github/workflows/site.yml'
+      - 'src/**'
+      - 'data/**'
+      - 'DATA.md'
+      - '**/CHANGELOG.md'
+      - 'typedoc.json'
+      - 'tsconfig.json'
+      - 'scripts/generate-llms.mjs'
+      - 'scripts/generate-test-vectors.mjs'
+      - 'scripts/docs-stub.mjs'
   workflow_dispatch:
 
 permissions:
@@ -33,20 +60,69 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release: ${{ steps.id.outputs.release }}
+    defaults:
+      run:
+        working-directory: site
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            site/package-lock.json
 
       - name: Release id
         id: id
         run: echo "release=$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
-      - name: Build
-        run: bash site/build-placeholder.sh dist "${{ steps.id.outputs.release }}" "$GITHUB_SHA"
+      # The site imports the core package from the repo (file:..) and runs its
+      # TypeDoc and llms.txt scripts.
+      - name: Build the core package
+        working-directory: .
+        run: |
+          npm ci
+          npm run build
+
+      - run: npm ci
+
+      - name: Build the site
+        run: npm run build
+
+      - name: Old API URLs map to existing pages
+        run: npm run check:redirects
+
+      - name: Install Chromium for the quality gates
+        run: npx playwright install --with-deps chromium
+
+      - name: Accessibility, network and CSP checks
+        run: npm run check:quality
+
+      - name: Internal links
+        run: |
+          npx astro preview --port 4329 > /tmp/preview.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:4329/ && break; sleep 1; done
+          npm run check:links
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: quality-report-${{ steps.id.outputs.release }}
+          path: |
+            site/playwright-report/
+            site/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Package the release
+        run: bash package-release.sh dist "${{ steps.id.outputs.release }}" "$GITHUB_SHA"
 
       - uses: actions/upload-artifact@v7
         with:
           name: site-${{ steps.id.outputs.release }}
-          path: dist/
+          path: site/dist/
           if-no-files-found: error
           retention-days: 14
 
@@ -106,13 +182,21 @@ jobs:
       - name: Check the public site
         if: vars.PDK_SITE_LIVE == 'true'
         run: |
+          live=
           for attempt in 1 2 3 4 5; do
             body=$(curl -fsS --max-time 15 https://pakdatakit.dev/healthz.json || true)
-            case "$body" in *"\"release\":\"$RELEASE\""*) echo "Live: $body"; exit 0 ;; esac
+            case "$body" in *"\"release\":\"$RELEASE\""*) live=1; echo "Live: $body"; break ;; esac
             sleep 10
           done
-          echo "::error::https://pakdatakit.dev/healthz.json does not report $RELEASE (got: ${body:-nothing})"
-          exit 1
+          if [ -z "$live" ]; then
+            echo "::error::https://pakdatakit.dev/healthz.json does not report $RELEASE (got: ${body:-nothing})"
+            exit 1
+          fi
+          for path in / /docs/ /playground/ /api/typescript/; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://pakdatakit.dev$path")
+            echo "$path → $code"
+            [ "$code" = 200 ] || { echo "::error::https://pakdatakit.dev$path returned $code"; exit 1; }
+          done
 
       - name: Roll back
         if: failure() && steps.activate.outcome == 'success'

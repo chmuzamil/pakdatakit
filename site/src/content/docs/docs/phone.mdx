@@ -1,0 +1,65 @@
+---
+title: Phone
+description: Validate Pakistani mobile numbers, format them as E.164, and find the network a number was first issued on.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import PhoneWidget from '../../../components/widgets/PhoneWidget.tsx';
+
+`import { validatePhone, formatPhone, analyzePhone } from 'pakdatakit/phone'` · `import { getNetwork } from 'pakdatakit/networks'`
+
+Accepts the forms people actually type (`03…`, `+92…`, `0092…`, `+92 (0) 3…` and `3…`, with spaces, dashes, dots or Urdu digits) and checks that the `03XX` prefix belongs to a mobile operator.
+
+<PhoneWidget client:visible />
+
+## Examples
+
+<LangTabs module="phone" />
+
+## Reference
+
+### validatePhone()
+
+```ts
+function validatePhone(phone: string): boolean;
+```
+
+**Parameters.** `phone`: a mobile number in any of the forms above.
+
+**Returns** `true` for a mobile number with an allocated `03XX` prefix. Landlines, UAN and toll-free numbers return `false` (see `analyzeNumber()` for those).
+
+**Related:** [`formatPhone()`](#formatphone), [`analyzePhone()`](#analyzephone).
+
+### formatPhone()
+
+```ts
+function formatPhone(phone: string): string | null;
+```
+
+**Returns** the number in E.164 form (`+923001234567`), or `null` when it is not a valid mobile number.
+
+### analyzePhone()
+
+```ts
+function analyzePhone(phone: string): PhoneAnalysis;
+
+interface PhoneAnalysis {
+  valid: boolean;
+  formatted: string | null; // E.164
+  network: string; // 'Jazz' | 'Zong' | 'Ufone' | 'Telenor' | 'SCO' | 'Unknown'
+}
+```
+
+**Returns** validity, the E.164 form and the original network in one call.
+
+### getNetwork()
+
+```ts
+function getNetwork(phone: string): string;
+```
+
+**Returns** `Jazz`, `Zong`, `Ufone`, `Telenor`, `SCO` (0355, Azad Jammu and Kashmir and Gilgit-Baltistan) or `Unknown`.
+
+**Caveats.** This is the network the prefix was first allocated to. Pakistan has mobile number portability, so a number may have moved to another operator since.
+
+**Related:** [`createWhatsAppLink()`](/api/typescript/whatsapp/functions/createwhatsapplink/), [`phoneRiskSignals()`](/api/typescript/quality/functions/phonerisksignals/).

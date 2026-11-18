@@ -1,0 +1,21 @@
+{
+  "module": "raast",
+  "title": "Raast QR",
+  "examples": [
+    {
+      "id": "create",
+      "title": "Create a person-to-person QR",
+      "fn": "createRaastP2PQr",
+      "args": [],
+      "kwargs": {
+        "iban": "PK36SCBL0000001123456702",
+        "amount": 1500,
+        "expiresIn": "1d",
+        "now": {
+          "$date": "2026-11-18T10:00:00"
+        }
+      },
+      "expected": "0002020102120202000424PK36SCBL00000011234567020504150007121911202610001004CD46"
+    }
+  ]
+}

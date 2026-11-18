@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PakDataKit logo concept 2: code brackets around a crescent and star">
+  <title>Concept 2: brackets and crescent</title>
+  <rect width="64" height="64" rx="14" fill="#0b3d2e"/>
+  <path d="M20 18 10 32l10 14M44 18l10 14-10 14" fill="none" stroke="#a7e8c3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38.5 39.5A11 11 0 1 1 33 21a8.6 8.6 0 1 0 5.5 18.5Z" fill="#f2f6f3"/>
+  <path d="m38.6 25.2 1.4 2.9 3.2.4-2.3 2.2.6 3.2-2.9-1.6-2.9 1.6.6-3.2-2.3-2.2 3.2-.4Z" fill="#4ade80"/>
+</svg>

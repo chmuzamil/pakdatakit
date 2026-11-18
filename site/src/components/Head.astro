@@ -1,0 +1,29 @@
+---
+/**
+ * Starlight's <head>, plus:
+ * - /lang.js: `?lang=` picks the code-tab language before the tabs restore it
+ * - a per-page Open Graph image (/og/<page>.png, generated at build time)
+ * - Umami, served from this site's own origin (/a.js), path and tool name only
+ */
+import Default from '@astrojs/starlight/components/Head.astro';
+import { SITE, UMAMI_WEBSITE_ID } from '../../site.config.mjs';
+
+const id = Astro.locals.starlightRoute.id || 'index';
+const ogImage = new URL(`/og/${id.replace(/\/$/, '') || 'index'}.png`, SITE).href;
+---
+
+<Default />
+<script is:inline src="/lang.js"></script>
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content={ogImage} />
+<script
+  is:inline
+  defer
+  src="/a.js"
+  data-website-id={UMAMI_WEBSITE_ID}
+  data-exclude-search="true"
+  data-exclude-hash="true"
+  data-do-not-track="true"></script>

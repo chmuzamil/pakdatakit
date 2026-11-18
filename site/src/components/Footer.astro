@@ -1,0 +1,21 @@
+---
+import Default from '@astrojs/starlight/components/Footer.astro';
+import { version } from 'pakdatakit/package.json' with { type: 'json' };
+import { dataVersion } from 'pakdatakit';
+import { GITHUB } from '../../site.config.mjs';
+---
+
+<Default />
+<p class="pdk-footer">
+  pakdatakit {version} · data checked {dataVersion}
+  · <a href={GITHUB}>GitHub</a> · <a href="/about/">About and privacy</a> · MIT licence
+  · by <a href="https://github.com/chmuzamil">chmuzamil</a>
+</p>
+
+<style>
+  .pdk-footer {
+    margin-top: 1.5rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+</style>

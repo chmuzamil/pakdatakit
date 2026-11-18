@@ -1,0 +1,40 @@
+---
+/**
+ * Synced language tabs (TypeScript | Python | Dart | C# | PHP) for examples
+ * from site/examples/<module>.json. The choice is shared across the site
+ * (Starlight's syncKey, saved in localStorage) and can be set with ?lang=.
+ */
+import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
+import { LANGS, snippet, type Example } from '../lib/snippets';
+
+interface Props {
+  module: string;
+  /** Example ids to show, in order; all of the module's examples by default. */
+  ids?: string[];
+}
+
+const { module, ids } = Astro.props;
+const files = import.meta.glob<{ examples: Example[] }>('../../examples/*.json', {
+  eager: true,
+  import: 'default',
+});
+const file = files[`../../examples/${module}.json`];
+if (!file) throw new Error(`No site/examples/${module}.json`);
+const examples = ids
+  ? ids.map((id) => {
+      const ex = file.examples.find((e) => e.id === id);
+      if (!ex) throw new Error(`site/examples/${module}.json has no example "${id}"`);
+      return ex;
+    })
+  : file.examples;
+---
+
+<Tabs syncKey="lang">
+  {
+    LANGS.map((lang) => (
+      <TabItem label={lang.label}>
+        <Code code={snippet(lang.id, examples)} lang={lang.code} />
+      </TabItem>
+    ))
+  }
+</Tabs>

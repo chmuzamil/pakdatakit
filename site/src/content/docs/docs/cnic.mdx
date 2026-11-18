@@ -1,0 +1,58 @@
+---
+title: CNIC
+description: Validate Pakistani CNIC numbers and read the province of registration and gender they encode. A format check, not NADRA verification.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import CnicWidget from '../../../components/widgets/CnicWidget.tsx';
+
+`import { validateCNIC, getCNICInfo } from 'pakdatakit/cnic'`
+
+Checks the structure of a 13-digit Computerised National Identity Card number, and reads the two facts the number itself encodes: the province where it was first registered and the holder's gender.
+
+<CnicWidget client:visible />
+
+:::caution[A format check, not identity verification]
+A valid result means the number is well formed. It does not mean the CNIC exists or belongs to anyone. Only NADRA (Verisys) can verify an identity.
+:::
+
+## Examples
+
+<LangTabs module="cnic" />
+
+## Reference
+
+### validateCNIC()
+
+```ts
+function validateCNIC(cnic: string): boolean;
+```
+
+**Parameters.** `cnic`: 13 digits, plain or grouped 5-7-1 with hyphens, en dashes, spaces or dots. Urdu digits are accepted.
+
+**Returns** `true` when the number has the right shape and starts with a province code from 1 to 8; otherwise `false`. It never throws.
+
+**Caveats.** NADRA does not publish a check-digit algorithm, so the last digit is not verified. Separators are only accepted between the 5-7-1 groups.
+
+**Related:** [`getCNICInfo()`](#getcnicinfo), the [CNIC checker](/tools/cnic/).
+
+### getCNICInfo()
+
+```ts
+function getCNICInfo(cnic: string): CNICInfo | null;
+
+interface CNICInfo {
+  digits: string; // 13 digits
+  formatted: string; // 35202-1234567-1
+  province: string; // where the CNIC was first registered
+  gender: 'male' | 'female';
+}
+```
+
+**Parameters.** `cnic`: as for `validateCNIC()`.
+
+**Returns** the decoded parts, or `null` when the CNIC is not valid.
+
+**Caveats.** The province is where the CNIC was first registered, not necessarily where the holder lives now. Gender comes from the last digit: odd for male, even for female.
+
+**Related:** [`validateCNIC()`](#validatecnic), [`formatCNICInput()`](/api/typescript/input/functions/formatcnicinput/) for as-you-type fields.

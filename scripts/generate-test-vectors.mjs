@@ -22,6 +22,7 @@
 
 import {
   copyFileSync,
+  existsSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -2673,6 +2674,42 @@ for (const value of [null, 1, 'x', [], {}]) {
   for (const value of [null, 'x', true]) {
     call('incometax', 'calculateSalaryTax', [value], { taxYear: 2026 });
     call('incometax', 'calculateMonthlySalaryTax', [value], { taxYear: 2026 });
+  }
+}
+
+// Docs examples (site/examples/*.json) -----------------------------------------
+// Every code example on pakdatakit.dev comes from these files. Each stated
+// result is checked against the library here, and the examples are written as
+// docs-examples.json, so every port replays them too (npm run test:ports).
+// PDK_FILL_EXAMPLES=1 fills in `expected` for examples that don't state one.
+{
+  const examplesDir = join(root, 'site', 'examples');
+  const files = existsSync(examplesDir)
+    ? readdirSync(examplesDir)
+        .filter((name) => name.endsWith('.json'))
+        .sort()
+    : [];
+  for (const file of files) {
+    const path = join(examplesDir, file);
+    const doc = JSON.parse(readFileSync(path, 'utf8'));
+    let filled = false;
+    for (const example of doc.examples) {
+      const got = call(
+        'docs-examples',
+        example.fn,
+        example.args ?? [],
+        example.kwargs,
+      );
+      if (!('expected' in example) && process.env.PDK_FILL_EXAMPLES === '1') {
+        example.expected = got;
+        filled = true;
+      } else if (JSON.stringify(got) !== JSON.stringify(example.expected)) {
+        throw new Error(
+          `site/examples/${file} (${example.id}): ${example.fn} returns ${JSON.stringify(got)}, but the example states ${JSON.stringify(example.expected)}`,
+        );
+      }
+    }
+    if (filled) writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`);
   }
 }
 

@@ -38,7 +38,7 @@ from .fbr_invoice import (
     expected_sales_tax,
     validate_fbr_invoice,
 )
-from .format import format_lakh, format_pkr
+from .format import ParsedAmount, format_amount_input, format_lakh, format_pkr, parse_amount
 from .geo import (
     get_district_province,
     get_districts_by_province,
@@ -141,7 +141,7 @@ from .vehicle import VehiclePlate, parse_vehicle_plate, validate_vehicle_plate
 from .whatsapp import create_whatsapp_link
 from .words import amount_in_words, number_to_words
 
-__version__ = "2.5.1"
+__version__ = "2.6.0"
 
 __all__ = [
     "__version__",
@@ -220,6 +220,9 @@ __all__ = [
     # format / words
     "format_pkr",
     "format_lakh",
+    "parse_amount",
+    "format_amount_input",
+    "ParsedAmount",
     "number_to_words",
     "amount_in_words",
     # tax

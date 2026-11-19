@@ -179,6 +179,22 @@
 .pdk-note code {
   color: var(--sl-color-white);
 }
+/* A button that reads as a link, for "Try: …" samples in a note. */
+.pdk-link-button {
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sl-color-text-accent);
+  font: inherit;
+  font-family: var(--sl-font-mono);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.pdk-link-button:hover {
+  color: var(--sl-color-white);
+}
 .pdk-privacy {
   display: flex;
   gap: 0.5rem;

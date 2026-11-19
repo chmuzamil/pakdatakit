@@ -1,0 +1,50 @@
+{
+  "module": "amount",
+  "title": "Reading amounts",
+  "examples": [
+    {
+      "id": "grouped",
+      "title": "Pakistani grouping, Rs. and /-",
+      "fn": "parseAmount",
+      "args": ["Rs. 1,50,000/-"],
+      "expected": {
+        "value": 150000,
+        "raw": "Rs. 1,50,000/-"
+      }
+    },
+    {
+      "id": "lakh",
+      "title": "Shorthand with decimals",
+      "fn": "parseAmount",
+      "args": ["2.25 crore"],
+      "expected": {
+        "value": 22500000,
+        "raw": "2.25 crore"
+      }
+    },
+    {
+      "id": "rounding",
+      "title": "Rounded half-up to the paisa",
+      "fn": "parseAmount",
+      "args": ["1.005"],
+      "expected": {
+        "value": 1.01,
+        "raw": "1.005"
+      }
+    },
+    {
+      "id": "range",
+      "title": "A range is not one amount",
+      "fn": "parseAmount",
+      "args": ["5-10k"],
+      "expected": null
+    },
+    {
+      "id": "echo",
+      "title": "Write it back",
+      "fn": "formatAmountInput",
+      "args": ["1.5 lakh"],
+      "expected": "Rs. 150,000"
+    }
+  ]
+}

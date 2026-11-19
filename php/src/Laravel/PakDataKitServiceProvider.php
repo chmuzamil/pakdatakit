@@ -26,12 +26,19 @@ final class PakDataKitServiceProvider extends ServiceProvider
         'pk_vehicle_plate' => [\PakDataKit\VehiclePlate::class, 'validate'],
         'pk_electricity_ref' => [\PakDataKit\Bills::class, 'validateElectricityRef'],
         'pk_cod_phone' => [self::class, 'isCodPhone'],
+        'pk_amount' => [self::class, 'isAmount'],
     ];
 
     /** Passes when Quality::phoneRiskSignals() finds nothing: a mobile number a courier can call. */
     public static function isCodPhone(string $value): bool
     {
         return \PakDataKit\Quality::phoneRiskSignals($value) === [];
+    }
+
+    /** Passes when Currency::parseAmount() reads one rupee amount (`150,000`, `1.5 lakh`). */
+    public static function isAmount(string $value): bool
+    {
+        return \PakDataKit\Currency::parseAmount($value) !== null;
     }
 
     public function boot(): void

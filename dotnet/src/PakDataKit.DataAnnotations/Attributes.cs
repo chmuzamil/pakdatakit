@@ -73,3 +73,11 @@ public sealed class VehiclePlateAttribute()
 /// </summary>
 public sealed class CodPhoneAttribute()
     : PakValidationAttribute(value => Quality.PhoneRiskSignals(value).Count == 0, "Enter a mobile number a courier can call");
+
+/// <summary>
+/// Validates a rupee amount typed the way people type it in Pakistan
+/// (<c>150,000</c>, <c>1.5 lakh</c>, <c>Rs. 5,000/-</c>), using
+/// <see cref="Currency.ParseAmount"/>.
+/// </summary>
+public sealed class PakAmountAttribute()
+    : PakValidationAttribute(value => Currency.ParseAmount(value) is not null, "Enter an amount in rupees, like 150,000 or 1.5 lakh");

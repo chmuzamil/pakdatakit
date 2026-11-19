@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { formatAmountInput, parseAmount } from 'pakdatakit/format';
 
 export function Badge({
   valid,
@@ -54,24 +55,31 @@ export function Rows({
 }
 
 /**
- * Parses a rupee amount as typed: commas and spaces are ignored. `value` is
- * null when the field is empty or not a non-negative number; `invalid` is true
- * only for something typed that isn't one.
+ * Reads an amount field with pakdatakit's parseAmount (150,000, 1,50,000,
+ * Rs. 5,000/-, 1.5 lakh, Urdu digits…). `value` is null when the field is
+ * empty or not one amount; `invalid` is true only for something typed that
+ * isn't one. `echo` writes the amount back ("Rs. 150,000") when it was typed
+ * in another form, e.g. with a unit or Urdu digits.
  */
-export function parseAmount(text: string): {
+export function amountField(text: string): {
   value: number | null;
   invalid: boolean;
+  echo: string | null;
 } {
-  const t = text.replace(/[,\s]/g, '');
-  if (t === '') return { value: null, invalid: false };
-  const n = Number(t);
-  return Number.isFinite(n) && n >= 0
-    ? { value: n, invalid: false }
-    : { value: null, invalid: true };
+  if (text.trim() === '') return { value: null, invalid: false, echo: null };
+  const parsed = parseAmount(text);
+  if (parsed === null) return { value: null, invalid: true, echo: null };
+  const plain = /^[0-9,]*\.?[0-9]*$/.test(parsed.raw);
+  return {
+    value: parsed.value,
+    invalid: false,
+    echo: plain ? null : formatAmountInput(text),
+  };
 }
 
-/** The message under an amount field that isn't a number. */
-export const AMOUNT_ERROR = 'Enter an amount in rupees, like 150,000.';
+/** The message under an amount field that isn't one amount. */
+export const AMOUNT_ERROR =
+  'Enter an amount in rupees, like 150,000 or 1.5 lakh.';
 
 export function PrivacyNote({ children }: { children?: ReactNode }) {
   return (

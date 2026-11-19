@@ -4,7 +4,7 @@ import {
   AMOUNT_ERROR,
   PrivacyNote,
   Rows,
-  parseAmount,
+  amountField,
   ShareButton,
   rs,
   trackTool,
@@ -43,7 +43,7 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
   useEffect(() => setNow(today()), []);
   const date = state.date || now || undefined;
   const rate = getSalesTaxRate({ kind, province, date });
-  const { value: amount, invalid } = parseAmount(state.amount);
+  const { value: amount, invalid, echo } = amountField(state.amount);
   const result =
     amount === null
       ? null
@@ -73,11 +73,18 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
               inputMode="decimal"
               autoComplete="off"
               aria-invalid={invalid || undefined}
-              aria-describedby={invalid ? `${id}-err` : undefined}
+              aria-describedby={
+                invalid ? `${id}-err` : echo ? `${id}-echo` : undefined
+              }
             />
             {invalid ? (
               <p id={`${id}-err`} className="pdk-error">
                 {AMOUNT_ERROR}
+              </p>
+            ) : null}
+            {echo ? (
+              <p id={`${id}-echo`} className="pdk-note">
+                = {echo}
               </p>
             ) : null}
           </div>

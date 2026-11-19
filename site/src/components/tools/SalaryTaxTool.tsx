@@ -9,7 +9,7 @@ import {
   AMOUNT_ERROR,
   PrivacyNote,
   Rows,
-  parseAmount,
+  amountField,
   ShareButton,
   rs,
   trackTool,
@@ -30,7 +30,7 @@ export default function SalaryTaxTool({
   );
   const tracked = useRef(false);
   const year = Number(state.year);
-  const { value: amount, invalid } = parseAmount(state.salary);
+  const { value: amount, invalid, echo } = amountField(state.salary);
   const result =
     amount === null
       ? null
@@ -61,11 +61,18 @@ export default function SalaryTaxTool({
               inputMode="decimal"
               autoComplete="off"
               aria-invalid={invalid || undefined}
-              aria-describedby={invalid ? `${id}-err` : undefined}
+              aria-describedby={
+                invalid ? `${id}-err` : echo ? `${id}-echo` : undefined
+              }
             />
             {invalid ? (
               <p id={`${id}-err`} className="pdk-error">
                 {AMOUNT_ERROR}
+              </p>
+            ) : null}
+            {echo ? (
+              <p id={`${id}-echo`} className="pdk-note">
+                = {echo}
               </p>
             ) : null}
           </div>

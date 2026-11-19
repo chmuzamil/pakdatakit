@@ -88,7 +88,11 @@ const MODULES = [
     'words',
     'Amounts in words with lakh/crore, English and Urdu, cheque style (amountInWords, numberToWords)',
   ],
-  ['format', 'format', 'PKR and lakh/crore formatting (formatPKR, formatLakh)'],
+  [
+    'format',
+    'format',
+    'PKR and lakh/crore formatting, and reading amounts as typed (formatPKR, formatLakh, parseAmount, formatAmountInput)',
+  ],
   [
     'text',
     'text',
@@ -220,7 +224,7 @@ function siteGuides() {
     .join('\n');
   return `### Module guides (examples in TypeScript, Python, Dart, C# and PHP)
 
-${section('docs', ['cnic', 'passport', 'vehicle', 'tax', 'phone', 'networks', 'numbers', 'whatsapp', 'iban', 'raast', 'bills', 'words', 'format', 'salestax', 'incometax', 'fbr-invoice', 'postal', 'geo', 'address', 'quality', 'courier', 'text', 'hijri', 'holidays', 'input', 'forms'])}
+${section('docs', ['cnic', 'passport', 'vehicle', 'tax', 'phone', 'networks', 'numbers', 'whatsapp', 'iban', 'raast', 'bills', 'words', 'format', 'amount', 'salestax', 'incometax', 'fbr-invoice', 'postal', 'geo', 'address', 'quality', 'courier', 'text', 'hijri', 'holidays', 'input', 'forms'])}
 
 ### Install
 

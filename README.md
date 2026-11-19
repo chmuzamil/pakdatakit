@@ -810,6 +810,35 @@ formatLakh(50000);
 // "Rs. 50,000"
 ```
 
+### parseAmount() / formatAmountInput()
+
+Reads a rupee amount the way people type it in Pakistan, rounded half-up to
+the paisa. Returns `null` for anything that is not exactly one non-negative
+amount; it never throws.
+
+```ts
+parseAmount(input: string): { value: number; raw: string } | null
+formatAmountInput(input: string): string | null
+```
+
+```ts
+parseAmount('Rs. 1,50,000/-'); // { value: 150000, raw: 'Rs. 1,50,000/-' }
+parseAmount('2.25cr'); // { value: 22500000, raw: '2.25cr' }
+parseAmount('۱٫۵ لاکھ'); // { value: 150000, ... }
+parseAmount('1.005'); // { value: 1.01, ... }: exact, on the digits
+parseAmount('5-10k'); // null: a range
+formatAmountInput('1.5 lakh'); // "Rs. 150,000"
+```
+
+Accepted: `150,000` and `1,50,000` grouping with decimals; Urdu and
+Arabic-Indic digits; `Rs`, `Rs.`, `PKR` or `₨` before or after the number and
+a trailing `/-`; `k`, `thousand(s)`, `hazar`, `ہزار`, `lakh(s)`, `lac(s)`,
+`لاکھ`, `crore(s)`, `cr` and `کروڑ`, also with decimals (`1.5 lakh`);
+whitespace around and between the parts. Rejected: negatives, ranges, more
+than one number, leftover letters, broken or ambiguous grouping (`1,50`,
+`1.500,00`) and amounts over Rs. 50 trillion. Every form is listed on
+[pakdatakit.dev/docs/amount](https://pakdatakit.dev/docs/amount/).
+
 ---
 
 ## Amounts in Words
@@ -1209,7 +1238,7 @@ import { pk } from 'pakdatakit/superstruct';
 const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
 ```
 
-Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()` and `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()`, `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags) and `pk.amount()` (an amount `parseAmount()` reads, such as `1.5 lakh`; convert it with `parseAmount` on submit). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
 
 ### class-validator and NestJS
 
@@ -1232,7 +1261,7 @@ export class CreateCustomerDto {
 }
 ```
 
-Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport`, `IsVehiclePlate` and `IsCodPhone`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport`, `IsVehiclePlate`, `IsCodPhone` and `IsPakAmount`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ### As-you-type helpers
 

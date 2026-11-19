@@ -14,4 +14,5 @@ return [
     'pk_vehicle_plate' => 'The :attribute field must be a valid vehicle registration number.',
     'pk_electricity_ref' => 'The :attribute field must be a valid electricity bill reference number.',
     'pk_cod_phone' => 'The :attribute field must be a mobile number a courier can call.',
+    'pk_amount' => 'The :attribute field must be an amount in rupees, like 150,000 or 1.5 lakh.',
 ];

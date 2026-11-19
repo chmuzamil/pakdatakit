@@ -18,7 +18,13 @@ export {
   getTehsils,
   getTehsilDistrict,
 } from './geo.js';
-export { formatPKR, formatLakh } from './format.js';
+export {
+  formatPKR,
+  formatLakh,
+  parseAmount,
+  formatAmountInput,
+  type ParsedAmount,
+} from './format.js';
 export { createWhatsAppLink } from './whatsapp.js';
 export {
   validateIBAN,

@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { amountInWords, type WordsLanguage } from 'pakdatakit/words';
-import { AMOUNT_ERROR, Rows, parseAmount } from './common';
+import { AMOUNT_ERROR, Rows, amountField } from './common';
 
 function words(
   amount: number | null,
@@ -19,7 +19,7 @@ export default function WordsWidget() {
   const id = useId();
   const [amount, setAmount] = useState('125000.50');
   const [language, setLanguage] = useState<WordsLanguage>('en');
-  const { value, invalid } = parseAmount(amount);
+  const { value, invalid } = amountField(amount);
   const plain = words(value, language, false);
   const cheque = words(value, language, true);
   const show = (text: string | null) =>

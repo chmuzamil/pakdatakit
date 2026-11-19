@@ -1,11 +1,11 @@
 import { useId, useState } from 'react';
 import { formatLakh, formatPKR } from 'pakdatakit/format';
-import { AMOUNT_ERROR, Rows, parseAmount } from './common';
+import { AMOUNT_ERROR, Rows, amountField } from './common';
 
 export default function FormatWidget() {
   const id = useId();
   const [amount, setAmount] = useState('12500000');
-  const { value, invalid } = parseAmount(amount);
+  const { value, invalid } = amountField(amount);
   const pkr = value === null ? null : formatPKR(value);
   const lakh = value === null ? null : formatLakh(value);
   return (

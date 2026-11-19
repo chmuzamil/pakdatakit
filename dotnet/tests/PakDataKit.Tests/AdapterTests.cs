@@ -36,6 +36,9 @@ public sealed class DataAnnotationsTests
 
         [CodPhone]
         public string? CodPhone { get; set; }
+
+        [PakAmount]
+        public string? Amount { get; set; }
     }
 
     private static List<string> Errors(Customer customer)
@@ -59,6 +62,7 @@ public sealed class DataAnnotationsTests
             Passport = "AB1234567",
             Plate = "LEA-1234",
             CodPhone = "0301-2945716",
+            Amount = "Rs. 1,50,000/-",
         }));
     }
 
@@ -82,6 +86,7 @@ public sealed class DataAnnotationsTests
                 "The Passport field is not a valid Pakistani passport number.",
                 "The Plate field is not a valid vehicle registration number.",
                 "Enter a mobile number a courier can call",
+                "Enter an amount in rupees, like 150,000 or 1.5 lakh",
             ],
             Errors(new Customer
             {
@@ -94,6 +99,7 @@ public sealed class DataAnnotationsTests
                 Passport = "A1234",
                 Plate = "ABC-12345",
                 CodPhone = "03001234567",
+                Amount = "5-10k",
             }));
     }
 
@@ -110,6 +116,20 @@ public sealed class DataAnnotationsTests
     }
 
     [Fact]
+    public void PakAmountAcceptsAmountsAsPeopleTypeThem()
+    {
+        var attribute = new PakAmountAttribute();
+        Assert.True(attribute.IsValid("150,000"));
+        Assert.True(attribute.IsValid("1.5 lakh"));
+        Assert.True(attribute.IsValid("Rs. 5,000/-"));
+        Assert.True(attribute.IsValid(""));
+        Assert.False(attribute.IsValid("-500"));
+        Assert.False(attribute.IsValid("5-10k"));
+        Assert.False(attribute.IsValid("500 rupees"));
+        Assert.False(attribute.IsValid("1,50"));
+    }
+
+    [Fact]
     public void RejectsValuesThatAreNotStrings()
     {
         Assert.False(new CnicAttribute().IsValid(3520212345671));
@@ -121,7 +141,8 @@ public sealed class FluentValidationTests
 {
     private sealed record Customer(
         string? Cnic, string? Phone = null, string? Iban = null, string? Ntn = null, string? Strn = null,
-        string? Landline = null, string? Passport = null, string? Plate = null, string? CodPhone = null);
+        string? Landline = null, string? Passport = null, string? Plate = null, string? CodPhone = null,
+        string? Amount = null);
 
     private sealed class CustomerValidator : AbstractValidator<Customer>
     {
@@ -136,6 +157,7 @@ public sealed class FluentValidationTests
             RuleFor(c => c.Passport).IsPakPassport();
             RuleFor(c => c.Plate).IsVehiclePlate();
             RuleFor(c => c.CodPhone).IsCodPhone();
+            RuleFor(c => c.Amount).IsPakAmount();
         }
     }
 
@@ -147,7 +169,7 @@ public sealed class FluentValidationTests
     {
         Assert.Empty(Errors(new Customer(
             "35202-1234567-1", "0300 1234567", "PK36SCBL0000001123456702", "0622438-9", "17-00-3761-882-19",
-            "042-35761234", "AB1234567", "LEA-1234", "0301-2945716")));
+            "042-35761234", "AB1234567", "LEA-1234", "0301-2945716", "1.5 lakh")));
     }
 
     [Fact]
@@ -170,9 +192,10 @@ public sealed class FluentValidationTests
                 "'Passport' is not a valid Pakistani passport number.",
                 "'Plate' is not a valid vehicle registration number.",
                 "Enter a mobile number a courier can call",
+                "Enter an amount in rupees, like 150,000 or 1.5 lakh",
             ],
             Errors(new Customer(
                 "00000-0000000-0", "03601234567", "PK37SCBL0000001123456702", "123", "1", "03001234567", "A1234",
-                "ABC-12345", "03001234567")));
+                "ABC-12345", "03001234567", "500 600")));
     }
 }

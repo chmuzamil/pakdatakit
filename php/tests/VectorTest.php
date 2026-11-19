@@ -411,6 +411,8 @@ final class VectorTest extends TestCase
                 : Geo::getTehsilDistrict(self::str($a[0])),
             'formatPKR' => static fn (array $a, array $k): mixed => Currency::formatPkr(self::number($a[0])),
             'formatLakh' => static fn (array $a, array $k): mixed => Currency::formatLakh(self::number($a[0])),
+            'parseAmount' => static fn (array $a, array $k): mixed => Currency::parseAmount($a[0]),
+            'formatAmountInput' => static fn (array $a, array $k): mixed => Currency::formatAmountInput($a[0]),
             'validateIBAN' => $one(Iban::validate(...)),
             'getBankFromIBAN' => $one(Iban::getBank(...)),
             'getBankInfo' => $one(Iban::getBankInfo(...)),

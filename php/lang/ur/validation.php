@@ -14,4 +14,5 @@ return [
     'pk_vehicle_plate' => ':attribute درست گاڑی کا رجسٹریشن نمبر ہونا چاہیے۔',
     'pk_electricity_ref' => ':attribute درست بجلی کے بل کا ریفرنس نمبر ہونا چاہیے۔',
     'pk_cod_phone' => ':attribute ایسا موبائل نمبر ہونا چاہیے جس پر کوریئر کال کر سکے۔',
+    'pk_amount' => ':attribute روپوں میں رقم ہونی چاہیے، جیسے 150,000 یا 1.5 لاکھ۔',
 ];

@@ -35,6 +35,7 @@ export const pk = {
   passport: schema('passport'),
   vehiclePlate: schema('vehiclePlate'),
   codPhone: schema('codPhone'),
+  amount: schema('amount'),
 };
 
 export type { AdapterOptions };

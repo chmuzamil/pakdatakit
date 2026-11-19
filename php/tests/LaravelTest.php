@@ -27,6 +27,7 @@ final class LaravelTest extends TestCase
         'plate' => 'LEA-1234',
         'electricity' => '02 12624 0045901 R',
         'cod' => '0300 4829173',
+        'amount' => 'Rs. 1,50,000/-',
     ];
 
     private const INVALID = [
@@ -40,6 +41,7 @@ final class LaravelTest extends TestCase
         'plate' => 'ABC-12345',
         'electricity' => '12345',
         'cod' => '0300 1234567',
+        'amount' => '5-10k',
     ];
 
     private const STRING_RULES = [
@@ -53,6 +55,7 @@ final class LaravelTest extends TestCase
         'plate' => 'pk_vehicle_plate',
         'electricity' => 'pk_electricity_ref',
         'cod' => 'pk_cod_phone',
+        'amount' => 'pk_amount',
     ];
 
     private const ENGLISH = [
@@ -66,6 +69,7 @@ final class LaravelTest extends TestCase
         'The plate field must be a valid vehicle registration number.',
         'The electricity field must be a valid electricity bill reference number.',
         'The cod field must be a mobile number a courier can call.',
+        'The amount field must be an amount in rupees, like 150,000 or 1.5 lakh.',
     ];
 
     /** @return list<class-string> */
@@ -88,6 +92,7 @@ final class LaravelTest extends TestCase
             'plate' => [new Rules\VehiclePlate()],
             'electricity' => [new Rules\ElectricityRef()],
             'cod' => [new Rules\CodPhone()],
+            'amount' => [new Rules\Amount()],
         ];
     }
 
@@ -145,6 +150,25 @@ final class LaravelTest extends TestCase
         self::assertSame(
             ['cod ایسا موبائل نمبر ہونا چاہیے جس پر کوریئر کال کر سکے۔'],
             Validator::make(['cod' => '03001234567'], ['cod' => new Rules\CodPhone()])->errors()->all(),
+        );
+    }
+
+    public function testAmountAcceptsAmountsAsPeopleTypeThem(): void
+    {
+        foreach (['150000', '1,50,000', 'Rs. 5,000/-', '1.5 lakh', '2.25cr', '۱۵۰۰۰۰', 'PKR 1,234.50'] as $amount) {
+            self::assertTrue(Validator::make(['amount' => $amount], ['amount' => 'pk_amount'])->passes(), $amount);
+            self::assertTrue(Validator::make(['amount' => $amount], ['amount' => [new Rules\Amount()]])->passes(), $amount);
+        }
+        foreach (['-500', '5-10k', '500 600', '500 rupees', '1,50', 'Rs. 500 PKR', 'abc'] as $amount) {
+            self::assertTrue(Validator::make(['amount' => $amount], ['amount' => 'pk_amount'])->fails(), $amount);
+            self::assertTrue(Validator::make(['amount' => $amount], ['amount' => [new Rules\Amount()]])->fails(), $amount);
+        }
+        self::assertTrue(Validator::make(['amount' => 150000], ['amount' => [new Rules\Amount()]])->fails());
+
+        App::setLocale('ur');
+        self::assertSame(
+            ['amount روپوں میں رقم ہونی چاہیے، جیسے 150,000 یا 1.5 لاکھ۔'],
+            Validator::make(['amount' => '5-10k'], ['amount' => new Rules\Amount()])->errors()->all(),
         );
     }
 

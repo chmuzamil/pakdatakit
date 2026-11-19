@@ -259,6 +259,10 @@ execFileSync(
   { cwd: root, stdio: 'inherit' },
 );
 
+// ----------------------------------------------------------------- icons --
+
+await import('./icons.mjs');
+
 // ------------------------------------------------------------ robots.txt --
 
 writeFileSync(

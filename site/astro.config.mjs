@@ -97,8 +97,14 @@ export default defineConfig({
       },
       head: [
         // Icons from scripts/icons.mjs (favicon.svg is Starlight's `favicon`).
-        { tag: 'link', attrs: { rel: 'icon', href: '/favicon.ico', sizes: '32x32' } },
-        { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' } },
+        {
+          tag: 'link',
+          attrs: { rel: 'icon', href: '/favicon.ico', sizes: '32x32' },
+        },
+        {
+          tag: 'link',
+          attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        },
         { tag: 'link', attrs: { rel: 'manifest', href: '/manifest.json' } },
         ...(INDEXABLE
           ? []

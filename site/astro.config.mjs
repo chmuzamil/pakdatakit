@@ -86,7 +86,6 @@ export default defineConfig({
         'Pakistani data utilities for TypeScript, Python, Dart/Flutter, .NET and PHP/Laravel, with React, Vue and Angular helpers.',
       logo: { src: './src/assets/logo.svg', replacesTitle: false },
       social: [{ icon: 'github', label: 'GitHub', href: GITHUB }],
-      editLink: { baseUrl: `${GITHUB}/edit/main/site/` },
       lastUpdated: false,
       favicon: '/favicon.svg',
       customCss: ['./src/styles/theme.css'],

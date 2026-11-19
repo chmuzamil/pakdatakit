@@ -1,0 +1,37 @@
+{
+  "module": "text",
+  "title": "Urdu and text",
+  "examples": [
+    {
+      "id": "slugify-urdu",
+      "title": "A slug that keeps Urdu letters",
+      "fn": "slugify",
+      "args": ["لاہور قلعہ ۲۰۲۴"],
+      "expected": "لاہور-قلعہ-2024"
+    },
+    {
+      "id": "slugify-latin",
+      "title": "A Latin-only slug",
+      "fn": "slugify",
+      "args": ["لاہور Fort, Café"],
+      "kwargs": {
+        "script": "latin"
+      },
+      "expected": "fort-cafe"
+    },
+    {
+      "id": "compare",
+      "title": "بھ sorts after every other ب word",
+      "fn": "compareUrdu",
+      "args": ["بھائی", "باغ"],
+      "expected": 1
+    },
+    {
+      "id": "digits",
+      "title": "Urdu digits",
+      "fn": "toUrduDigits",
+      "args": ["0300-1234567"],
+      "expected": "۰۳۰۰-۱۲۳۴۵۶۷"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "module": "whatsapp",
+  "title": "WhatsApp",
+  "examples": [
+    {
+      "id": "link",
+      "title": "Click-to-chat link",
+      "fn": "createWhatsAppLink",
+      "args": ["0300 1234567"],
+      "expected": "https://wa.me/923001234567"
+    },
+    {
+      "id": "message",
+      "title": "With a pre-filled message",
+      "fn": "createWhatsAppLink",
+      "args": ["+92 321 7654321", "Is this still available?"],
+      "expected": "https://wa.me/923217654321?text=Is%20this%20still%20available%3F"
+    },
+    {
+      "id": "invalid",
+      "title": "Not a mobile number",
+      "fn": "createWhatsAppLink",
+      "args": ["042-35761234"],
+      "expected": null
+    }
+  ]
+}

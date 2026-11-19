@@ -1,0 +1,94 @@
+---
+title: Hijri dates
+description: Convert between Gregorian and Hijri (Islamic) dates with the tabular calendar, name Hijri months and check for Ramadan, with a day offset for moon sighting.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import HijriWidget from '../../../components/widgets/HijriWidget.tsx';
+
+`import { toHijri, fromHijri, formatHijri, getHijriMonthName, isRamadan } from 'pakdatakit/hijri'`
+
+Converts Gregorian dates to Hijri (Islamic) dates and back, formats them as `"12 Ramadan 1447"`, and tells whether a date falls in Ramadan. Everything works offline from arithmetic, with no table of dates.
+
+<HijriWidget client:visible />
+
+:::caution[The tabular calendar, not moon sighting]
+The conversion uses the tabular (arithmetic, "islamic-civil") calendar. Actual dates in Pakistan follow moon sighting and can differ by a day or two. Pass `offset` to adjust, for example `-1` when Pakistan's Ruet-e-Hilal calendar runs a day behind the tabular date.
+:::
+
+## Examples
+
+<LangTabs module="hijri" />
+
+## Reference
+
+### toHijri()
+
+```ts
+function toHijri(date: Date, options?: HijriOptions): HijriDate;
+
+interface HijriDate {
+  year: number;
+  month: number; // 1 to 12
+  day: number;
+}
+
+interface HijriOptions {
+  offset?: number; // whole days, default 0
+}
+```
+
+**Parameters.** `date`: a Gregorian date; its local date (year, month, day) is used. `options.offset`: whole days to shift the tabular calendar by, to match local moon sighting.
+
+**Returns** the Hijri year, month and day.
+
+**Caveats.** Throws a `RangeError` if `date` is invalid or `offset` is not an integer.
+
+**Related:** [`formatHijri()`](#formathijri), [`fromHijri()`](#fromhijri).
+
+### fromHijri()
+
+```ts
+function fromHijri(hijri: HijriDate, options?: HijriOptions): Date;
+```
+
+**Parameters.** `hijri`: the Hijri year, month and day. `options.offset`: the same offset used with [`toHijri()`](#tohijri).
+
+**Returns** the Gregorian date, at local midnight.
+
+**Caveats.** Throws a `RangeError` if the Hijri parts are out of range: the year must be 1 or more, the month 1 to 12 and the day 1 to 30.
+
+### formatHijri()
+
+```ts
+function formatHijri(date: Date, options?: HijriOptions): string;
+```
+
+**Returns** the Hijri date as a string, such as `"14 Ramadan 1447"`: the day, the English month name and the year.
+
+**Related:** [`getHijriMonthName()`](#gethijrimonthname).
+
+### getHijriMonthName()
+
+```ts
+function getHijriMonthName(month: number): string | null;
+```
+
+**Returns** the English name of a Hijri month (1 to 12): Muharram, Safar, Rabi al-Awwal, Rabi al-Thani, Jumada al-Awwal, Jumada al-Thani, Rajab, Shaaban, Ramadan, Shawwal, Dhu al-Qadah, Dhu al-Hijjah. Returns `null` if `month` is not an integer from 1 to 12.
+
+### isRamadan()
+
+```ts
+function isRamadan(date: Date, options?: HijriOptions): boolean;
+```
+
+**Returns** `true` when the date falls in Ramadan, the ninth Hijri month.
+
+**Caveats.** As for every function here, the start and end of Ramadan follow the tabular calendar unless you pass an `offset`; the announced dates can differ by a day or two.
+
+**Related:** [public holidays](/docs/holidays/) for Eid dates actually observed in Pakistan.
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/hijri`](/api/typescript/hijri/)
+- [Public holidays](/docs/holidays/)

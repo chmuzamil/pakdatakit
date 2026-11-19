@@ -1,0 +1,27 @@
+{
+  "module": "passport",
+  "title": "Passport",
+  "examples": [
+    {
+      "id": "validate",
+      "title": "Validate a passport number",
+      "fn": "validatePassport",
+      "args": ["AB1234567"],
+      "expected": true
+    },
+    {
+      "id": "spaces",
+      "title": "Case and spaces are ignored",
+      "fn": "validatePassport",
+      "args": ["ab 1234567"],
+      "expected": true
+    },
+    {
+      "id": "validate-bad",
+      "title": "One letter is not the common shape",
+      "fn": "validatePassport",
+      "args": ["A12345678"],
+      "expected": false
+    }
+  ]
+}

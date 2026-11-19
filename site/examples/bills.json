@@ -1,0 +1,46 @@
+{
+  "module": "bills",
+  "title": "Bills",
+  "examples": [
+    {
+      "id": "reference",
+      "title": "A DISCO reference number",
+      "fn": "parseElectricityRef",
+      "args": ["12 34567 8901234 U"],
+      "expected": {
+        "type": "reference",
+        "digits": "12345678901234",
+        "formatted": "12 34567 8901234 U",
+        "urbanRural": "U",
+        "disco": null
+      }
+    },
+    {
+      "id": "k-electric",
+      "title": "A K-Electric account number",
+      "fn": "parseElectricityRef",
+      "args": ["0400012345678"],
+      "expected": {
+        "type": "k-electric",
+        "digits": "0400012345678",
+        "formatted": "0400012345678",
+        "urbanRural": null,
+        "disco": "K-Electric"
+      }
+    },
+    {
+      "id": "sngpl",
+      "title": "An SNGPL consumer number",
+      "fn": "validateGasConsumerNumber",
+      "args": ["12345678901", "SNGPL"],
+      "expected": true
+    },
+    {
+      "id": "ssgc-bad",
+      "title": "SSGC numbers have 10 digits",
+      "fn": "validateGasConsumerNumber",
+      "args": ["12345678901", "SSGC"],
+      "expected": false
+    }
+  ]
+}

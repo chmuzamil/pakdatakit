@@ -1,0 +1,70 @@
+---
+title: Addresses
+description: Parse free-form Pakistani addresses into street, area, city, district, province and postal code, flag a city in the wrong province, and format them.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import AddressWidget from '../../../components/widgets/AddressWidget.tsx';
+
+`import { parseAddress, formatAddress } from 'pakdatakit/address'`
+
+Splits a Pakistani mailing address typed as one line into its parts, matching the city, district and province against the library's own lists, and puts parts back together as a single mailing line.
+
+<AddressWidget client:visible />
+
+:::note[Matching against known names]
+Only cities, districts and provinces in the library's datasets are recognised. The remaining segments are assigned to street and area.
+:::
+
+## Examples
+
+<LangTabs module="address" />
+
+## Reference
+
+### parseAddress()
+
+```ts
+function parseAddress(address: string): ParsedAddress;
+
+interface ParsedAddress {
+  raw: string;
+  street: string | null;
+  area: string | null;
+  city: string | null;
+  district: string | null;
+  province: string | null;
+  postalCode: string | null;
+  warnings: string[];
+}
+```
+
+**Parameters.** `address`: the raw address. It works with or without commas between components.
+
+**Returns** the structured components. `warnings` lists inconsistencies found while parsing, such as a city in a different province from the one the address names.
+
+**Caveats.** The postal code is taken from the last standalone 5-digit number that is not a house, plot, box or street number. Known cities, districts and provinces are matched from the datasets, and the remaining segments are assigned to `street` and `area`.
+
+**Related:** [`formatAddress()`](#formataddress), [`getProvince()`](/docs/geo/), [postal codes](/docs/postal/).
+
+### formatAddress()
+
+```ts
+function formatAddress(
+  parts: Partial<ParsedAddress> & { raw?: string },
+): string;
+```
+
+**Parameters.** `parts`: any of the components of a `ParsedAddress`; a parsed address can be passed back in as it is.
+
+**Returns** a single mailing line: street, area, city (or the district when there is no city) and province, separated by commas, then the postal code. When no component is given it returns `raw`, or `""`.
+
+**Caveats.** Only the components provided are included; no postal code is invented.
+
+**Related:** [`parseAddress()`](#parseaddress).
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/address`](/api/typescript/address/)
+- [Geography](/docs/geo/) and [postal codes](/docs/postal/)
+- [Data sources](/data/)

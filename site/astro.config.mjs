@@ -16,6 +16,12 @@ const rootTypedoc = JSON.parse(
 );
 
 const lang = (code, label) => ({ label, link: `/install/${code}/` });
+/** A collapsible sidebar group of module guides: [label, slug] pairs. */
+const guides = (label, items) => ({
+  label,
+  collapsed: true,
+  items: items.map(([text, slug]) => ({ label: text, link: `/docs/${slug}/` })),
+});
 
 export default defineConfig({
   site: SITE,
@@ -133,15 +139,51 @@ export default defineConfig({
         },
         {
           label: 'Modules',
+          // Grouped like the module cards on the home page and /docs/.
           items: [
             { label: 'All guides', link: '/docs/' },
-            { label: 'CNIC', link: '/docs/cnic/' },
-            { label: 'Phone', link: '/docs/phone/' },
-            { label: 'IBAN and banks', link: '/docs/iban/' },
-            { label: 'Raast QR', link: '/docs/raast/' },
-            { label: 'Sales tax', link: '/docs/salestax/' },
-            { label: 'Income tax on salary', link: '/docs/incometax/' },
-            { label: 'Postal codes', link: '/docs/postal/' },
+            guides('Identity', [
+              ['CNIC', 'cnic'],
+              ['Passport', 'passport'],
+              ['Vehicle plates', 'vehicle'],
+            ]),
+            guides('Phone', [
+              ['Mobile numbers', 'phone'],
+              ['Mobile networks', 'networks'],
+              ['Landlines and area codes', 'numbers'],
+              ['WhatsApp links', 'whatsapp'],
+            ]),
+            guides('Banking and payments', [
+              ['IBAN and banks', 'iban'],
+              ['Raast QR', 'raast'],
+              ['Utility bills', 'bills'],
+              ['Amounts in words', 'words'],
+              ['PKR and lakh/crore', 'format'],
+            ]),
+            guides('Tax and FBR', [
+              ['Sales tax', 'salestax'],
+              ['Income tax on salary', 'incometax'],
+              ['NTN and STRN', 'tax'],
+              ['FBR digital invoices', 'fbr-invoice'],
+            ]),
+            guides('Geography and postal', [
+              ['Postal codes', 'postal'],
+              ['Provinces and districts', 'geo'],
+              ['Addresses', 'address'],
+            ]),
+            guides('Delivery and COD', [
+              ['COD address and phone checks', 'quality'],
+              ['Courier statuses', 'courier'],
+            ]),
+            guides('Text and dates', [
+              ['Urdu text', 'text'],
+              ['Hijri dates', 'hijri'],
+              ['Public holidays', 'holidays'],
+            ]),
+            guides('Forms', [
+              ['As-you-type input', 'input'],
+              ['Form kits and adapters', 'forms'],
+            ]),
           ],
         },
         {

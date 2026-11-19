@@ -1,0 +1,58 @@
+{
+  "module": "hijri",
+  "title": "Hijri dates",
+  "examples": [
+    {
+      "id": "format",
+      "title": "A Gregorian date as a Hijri date",
+      "fn": "formatHijri",
+      "args": [
+        {
+          "$date": "2026-03-01T00:00:00"
+        }
+      ],
+      "expected": "12 Ramadan 1447"
+    },
+    {
+      "id": "to",
+      "title": "Hijri year, month and day",
+      "fn": "toHijri",
+      "args": [
+        {
+          "$date": "2026-03-01T00:00:00"
+        }
+      ],
+      "expected": {
+        "year": 1447,
+        "month": 9,
+        "day": 12
+      }
+    },
+    {
+      "id": "from",
+      "title": "1 Ramadan 1447 in the Gregorian calendar",
+      "fn": "fromHijri",
+      "args": [
+        {
+          "year": 1447,
+          "month": 9,
+          "day": 1
+        }
+      ],
+      "expected": {
+        "$date": "2026-02-18"
+      }
+    },
+    {
+      "id": "ramadan",
+      "title": "Is it Ramadan?",
+      "fn": "isRamadan",
+      "args": [
+        {
+          "$date": "2026-03-01T00:00:00"
+        }
+      ],
+      "expected": true
+    }
+  ]
+}

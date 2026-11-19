@@ -1,0 +1,92 @@
+---
+title: Public holidays
+description: Pakistan's federal public holidays for any year from 1948, with Eid and Ashura dates as observed in 2020–2026 and estimated after that.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import HolidaysWidget from '../../../components/widgets/HolidaysWidget.tsx';
+
+`import { getPakistanHolidays, getHolidaysOn, isPakistanHoliday } from 'pakdatakit/holidays'`
+
+Lists Pakistan's federal public holidays for a year and tells whether a date is one. Fixed-date holidays follow the years they applied in: Iqbal Day was dropped from 2015 to 2021 and restored in 2022, and Youm-e-Takbeer was a one-off holiday in 2024 and has been on the annual list since 2025.
+
+<HolidaysWidget client:visible />
+
+:::caution[Islamic holidays after 2026 are estimates]
+Eid ul Fitr, Eid ul Adha, Ashura and Eid Milad un Nabi use the dates actually observed after moon sighting in 2020–2026, each from a Cabinet Division notification or an SBP circular. For later years they are estimated from the tabular Hijri calendar and marked `estimated: true`; the real date depends on the moon-sighting announcement. Pass `announced` to use the official dates as soon as they are out.
+:::
+
+Optional holidays (for example Shab-e-Barat, Easter and Youm-e-Ali) are not included.
+
+## Examples
+
+<LangTabs module="holidays" />
+
+## Reference
+
+### getPakistanHolidays()
+
+```ts
+function getPakistanHolidays(year: number, options?: HolidayOptions): Holiday[];
+
+interface HolidayOptions {
+  includeChristianHolidays?: boolean; // default false
+  announced?: Partial<Record<IslamicHolidayId, string[]>>;
+  hijriOffset?: number; // default 0
+}
+
+interface Holiday {
+  id: HolidayId;
+  name: string;
+  date: string; // YYYY-MM-DD
+  type: 'national' | 'religious';
+  estimated: boolean;
+  christiansOnly?: boolean;
+  source?: string; // for an observed Islamic holiday date
+}
+
+type IslamicHolidayId =
+  'eid-ul-fitr' | 'eid-ul-adha' | 'ashura' | 'eid-milad-un-nabi';
+```
+
+**Parameters.** `year`: a Gregorian year from 1948 to 9999. `options.includeChristianHolidays`: include 26 December, a holiday for Christian employees only. `options.announced`: observed or announced dates (`YYYY-MM-DD`) for Islamic holidays, used instead of the dataset or the estimate; use it to apply a new moon-sighting announcement before the library is updated. An empty list removes that holiday for the year. `options.hijriOffset`: a day offset applied to estimated Islamic dates.
+
+**Returns** the holidays in date order. A holiday that lasts several days has one entry per day.
+
+**Caveats.** Throws a `RangeError` if `year` is not an integer from 1948 to 9999, or if an `announced` date is not `YYYY-MM-DD`. Estimated Islamic holidays use the usual number of days off (three for each Eid, two for Ashura, one for Eid Milad un Nabi).
+
+**Related:** [`getHolidaysOn()`](#getholidayson), [Hijri dates](/docs/hijri/).
+
+### getHolidaysOn()
+
+```ts
+function getHolidaysOn(
+  date: Date | string,
+  options?: HolidayOptions,
+): Holiday[];
+```
+
+**Parameters.** `date`: a `Date` (its local calendar date is used) or a `YYYY-MM-DD` string. `options`: as for [`getPakistanHolidays()`](#getpakistanholidays).
+
+**Returns** the holidays on that date, or an empty list if it is not a public holiday.
+
+**Caveats.** Throws a `RangeError` for an invalid `Date` or a string that is not `YYYY-MM-DD`.
+
+### isPakistanHoliday()
+
+```ts
+function isPakistanHoliday(
+  date: Date | string,
+  options?: HolidayOptions,
+): boolean;
+```
+
+**Returns** `true` when the date is a Pakistani federal public holiday.
+
+**Related:** [`getHolidaysOn()`](#getholidayson) to see which one.
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/holidays`](/api/typescript/holidays/)
+- [Data sources](/data/): where the observed dates come from (each holiday's `source` field links to its notification)
+- [Hijri dates](/docs/hijri/)

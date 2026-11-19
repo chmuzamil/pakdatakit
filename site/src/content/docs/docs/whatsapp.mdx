@@ -1,0 +1,41 @@
+---
+title: WhatsApp links
+description: Create a wa.me click-to-chat link for a Pakistani mobile number, with an optional pre-filled message.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import WhatsAppWidget from '../../../components/widgets/WhatsAppWidget.tsx';
+
+`import { createWhatsAppLink } from 'pakdatakit/whatsapp'`
+
+Turns a Pakistani mobile number into a WhatsApp click-to-chat link. It accepts local, international and short phone formats, and can add a message that opens pre-filled in the chat.
+
+<WhatsAppWidget client:visible />
+
+## Examples
+
+<LangTabs module="whatsapp" />
+
+## Reference
+
+### createWhatsAppLink()
+
+```ts
+function createWhatsAppLink(phone: string, message?: string): string | null;
+```
+
+**Parameters.**
+
+- `phone`: a Pakistani mobile number in any supported format.
+- `message`: optional pre-filled message. It is URL-encoded for you.
+
+**Returns** a `https://wa.me/…` link, or `null` if the phone number is invalid. Without a message (or with an empty one) the link has no `?text=` part.
+
+**Related:** [`validatePhone()`](/docs/phone/#validatephone), [`getNetwork()`](/docs/networks/#getnetwork).
+
+## Related
+
+- [Phone](/docs/phone/): validate and format mobile numbers.
+- [Networks](/docs/networks/): the original operator of a mobile prefix.
+- [Quality](/docs/quality/): check a phone number given for a delivery.
+- [API reference](/api/typescript/whatsapp/)

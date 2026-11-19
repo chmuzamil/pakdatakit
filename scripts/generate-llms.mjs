@@ -220,7 +220,7 @@ function siteGuides() {
     .join('\n');
   return `### Module guides (examples in TypeScript, Python, Dart, C# and PHP)
 
-${section('docs', ['cnic', 'phone', 'iban', 'raast', 'salestax', 'incometax', 'postal'])}
+${section('docs', ['cnic', 'passport', 'vehicle', 'tax', 'phone', 'networks', 'numbers', 'whatsapp', 'iban', 'raast', 'bills', 'words', 'format', 'salestax', 'incometax', 'fbr-invoice', 'postal', 'geo', 'address', 'quality', 'courier', 'text', 'hijri', 'holidays', 'input', 'forms'])}
 
 ### Install
 

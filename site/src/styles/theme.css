@@ -175,6 +175,10 @@
   font-size: var(--sl-text-sm);
   color: var(--sl-color-gray-3);
 }
+/* Code in a note sits on the code background: full-contrast text there. */
+.pdk-note code {
+  color: var(--sl-color-white);
+}
 .pdk-privacy {
   display: flex;
   gap: 0.5rem;

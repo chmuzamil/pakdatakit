@@ -1,0 +1,110 @@
+---
+title: FBR digital invoicing
+description: Build FBR Digital Invoicing JSON with the sales tax worked out, and check it offline against PRAL's DI API v1.12 rules, with FBR's error codes.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import FbrInvoiceWidget from '../../../components/widgets/FbrInvoiceWidget.tsx';
+
+`import { buildFbrInvoice, validateFbrInvoice, expectedSalesTax, FBR_DI_SPEC_VERSION } from 'pakdatakit/fbr-invoice'`
+
+Types for the invoice JSON that is posted to PRAL's Digital Invoicing (DI) gateway, a builder that works out the sales tax on each line, and an offline validator that returns every problem with FBR's error code. It follows PRAL's "Technical Specification for DI API", version 1.12 (last updated 24 July 2025), and PRAL's "Error Message Guide (Sales)".
+
+<FbrInvoiceWidget client:visible />
+
+:::caution[Offline checks only; nothing is sent to FBR]
+Nothing here talks to FBR: there is no HTTP client and no token handling. The validator checks the rules that need no call to FBR. Values that only FBR's reference APIs can confirm (provinces, HS codes, units, rates, sale types, SRO numbers) are checked for presence, not against FBR's lists.
+:::
+
+## Examples
+
+<LangTabs module="fbr-invoice" />
+
+## Reference
+
+### buildFbrInvoice()
+
+```ts
+function buildFbrInvoice(input: FbrInvoiceInput): FbrInvoiceBuild | null;
+
+interface FbrInvoiceBuild {
+  invoice: FbrInvoice;
+  totals: FbrInvoiceTotals;
+}
+```
+
+**Parameters.** `input`: an invoice in FBR's field names. On each line, `salesTaxApplicable`, `salesTaxWithheldAtSource`, `totalValues` and `fixedNotifiedValueOrRetailPrice` may be left out, and so may `invoiceRefNo` and `buyerNTNCNIC`. Amounts are in rupees.
+
+**Returns** the invoice and its column totals, or `null` if `input` is not an object with an `items` array. It never throws.
+
+**Caveats.** Where you leave `salesTaxApplicable` out, it is worked out with [`expectedSalesTax()`](#expectedsalestax). Lines with a rate that is neither `N%` nor `Rs.N` (`Exempt`, combined rates) get 0 unless you give the tax. `salesTaxWithheldAtSource`, `totalValues` and `fixedNotifiedValueOrRetailPrice` default to 0, and `invoiceRefNo` and `buyerNTNCNIC` to `""`, as in FBR's samples. Nothing else is filled in or changed, so check the result with `validateFbrInvoice()`. The totals are for your own records: the specification has no invoice-level totals.
+
+**Related:** [`validateFbrInvoice()`](#validatefbrinvoice), [`calculateSalesTax()`](/docs/salestax/).
+
+### validateFbrInvoice()
+
+```ts
+function validateFbrInvoice(
+  invoice: FbrInvoice,
+  options?: { today?: string }, // YYYY-MM-DD
+): FbrInvoiceValidation;
+
+interface FbrInvoiceValidation {
+  valid: boolean;
+  errors: FbrInvoiceError[];
+}
+
+interface FbrInvoiceError {
+  code: string | null; // FBR's error code, e.g. '0104'
+  field: string; // 'invoiceDate', 'items[0].rate' …
+  message: string;
+}
+```
+
+**Parameters.** `invoice`: the invoice body for FBR's `postinvoicedata` and `validateinvoicedata`. `options.today`: today as `YYYY-MM-DD`, to reject invoices dated later (error 0043). Not checked when left out.
+
+**Returns** `{ valid, errors }`, with every problem found. `code` is `null` for a required field the specification gives no code for. It never throws.
+
+**Caveats.** Checked: invoice type (0003, 0011), date format (0005, 0042, 0113) and, with `today`, a future date (0043); seller and buyer NTN/CNIC (0401, 0402, 0009), self-invoicing (0058), names, provinces (0073, 0074), addresses, buyer registration type (0012), the reference number of a debit note (0026), the sandbox scenario, and on each line: HS code (0044), rate (0020), unit, sale type (0013), required and valid amounts (0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial (0077, 0078), Third Schedule retail price (0090), extra tax on reduced-rate goods (0091) and the sales tax arithmetic (0102, 0104, 0105, to within one paisa).
+
+Not checked, because they need FBR's data: registration status, whether a province, HS code, unit, rate, sale type or SRO is in FBR's lists or fits the others, and the original invoice of a debit note. The specification has no string length limits, so none are checked. An NTN is 7 digits and a CNIC 13.
+
+**Related:** the [FBR invoice playground](/playground/fbr-invoice/), [`buildFbrInvoice()`](#buildfbrinvoice).
+
+### expectedSalesTax()
+
+```ts
+function expectedSalesTax(item: {
+  rate: string;
+  saleType?: string;
+  quantity?: number;
+  valueSalesExcludingST?: number;
+  fixedNotifiedValueOrRetailPrice?: number;
+}): number | null;
+```
+
+**Parameters.** `item`: one invoice line, or the fields of it shown above.
+
+**Returns** the sales tax FBR expects on the line, in rupees:
+
+- `N%` on Third Schedule goods: retail price × rate (error 0102);
+- `N%` otherwise: value excluding sales tax × rate (0104);
+- `Rs.N`: quantity × N (0105).
+
+It returns `null` when the rate is not a plain percentage or per-unit amount.
+
+**Caveats.** Rounded half up to the paisa. The specification allows 2 decimals and gives no rounding rule, so this is the library's choice; `validateFbrInvoice()` accepts a declared tax within one paisa of it.
+
+### FBR_DI_SPEC_VERSION
+
+```ts
+const FBR_DI_SPEC_VERSION = '1.12';
+```
+
+The version of PRAL's technical specification this module follows.
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/fbr-invoice`](/api/typescript/fbr-invoice/)
+- [Sales tax](/docs/salestax/) and the [sales tax calculator](/tools/sales-tax/)
+- [Data sources](/data/)

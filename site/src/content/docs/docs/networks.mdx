@@ -1,0 +1,55 @@
+---
+title: Mobile networks
+description: Find the mobile operator a Pakistani 03XX prefix was originally allocated to (Jazz, Zong, Ufone, Telenor or SCO).
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import NetworksWidget from '../../../components/widgets/NetworksWidget.tsx';
+
+`import { getNetwork } from 'pakdatakit/networks'`
+
+Reads the `03XX` prefix of a mobile number and returns the operator that prefix was originally allocated to. It accepts the same forms as the [phone helpers](/docs/phone/): `03…`, `+92…`, `0092…`, with spaces or dashes.
+
+<NetworksWidget client:visible />
+
+:::caution[The original network, not the current one]
+The result is the network the prefix was originally allocated to. Due to Mobile Number Portability (MNP) and operator mergers, the current carrier may differ.
+:::
+
+## Examples
+
+<LangTabs module="networks" />
+
+## Reference
+
+### getNetwork()
+
+```ts
+function getNetwork(phone: string): NetworkName;
+
+type NetworkName = 'Jazz' | 'Zong' | 'Telenor' | 'Ufone' | 'SCO' | 'Unknown';
+```
+
+**Parameters.** `phone`: the phone number to look up, in local or international form.
+
+**Returns** the network name, or `Unknown` if the number is not a valid Pakistani mobile number.
+
+**Caveats.**
+
+- This is the network the prefix was originally allocated to. With number portability and operator mergers, the current carrier may differ.
+- `Telenor` is the operator the `034x` range was originally allocated to. Telenor Pakistan was merged into PTML (Ufone) in 2026; the label is kept because the dataset records the original allocation.
+- `SCO` is the Special Communications Organization (`0355`, serving Azad Jammu and Kashmir and Gilgit-Baltistan).
+- `0370` and `0371` are labelled Zong from libphonenumber only; no official document giving `037x` to an operator was found. `0372` to `0379` are not included.
+- `0364` (Instaphone, licence cancelled in 2008) is not included.
+
+**Data.** PTA has no current operator-by-prefix table. The two-digit allocations come from PTA's National Numbering Plan 2008, with individual prefixes cross-checked against Google libphonenumber and operator announcements.
+
+**Related:** [`validatePhone()`](/docs/phone/#validatephone), [`analyzePhone()`](/docs/phone/#analyzephone).
+
+## Related
+
+- [Phone](/docs/phone/): validate and format mobile numbers.
+- [Numbers](/docs/numbers/): landlines, UAN, toll-free numbers and area codes.
+- [WhatsApp](/docs/whatsapp/): click-to-chat links.
+- [Quality](/docs/quality/): risk signals for a phone number given for a delivery.
+- [API reference](/api/typescript/networks/)

@@ -15,7 +15,15 @@ export default defineConfig({
   reporter: process.env.CI ? [['list'], ['github']] : 'list',
   use: { baseURL: external ?? 'http://localhost:4329', channel },
   projects: [
-    { name: 'mobile', use: { ...devices['Pixel 7'], channel } },
+    // 360px: the narrowest common phone width.
+    {
+      name: 'mobile',
+      use: {
+        ...devices['Pixel 7'],
+        viewport: { width: 360, height: 800 },
+        channel,
+      },
+    },
     { name: 'desktop', use: { ...devices['Desktop Chrome'], channel } },
   ],
   webServer: external

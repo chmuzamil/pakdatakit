@@ -1,0 +1,42 @@
+---
+title: Passport
+description: Check that a Pakistani passport number has the common shape of two letters and seven digits. A format check, not DGIP verification.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import PassportWidget from '../../../components/widgets/PassportWidget.tsx';
+
+`import { validatePassport } from 'pakdatakit/passport'`
+
+Checks that a passport number has the common shape: two letters followed by seven digits, such as `AB1234567`. Case, surrounding spaces, and spaces or dashes between the letters and digits are ignored.
+
+<PassportWidget client:visible />
+
+:::caution[Treat false as unusual, not fake]
+DGIP does not publish the format, so this checks the common shape only. No source was found for later models (2017, 2022 e-passport) or for diplomatic and official passports, which may differ. A result of `false` means the number is unusual, not that it is fake. This is a format check, not verification with DGIP.
+:::
+
+## Examples
+
+<LangTabs module="passport" />
+
+## Reference
+
+### validatePassport()
+
+```ts
+function validatePassport(passport: string): boolean;
+```
+
+**Parameters.** `passport`: the passport number. Case, surrounding spaces and spaces or dashes between the letters and digits are ignored.
+
+**Returns** `true` when the number is two letters followed by seven digits; otherwise `false`.
+
+**Caveats.** Two letters and seven digits is the number format given for the 2013 ordinary passport in the EU's PRADO register, and it fits the 9-character document-number field of ICAO Doc 9303. The letters' meaning is not documented and is not checked. The MRZ check digit is not part of the number.
+
+**Related:** [CNIC](/docs/cnic/).
+
+## Related
+
+- [CNIC](/docs/cnic/), the other identity number most forms ask for.
+- [API reference for `pakdatakit/passport`](/api/typescript/passport/).

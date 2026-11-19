@@ -1,0 +1,61 @@
+---
+title: Vehicle plates
+description: Split a Pakistani vehicle registration number into series letters, number and optional year, and check its common shape.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import VehicleWidget from '../../../components/widgets/VehicleWidget.tsx';
+
+`import { parseVehiclePlate, validateVehiclePlate } from 'pakdatakit/vehicle'`
+
+Splits a vehicle registration number into its series letters, number and optional year, such as `LEA-1234` or `ABC 123`. It accepts the common shape: 1 to 4 letters, then 1 to 4 digits, optionally followed by the two-digit year that older Punjab plates carry (`LEA-1234-19`).
+
+<VehicleWidget client:visible />
+
+:::caution[There is no single national format]
+Each province's excise department sets its own format, and several changed in 2024 to 2026 (numbers that stay with the owner, new series). This checks the common shape shared by all of them.
+:::
+
+## Examples
+
+<LangTabs module="vehicle" />
+
+## Reference
+
+### parseVehiclePlate()
+
+```ts
+function parseVehiclePlate(plate: string): VehiclePlate | null;
+
+interface VehiclePlate {
+  series: string; // letters before the number, e.g. LEA
+  number: string; // digits of the registration number, e.g. 1234
+  year: string | null; // two-digit year on some older Punjab plates
+  formatted: string; // LEA-1234 (without the year)
+}
+```
+
+**Parameters.** `plate`: the registration number as written on the plate. Pass the registration number only, without labels such as "ICT" or "PUNJAB" printed elsewhere on the plate.
+
+**Returns** the parts, or `null` when the input does not have the common shape.
+
+**Caveats.** Series letters are not checked against a list of districts, as no official list is published.
+
+**Related:** [`validateVehiclePlate()`](#validatevehicleplate).
+
+### validateVehiclePlate()
+
+```ts
+function validateVehiclePlate(plate: string): boolean;
+```
+
+**Parameters.** `plate`: as for `parseVehiclePlate()`.
+
+**Returns** `true` when the registration number has the common shape. It checks the common shape only.
+
+**Related:** [`parseVehiclePlate()`](#parsevehicleplate).
+
+## Related
+
+- [CNIC](/docs/cnic/), [NTN and STRN](/docs/tax/), [passport](/docs/passport/).
+- [API reference for `pakdatakit/vehicle`](/api/typescript/vehicle/).

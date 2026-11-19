@@ -1,0 +1,51 @@
+{
+  "module": "address",
+  "title": "Address",
+  "examples": [
+    {
+      "id": "parse",
+      "title": "Parse an address",
+      "fn": "parseAddress",
+      "args": ["12 Model Town Lahore"],
+      "expected": {
+        "raw": "12 Model Town Lahore",
+        "street": "12 Model Town",
+        "area": null,
+        "city": "Lahore",
+        "district": null,
+        "province": "Punjab",
+        "postalCode": null,
+        "warnings": []
+      }
+    },
+    {
+      "id": "parse-warning",
+      "title": "A city in another province",
+      "fn": "parseAddress",
+      "args": ["Saddar, Karachi, Punjab"],
+      "expected": {
+        "raw": "Saddar, Karachi, Punjab",
+        "street": "Saddar",
+        "area": null,
+        "city": "Karachi",
+        "district": null,
+        "province": "Punjab",
+        "postalCode": null,
+        "warnings": ["Karachi is in Sindh, but the address says Punjab"]
+      }
+    },
+    {
+      "id": "format",
+      "title": "Format the parts as one line",
+      "fn": "formatAddress",
+      "args": [],
+      "kwargs": {
+        "street": "House 12, Street 5",
+        "area": "F-7/2",
+        "city": "Islamabad",
+        "postalCode": "44000"
+      },
+      "expected": "House 12, Street 5, F-7/2, Islamabad 44000"
+    }
+  ]
+}

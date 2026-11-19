@@ -1,0 +1,44 @@
+{
+  "module": "vehicle",
+  "title": "Vehicle plates",
+  "examples": [
+    {
+      "id": "parse",
+      "title": "Split a registration number",
+      "fn": "parseVehiclePlate",
+      "args": ["lea 1234"],
+      "expected": {
+        "series": "LEA",
+        "number": "1234",
+        "year": null,
+        "formatted": "LEA-1234"
+      }
+    },
+    {
+      "id": "parse-year",
+      "title": "An older Punjab plate with a year",
+      "fn": "parseVehiclePlate",
+      "args": ["LEA-1234-19"],
+      "expected": {
+        "series": "LEA",
+        "number": "1234",
+        "year": "19",
+        "formatted": "LEA-1234"
+      }
+    },
+    {
+      "id": "validate",
+      "title": "Validate a registration number",
+      "fn": "validateVehiclePlate",
+      "args": ["ABC 123"],
+      "expected": true
+    },
+    {
+      "id": "validate-bad",
+      "title": "Digits only is not a plate",
+      "fn": "validateVehiclePlate",
+      "args": ["12345"],
+      "expected": false
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "module": "words",
+  "title": "Numbers in words",
+  "examples": [
+    {
+      "id": "number",
+      "title": "Lakh and crore, not million",
+      "fn": "numberToWords",
+      "args": [12500000],
+      "expected": "one crore twenty-five lakh"
+    },
+    {
+      "id": "amount",
+      "title": "A rupee amount with paisa",
+      "fn": "amountInWords",
+      "args": [125000.5],
+      "expected": "one lakh twenty-five thousand rupees and fifty paisa"
+    },
+    {
+      "id": "cheque",
+      "title": "Cheque style",
+      "fn": "amountInWords",
+      "args": [125000],
+      "kwargs": {
+        "cheque": true
+      },
+      "expected": "Rupees One Lakh Twenty-Five Thousand Only"
+    },
+    {
+      "id": "urdu",
+      "title": "In Urdu, cheque style",
+      "fn": "amountInWords",
+      "args": [125000],
+      "kwargs": {
+        "language": "ur",
+        "cheque": true
+      },
+      "expected": "ایک لاکھ پچیس ہزار روپے صرف"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "module": "numbers",
+  "title": "Numbers",
+  "examples": [
+    {
+      "id": "landline",
+      "title": "Analyze a landline",
+      "fn": "analyzeNumber",
+      "args": ["042 35761234"],
+      "expected": {
+        "type": "landline",
+        "formatted": "042-35761234",
+        "e164": "+924235761234",
+        "areaCode": "042",
+        "cities": ["Lahore"]
+      }
+    },
+    {
+      "id": "type",
+      "title": "Type of a UAN",
+      "fn": "getNumberType",
+      "args": ["021-111-123-456"],
+      "expected": "uan"
+    },
+    {
+      "id": "validate",
+      "title": "Validate a landline",
+      "fn": "validateLandline",
+      "args": ["051-2345678"],
+      "expected": true
+    },
+    {
+      "id": "area-code",
+      "title": "Area code for a city",
+      "fn": "getAreaCode",
+      "args": ["Faisalabad"],
+      "expected": "041"
+    }
+  ]
+}

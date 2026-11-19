@@ -1,0 +1,27 @@
+{
+  "module": "networks",
+  "title": "Networks",
+  "examples": [
+    {
+      "id": "jazz",
+      "title": "Original network of a number",
+      "fn": "getNetwork",
+      "args": ["0300 1234567"],
+      "expected": "Jazz"
+    },
+    {
+      "id": "international",
+      "title": "International form",
+      "fn": "getNetwork",
+      "args": ["+92 345 1234567"],
+      "expected": "Telenor"
+    },
+    {
+      "id": "unknown",
+      "title": "Not a mobile number",
+      "fn": "getNetwork",
+      "args": ["042-35761234"],
+      "expected": "Unknown"
+    }
+  ]
+}

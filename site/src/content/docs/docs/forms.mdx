@@ -1,0 +1,210 @@
+---
+title: Form kits and adapters
+description: Ready-made CNIC, mobile and IBAN inputs and checkout and KYC forms for React, Vue, Angular and Flutter, plus Zod, Yup, Joi and other schema adapters.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Four framework kits wrap the [as-you-type helpers](/docs/input/) in components you can drop into a form, and six adapters bring the same checks to the schema validation library you already use.
+
+## What the kits give you
+
+- **Inputs** for CNIC, mobile numbers and IBANs that format as the user types (`35202-1234567-1`, `0300-1234567`, `PK36 SCBL 0000 0011 2345 6702`) without making the caret jump.
+- **A state** for each value: `empty`, `incomplete`, `valid` or `invalid`, plus details once valid (province and gender, mobile network, bank name).
+- **Accessible defaults**: `aria-invalid` only when the value cannot become valid, and sensible `inputmode` and `autocomplete`. An `incomplete` value is not marked invalid, so you decide when to show "required" or "too short" errors, for example on blur or submit.
+- **Checkout and KYC forms**: ready-made and unstyled, in English or Urdu, with full name, mobile number, province, district, city, address, a nearby place (optional) and postal code (optional). The KYC form adds the CNIC. The district list follows the province; the data has no city-to-district mapping, so the city is a text field with suggestions from the chosen province.
+- **Optional delivery hints** (`hints`): non-blocking suggestions about how complete the address is, warning signs in the mobile number, and a postal code that belongs to another city. Hints never block submit. They need the post office directory, about 32 kB gzipped, which is loaded only when hints are turned on.
+
+| Kit              | Package              | Inputs                                                                             | Forms                                   | Install                      |
+| ---------------- | -------------------- | ---------------------------------------------------------------------------------- | --------------------------------------- | ---------------------------- |
+| React 18+        | `pakdatakit-react`   | `CNICInput`, `PhoneInput`, `IBANInput`; hooks `useCNICInput` and so on             | `PakCheckoutForm`, `PakKycForm`         | [React](/install/react/)     |
+| Vue 3.3+         | `pakdatakit-vue`     | `v-pak-input` directive; composables `useCnic`, `usePhone`, `useIban`              | `PakCheckoutForm`, `PakKycForm`         | [Vue](/install/vue/)         |
+| Angular 17 to 22 | `pakdatakit-angular` | `pakCnicInput`, `pakPhoneInput`, `pakIbanInput` directives; pipes; `PakValidators` | `<pak-checkout-form>`, `<pak-kyc-form>` | [Angular](/install/angular/) |
+| Flutter          | `pakdatakit_flutter` | `CnicField`, `PhoneField`, `IbanField`; input formatters; `PakValidators`          | `PakCheckoutForm`, `PakKycForm`         | [Flutter](/install/flutter/) |
+
+The React and Flutter kits also include a Raast payment QR component (`RaastQR` and `RaastQr`); see [Raast](/docs/raast/).
+
+## Examples
+
+<Tabs syncKey="framework">
+<TabItem label="React">
+
+```tsx
+import { CNICInput, PakCheckoutForm } from 'pakdatakit-react';
+
+<CNICInput
+  name="cnic"
+  onValueChange={(value, state, info) => {
+    // value: '35202-1234567-1'
+    // state: 'empty' | 'incomplete' | 'valid' | 'invalid'
+    // info:  { digits, formatted, province: 'Punjab', gender: 'male' } once valid, otherwise null
+  }}
+/>
+
+<PakCheckoutForm onSubmit={(values) => saveOrder(values)} />
+```
+
+`onSubmit` is only called when the form is valid, with trimmed values. The hooks (`useCNICInput`, `usePhoneInput`, `useIBANInput`) give the same behaviour to your own input components, and `pakRules` has a rule for each form field in the shape react-hook-form's `register` accepts.
+
+</TabItem>
+<TabItem label="Vue">
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { vPakInput, PakCheckoutForm, type PakFormValues } from 'pakdatakit-vue';
+
+const cnic = ref('');
+const order = ref<Partial<PakFormValues>>({});
+function save(values: PakFormValues) {
+  // values are trimmed; mobile is formatted as 0300-1234567
+}
+</script>
+
+<template>
+  <input v-model="cnic" v-pak-input:cnic />
+  <PakCheckoutForm v-model="order" @submit="save" />
+</template>
+```
+
+The model always holds the formatted value. Register the directive for the whole app with `app.use(PakDataKit)`.
+
+</TabItem>
+<TabItem label="Angular">
+
+```ts
+import { Component } from '@angular/core';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  PakCheckoutFormComponent,
+  PakCnicInputDirective,
+  PakValidators,
+  type PakFormValues,
+} from 'pakdatakit-angular';
+
+@Component({
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    PakCnicInputDirective,
+    PakCheckoutFormComponent,
+  ],
+  template: `
+    <input pakCnicInput [formControl]="cnic" />
+    <pak-checkout-form (submitted)="save($event)" />
+  `,
+})
+export class CustomerForm {
+  cnic = new FormControl('', [Validators.required, PakValidators.cnic]);
+  save(values: PakFormValues) {
+    // values are trimmed; mobile is formatted as 0300-1234567
+  }
+}
+```
+
+The control always holds the formatted value. Like Angular's own validators, `PakValidators` pass empty values; add `Validators.required` for mandatory fields.
+
+</TabItem>
+<TabItem label="Flutter">
+
+```dart
+import 'package:pakdatakit_flutter/pakdatakit_flutter.dart';
+
+CnicField(
+  decoration: const InputDecoration(labelText: 'CNIC'),
+  onStateChanged: (state, info) {
+    // state: InputState.empty / incomplete / valid / invalid
+    // info: CNICInfo (province, gender) once valid
+  },
+);
+
+PakCheckoutForm(
+  onSubmitted: (PakFormValues values) {
+    // values.mobile is formatted as 0300-1234567
+  },
+);
+```
+
+While the user types, a field shows an error only once the value is invalid, not while it is merely incomplete. Once the form is validated, for example on submit, incomplete and empty required values are reported too. The formatters (`CnicInputFormatter`, `PhoneInputFormatter`, `IbanInputFormatter`) work on any `TextField`.
+
+</TabItem>
+</Tabs>
+
+## Schema validation adapters
+
+Ready-made schemas for Zod, Valibot, Yup, Joi and Superstruct, and decorators for class-validator (and so NestJS). Install the library you use; PakDataKit does not depend on any of them.
+
+```ts
+import { z } from 'zod';
+import { pk } from 'pakdatakit/zod';
+
+const CheckoutForm = z.object({
+  cnic: pk.cnic(),
+  phone: pk.phone(),
+  iban: pk.iban({ message: 'Please enter a valid IBAN' }),
+});
+```
+
+The other schema libraries work the same way:
+
+```ts
+import * as v from 'valibot';
+import { pk } from 'pakdatakit/valibot';
+
+const CheckoutForm = v.object({ cnic: pk.cnic(), phone: pk.phone() });
+```
+
+```ts
+import { object } from 'yup';
+import { pk } from 'pakdatakit/yup';
+
+const CheckoutForm = object({ cnic: pk.cnic().required(), phone: pk.phone() });
+```
+
+```ts
+import Joi from 'joi';
+import { pk } from 'pakdatakit/joi';
+
+const CheckoutForm = Joi.object({
+  cnic: pk.cnic().required(),
+  phone: pk.phone(),
+});
+```
+
+```ts
+import { object, optional } from 'superstruct';
+import { pk } from 'pakdatakit/superstruct';
+
+const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
+```
+
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()` and `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+
+### class-validator and NestJS
+
+Decorators for DTOs, checked by NestJS's `ValidationPipe` like any other class-validator rule. No NestJS package is needed.
+
+```ts
+import { IsOptional } from 'class-validator';
+import { IsCNIC, IsPakIBAN, IsPakPhone } from 'pakdatakit/class-validator';
+
+export class CreateCustomerDto {
+  @IsCNIC()
+  cnic!: string;
+
+  @IsOptional()
+  @IsPakPhone({ message: 'Enter a Pakistani mobile number' })
+  phone?: string;
+
+  @IsPakIBAN()
+  iban!: string;
+}
+```
+
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport`, `IsVehiclePlate` and `IsCodPhone`. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
+
+## Related
+
+- [As-you-type input](/docs/input/): the formatters and checkers the kits are built on.
+- Install guides: [React](/install/react/), [Vue](/install/vue/), [Angular](/install/angular/), [Flutter](/install/flutter/).
+- API reference: [`pakdatakit/zod`](/api/typescript/adapters/zod/), [`pakdatakit/valibot`](/api/typescript/adapters/valibot/), [`pakdatakit/yup`](/api/typescript/adapters/yup/), [`pakdatakit/joi`](/api/typescript/adapters/joi/), [`pakdatakit/superstruct`](/api/typescript/adapters/superstruct/), [`pakdatakit/class-validator`](/api/typescript/adapters/class-validator/).

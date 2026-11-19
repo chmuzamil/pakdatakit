@@ -1,0 +1,47 @@
+{
+  "module": "quality",
+  "title": "Quality",
+  "examples": [
+    {
+      "id": "score",
+      "title": "Score a delivery address",
+      "fn": "scoreAddress",
+      "args": ["House 7, Street 2, near Jamia Masjid, Multan"],
+      "expected": {
+        "score": 85,
+        "missing": ["postalCode"],
+        "parsed": {
+          "raw": "House 7, Street 2, near Jamia Masjid, Multan",
+          "street": "House 7",
+          "area": "Street 2, near Jamia Masjid",
+          "city": "Multan",
+          "district": null,
+          "province": "Punjab",
+          "postalCode": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "phone-ok",
+      "title": "A mobile number with no flags",
+      "fn": "phoneRiskSignals",
+      "args": ["0333 1234500"],
+      "expected": []
+    },
+    {
+      "id": "phone-test",
+      "title": "A placeholder number",
+      "fn": "phoneRiskSignals",
+      "args": ["0300 1234567"],
+      "expected": ["sequential-digits", "test-number"]
+    },
+    {
+      "id": "phone-landline",
+      "title": "A landline",
+      "fn": "phoneRiskSignals",
+      "args": ["042-35761234"],
+      "expected": ["landline"]
+    }
+  ]
+}

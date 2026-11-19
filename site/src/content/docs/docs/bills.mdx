@@ -1,0 +1,78 @@
+---
+title: Electricity and gas bills
+description: Check Pakistani electricity bill reference numbers, customer IDs, K-Electric account numbers and SNGPL or SSGC gas consumer numbers.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import BillsWidget from '../../../components/widgets/BillsWidget.tsx';
+
+`import { parseElectricityRef, validateElectricityRef, validateGasConsumerNumber } from 'pakdatakit/bills'`
+
+Checks the bill numbers people are asked for when they pay or look up a utility bill. The formats are those the utilities' own bill pages ask for: a 14-digit DISCO reference number with a separate U/R choice, a 10-digit DISCO customer ID (11 digits for LESCO), a 13-digit K-Electric account number starting from `04000`, and gas consumer numbers of 11 digits for SNGPL and 10 for SSGC.
+
+<BillsWidget client:visible />
+
+:::caution[A format check, not a lookup with the utility]
+No check digit is published, so only the format is checked. A valid result does not mean the bill exists. No official source maps reference or customer ID digits to a DISCO, so the company is only named for a K-Electric account.
+:::
+
+## Examples
+
+<LangTabs module="bills" />
+
+## Reference
+
+### parseElectricityRef()
+
+```ts
+function parseElectricityRef(input: string): ElectricityRef | null;
+
+type ElectricityRefType = 'reference' | 'customer-id' | 'k-electric';
+
+interface ElectricityRef {
+  type: ElectricityRefType;
+  digits: string; // without separators or the U/R letter
+  formatted: string; // 01 14111 1234567 U for a reference, the digits otherwise
+  urbanRural: 'U' | 'R' | null;
+  disco: 'K-Electric' | null;
+}
+```
+
+**Parameters.** `input`: a DISCO reference number (14 digits, optionally followed by `U` for urban or `R` for rural), a DISCO customer ID (10 digits, or 11 for LESCO) or a K-Electric account number (13 digits starting `04000`). Spaces, dashes and dots are ignored, and Urdu digits are accepted.
+
+**Returns** the identifier, or `null` when it matches none of the formats. It never throws. A reference is formatted as 2, 5 and 7 digits, as on PITC's bill illustration.
+
+**Caveats.** `disco` is `K-Electric` for a K-Electric account and otherwise always `null`, because no official source maps reference or customer ID digits to a DISCO. No check digit is published, so only the format is checked. IESCO notes that reference numbers can change.
+
+**Related:** [`validateElectricityRef()`](#validateelectricityref).
+
+### validateElectricityRef()
+
+```ts
+function validateElectricityRef(input: string): boolean;
+```
+
+**Parameters.** `input`: as for `parseElectricityRef()`.
+
+**Returns** `true` when the input is one of the electricity bill formats above.
+
+**Related:** [`parseElectricityRef()`](#parseelectricityref).
+
+### validateGasConsumerNumber()
+
+```ts
+function validateGasConsumerNumber(input: string, company: GasCompany): boolean;
+
+type GasCompany = 'SNGPL' | 'SSGC';
+```
+
+**Parameters.** `input`: the consumer number from the gas bill. `company`: `SNGPL` or `SSGC`; anything else returns `false`.
+
+**Returns** `true` for 11 digits with SNGPL or 10 digits with SSGC, as their bill pages ask for.
+
+**Caveats.** No check digit is published, so only the format is checked.
+
+## Related
+
+- [CNIC](/docs/cnic/) and [phone](/docs/phone/) checks for the same forms.
+- [API reference for `pakdatakit/bills`](/api/typescript/bills/).

@@ -98,6 +98,8 @@ for (const path of PAGES) {
 }
 
 const TOOLS = [
+  // The home page's live demo (CNIC tab).
+  { path: '/', text: '61101-7654321-3' },
   { path: '/tools/cnic/', text: '42101-1234567-2' },
   { path: '/tools/iban/', text: 'PK36SCBL0000001123456702' },
   { path: '/tools/salary-tax/', text: '987654' },

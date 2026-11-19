@@ -94,6 +94,7 @@ export default defineConfig({
         Head: './src/components/Head.astro',
         Footer: './src/components/Footer.astro',
         PageTitle: './src/components/PageTitle.astro',
+        Hero: './src/components/Hero.astro',
       },
       head: [
         // Icons from scripts/icons.mjs (favicon.svg is Starlight's `favicon`).

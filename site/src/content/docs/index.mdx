@@ -6,16 +6,21 @@ template: splash
 # block only tells Starlight to render a hero on this page.
 hero:
   title: Pakistani data, done right. In five languages.
+prev: false
+next: false
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import Addons from '../../components/Addons.astro';
 import InstallSwitcher from '../../components/InstallSwitcher.astro';
 
 ## Install
 
 <InstallSwitcher />
 
-Also on npm and pub.dev: [React](/install/react/), [Vue](/install/vue/) and [Angular](/install/angular/) bindings, [Flutter](/install/flutter/) input formatters (`pakdatakit_flutter`), and `pakdatakit-faker` for seeded mock data. .NET includes DataAnnotations and FluentValidation rules; PHP includes Laravel validation rules.
+### Add-on packages
+
+<Addons />
 
 ## Modules
 

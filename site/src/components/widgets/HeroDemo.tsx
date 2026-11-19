@@ -1,8 +1,9 @@
 /**
  * The home page's live demo: check a CNIC or an IBAN with the real library
- * and see the result at once. Below it, the docs' examples for the same
- * functions (site/examples/*.json, whose results every port is tested
- * against) in the chosen language, each result on one line. The language
+ * and see the result at once. Below it, the same calls in the chosen
+ * language with the visitor's value and the library's result, each on one
+ * line; while the input is empty or invalid, the documented example
+ * (site/examples/*.json, tested in every port) instead. The language
  * choice is shared with the docs' code tabs (Starlight's synced tabs key).
  * Nothing typed leaves the browser.
  */
@@ -31,10 +32,29 @@ const TABS = {
 type Tab = keyof typeof TABS;
 const STORAGE = 'starlight-synced-tabs__lang';
 
+/**
+ * The same calls with the visitor's value, the results computed now by the
+ * library. Every port gives the same results (the shared test vectors).
+ */
+function live(tab: Tab, v: string): Example[] {
+  return EXAMPLES[tab].map((ex) => ({
+    ...ex,
+    args: [v],
+    expected: FNS[ex.fn](v),
+  }));
+}
+const FNS: Record<string, (v: string) => unknown> = {
+  validateCNIC,
+  getCNICInfo,
+  validateIBAN,
+  getBankFromIBAN,
+};
+
 const pick = (file: { examples: Example[] }, ids: string[]) =>
   ids.map((i) => file.examples.find((e) => e.id === i)!);
 
-/** The documented examples shown under each tab (outputs are tested). */
+/** The documented examples (outputs tested in every port): shown when the
+ * input is empty or invalid. */
 const EXAMPLES: Record<Tab, Example[]> = {
   cnic: pick(cnicExamples as { examples: Example[] }, ['validate', 'info']),
   iban: pick(ibanExamples as { examples: Example[] }, ['validate', 'bank']),
@@ -59,6 +79,7 @@ export default function HeroDemo() {
   const [lang, setLang] = useState<Lang>('ts');
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
+  const inputRef = useRef<HTMLInputElement>(null);
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({
     cnic: null,
     iban: null,
@@ -67,6 +88,10 @@ export default function HeroDemo() {
 
   // The language the visitor last picked anywhere on the site.
   useEffect(() => {
+    // Keep anything typed before the demo hydrated (it loads when idle).
+    const typed = inputRef.current?.value;
+    if (typed !== undefined && typed !== TABS.cnic.sample)
+      setValues((v) => ({ ...v, cnic: typed }));
     try {
       const label = localStorage.getItem(STORAGE);
       const found = LANGS.find((l) => l.label === label);
@@ -81,7 +106,11 @@ export default function HeroDemo() {
   const empty = value.trim() === '';
   const valid =
     tab === 'cnic' ? validateCNIC(value.trim()) : validateIBAN(value.trim());
-  const code = snippet(lang, EXAMPLES[tab], true);
+  const code = snippet(
+    lang,
+    valid ? live(tab, value.trim()) : EXAMPLES[tab],
+    true,
+  );
 
   const chooseLang = (l: Lang) => {
     setLang(l);
@@ -175,6 +204,7 @@ export default function HeroDemo() {
           {TABS[tab].field}
         </label>
         <input
+          ref={inputRef}
           id={`${id}-input`}
           className="pdk-input mono"
           value={value}
@@ -250,8 +280,9 @@ export default function HeroDemo() {
           </pre>
         </div>
         <p className="pdk-demo-note">
-          Your check runs in your browser with the real library; nothing you
-          type is sent anywhere. The code shows the documented examples.
+          Runs in your browser with the real library; nothing you type is sent
+          anywhere. The code uses your value once it's valid, and the documented
+          example until then.
         </p>
       </div>
     </div>

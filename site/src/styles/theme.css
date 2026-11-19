@@ -876,3 +876,36 @@ header.header {
     pointer-events: none;
   }
 }
+
+/* ---- Home: add-on packages (src/components/Addons.astro) ---- */
+.pdk-addons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pdk-addons li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--sl-color-gray-6);
+}
+.pdk-addon-name {
+  justify-self: start;
+  color: var(--sl-color-text-accent);
+  text-underline-offset: 0.2em;
+}
+.pdk-addon-name code {
+  white-space: nowrap;
+  font-size: var(--sl-text-sm);
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+.pdk-addon-purpose {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}

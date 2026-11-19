@@ -95,9 +95,15 @@ export default defineConfig({
         Footer: './src/components/Footer.astro',
         PageTitle: './src/components/PageTitle.astro',
       },
-      head: INDEXABLE
-        ? []
-        : [{ tag: 'meta', attrs: { name: 'robots', content: 'noindex' } }],
+      head: [
+        // Icons from scripts/icons.mjs (favicon.svg is Starlight's `favicon`).
+        { tag: 'link', attrs: { rel: 'icon', href: '/favicon.ico', sizes: '32x32' } },
+        { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' } },
+        { tag: 'link', attrs: { rel: 'manifest', href: '/manifest.json' } },
+        ...(INDEXABLE
+          ? []
+          : [{ tag: 'meta', attrs: { name: 'robots', content: 'noindex' } }]),
+      ],
       sidebar: [
         {
           label: 'Start',

@@ -47,6 +47,8 @@ pdk.get_post_office("48330")
 
 pdk.format_pkr(150000)                        # 'Rs. 150,000'
 pdk.format_lakh(2500000)                      # '25 Lakh'
+pdk.parse_amount("Rs. 1,50,000/-")            # ParsedAmount(value=150000.0, raw='Rs. 1,50,000/-')
+pdk.format_amount_input("1.5 lakh")           # 'Rs. 150,000'
 pdk.amount_in_words(125000, cheque=True)      # 'Rupees One Lakh Twenty-Five Thousand Only'
 pdk.number_to_words(125000, language="ur")    # 'ایک لاکھ پچیس ہزار'
 
@@ -59,6 +61,17 @@ pdk.validate_raast_qr(payload).valid          # True
 pdk.format_cnic_input("3520212")              # '35202-12'
 pdk.check_phone_input("0300 12")              # 'incomplete'
 ```
+
+`parse_amount` reads a rupee amount as people type it: grouped or plain digits
+(`150,000`, `1,50,000`, `1,234.50`), Urdu or Arabic-Indic digits, one `Rs`,
+`Rs.`, `PKR` or `₨` mark, a trailing `/-`, and one unit (`k`, `thousand`,
+`hazar`, `lakh`, `lac`, `crore`, `cr`, `ہزار`, `لاکھ`, `کروڑ`), and returns
+`ParsedAmount(value, raw)` with the value rounded half-up to the paisa
+(`"2.25cr"` → `22500000.0`). It returns `None`, never raising, for non-strings,
+empty input, signs, ranges (`5-10k`), two numbers, marks or units, leftover
+letters (`500 rupees`), ambiguous grouping (`1,50`) and amounts over Rs. 50
+trillion. `format_amount_input` writes the amount back as `Rs. 150,000`
+(paisa only when present), or `None` when `parse_amount` returns `None`.
 
 ## API
 

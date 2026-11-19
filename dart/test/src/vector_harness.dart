@@ -317,6 +317,8 @@ final Map<String, Call> functions = {
       : getTehsilDistrict(str(a[0])),
   'formatPKR': (a, k) => formatPKR(number(a[0])),
   'formatLakh': (a, k) => formatLakh(number(a[0])),
+  'parseAmount': one(parseAmount),
+  'formatAmountInput': one(formatAmountInput),
   'validateIBAN': one(validateIBAN),
   'getBankFromIBAN': one(getBankFromIBAN),
   'getBankInfo': one(getBankInfo),

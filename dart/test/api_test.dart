@@ -106,6 +106,14 @@ void main() {
       expect(formatPKR(150000), 'Rs. 150,000');
       expect(formatLakh(2500000), '25 Lakh');
       expect(formatLakh(9999999), '1 Crore');
+      expect(
+        parseAmount(' Rs. 1,50,000/- '),
+        const ParsedAmount(value: 150000, raw: 'Rs. 1,50,000/-'),
+      );
+      expect(parseAmount('1.005')?.value, 1.01);
+      expect(parseAmount('5-10k'), isNull);
+      expect(formatAmountInput('1.5 lakh'), 'Rs. 150,000');
+      expect(formatAmountInput('1,234.5'), 'Rs. 1,234.50');
       expect(numberToWords(125000), 'one lakh twenty-five thousand');
       expect(
         amountInWords(125000, cheque: true),

@@ -159,6 +159,7 @@ export default defineConfig({
               ['Utility bills', 'bills'],
               ['Amounts in words', 'words'],
               ['PKR and lakh/crore', 'format'],
+              ['Reading amounts', 'amount'],
             ]),
             guides('Tax and FBR', [
               ['Sales tax', 'salestax'],

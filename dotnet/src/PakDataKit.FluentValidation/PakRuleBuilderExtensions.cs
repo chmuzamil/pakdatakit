@@ -82,6 +82,17 @@ public static class PakRuleBuilderExtensions
     public static IRuleBuilderOptions<T, string?> IsCodPhone<T>(this IRuleBuilder<T, string?> rule) =>
         Rule(rule, value => Quality.PhoneRiskSignals(value).Count == 0, "Enter a mobile number a courier can call");
 
+    /// <summary>
+    /// Requires a rupee amount typed the way people type it in Pakistan
+    /// (<c>150,000</c>, <c>1.5 lakh</c>, <c>Rs. 5,000/-</c>), using
+    /// <see cref="Currency.ParseAmount"/>.
+    /// </summary>
+    /// <typeparam name="T">Type being validated.</typeparam>
+    /// <param name="rule">The rule builder.</param>
+    /// <returns>The rule builder, for chaining.</returns>
+    public static IRuleBuilderOptions<T, string?> IsPakAmount<T>(this IRuleBuilder<T, string?> rule) =>
+        Rule(rule, value => Currency.ParseAmount(value) is not null, "Enter an amount in rupees, like 150,000 or 1.5 lakh");
+
     private static IRuleBuilderOptions<T, string?> Rule<T>(
         IRuleBuilder<T, string?> rule, Func<string, bool> isValid, string message)
     {

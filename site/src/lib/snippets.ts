@@ -328,6 +328,11 @@ export const API: Record<string, Api> = {
   },
   formatPKR: { cs: 'Currency.FormatPkr', php: 'Currency::formatPkr' },
   formatLakh: { cs: 'Currency.FormatLakh', php: 'Currency::formatLakh' },
+  parseAmount: { cs: 'Currency.ParseAmount', php: 'Currency::parseAmount' },
+  formatAmountInput: {
+    cs: 'Currency.FormatAmountInput',
+    php: 'Currency::formatAmountInput',
+  },
   // hijri, holidays
   toHijri: {
     cs: 'Hijri.ToHijri',

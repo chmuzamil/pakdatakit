@@ -12,7 +12,7 @@ use PakDataKit\Internal\Data;
 final class PakData
 {
     /** Version of this package. */
-    public const PACKAGE_VERSION = '2.5.1';
+    public const PACKAGE_VERSION = '2.6.0';
 
     /**
      * Date (`YYYY-MM-DD`) the bundled datasets were last checked against

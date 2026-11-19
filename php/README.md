@@ -50,6 +50,10 @@ Geo::getProvince('Multan');                   // 'Punjab'
 
 Currency::formatPkr(150000);                  // 'Rs. 150,000'
 Currency::formatLakh(2500000);                // '25 Lakh'
+Currency::parseAmount('Rs. 1,50,000/-');      // ParsedAmount { value: 150000.0, raw: 'Rs. 1,50,000/-' }
+Currency::parseAmount('2.25cr')->value;       // 22500000.0
+Currency::parseAmount('5-10k');               // null
+Currency::formatAmountInput('1.5 lakh');      // 'Rs. 150,000'
 Words::amountInWords(125000, cheque: true);   // 'Rupees One Lakh Twenty-Five Thousand Only'
 
 Hijri::format(new DateTimeImmutable('2026-03-04'));   // '15 Ramadan 1447'
@@ -87,6 +91,7 @@ package; call `->toArray()` for an array.
 | `getTehsils`, `getTehsilDistrict`                      | `Geo::getTehsils`, `Geo::getTehsilDistrict`                                       |
 | `createWhatsAppLink`                                   | `WhatsApp::createLink`                                                            |
 | `formatPKR`, `formatLakh`                              | `Currency::formatPkr`, `Currency::formatLakh`                                     |
+| `parseAmount`, `formatAmountInput`                     | `Currency::parseAmount`, `Currency::formatAmountInput`                            |
 | `numberToWords`, `amountInWords`                       | `Words::numberToWords`, `Words::amountInWords`                                    |
 | `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text::normalize`, `Text::normalizeRomanUrdu`, `Text::toUrduDigits`               |
 | `slugify`, `compareUrdu`                               | `Text::slugify`, `Text::compareUrdu`                                              |
@@ -420,9 +425,11 @@ $request->validate([
 
 Rules: `pk_cnic`, `pk_phone`, `pk_iban`, `pk_ntn`, `pk_strn`, `pk_landline`,
 `pk_passport`, `pk_vehicle_plate`, `pk_electricity_ref` (an electricity bill
-reference number, customer ID or K-Electric account number) and
+reference number, customer ID or K-Electric account number),
 `pk_cod_phone` (a mobile number a courier can call: no
-`Quality::phoneRiskSignals()` flags). As with Laravel's own rules, empty values are skipped unless the field is `required`. Values
+`Quality::phoneRiskSignals()` flags) and `pk_amount` (a rupee amount as
+people type it, like `150,000`, `Rs. 1,50,000/-` or `1.5 lakh`:
+`Currency::parseAmount()` reads it). As with Laravel's own rules, empty values are skipped unless the field is `required`. Values
 that are not strings fail.
 
 The same checks are available as rule objects:
@@ -438,7 +445,7 @@ $request->validate([
 
 `Rules\Cnic`, `Rules\Phone`, `Rules\Iban`, `Rules\Ntn`, `Rules\Strn`,
 `Rules\Landline`, `Rules\Passport`, `Rules\VehiclePlate`,
-`Rules\ElectricityRef` and `Rules\CodPhone`.
+`Rules\ElectricityRef`, `Rules\CodPhone` and `Rules\Amount`.
 
 ### Messages
 

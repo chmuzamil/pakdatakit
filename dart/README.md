@@ -56,6 +56,8 @@ phoneRiskSignals('0300 0000000');            // [PhoneRiskFlag.repeatedDigits]
 
 formatPKR(150000);                           // 'Rs. 150,000'
 formatLakh(2500000);                         // '25 Lakh'
+parseAmount('Rs. 1,50,000/-')?.value;        // 150000.0
+formatAmountInput('1.5 lakh');               // 'Rs. 150,000'
 amountInWords(125000, cheque: true);         // 'Rupees One Lakh Twenty-Five Thousand Only'
 numberToWords(125000, language: WordsLanguage.ur); // 'ایک لاکھ پچیس ہزار'
 
@@ -140,6 +142,15 @@ In Dart:
   `testNumber`; `.value` holds the npm string, e.g. `'repeated-digits'`), or
   `[]` for an unremarkable mobile number. Both are heuristics and never throw.
   `ADDRESS_WEIGHTS` is `addressWeights`, a `Map<AddressPart, int>`.
+- **Amount input:** `parseAmount(input)` reads a rupee amount as people type
+  it (`'Rs. 1,50,000/-'`, `'2.25cr'`, `'1.5 lakh'`, `'۱۵۰۰۰۰'`, `'5k'`) and
+  returns a `ParsedAmount` (`value`, a `double` in rupees rounded half up to
+  the paisa; `raw`, the input without surrounding whitespace) or `null` for
+  anything that is not exactly one non-negative amount up to Rs. 50 trillion
+  (ranges, signs, two numbers, broken grouping, leftover letters).
+  `formatAmountInput(input)` writes it back as `'Rs. 150,000'` (paisa only
+  when there are any), or `null`. The arithmetic is exact (`BigInt`), and
+  neither throws.
 - **Sales tax:** `getSalesTaxRate(kind: SalesTaxKind.goods, province: …,
   date: …)` returns a `SalesTaxRate` (`kind`, `authority`, `province`,
   `rate`, `from`, `to`, `law`, `source`) or `null`;

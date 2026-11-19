@@ -1,0 +1,92 @@
+---
+title: Reading amounts
+description: Read rupee amounts as people type them in Pakistan, like 1,50,000, Rs. 5,000/-, 1.5 lakh, 2.25 crore or Urdu digits, exactly to the paisa.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import AmountWidget from '../../../components/widgets/AmountWidget.tsx';
+
+`import { parseAmount, formatAmountInput } from 'pakdatakit/format'`
+
+Reads one rupee amount from what someone typed: international or Pakistani digit grouping, a currency mark, the trailing `/-`, shorthand such as `1.5 lakh` or `2.25cr`, and Urdu or Arabic-Indic digits. It returns the amount in rupees, rounded half-up to the paisa, or `null` when the text is not exactly one non-negative amount. It never throws.
+
+<AmountWidget client:visible />
+
+:::note[Exact, in every language]
+The arithmetic is done on the digits, not on floating-point numbers, so `1.005` is 1.01 and `1.5 lakh` is exactly 150000. The same 406 test cases pass in TypeScript, Python, Dart, .NET and PHP.
+:::
+
+## What it accepts
+
+| Form                                    | Examples                                                      |
+| --------------------------------------- | ------------------------------------------------------------- |
+| Digits, with or without grouping        | `150000`, `150,000`, `1,50,000`, `12,34,567.89`, `.5`, `5.`   |
+| Urdu and Arabic-Indic digits            | `۱۵۰۰۰۰`, `١٥٠٫٥`, also mixed with 0-9                        |
+| One currency mark, before or after      | `Rs 500`, `Rs.500`, `PKR 500`, `500 PKR`, `₨500` (any case)   |
+| A trailing `/-`                         | `Rs. 5,000/-`, `1,50,000/-`                                   |
+| Thousand (× 1,000)                      | `10k`, `5K`, `3 thousand`, `3 thousands`, `3 hazar`, `۵ ہزار` |
+| Lakh (× 100,000)                        | `1.5 lakh`, `2 lakhs`, `2 lac`, `2 lacs`, `1.5 لاکھ`          |
+| Crore (× 10,000,000)                    | `2.25 crore`, `3 crores`, `2.25cr`, `۲ کروڑ`                  |
+| Whitespace around and between the parts | spaces, tabs, line breaks and no-break spaces                 |
+
+A grouping must be complete and consistent: either groups of three (`1,234,567`) or the Pakistani form, groups of two then three (`12,34,567`). The Arabic decimal and thousands separators (`٫`, `٬`) are read as `.` and `,`.
+
+## What it rejects
+
+`parseAmount` returns `null` for:
+
+- empty input, or a currency mark or unit on its own;
+- negative or signed amounts: `-500`, `+500`;
+- ranges and more than one number: `5-10k`, `500 600`;
+- two currency marks or two units: `Rs 500 PKR`, `5 lakh crore`;
+- leftover letters: `500 rupees`, `5kk`, `5 million`;
+- grouping that is broken or could be read two ways: `1,50`, `1,5000`, `1.500,00`, `1 000`;
+- amounts over Rs. 50 trillion (50 lakh crore). Beyond that a JavaScript number can no longer hold every paisa exactly.
+
+## Examples
+
+<LangTabs module="amount" />
+
+## Reference
+
+### parseAmount()
+
+```ts
+function parseAmount(input: string): ParsedAmount | null;
+
+interface ParsedAmount {
+  value: number; // rupees, rounded half-up to the paisa
+  raw: string; // the input with surrounding whitespace removed
+}
+```
+
+**Parameters.** `input`: the amount as typed.
+
+**Returns** `{ value, raw }`, or `null` if the input is not exactly one non-negative amount. It never throws, also not for a value that is not a string.
+
+**Caveats.** Rounding is half-up at the third decimal of the amount in rupees, after any unit is applied: `0.0000001 crore` is Rs. 1. Words such as `rupees`, `million` or `arab` are not read.
+
+**Related:** [`formatAmountInput()`](#formatamountinput), [`amountInWords()`](/docs/words/) to write the amount out.
+
+### formatAmountInput()
+
+```ts
+function formatAmountInput(input: string): string | null;
+```
+
+**Parameters.** `input`: the amount as typed, in any form `parseAmount()` accepts.
+
+**Returns** the amount written back for showing next to the field: `Rs.`, international grouping, and paisa only when there are any (`Rs. 150,000`, `Rs. 1,234.50`). Returns `null` when `parseAmount()` does.
+
+**Related:** [`formatPKR()`](/docs/format/) rounds a number to whole rupees, [`formatLakh()`](/docs/format/) writes it in lakh or crore.
+
+## Form adapters
+
+Each schema adapter has an `amount` rule that passes when `parseAmount()` reads the value, so a form can accept `1.5 lakh` and convert it on submit: `pk.amount()` for [Zod, Valibot, Yup, Joi and Superstruct](/docs/forms/#schema-validation-adapters), `IsPakAmount` for class-validator, `pk_amount` in Laravel, and `[PakAmount]` / `IsPakAmount()` in .NET.
+
+## Related
+
+- [PKR and lakh/crore formatting](/docs/format/): `formatPKR()` and `formatLakh()`
+- [Amounts in words](/docs/words/), for cheques and receipts
+- [Sales tax calculator](/tools/sales-tax/) and [salary tax calculator](/tools/salary-tax/), which read amounts this way
+- Every function and type: the [format API reference](/api/typescript/format/)

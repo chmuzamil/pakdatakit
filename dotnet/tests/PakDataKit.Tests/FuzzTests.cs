@@ -121,6 +121,13 @@ public sealed class FuzzTests
             var result = Invoke(name, method, input);
             var label = $"{name}({Describe(input)})";
 
+            // "0" and Arabic-Indic digits are real amounts: Rs. 0 and Rs. 123.
+            if (name is "Currency.ParseAmount" or "Currency.FormatAmountInput" && input is "0" or "١٢٣")
+            {
+                Assert.True(result is not null, label + " returned null");
+                continue;
+            }
+
             if (method.ReturnType == typeof(bool))
             {
                 // Validate*, Is* and Try*: hostile input is never valid.

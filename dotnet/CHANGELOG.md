@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.6.0
+
+Minor release: one new feature. Every port gives the same results on the
+shared test vectors (812 new ones).
+
+### Added
+
+- `Currency.ParseAmount()` and `Currency.FormatAmountInput()`, with the
+  `ParsedAmount` record. `ParseAmount`
+  reads a rupee amount as people type it in Pakistan and returns
+  `{ value, raw }` in rupees, rounded half-up to the paisa, or `null`. It
+  accepts `150,000` and `1,50,000` grouping with decimals, Urdu and
+  Arabic-Indic digits, `Rs`/`Rs.`/`PKR`/`₨` and a trailing `/-`, and the
+  shorthand `k`, `thousand`, `hazar`, `ہزار`, `lakh`, `lac`, `لاکھ`, `crore`,
+  `cr` and `کروڑ` (also `1.5 lakh`, `2.25cr`). It rejects negatives, ranges,
+  more than one number, leftover letters, ambiguous grouping and amounts over
+  Rs. 50 trillion. The arithmetic is done on the digits, so `1.005` is 1.01
+  in every language. `FormatAmountInput` writes the amount back
+  (`"Rs. 150,000"`) for showing next to a field. It never throws.
+- `[PakAmount]` in `PakDataKit.DataAnnotations` and `IsPakAmount()` in
+  `PakDataKit.FluentValidation`.
+
 ## 2.5.1
 
 Patch release: documentation, packaging and dependency updates. No API,

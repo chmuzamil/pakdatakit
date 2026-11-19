@@ -1,11 +1,11 @@
 import { useId, useState } from 'react';
 import { calculateSalaryTax } from 'pakdatakit/incometax';
-import { AMOUNT_ERROR, Rows, parseAmount, rs } from './common';
+import { AMOUNT_ERROR, Rows, amountField, rs } from './common';
 
 export default function SalaryTaxWidget() {
   const id = useId();
   const [salary, setSalary] = useState('5000000');
-  const { value, invalid } = parseAmount(salary);
+  const { value, invalid } = amountField(salary);
   const result =
     value === null ? null : calculateSalaryTax(value, { taxYear: 2027 });
   return (

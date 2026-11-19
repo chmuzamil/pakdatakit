@@ -502,6 +502,8 @@ public sealed class VectorTests(ITestOutputHelper output)
             a.Count > 1 ? Geo.GetTehsilDistrict(Str(a[0]), Str(a[1])) : Geo.GetTehsilDistrict(Str(a[0])),
         ["formatPKR"] = (a, _) => Currency.FormatPkr(Number(a[0])),
         ["formatLakh"] = (a, _) => Currency.FormatLakh(Number(a[0])),
+        ["parseAmount"] = One(Currency.ParseAmount),
+        ["formatAmountInput"] = One(Currency.FormatAmountInput),
         ["validateIBAN"] = One(v => Iban.Validate(v)),
         ["getBankFromIBAN"] = One(Iban.GetBank),
         ["getBankInfo"] = One(Iban.GetBankInfo),

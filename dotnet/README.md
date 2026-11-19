@@ -56,6 +56,9 @@ Geo.GetProvince("Multan");                   // "Punjab"
 
 Currency.FormatPkr(150000);                  // "Rs. 150,000"
 Currency.FormatLakh(2500000);                // "25 Lakh"
+Currency.ParseAmount("Rs. 1,50,000/-");      // Value = 150000, Raw = "Rs. 1,50,000/-"
+Currency.ParseAmount("2.25cr");              // Value = 22500000 (null for "5-10k", "-500", "500 rupees")
+Currency.FormatAmountInput("1.5 lakh");      // "Rs. 150,000"
 Words.AmountInWords(125000, cheque: true);   // "Rupees One Lakh Twenty-Five Thousand Only"
 
 SalesTax.GetRate(new SalesTaxRateQuery { Kind = SalesTaxKind.Services, Province = "Sindh", Date = "2024-06-30" })?.Rate; // 13
@@ -180,6 +183,7 @@ strings to every public method that takes a string and checks this contract.
 | `getTehsils`, `getTehsilDistrict`                      | `Geo.GetTehsils`, `Geo.GetTehsilDistrict`                               |
 | `createWhatsAppLink`                                   | `WhatsApp.CreateLink`                                                   |
 | `formatPKR`, `formatLakh`                              | `Currency.FormatPkr`, `Currency.FormatLakh`                             |
+| `parseAmount`, `formatAmountInput`                     | `Currency.ParseAmount`, `Currency.FormatAmountInput`                    |
 | `numberToWords`, `amountInWords`                       | `Words.NumberToWords`, `Words.AmountInWords`                            |
 | `getSalesTaxRate`, `calculateSalesTax`, `splitInclusive` | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive`   |
 | `parseElectricityRef`, `validateElectricityRef`        | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`            |
@@ -222,8 +226,10 @@ public class CreateCustomerRequest
 ```
 
 Attributes: `[Cnic]`, `[PakPhone]`, `[PakIban]`, `[Ntn]`, `[Strn]`,
-`[PakLandline]`, `[PakPassport]`, `[VehiclePlate]` and `[CodPhone]` (a mobile
-number a courier can call: `Quality.PhoneRiskSignals` returns no flags). Like the built-in
+`[PakLandline]`, `[PakPassport]`, `[VehiclePlate]`, `[CodPhone]` (a mobile
+number a courier can call: `Quality.PhoneRiskSignals` returns no flags) and
+`[PakAmount]` (a rupee amount `Currency.ParseAmount` reads, like `150,000` or
+`1.5 lakh`). Like the built-in
 attributes, they accept `null` and empty strings; add `[Required]` for
 mandatory fields.
 
@@ -245,8 +251,10 @@ public class CustomerValidator : AbstractValidator<Customer>
 ```
 
 Rules: `IsCnic()`, `IsPakPhone()`, `IsPakIban()`, `IsNtn()`, `IsStrn()`,
-`IsPakLandline()`, `IsPakPassport()`, `IsVehiclePlate()` and `IsCodPhone()` (a
-mobile number a courier can call: `Quality.PhoneRiskSignals` returns no flags). They pass `null`
+`IsPakLandline()`, `IsPakPassport()`, `IsVehiclePlate()`, `IsCodPhone()` (a
+mobile number a courier can call: `Quality.PhoneRiskSignals` returns no flags) and
+`IsPakAmount()` (a rupee amount `Currency.ParseAmount` reads, like `150,000` or
+`1.5 lakh`). They pass `null`
 and empty strings; add `NotEmpty()` for mandatory fields. Works with
 FluentValidation 11 and 12.
 

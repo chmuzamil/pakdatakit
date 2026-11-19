@@ -28,6 +28,7 @@ const PAGES = [
     'text',
     'words',
     'format',
+    'amount',
     'hijri',
     'holidays',
     'input',

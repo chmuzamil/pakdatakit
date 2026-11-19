@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
 using PakDataKit.Internal;
 
@@ -48,7 +51,167 @@ public static class Currency
         if (!double.IsFinite(amount))
             throw new ArgumentException("Amount must be a finite number", nameof(amount));
     }
+
+    // Whitespace around and inside an amount: space, tab, line breaks, no-break spaces.
+    private const string SpaceChars = " \t\n\r  ";
+    private const string Space = @"[ \t\n\r  ]";
+
+    // Rs, Rs., PKR or ₨ (after ASCII letters are lower-cased).
+    private const string CurrencyMark = @"(rs\.?|pkr|₨)";
+
+    // 1,234,567 (international) | 12,34,567 (Pakistani) | 1234567, then an
+    // optional decimal part. [0-9], not \d, which matches any Unicode digit in .NET.
+    private const string NumberPart =
+        @"([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{1,2}(?:,[0-9]{2})+,[0-9]{3}|[0-9]+)?(?:\.([0-9]*))?";
+
+    // × 1,000: k, thousand(s), hazar, ہزار.
+    private const string ThousandUnit = @"k|thousands?|hazar|ہزار";
+
+    // × 100,000: lakh(s), lac(s), لاکھ.
+    private const string LakhUnit = @"lakhs?|lacs?|لاکھ";
+
+    // × 10,000,000: crore(s), cr, کروڑ.
+    private const string CroreUnit = @"crores?|cr|کروڑ";
+
+    private static readonly SafeRegex AmountPattern = Js.Rx(
+        $"^(?:{CurrencyMark}{Space}*)?{NumberPart}" +
+        $"(?:{Space}*({ThousandUnit}|{LakhUnit}|{CroreUnit}))?" +
+        $@"(?:{Space}*{CurrencyMark})?(?:{Space}*(/-))?\z");
+
+    private static readonly SafeRegex ThousandOnly = Js.Rx($@"^(?:{ThousandUnit})\z");
+    private static readonly SafeRegex LakhOnly = Js.Rx($@"^(?:{LakhUnit})\z");
+
+    // The largest amount, in paisa: Rs. 50 trillion (50 lakh crore). Below 2^46
+    // rupees (about 70 trillion) a double holds every paisa exactly.
+    private static readonly BigInteger MaxPaisa = 5_000_000_000_000_000L;
+
+    /// <summary>
+    /// Reads a rupee amount the way people type it in Pakistan, and returns it in
+    /// rupees, rounded half-up to the paisa. Returns <c>null</c> for anything that is
+    /// not exactly one non-negative amount; it never throws.
+    /// </summary>
+    /// <remarks>
+    /// <para>Accepted:</para>
+    /// <list type="bullet">
+    /// <item>digits, with or without grouping: <c>150000</c>, <c>150,000</c> (international) or
+    /// <c>1,50,000</c> (Pakistani: groups of two, then three), and decimals
+    /// (<c>1,234.50</c>, <c>.5</c>, <c>5.</c>); a grouping must be complete and consistent;</item>
+    /// <item>Urdu (<c>۱۵۰۰۰۰</c>) and Arabic-Indic (<c>١٥٠٠٠٠</c>) digits, also mixed with
+    /// 0-9, and the Arabic decimal and thousands separators (<c>٫</c>, <c>٬</c>);</item>
+    /// <item>one currency mark before or after the number: <c>Rs</c>, <c>Rs.</c>, <c>PKR</c> or <c>₨</c>
+    /// (any case), and a trailing <c>/-</c> (<c>Rs. 5,000/-</c>);</item>
+    /// <item>one shorthand unit after the number, with or without a space, in any
+    /// case: <c>k</c>, <c>thousand(s)</c>, <c>hazar</c>, <c>ہزار</c> (× 1,000); <c>lakh(s)</c>, <c>lac(s)</c>,
+    /// <c>لاکھ</c> (× 100,000); <c>crore(s)</c>, <c>cr</c>, <c>کروڑ</c> (× 10,000,000). Decimals
+    /// work with units: <c>1.5 lakh</c> is 150,000 and <c>2.25cr</c> is 22,500,000;</item>
+    /// <item>whitespace around and between the parts (spaces, tabs, line breaks and
+    /// no-break spaces).</item>
+    /// </list>
+    /// <para>
+    /// Rejected (<c>null</c>): empty input, negative or signed amounts (<c>-500</c>,
+    /// <c>+500</c>), ranges (<c>5-10k</c>), more than one number (<c>500 600</c>), two currency
+    /// marks or two units, leftover letters (<c>500 rupees</c>, <c>5kk</c>), grouping that
+    /// could be read two ways or is broken (<c>1,50</c>, <c>1.500,00</c>, <c>1,5000</c>), and
+    /// amounts over Rs. 50 trillion (50 lakh crore), beyond which a number can no
+    /// longer hold every paisa exactly.
+    /// </para>
+    /// <para>
+    /// The arithmetic is done on the digits, so the result is exact: <c>1.005</c>
+    /// rounds to 1.01 and <c>1.5 lakh</c> is exactly 150000.
+    /// </para>
+    /// <example>
+    /// <code>
+    /// Currency.ParseAmount("Rs. 1,50,000/-"); // ParsedAmount(150000, "Rs. 1,50,000/-")
+    /// Currency.ParseAmount("2.25cr");         // ParsedAmount(22500000, "2.25cr")
+    /// Currency.ParseAmount("5-10k");          // null
+    /// </code>
+    /// </example>
+    /// </remarks>
+    /// <param name="input">The amount as typed.</param>
+    /// <returns>The value and raw input, or <c>null</c> if the input is not one amount.</returns>
+    public static ParsedAmount? ParseAmount(string? input)
+    {
+        if (input is null) return null;
+        var raw = input.Trim(SpaceChars.ToCharArray());
+        var sb = new StringBuilder(raw.Length);
+        foreach (var c in raw)
+        {
+            // Urdu (Extended Arabic-Indic) and Arabic-Indic digits, the Arabic
+            // decimal and thousands separators, and ASCII-only lower-casing.
+            sb.Append(c switch
+            {
+                >= '۰' and <= '۹' => (char)('0' + (c - '۰')),
+                >= '٠' and <= '٩' => (char)('0' + (c - '٠')),
+                '٫' => '.',
+                '٬' => ',',
+                >= 'A' and <= 'Z' => (char)(c + ('a' - 'A')),
+                _ => c,
+            });
+        }
+
+        var match = AmountPattern.Match(sb.ToString());
+        if (!match.Success) return null;
+        var before = match.Groups[1];
+        var whole = match.Groups[2].Success ? match.Groups[2].Value : "";
+        var fraction = match.Groups[3];
+        var unit = match.Groups[4];
+        var after = match.Groups[5];
+        if (before.Success && after.Success) return null;
+        if (whole.Length == 0 && (!fraction.Success || fraction.Value.Length == 0)) return null;
+
+        // Move the decimal point by the unit's power of ten, on the digit string.
+        var wholeDigits = whole.Replace(",", "", StringComparison.Ordinal);
+        var digits = wholeDigits + (fraction.Success ? fraction.Value : "");
+        var point = wholeDigits.Length + UnitExponent(unit.Success ? unit.Value : null);
+        var padded = digits.PadRight(point + 3, '0');
+        var rupees = point == 0 ? "0" : padded[..point];
+        var paisa = padded.Substring(point, 2);
+        var cents = BigInteger.Parse(rupees + paisa, NumberStyles.None, CultureInfo.InvariantCulture);
+        if (padded[point + 2] >= '5') cents += 1; // half-up
+        if (cents > MaxPaisa) return null;
+        return new ParsedAmount((double)(long)cents / 100, raw);
+    }
+
+    /// <summary>
+    /// Writes back an amount typed in any form <see cref="ParseAmount"/> accepts, for
+    /// showing next to the field ("= Rs. 150,000"): <c>Rs.</c>, international
+    /// grouping, and paisa only when there are any (<c>Rs. 1,234.50</c>). Returns
+    /// <c>null</c> when <see cref="ParseAmount"/> does; it never throws.
+    /// </summary>
+    /// <param name="input">The amount as typed.</param>
+    /// <returns>E.g. <c>Rs. 150,000</c> for <c>1.5 lakh</c>, or <c>null</c>.</returns>
+    public static string? FormatAmountInput(string? input)
+    {
+        var parsed = ParseAmount(input);
+        if (parsed is null) return null;
+        var cents = (long)Js.Round(parsed.Value * 100);
+        var rupees = (cents / 100).ToString(CultureInfo.InvariantCulture);
+        var grouped = new StringBuilder();
+        for (var i = 0; i < rupees.Length; i++)
+        {
+            if (i > 0 && (rupees.Length - i) % 3 == 0) grouped.Append(',');
+            grouped.Append(rupees[i]);
+        }
+        var paisa = cents % 100;
+        return paisa != 0
+            ? $"Rs. {grouped}.{paisa.ToString("00", CultureInfo.InvariantCulture)}"
+            : $"Rs. {grouped}";
+    }
+
+    // The power of ten a shorthand unit multiplies by.
+    private static int UnitExponent(string? unit)
+    {
+        if (unit is null) return 0;
+        if (ThousandOnly.IsMatch(unit)) return 3;
+        if (LakhOnly.IsMatch(unit)) return 5;
+        return 7;
+    }
 }
+
+/// <summary>The result of <see cref="Currency.ParseAmount"/>.</summary>
+/// <param name="Value">The amount in rupees, rounded half-up to the paisa (2 decimals).</param>
+/// <param name="Raw">The input with surrounding whitespace removed.</param>
+public sealed record ParsedAmount(double Value, string Raw);
 
 /// <summary>Language for <see cref="Words"/>.</summary>
 public enum WordsLanguage

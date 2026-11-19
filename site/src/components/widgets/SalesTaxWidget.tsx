@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { calculateSalesTax, getSalesTaxRate } from 'pakdatakit/salestax';
-import { AMOUNT_ERROR, Rows, parseAmount, rs } from './common';
+import { AMOUNT_ERROR, Rows, amountField, rs } from './common';
 
 const PROVINCES = [
   'Punjab',
@@ -17,7 +17,7 @@ export default function SalesTaxWidget() {
   const kind = where === 'goods' ? 'goods' : 'services';
   const province = where === 'goods' ? undefined : where;
   const rate = getSalesTaxRate({ kind, province });
-  const { value, invalid } = parseAmount(amount);
+  const { value, invalid } = amountField(amount);
   const result =
     value === null ? null : calculateSalesTax(value, { kind, province });
   return (

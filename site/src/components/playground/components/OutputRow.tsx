@@ -5,6 +5,8 @@ interface OutputRowProps {
   value: string;
   mono?: boolean;
   emptyText?: string;
+  /** Text direction of the value; 'auto' for text that may be Urdu. */
+  dir?: 'auto' | 'ltr' | 'rtl';
 }
 
 export function OutputRow({
@@ -12,6 +14,7 @@ export function OutputRow({
   value,
   mono = true,
   emptyText = '—',
+  dir,
 }: OutputRowProps) {
   const display = value || emptyText;
 
@@ -23,6 +26,7 @@ export function OutputRow({
       <div className="flex min-w-0 items-start gap-1 sm:justify-end">
         {/* Long values (IBANs, payloads) wrap instead of being cut off. */}
         <span
+          dir={value ? dir : undefined}
           className={`min-w-0 pt-1.5 text-sm text-text-heading [overflow-wrap:anywhere] sm:text-right ${
             mono ? 'font-mono' : ''
           }`}

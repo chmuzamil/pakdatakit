@@ -65,7 +65,7 @@ export const getStaticPaths = (async () => {
     pages.push({
       params: { slug: `playground/${tool.slug}` },
       props: {
-        title: `${tool.label} · Playground`,
+        title: `${tool.label.replace(/ \(experimental\)$/, '')} playground`,
         description: tool.description,
       },
     });

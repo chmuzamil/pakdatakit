@@ -25,14 +25,19 @@ export default function CnicWidget({
           spellCheck={false}
         />
       </div>
-      <p>
+      <p aria-live="polite">
         <code>validateCNIC()</code> <Badge valid={valid} />
       </p>
       <Rows
         rows={[
           ['Formatted', info?.formatted],
           ['Province', info?.province],
-          ['Gender', info?.gender],
+          [
+            'Gender',
+            info?.gender
+              ? info.gender.charAt(0).toUpperCase() + info.gender.slice(1)
+              : null,
+          ],
         ]}
       />
     </div>

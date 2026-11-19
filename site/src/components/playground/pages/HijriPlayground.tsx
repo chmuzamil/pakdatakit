@@ -90,7 +90,7 @@ isRamadan(date${optionsCode});   // → ${ramadan}`;
         </>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           {!input.trim() ? (
             <p className="text-sm text-text-muted">Pick a date to convert.</p>
           ) : hasError ? (

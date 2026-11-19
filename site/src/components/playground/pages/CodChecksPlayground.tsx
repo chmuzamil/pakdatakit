@@ -71,7 +71,7 @@ phoneRiskSignals("${escapeForCode(phone)}"); // → ${JSON.stringify(flags)}`;
         </>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           <div className="mb-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">Address score</span>

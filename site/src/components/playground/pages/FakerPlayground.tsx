@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
   createFaker,
   PROVINCES,
@@ -10,7 +10,7 @@ import { CodePreview } from '../components/CodePreview';
 import { CopyButton } from '../components/CopyButton';
 import { OutputRow } from '../components/OutputRow';
 import { PlaygroundShell } from '../components/PlaygroundShell';
-import { TabBar } from '../components/TabBar';
+import { TabBar, TabPanel } from '../components/TabBar';
 import { inputClassName, monoInputClassName } from '../utils/examples';
 
 const kinds = [
@@ -45,6 +45,7 @@ function download(name: string, text: string) {
 }
 
 export function FakerPlayground() {
+  const panel = useId();
   const [kind, setKind] = useState<Kind>('person');
   const [seed, setSeed] = useState('42');
   const [province, setProvince] = useState('');
@@ -89,84 +90,91 @@ ${count === 1 ? `faker.${kind}(${optionCode ? `{ ${optionCode} }` : ''});` : `fa
       description="Generate realistic Pakistani test data where everything fits together: the CNIC matches the province and gender, and the city, postal code, area code and bank all agree."
       input={
         <>
-          <TabBar tabs={kinds} active={kind} onChange={setKind} />
-          <Card title="Options">
-            <div className="space-y-3">
-              <label className="block text-sm text-text-muted">
-                Seed
-                <input
-                  type="text"
-                  value={seed}
-                  onChange={(e) => setSeed(e.target.value)}
-                  spellCheck={false}
-                  className={`${monoInputClassName} mt-1`}
-                />
-              </label>
-              <label className="block text-sm text-text-muted">
-                Province
-                <select
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value)}
-                  className={`${inputClassName} mt-1`}
-                >
-                  <option value="">Any</option>
-                  {PROVINCES.map((name) => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {kind === 'person' && (
+          <TabBar
+            tabs={kinds}
+            active={kind}
+            onChange={setKind}
+            panelId={panel}
+          />
+          <TabPanel id={panel} active={kind}>
+            <Card title="Options">
+              <div className="space-y-3">
                 <label className="block text-sm text-text-muted">
-                  Gender
+                  Seed
+                  <input
+                    type="text"
+                    value={seed}
+                    onChange={(e) => setSeed(e.target.value)}
+                    spellCheck={false}
+                    className={`${monoInputClassName} mt-1`}
+                  />
+                </label>
+                <label className="block text-sm text-text-muted">
+                  Province
                   <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
+                    value={province}
+                    onChange={(e) => setProvince(e.target.value)}
                     className={`${inputClassName} mt-1`}
                   >
                     <option value="">Any</option>
-                    <option value="female">Female</option>
-                    <option value="male">Male</option>
+                    {PROVINCES.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
                   </select>
                 </label>
-              )}
-              <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
-                Records:
-                {counts.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setCount(n)}
-                    className={`rounded-md px-3 py-1 text-xs font-medium ${
-                      count === n
-                        ? 'bg-accent-muted text-accent'
-                        : 'border border-border text-text-muted hover:text-text-heading'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+                {kind === 'person' && (
+                  <label className="block text-sm text-text-muted">
+                    Gender
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className={`${inputClassName} mt-1`}
+                    >
+                      <option value="">Any</option>
+                      <option value="female">Female</option>
+                      <option value="male">Male</option>
+                    </select>
+                  </label>
+                )}
+                <div className="flex flex-wrap items-center gap-2 text-sm text-text-muted">
+                  Records:
+                  {counts.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setCount(n)}
+                      className={`rounded-md px-3 py-1 text-xs font-medium ${
+                        count === n
+                          ? 'bg-accent-muted text-accent'
+                          : 'border border-border text-text-muted hover:text-text-heading'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSeed(String(Math.floor(Math.random() * 1_000_000)))
+                  }
+                  className="rounded-md border border-border px-3 py-2 text-sm text-text-heading hover:border-accent hover:text-accent"
+                >
+                  New random seed
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setSeed(String(Math.floor(Math.random() * 1_000_000)))
-                }
-                className="rounded-md border border-border px-3 py-2 text-sm text-text-heading hover:border-accent hover:text-accent"
-              >
-                New random seed
-              </button>
-            </div>
-          </Card>
-          <Card title="Test data only">
-            <p className="text-xs leading-relaxed text-text-muted">
-              Pakistan has no reserved test ranges, so a generated CNIC, phone
-              number or IBAN may belong to a real person. Never call or message
-              generated numbers, and never use generated IBANs with real payment
-              providers. Emails use reserved test domains only.
-            </p>
-          </Card>
+            </Card>
+            <Card title="Test data only">
+              <p className="text-xs leading-relaxed text-text-muted">
+                Pakistan has no reserved test ranges, so a generated CNIC, phone
+                number or IBAN may belong to a real person. Never call or
+                message generated numbers, and never use generated IBANs with
+                real payment providers. Emails use reserved test domains only.
+              </p>
+            </Card>
+          </TabPanel>
         </>
       }
       output={

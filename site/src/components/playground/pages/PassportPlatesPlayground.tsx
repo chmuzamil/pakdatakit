@@ -74,7 +74,7 @@ parseVehiclePlate("${escapeForCode(plate)}");
         </>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm text-text-muted">Passport</span>
             <ResultBadge valid={passportValid} />

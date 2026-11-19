@@ -1,11 +1,13 @@
 import { useId, useState } from 'react';
 import { calculateSalaryTax } from 'pakdatakit/incometax';
-import { Rows, rs } from './common';
+import { AMOUNT_ERROR, Rows, parseAmount, rs } from './common';
 
 export default function SalaryTaxWidget() {
   const id = useId();
   const [salary, setSalary] = useState('5000000');
-  const result = calculateSalaryTax(Number(salary), { taxYear: 2027 });
+  const { value, invalid } = parseAmount(salary);
+  const result =
+    value === null ? null : calculateSalaryTax(value, { taxYear: 2027 });
   return (
     <div className="pdk-card" data-widget="incometax">
       <div className="pdk-field">
@@ -16,8 +18,21 @@ export default function SalaryTaxWidget() {
           value={salary}
           onChange={(e) => setSalary(e.target.value)}
           inputMode="decimal"
+          autoComplete="off"
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? `${id}-err` : undefined}
         />
+        {invalid ? (
+          <p id={`${id}-err`} className="pdk-error">
+            {AMOUNT_ERROR}
+          </p>
+        ) : null}
       </div>
+      <p className="sr-only" aria-live="polite">
+        {result
+          ? `${rs(result.tax)} for the year, ${result.effectiveRate}% effective`
+          : ''}
+      </p>
       <Rows
         rows={[
           ['Tax for the year', rs(result?.tax)],
@@ -28,6 +43,7 @@ export default function SalaryTaxWidget() {
             result
               ? `${rs(result.slab.fixed)} + ${result.slab.rate}% above ${rs(result.slab.over)}`
               : null,
+            'text',
           ],
         ]}
       />

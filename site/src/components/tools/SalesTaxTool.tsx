@@ -1,8 +1,10 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { calculateSalesTax, getSalesTaxRate } from 'pakdatakit/salestax';
 import {
+  AMOUNT_ERROR,
   PrivacyNote,
   Rows,
+  parseAmount,
   ShareButton,
   rs,
   trackTool,
@@ -16,7 +18,8 @@ const PROVINCES = [
   'Balochistan',
   'Islamabad',
 ];
-const today = () => new Date().toISOString().slice(0, 10);
+/** Today in the visitor's own time zone (en-CA formats as YYYY-MM-DD). */
+const today = () => new Date().toLocaleDateString('en-CA');
 
 export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
   const id = useId();
@@ -33,14 +36,23 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
   const tracked = useRef(false);
   const kind = state.kind === 'services' ? 'services' : 'goods';
   const province = kind === 'services' ? state.province : undefined;
-  const date = state.date || today();
+  // Today's date is read in the browser after the first render, so the
+  // build's date never ends up in the page (before that, the library's own
+  // default, today, applies).
+  const [now, setNow] = useState('');
+  useEffect(() => setNow(today()), []);
+  const date = state.date || now || undefined;
   const rate = getSalesTaxRate({ kind, province, date });
-  const result = calculateSalesTax(Number(state.amount.replace(/[,\s]/g, '')), {
-    kind,
-    province,
-    date,
-    inclusive: state.inclusive === '1',
-  });
+  const { value: amount, invalid } = parseAmount(state.amount);
+  const result =
+    amount === null
+      ? null
+      : calculateSalesTax(amount, {
+          kind,
+          province,
+          date,
+          inclusive: state.inclusive === '1',
+        });
   useEffect(() => {
     if (!tracked.current && state.amount !== '1000') {
       tracked.current = true;
@@ -60,7 +72,14 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
               onChange={(e) => set({ amount: e.target.value })}
               inputMode="decimal"
               autoComplete="off"
+              aria-invalid={invalid || undefined}
+              aria-describedby={invalid ? `${id}-err` : undefined}
             />
+            {invalid ? (
+              <p id={`${id}-err`} className="pdk-error">
+                {AMOUNT_ERROR}
+              </p>
+            ) : null}
           </div>
           <div className="pdk-field">
             <label htmlFor={`${id}-k`}>Goods or services</label>
@@ -96,26 +115,33 @@ export default function SalesTaxTool({ dataChecked }: { dataChecked: string }) {
               type="date"
               min="2019-07-01"
               className="pdk-input"
-              value={date}
+              value={date ?? ''}
               onChange={(e) =>
                 set({ date: e.target.value === today() ? '' : e.target.value })
               }
             />
           </div>
         </div>
-        <p>
-          <label>
-            <input
-              type="checkbox"
-              checked={state.inclusive === '1'}
-              onChange={(e) => set({ inclusive: e.target.checked ? '1' : '' })}
-            />{' '}
-            The amount already includes sales tax
-          </label>
+        <label className="pdk-check">
+          <input
+            type="checkbox"
+            checked={state.inclusive === '1'}
+            onChange={(e) => set({ inclusive: e.target.checked ? '1' : '' })}
+          />
+          The amount already includes sales tax
+        </label>
+        <p className="pdk-result" aria-live="polite">
+          {result && rate
+            ? `${rs(result.tax)} sales tax at ${rate.rate}%, ${rs(result.gross)} in total`
+            : invalid
+              ? 'No result: the amount isn’t a number.'
+              : !rate
+                ? 'No standard rate for that combination.'
+                : 'Enter an amount to see the tax.'}
         </p>
         <Rows
           rows={[
-            ['Authority', rate?.authority],
+            ['Authority', rate?.authority, 'text'],
             ['Rate', rate ? `${rate.rate}%` : null],
             ['Net', rs(result?.net)],
             ['Sales tax', rs(result?.tax)],

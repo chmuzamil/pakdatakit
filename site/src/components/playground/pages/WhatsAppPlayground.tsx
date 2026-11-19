@@ -66,7 +66,7 @@ createWhatsAppLink("${escapeForCode(phone || examples.phone)}"${message.trim() ?
         </>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           {!phone.trim() ? (
             <p className="text-sm text-text-muted">
               Enter a phone number to generate a link.

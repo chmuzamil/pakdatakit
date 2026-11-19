@@ -21,14 +21,14 @@ export default function IbanWidget() {
           spellCheck={false}
         />
       </div>
-      <p>
+      <p aria-live="polite">
         <code>validateIBAN()</code> <Badge valid={valid} />
       </p>
       <Rows
         rows={[
           ['Bank', bank?.name],
           ['Type', bank?.type],
-          ['Active', bank ? (bank.active ? 'yes' : 'no') : null],
+          ['Active', bank ? (bank.active ? 'Yes' : 'No') : null, 'text'],
         ]}
       />
     </div>

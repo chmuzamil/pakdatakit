@@ -108,7 +108,7 @@ validateFbrInvoice(invoice);
         </Card>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           {parsed.error ? (
             <p className="text-sm text-text-muted">
               Not valid JSON: {parsed.error}

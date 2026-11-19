@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
   getCityByPostalCode,
   getPostalAreas,
@@ -11,12 +11,13 @@ import { CodePreview } from '../components/CodePreview';
 import { OutputRow } from '../components/OutputRow';
 import { PlaygroundShell } from '../components/PlaygroundShell';
 import { ResultList } from '../components/ResultList';
-import { TabBar } from '../components/TabBar';
+import { TabBar, TabPanel } from '../components/TabBar';
 import { escapeForCode, examples, inputClassName } from '../utils/examples';
 
 type PostalMode = 'city' | 'code' | 'search';
 
 export function PostalPlayground() {
+  const panel = useId();
   const [mode, setMode] = useState<PostalMode>('city');
   const [input, setInput] = useState<string>(examples.city);
 
@@ -91,23 +92,26 @@ searchPostalCodes("${escapeForCode(input || examples.city)}"); // → [${searchR
             ]}
             active={mode}
             onChange={handleModeChange}
+            panelId={panel}
           />
-          <label htmlFor="postal-input" className="sr-only">
-            Postal lookup input
-          </label>
-          <input
-            id="postal-input"
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={placeholder}
-            className={`${inputClassName} mt-3`}
-          />
-          <p className="mt-2 text-xs text-text-muted">
-            {mode === 'city' && 'Try: Lahore · Karachi · Multan'}
-            {mode === 'code' && 'Try: 54000 · 74200 · 60000'}
-            {mode === 'search' && 'Try: Karachi · 54 · Gulberg'}
-          </p>
+          <TabPanel id={panel} active={mode}>
+            <label htmlFor="postal-input" className="sr-only">
+              Postal lookup input
+            </label>
+            <input
+              id="postal-input"
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={placeholder}
+              className={`${inputClassName} mt-3`}
+            />
+            <p className="mt-2 text-xs text-text-muted">
+              {mode === 'city' && 'Try: Lahore · Karachi · Multan'}
+              {mode === 'code' && 'Try: 54000 · 74200 · 60000'}
+              {mode === 'search' && 'Try: Karachi · 54 · Gulberg'}
+            </p>
+          </TabPanel>
         </Card>
       }
       output={

@@ -13,9 +13,7 @@ export function CodePreview({ code, title = 'Usage' }: CodePreviewProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-code">
       <div className="flex items-center justify-between border-b border-border px-4 py-2">
-        <span className="text-xs font-medium tracking-wide text-text-muted uppercase">
-          {title}
-        </span>
+        <span className="text-sm font-medium text-text-muted">{title}</span>
         <CopyButton
           value={code}
           label="Copy snippet"

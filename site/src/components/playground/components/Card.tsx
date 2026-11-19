@@ -5,6 +5,11 @@ interface CardProps {
   description?: string;
   children: ReactNode;
   className?: string;
+  /**
+   * Announce changes to the card's content to screen readers (polite). The
+   * card is always on the page, so the first result is announced too.
+   */
+  live?: boolean;
 }
 
 export function Card({
@@ -12,24 +17,25 @@ export function Card({
   description,
   children,
   className = '',
+  live = false,
 }: CardProps) {
   return (
     <section
-      className={`rounded-lg border border-border bg-surface-overlay p-5 ${className}`}
+      className={`rounded-xl border border-border bg-surface-raised p-5 ${className}`}
     >
       {(title || description) && (
         <header className="mb-4">
           {title && (
-            <h3 className="text-sm font-semibold tracking-wide text-text-heading uppercase">
+            <h2 className="text-base font-semibold text-text-heading">
               {title}
-            </h3>
+            </h2>
           )}
           {description && (
             <p className="mt-1 text-sm text-text-muted">{description}</p>
           )}
         </header>
       )}
-      {children}
+      {live ? <div aria-live="polite">{children}</div> : children}
     </section>
   );
 }

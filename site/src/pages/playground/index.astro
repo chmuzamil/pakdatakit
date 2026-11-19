@@ -11,7 +11,7 @@ const groups = [...new Set(registry.map((t) => t.group))];
   frontmatter={{
     title: 'Playground',
     description:
-      'Try every pakdatakit module in your browser: CNIC, phone, IBAN, Raast QR, sales and income tax, FBR invoices, postal codes, Urdu text, Hijri dates and seeded mock data.',
+      'Try every pakdatakit module in your browser: CNIC, phone, IBAN, Raast QR, sales and income tax, FBR invoices, postal codes, Urdu text and mock data.',
   }}
 >
   <p>
@@ -21,7 +21,7 @@ const groups = [...new Set(registry.map((t) => t.group))];
   {
     groups.map((group) => (
       <>
-        <h2>{group}</h2>
+        <h2 id={group.toLowerCase().replace(/[^a-z]+/g, '-')}>{group}</h2>
         {registry
           .filter((t) => t.group === group)
           .map((t) => (

@@ -6,8 +6,10 @@ import {
   getSalaryTaxYears,
 } from 'pakdatakit/incometax';
 import {
+  AMOUNT_ERROR,
   PrivacyNote,
   Rows,
+  parseAmount,
   ShareButton,
   rs,
   trackTool,
@@ -28,11 +30,13 @@ export default function SalaryTaxTool({
   );
   const tracked = useRef(false);
   const year = Number(state.year);
-  const amount = Number(state.salary.replace(/[,\s]/g, ''));
+  const { value: amount, invalid } = parseAmount(state.salary);
   const result =
-    state.per === 'month'
-      ? calculateMonthlySalaryTax(amount, { taxYear: year })
-      : calculateSalaryTax(amount, { taxYear: year });
+    amount === null
+      ? null
+      : state.per === 'month'
+        ? calculateMonthlySalaryTax(amount, { taxYear: year })
+        : calculateSalaryTax(amount, { taxYear: year });
   const table = getSalaryTaxSlabs(year);
   useEffect(() => {
     if (
@@ -56,7 +60,14 @@ export default function SalaryTaxTool({
               onChange={(e) => set({ salary: e.target.value })}
               inputMode="decimal"
               autoComplete="off"
+              aria-invalid={invalid || undefined}
+              aria-describedby={invalid ? `${id}-err` : undefined}
             />
+            {invalid ? (
+              <p id={`${id}-err`} className="pdk-error">
+                {AMOUNT_ERROR}
+              </p>
+            ) : null}
           </div>
           <div className="pdk-field">
             <label htmlFor={`${id}-p`}>Per</label>
@@ -80,12 +91,19 @@ export default function SalaryTaxTool({
             >
               {[...YEARS].reverse().map((y) => (
                 <option key={y} value={y}>
-                  {y} ({y - 1}-{String(y).slice(2)}, July to June)
+                  {y} ({y - 1}–{String(y).slice(2)}, July to June)
                 </option>
               ))}
             </select>
           </div>
         </div>
+        <p className="pdk-result" aria-live="polite">
+          {result
+            ? `${rs(result.monthly)} a month, ${result.effectiveRate}% effective`
+            : invalid
+              ? 'No result: the salary isn’t a number.'
+              : 'Enter a salary to see the tax.'}
+        </p>
         <Rows
           rows={[
             ['Tax per year', rs(result?.tax)],
@@ -96,6 +114,7 @@ export default function SalaryTaxTool({
               result
                 ? `${rs(result.slab.fixed)} + ${result.slab.rate}% of the amount above ${rs(result.slab.over)}`
                 : null,
+              'text',
             ],
           ]}
         />
@@ -112,24 +131,30 @@ export default function SalaryTaxTool({
               </tr>
             </thead>
             <tbody>
-              {table.slabs.map((s) => (
-                <tr key={s.over}>
-                  <td
-                    className={result?.slab.over === s.over ? 'hl' : undefined}
+              {table.slabs.map((s) => {
+                const mine = result?.slab.over === s.over;
+                return (
+                  <tr
+                    key={s.over}
+                    className={mine ? 'hl' : undefined}
+                    aria-current={mine ? 'true' : undefined}
                   >
-                    {s.upTo === null
-                      ? `Above ${s.over.toLocaleString('en-PK')}`
-                      : `${s.over.toLocaleString('en-PK')} to ${s.upTo.toLocaleString('en-PK')}`}
-                  </td>
-                  <td
-                    className={result?.slab.over === s.over ? 'hl' : undefined}
-                  >
-                    {s.rate === 0
-                      ? 'No tax'
-                      : `${s.fixed ? `${s.fixed.toLocaleString('en-PK')} + ` : ''}${s.rate}% of the amount above ${s.over.toLocaleString('en-PK')}`}
-                  </td>
-                </tr>
-              ))}
+                    <td>
+                      {s.upTo === null
+                        ? `Above ${s.over.toLocaleString('en-PK')}`
+                        : `${s.over.toLocaleString('en-PK')} to ${s.upTo.toLocaleString('en-PK')}`}
+                      {mine ? (
+                        <span className="pdk-mine"> (your slab)</span>
+                      ) : null}
+                    </td>
+                    <td>
+                      {s.rate === 0
+                        ? 'No tax'
+                        : `${s.fixed ? `${s.fixed.toLocaleString('en-PK')} + ` : ''}${s.rate}% of the amount above ${s.over.toLocaleString('en-PK')}`}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           <p className="pdk-note">

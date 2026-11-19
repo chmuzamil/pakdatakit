@@ -192,7 +192,7 @@ formatPhone('03001234567');      // '+923001234567'`;
     font-size: 0.8em;
     border: 1px solid var(--sl-color-gray-5);
     border-bottom-width: 2px;
-    border-radius: 0.3rem;
+    border-radius: var(--pdk-radius-sm);
     padding: 0 0.35em;
   }
   .api-group {
@@ -215,11 +215,10 @@ formatPhone('03001234567');      // '+923001234567'`;
     height: 100%;
     padding: 0.9rem 1rem;
     border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.75rem;
+    border-radius: var(--pdk-radius-card);
     background: var(--pdk-surface);
     color: var(--sl-color-gray-2);
     text-decoration: none;
-    transition: border-color 0.15s, transform 0.15s;
   }
   .api-card:hover {
     border-color: var(--sl-color-accent);
@@ -251,9 +250,21 @@ formatPhone('03001234567');      // '+923001234567'`;
     font-size: var(--sl-text-xs);
     color: var(--sl-color-gray-3);
   }
+  .api-card:hover {
+    box-shadow: 0 8px 24px -16px color-mix(in srgb, var(--sl-color-accent) 60%, transparent);
+  }
   @media (prefers-reduced-motion: no-preference) {
+    .api-card {
+      transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
     .api-card:hover {
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+    }
+    .api-card:active {
+      transform: translateY(0) scale(0.99);
     }
   }
 </style>

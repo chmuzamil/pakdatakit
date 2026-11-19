@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useId, useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import {
   createRaastP2PQr,
@@ -13,7 +13,7 @@ import { CopyButton } from '../components/CopyButton';
 import { OutputRow } from '../components/OutputRow';
 import { PlaygroundShell } from '../components/PlaygroundShell';
 import { ResultBadge } from '../components/ResultBadge';
-import { TabBar } from '../components/TabBar';
+import { TabBar, TabPanel } from '../components/TabBar';
 import {
   escapeForCode,
   examples,
@@ -71,6 +71,7 @@ function useQrImage(payload: string | null): string | null {
 }
 
 export function RaastPlayground() {
+  const panel = useId();
   const [tab, setTab] = useState<Tab>('create');
   const [iban, setIban] = useState<string>(examples.iban);
   const [amount, setAmount] = useState('1500');
@@ -134,116 +135,118 @@ validateRaastQr(payload);
       description="Create Raast payment QR codes, and check any Pakistani payment QR for tampering, expiry or a bad IBAN before paying."
       input={
         <>
-          <TabBar tabs={tabs} active={tab} onChange={setTab} />
-          {tab === 'create' ? (
-            <Card
-              title="Payee"
-              description="Person-to-person Raast QR for an IBAN."
-            >
-              <div>
-                <label
-                  className="mb-1.5 block text-sm font-medium text-text"
-                  htmlFor="raast-iban"
-                >
-                  IBAN
-                </label>
-                <input
-                  id="raast-iban"
-                  name="iban"
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  type="text"
-                  value={iban}
-                  onChange={(e) => setIban(e.target.value)}
-                  placeholder="PK36SCBL0000001123456702"
-                  spellCheck={false}
-                  className={monoInputClassName}
-                />
-                <label
-                  className="mt-4 mb-1.5 block text-sm font-medium text-text"
-                  htmlFor="raast-amount"
-                >
-                  Amount in PKR{' '}
-                  <span className="font-normal text-text-muted">
-                    (optional)
-                  </span>
-                </label>
-                <input
-                  id="raast-amount"
-                  name="amount"
-                  autoComplete="off"
-                  type="text"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="1500"
-                  className={monoInputClassName}
-                />
-                {amount.trim() && (
-                  <label className="mt-3 flex items-center gap-3 text-sm text-text-muted">
-                    <span className="shrink-0">Valid for</span>
-                    <select
-                      value={validDays}
-                      onChange={(e) => setValidDays(e.target.value)}
-                      className={inputClassName}
-                    >
-                      <option value="1">1 day</option>
-                      <option value="7">7 days</option>
-                      <option value="30">30 days</option>
-                      <option value="90">90 days</option>
-                    </select>
+          <TabBar tabs={tabs} active={tab} onChange={setTab} panelId={panel} />
+          <TabPanel id={panel} active={tab}>
+            {tab === 'create' ? (
+              <Card
+                title="Payee"
+                description="Person-to-person Raast QR for an IBAN."
+              >
+                <div>
+                  <label
+                    className="mb-1.5 block text-sm font-medium text-text"
+                    htmlFor="raast-iban"
+                  >
+                    IBAN
                   </label>
-                )}
-                <label
-                  className="mt-4 mb-1.5 block text-sm font-medium text-text"
-                  htmlFor="raast-description"
-                >
-                  Description{' '}
-                  <span className="font-normal text-text-muted">
-                    (optional)
-                  </span>
-                </label>
-                <input
-                  id="raast-description"
-                  name="description"
-                  autoComplete="off"
-                  type="text"
-                  value={particulars}
-                  maxLength={30}
-                  onChange={(e) => setParticulars(e.target.value)}
-                  placeholder="Rent for March"
-                  className={inputClassName}
+                  <input
+                    id="raast-iban"
+                    name="iban"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    type="text"
+                    value={iban}
+                    onChange={(e) => setIban(e.target.value)}
+                    placeholder="PK36SCBL0000001123456702"
+                    spellCheck={false}
+                    className={monoInputClassName}
+                  />
+                  <label
+                    className="mt-4 mb-1.5 block text-sm font-medium text-text"
+                    htmlFor="raast-amount"
+                  >
+                    Amount in PKR{' '}
+                    <span className="font-normal text-text-muted">
+                      (optional)
+                    </span>
+                  </label>
+                  <input
+                    id="raast-amount"
+                    name="amount"
+                    autoComplete="off"
+                    type="text"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="1500"
+                    className={monoInputClassName}
+                  />
+                  {amount.trim() && (
+                    <label className="mt-3 flex items-center gap-3 text-sm text-text-muted">
+                      <span className="shrink-0">Valid for</span>
+                      <select
+                        value={validDays}
+                        onChange={(e) => setValidDays(e.target.value)}
+                        className={inputClassName}
+                      >
+                        <option value="1">1 day</option>
+                        <option value="7">7 days</option>
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                      </select>
+                    </label>
+                  )}
+                  <label
+                    className="mt-4 mb-1.5 block text-sm font-medium text-text"
+                    htmlFor="raast-description"
+                  >
+                    Description{' '}
+                    <span className="font-normal text-text-muted">
+                      (optional)
+                    </span>
+                  </label>
+                  <input
+                    id="raast-description"
+                    name="description"
+                    autoComplete="off"
+                    type="text"
+                    value={particulars}
+                    maxLength={30}
+                    onChange={(e) => setParticulars(e.target.value)}
+                    placeholder="Rent for March"
+                    className={inputClassName}
+                  />
+                </div>
+              </Card>
+            ) : (
+              <Card
+                title="QR payload"
+                description="Paste the text decoded from a Raast or Pakistan QR code."
+              >
+                <textarea
+                  aria-label="QR payload"
+                  value={toParse}
+                  onChange={(e) => setToParse(e.target.value)}
+                  placeholder="000202010211020200…"
+                  spellCheck={false}
+                  className={textareaClassName}
                 />
-              </div>
-            </Card>
-          ) : (
-            <Card
-              title="QR payload"
-              description="Paste the text decoded from a Raast or Pakistan QR code."
-            >
-              <textarea
-                aria-label="QR payload"
-                value={toParse}
-                onChange={(e) => setToParse(e.target.value)}
-                placeholder="000202010211020200…"
-                spellCheck={false}
-                className={textareaClassName}
-              />
-              {created.payload && (
-                <button
-                  type="button"
-                  onClick={() => setToParse(created.payload ?? '')}
-                  className="mt-2 text-xs text-accent hover:underline"
-                >
-                  Use the QR from the Create tab
-                </button>
-              )}
-            </Card>
-          )}
+                {created.payload && (
+                  <button
+                    type="button"
+                    onClick={() => setToParse(created.payload ?? '')}
+                    className="mt-2 text-xs text-accent hover:underline"
+                  >
+                    Use the QR from the Create tab
+                  </button>
+                )}
+              </Card>
+            )}
+          </TabPanel>
         </>
       }
       output={
-        <Card title="Result">
+        <Card title="Result" live>
           {tab === 'create' && created.error ? (
             <p className="text-sm text-error">{created.error}</p>
           ) : !parseInput.trim() ? (

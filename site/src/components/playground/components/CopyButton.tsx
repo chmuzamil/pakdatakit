@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { copyToClipboard } from '../utils/examples';
 
 interface CopyButtonProps {
@@ -19,12 +19,17 @@ export function CopyButton({
   onCopied,
 }: CopyButtonProps) {
   const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
   async function handleCopy() {
     const copied = await copyToClipboard(value);
-    setStatus(copied ? 'copied' : 'failed');
+    // Back to idle first, so a second copy is announced again.
+    window.clearTimeout(timer.current);
+    setStatus('idle');
+    window.requestAnimationFrame(() => setStatus(copied ? 'copied' : 'failed'));
     if (copied) onCopied?.();
-    window.setTimeout(() => setStatus('idle'), 1500);
+    timer.current = window.setTimeout(() => setStatus('idle'), 1500);
   }
 
   const text =
@@ -44,13 +49,19 @@ export function CopyButton({
         title={iconOnly ? label : undefined}
         className={
           iconOnly
-            ? `grid size-8 shrink-0 place-items-center rounded-md text-text-muted transition-colors hover:bg-surface-raised hover:text-text-heading disabled:cursor-not-allowed disabled:opacity-40 ${
+            ? `grid size-11 shrink-0 lg:size-8 place-items-center rounded-md text-text-muted transition-colors hover:bg-surface-raised hover:text-text-heading disabled:cursor-not-allowed disabled:opacity-40 ${
                 status === 'copied' ? 'text-success' : ''
               } ${className}`
-            : `inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface-raised px-2.5 text-xs font-medium text-text-muted transition-colors hover:border-accent/40 hover:text-text-heading disabled:cursor-not-allowed disabled:opacity-40 ${className}`
+            : `inline-flex min-h-11 shrink-0 lg:min-h-8 items-center gap-1.5 rounded-md border border-border bg-surface-raised px-2.5 text-xs font-medium text-text-muted transition-colors hover:border-accent/40 hover:text-text-heading disabled:cursor-not-allowed disabled:opacity-40 ${className}`
         }
       >
-        {status === 'copied' ? <CheckIcon /> : <CopyIcon />}
+        {status === 'copied' ? (
+          <span key="ok" className="pdk-pop inline-flex">
+            <CheckIcon />
+          </span>
+        ) : (
+          <CopyIcon />
+        )}
         {!iconOnly && text}
       </button>
       <span role="status" className="sr-only">

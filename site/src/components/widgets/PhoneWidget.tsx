@@ -19,7 +19,7 @@ export default function PhoneWidget() {
           autoComplete="off"
         />
       </div>
-      <p>
+      <p aria-live="polite">
         <code>analyzePhone()</code> <Badge valid={result.valid} />
       </p>
       <Rows

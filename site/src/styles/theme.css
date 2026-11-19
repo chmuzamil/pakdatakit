@@ -451,3 +451,382 @@ h1#_top {
 header.header {
   view-transition-name: pdk-header;
 }
+
+/* ---- Home: hero (src/components/Hero.astro) ---- */
+.pdk-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
+  padding-block: 1.5rem 2.5rem;
+}
+/* A faint green glow and grid behind the hero, fading out at the edges. */
+.pdk-hero::before {
+  content: '';
+  position: absolute;
+  inset: -4rem -1rem -2rem;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      34rem 20rem at 70% 40%,
+      color-mix(in srgb, var(--sl-color-accent) 16%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(var(--sl-color-gray-6) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, var(--sl-color-gray-6) 1px, transparent 1px) 0 0 /
+      32px 32px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 80% at 60% 40%,
+    #000 20%,
+    transparent 75%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 80% at 60% 40%,
+    #000 20%,
+    transparent 75%
+  );
+}
+.pdk-hero-copy {
+  display: grid;
+  gap: 1.25rem;
+  justify-items: start;
+  text-align: start;
+}
+.pdk-hero h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.15rem + 4.4vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--sl-color-white);
+  text-wrap: balance;
+}
+.pdk-hero-accent {
+  display: block;
+  color: var(--sl-color-accent);
+}
+.pdk-hero-intro {
+  margin: 0;
+  max-width: 38rem;
+  font-size: clamp(1.0625rem, 0.95rem + 0.45vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--sl-color-gray-2);
+  text-wrap: pretty;
+}
+.pdk-hero-langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pdk-hero-langs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pdk-surface) 70%, transparent);
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+.pdk-hero-langs a:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+.pdk-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+.pdk-hero-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  height: 3rem;
+  padding: 0 1.4rem;
+  border: 1.5px solid var(--sl-color-accent);
+  border-radius: 0.6rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    transform 0.15s;
+}
+.pdk-hero-button.primary {
+  background: var(--sl-color-accent);
+  color: var(--sl-color-text-invert);
+}
+.pdk-hero-button.primary:hover {
+  background: color-mix(
+    in srgb,
+    var(--sl-color-accent) 85%,
+    var(--sl-color-white)
+  );
+}
+.pdk-hero-button.outline {
+  background: transparent;
+  color: var(--sl-color-accent-high);
+}
+:root[data-theme='light'] .pdk-hero-button.outline {
+  color: var(--sl-color-accent);
+}
+.pdk-hero-button.outline:hover {
+  background: var(--sl-color-accent-low);
+}
+:is(.pdk-hero-button, .pdk-hero-langs a):focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pdk-hero-button:active {
+    transform: translateY(1px);
+  }
+}
+.pdk-hero-proof {
+  margin: 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+@media (pointer: coarse) {
+  .pdk-hero-langs a {
+    min-height: 2.75rem;
+  }
+}
+@media (min-width: 50rem) {
+  .pdk-hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 3rem;
+    padding-block: clamp(2rem, 1rem + 6vmin, 5rem);
+  }
+}
+
+/* ---- Home: live demo (src/components/widgets/HeroDemo.tsx) ---- */
+.pdk-demo {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--pdk-radius-card, 0.75rem);
+  background: var(--pdk-surface);
+  box-shadow: 0 24px 48px -28px
+    color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+  overflow: hidden;
+}
+.pdk-demo-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+.pdk-demo-tabs button {
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--sl-color-gray-3);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pdk-demo-tabs button[aria-selected='true'] {
+  border-bottom-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+.pdk-demo-tabs button:focus-visible,
+.pdk-demo-lang:focus-visible,
+.pdk-demo-copy:focus-visible,
+.pdk-demo pre:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: -2px;
+}
+.pdk-demo-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+.pdk-demo-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.75rem;
+  margin: 0;
+  font-weight: 500;
+  color: var(--sl-color-white);
+}
+.pdk-demo-code {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  background: var(--sl-color-black);
+  overflow: hidden;
+}
+.pdk-demo-code-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+.pdk-demo-lang,
+.pdk-demo-copy {
+  min-height: 2rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  font: inherit;
+  font-size: var(--sl-text-sm);
+  padding: 0 0.6rem;
+  cursor: pointer;
+}
+.pdk-demo-lang {
+  background: var(--sl-color-black);
+}
+.pdk-demo-copy:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+@media (pointer: coarse) {
+  :is(.pdk-demo-lang, .pdk-demo-copy) {
+    min-height: 2.75rem;
+  }
+}
+.pdk-demo pre {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  max-height: 15rem;
+  overflow: auto;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-1);
+  background: none;
+  border: 0;
+}
+.pdk-demo-note {
+  margin: 0;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+
+/* ---- Home: install switcher (src/components/InstallSwitcher.astro) ---- */
+.pdk-install {
+  display: block;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--pdk-radius-card, 0.75rem);
+  background: var(--pdk-surface);
+  overflow: hidden;
+}
+.pdk-install-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+.pdk-install-tabs button {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--sl-color-gray-3);
+  font-family: var(--sl-font-mono);
+  font-size: var(--sl-text-sm);
+  cursor: pointer;
+}
+.pdk-install-tabs button[aria-selected='true'] {
+  border-bottom-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+.pdk-install-tabs button:focus-visible,
+.pdk-install-copy:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: -2px;
+}
+.pdk-install-panel {
+  padding: 1rem;
+}
+.pdk-install-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.9rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  background: var(--sl-color-black);
+}
+.pdk-install-line code {
+  flex: 1;
+  min-width: 0;
+  /* Wrap rather than clip next to the Copy button on narrow screens. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-white);
+}
+.pdk-install-prompt {
+  color: var(--sl-color-gray-3);
+  user-select: none;
+}
+.pdk-install-copy {
+  flex: none;
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  font: inherit;
+  font-size: var(--sl-text-sm);
+  cursor: pointer;
+}
+.pdk-install-copy:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+.pdk-install-panel p {
+  margin: 0.6rem 0 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.pdk-install-panel a {
+  color: var(--sl-color-text-accent);
+}
+.pdk-install-panel a:hover {
+  color: var(--sl-color-white);
+}
+@media (pointer: coarse) {
+  .pdk-install-copy {
+    min-height: 2.75rem;
+  }
+}
+@media (max-width: 30rem) {
+  .pdk-install-tabs button {
+    padding: 0 0.6rem;
+  }
+  .pdk-install-panel {
+    padding: 0.75rem;
+  }
+}
+
+/* Heading anchor links: only on hover or keyboard focus, never on touch. */
+@media (hover: none) {
+  .sl-markdown-content .sl-anchor-link:not(:focus-visible) {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

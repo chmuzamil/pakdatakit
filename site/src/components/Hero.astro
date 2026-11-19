@@ -1,0 +1,64 @@
+---
+/**
+ * The home page's hero: headline, one-sentence intro, the five languages as
+ * chips, two buttons and a proof line on the left; the live demo (CNIC or
+ * IBAN, code in the chosen language) on the right from 50rem, below on
+ * smaller screens. Other splash pages (404) keep Starlight's hero.
+ */
+import Default from '@astrojs/starlight/components/Hero.astro';
+import HeroDemo from './widgets/HeroDemo.tsx';
+
+// Starlight's id for the page title (skip links point at it).
+const PAGE_TITLE_ID = '_top';
+const isHome = Astro.locals.starlightRoute.id === '' || Astro.locals.starlightRoute.id === 'index';
+const LANGUAGES = [
+  { label: 'TypeScript', href: '/install/typescript/' },
+  { label: 'Python', href: '/install/python/' },
+  { label: 'Dart / Flutter', href: '/install/dart/' },
+  { label: '.NET', href: '/install/dotnet/' },
+  { label: 'PHP / Laravel', href: '/install/php/' },
+];
+---
+
+{
+  isHome ? (
+    <div class="pdk-hero">
+      <div class="pdk-hero-copy">
+        <h1 id={PAGE_TITLE_ID} data-page-title>
+          Pakistani data, done right.
+          <span class="pdk-hero-accent">In five languages.</span>
+        </h1>
+        <p class="pdk-hero-intro">
+          Validate and format CNICs, phone numbers and IBANs, work out sales and income tax, and look up banks, postal
+          codes and more: offline, dependency‑free, with the same results in every language.
+        </p>
+        <ul class="pdk-hero-langs" aria-label="Languages">
+          {LANGUAGES.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))}
+        </ul>
+        <div class="pdk-hero-actions">
+          <a class="pdk-hero-button primary" href="/install/typescript/">
+            Get started
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+              <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+          <a class="pdk-hero-button outline" href="/tools/cnic/">
+            Try the tools
+          </a>
+        </div>
+        <p class="pdk-hero-proof">
+          Every port is checked against the same 32,000+ test vectors on every change.
+        </p>
+      </div>
+      <div class="pdk-hero-demo">
+        <HeroDemo client:idle />
+      </div>
+    </div>
+  ) : (
+    <Default />
+  )
+}

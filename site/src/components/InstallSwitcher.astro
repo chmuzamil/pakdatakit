@@ -1,0 +1,107 @@
+---
+/**
+ * Install command per package manager, as tabs with a copy button. Plain
+ * HTML plus a small script (no framework): the first tab works without JS.
+ */
+const MANAGERS = [
+  { id: 'npm', label: 'npm', command: 'npm install pakdatakit', lang: 'TypeScript / JavaScript', href: '/install/typescript/' },
+  { id: 'pip', label: 'pip', command: 'pip install pakdatakit', lang: 'Python', href: '/install/python/' },
+  { id: 'dart', label: 'dart', command: 'dart pub add pakdatakit', lang: 'Dart (Flutter: pakdatakit_flutter)', href: '/install/dart/' },
+  { id: 'dotnet', label: 'dotnet', command: 'dotnet add package PakDataKit', lang: '.NET', href: '/install/dotnet/' },
+  { id: 'composer', label: 'composer', command: 'composer require chmuzamil/pakdatakit', lang: 'PHP / Laravel', href: '/install/php/' },
+];
+---
+
+<pdk-install class="pdk-install not-content">
+  <div class="pdk-install-tabs" role="tablist" aria-label="Package manager">
+    {
+      MANAGERS.map((m, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`install-tab-${m.id}`}
+          aria-controls={`install-panel-${m.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          {m.label}
+        </button>
+      ))
+    }
+  </div>
+  {
+    MANAGERS.map((m, i) => (
+      <div
+        class="pdk-install-panel"
+        role="tabpanel"
+        id={`install-panel-${m.id}`}
+        aria-labelledby={`install-tab-${m.id}`}
+        hidden={i !== 0}
+      >
+        <div class="pdk-install-line">
+          <code>
+            <span aria-hidden="true" class="pdk-install-prompt">
+              ${' '}
+            </span>
+            {m.command}
+          </code>
+          <button type="button" class="pdk-install-copy" data-command={m.command}>
+            Copy
+          </button>
+        </div>
+        <p>
+          {m.lang}: <a href={m.href}>install guide</a>
+        </p>
+      </div>
+    ))
+  }
+  <span class="sr-only" role="status" aria-live="polite"></span>
+</pdk-install>
+
+<script>
+  class PdkInstall extends HTMLElement {
+    connectedCallback() {
+      const tabs = [...this.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const panels = [...this.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+      const status = this.querySelector<HTMLElement>('[role="status"]');
+      const select = (i: number, focus = false) => {
+        tabs.forEach((t, j) => {
+          t.setAttribute('aria-selected', String(i === j));
+          t.tabIndex = i === j ? 0 : -1;
+          panels[j].hidden = i !== j;
+        });
+        if (focus) tabs[i].focus();
+      };
+      tabs.forEach((t, i) => {
+        t.addEventListener('click', () => select(i));
+        t.addEventListener('keydown', (e) => {
+          const n = tabs.length;
+          const to =
+            e.key === 'ArrowRight' ? (i + 1) % n : e.key === 'ArrowLeft' ? (i - 1 + n) % n : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : -1;
+          if (to < 0) return;
+          e.preventDefault();
+          select(to, true);
+        });
+      });
+      let timer: number | undefined;
+      for (const b of this.querySelectorAll<HTMLButtonElement>('.pdk-install-copy')) {
+        b.addEventListener('click', async () => {
+          let ok = true;
+          try {
+            await navigator.clipboard.writeText(b.dataset.command ?? '');
+          } catch {
+            ok = false;
+          }
+          b.textContent = ok ? 'Copied' : 'Select and copy';
+          if (status) status.textContent = ok ? 'Install command copied' : 'Could not copy; select the command instead';
+          clearTimeout(timer);
+          timer = window.setTimeout(() => {
+            b.textContent = 'Copy';
+            if (status) status.textContent = '';
+          }, 1600);
+        });
+      }
+    }
+  }
+  customElements.define('pdk-install', PdkInstall);
+</script>

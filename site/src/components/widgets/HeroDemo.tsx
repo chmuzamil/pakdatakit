@@ -1,14 +1,17 @@
 /**
- * The home page's live demo: check a CNIC or an IBAN with the real library,
- * see the result at once, and the same call in the chosen language with its
- * result as a comment (rendered by the same code as the docs' examples). The
- * language choice is shared with the docs' code tabs (Starlight's synced
- * tabs key). Nothing typed leaves the browser.
+ * The home page's live demo: check a CNIC or an IBAN with the real library
+ * and see the result at once. Below it, the docs' examples for the same
+ * functions (site/examples/*.json, whose results every port is tested
+ * against) in the chosen language, each result on one line. The language
+ * choice is shared with the docs' code tabs (Starlight's synced tabs key).
+ * Nothing typed leaves the browser.
  */
 import { useEffect, useId, useRef, useState } from 'react';
 import { getCNICInfo, validateCNIC } from 'pakdatakit/cnic';
 import { getBankFromIBAN, validateIBAN } from 'pakdatakit/iban';
 import { LANGS, snippet, type Example, type Lang } from '../../lib/snippets';
+import cnicExamples from '../../../examples/cnic.json';
+import ibanExamples from '../../../examples/iban.json';
 import { Badge } from './common';
 
 const TABS = {
@@ -28,41 +31,23 @@ const TABS = {
 type Tab = keyof typeof TABS;
 const STORAGE = 'starlight-synced-tabs__lang';
 
-function examples(tab: Tab, value: string): Example[] {
-  if (tab === 'cnic')
-    return [
-      {
-        id: 'v',
-        title: '',
-        fn: 'validateCNIC',
-        args: [value],
-        expected: validateCNIC(value),
-      },
-      {
-        id: 'i',
-        title: '',
-        fn: 'getCNICInfo',
-        args: [value],
-        expected: getCNICInfo(value),
-      },
-    ];
-  return [
-    {
-      id: 'v',
-      title: '',
-      fn: 'validateIBAN',
-      args: [value],
-      expected: validateIBAN(value),
-    },
-    {
-      id: 'b',
-      title: '',
-      fn: 'getBankFromIBAN',
-      args: [value],
-      expected: getBankFromIBAN(value),
-    },
-  ];
-}
+const pick = (file: { examples: Example[] }, ids: string[]) =>
+  ids.map((i) => file.examples.find((e) => e.id === i)!);
+
+/** The documented examples shown under each tab (outputs are tested). */
+const EXAMPLES: Record<Tab, Example[]> = {
+  cnic: pick(cnicExamples as { examples: Example[] }, ['validate', 'info']),
+  iban: pick(ibanExamples as { examples: Example[] }, ['validate', 'bank']),
+};
+
+/** Short tab labels; the stored choice uses the docs' full label. */
+const SHORT: Record<Lang, string> = {
+  ts: 'TS',
+  py: 'Python',
+  dart: 'Dart',
+  cs: 'C#',
+  php: 'PHP',
+};
 
 export default function HeroDemo() {
   const id = useId();
@@ -78,6 +63,7 @@ export default function HeroDemo() {
     cnic: null,
     iban: null,
   });
+  const langRefs = useRef<Partial<Record<Lang, HTMLButtonElement | null>>>({});
 
   // The language the visitor last picked anywhere on the site.
   useEffect(() => {
@@ -92,10 +78,10 @@ export default function HeroDemo() {
   }, []);
 
   const value = values[tab];
-  const exs = examples(tab, value.trim());
-  const valid = exs[0].expected === true;
-  const code = snippet(lang, exs);
   const empty = value.trim() === '';
+  const valid =
+    tab === 'cnic' ? validateCNIC(value.trim()) : validateIBAN(value.trim());
+  const code = snippet(lang, EXAMPLES[tab], true);
 
   const chooseLang = (l: Lang) => {
     setLang(l);
@@ -114,6 +100,24 @@ export default function HeroDemo() {
     }
     clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setCopied(false), 1600);
+  };
+  const onLangKey = (e: React.KeyboardEvent) => {
+    const i = LANGS.findIndex((l) => l.id === lang);
+    const n = LANGS.length;
+    const to =
+      e.key === 'ArrowRight'
+        ? (i + 1) % n
+        : e.key === 'ArrowLeft'
+          ? (i - 1 + n) % n
+          : e.key === 'Home'
+            ? 0
+            : e.key === 'End'
+              ? n - 1
+              : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    chooseLang(LANGS[to].id);
+    langRefs.current[LANGS[to].id]?.focus();
   };
   const onTabKey = (e: React.KeyboardEvent) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -185,21 +189,31 @@ export default function HeroDemo() {
         </p>
         <div className="pdk-demo-code">
           <div className="pdk-demo-code-bar">
-            <label htmlFor={`${id}-lang`} className="sr-only">
-              Language
-            </label>
-            <select
-              id={`${id}-lang`}
-              className="pdk-demo-lang"
-              value={lang}
-              onChange={(e) => chooseLang(e.target.value as Lang)}
+            <div
+              className="pdk-demo-langs"
+              role="tablist"
+              aria-label="Language"
+              onKeyDown={onLangKey}
             >
               {LANGS.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.label}
-                </option>
+                <button
+                  key={l.id}
+                  ref={(el) => {
+                    langRefs.current[l.id] = el;
+                  }}
+                  type="button"
+                  role="tab"
+                  id={`${id}-lang-${l.id}`}
+                  aria-controls={`${id}-code`}
+                  aria-selected={lang === l.id}
+                  title={l.label}
+                  tabIndex={lang === l.id ? 0 : -1}
+                  onClick={() => chooseLang(l.id)}
+                >
+                  {SHORT[l.id]}
+                </button>
               ))}
-            </select>
+            </div>
             <button type="button" className="pdk-demo-copy" onClick={copy}>
               {copied ? 'Copied' : 'Copy'}
             </button>
@@ -208,15 +222,36 @@ export default function HeroDemo() {
             </span>
           </div>
           <pre
+            id={`${id}-code`}
+            role="tabpanel"
+            aria-labelledby={`${id}-lang-${lang}`}
             tabIndex={0}
-            aria-label={`${LANGS.find((l) => l.id === lang)!.label} code`}
           >
-            <code>{code}</code>
+            <code>
+              {code.split('\n').map((line, i) => (
+                <span key={i} className="pdk-demo-line">
+                  {line
+                    ? // Don't break short strings like '35202-1234567-1' at a hyphen.
+                      line
+                        .split(/('[^' ]{1,18}'|"[^" ]{1,18}")/)
+                        .map((part, j) =>
+                          j % 2 ? (
+                            <span key={j} className="pdk-demo-str">
+                              {part}
+                            </span>
+                          ) : (
+                            part
+                          ),
+                        )
+                    : '\u00a0'}
+                </span>
+              ))}
+            </code>
           </pre>
         </div>
         <p className="pdk-demo-note">
-          Runs in your browser with the real library. Nothing you type is sent
-          anywhere.
+          Your check runs in your browser with the real library; nothing you
+          type is sent anywhere. The code shows the documented examples.
         </p>
       </div>
     </div>

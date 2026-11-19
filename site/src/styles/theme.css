@@ -644,7 +644,7 @@ header.header {
   color: var(--sl-color-white);
 }
 .pdk-demo-tabs button:focus-visible,
-.pdk-demo-lang:focus-visible,
+.pdk-demo-langs button:focus-visible,
 .pdk-demo-copy:focus-visible,
 .pdk-demo pre:focus-visible {
   outline: 2px solid var(--sl-color-accent);
@@ -673,15 +673,43 @@ header.header {
 }
 .pdk-demo-code-bar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
-  padding: 0.35rem 0.5rem;
-  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0.35rem 0.5rem 0;
+  border-bottom: 2px solid var(--sl-color-gray-5);
 }
-.pdk-demo-lang,
+/* Language tabs, drawn like Starlight's synced code tabs in the docs. */
+.pdk-demo-langs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  margin-bottom: -2px;
+}
+.pdk-demo-langs button {
+  min-height: 2.25rem;
+  padding: 0 0.7rem;
+  border: 0;
+  background: transparent;
+  color: var(--sl-color-gray-3);
+  font: inherit;
+  font-size: var(--sl-text-sm);
+  line-height: var(--sl-line-height-headings);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pdk-demo-langs button:hover {
+  color: var(--sl-color-white);
+}
+.pdk-demo-langs button[aria-selected='true'] {
+  box-shadow: 0 2px 0 var(--sl-color-text-accent);
+  color: var(--sl-color-white);
+  font-weight: 600;
+}
 .pdk-demo-copy {
+  flex: none;
+  align-self: center;
   min-height: 2rem;
+  margin-bottom: 0.3rem;
   border: 1px solid var(--sl-color-gray-5);
   border-radius: 0.375rem;
   background: transparent;
@@ -691,29 +719,47 @@ header.header {
   padding: 0 0.6rem;
   cursor: pointer;
 }
-.pdk-demo-lang {
-  background: var(--sl-color-black);
-}
 .pdk-demo-copy:hover {
   border-color: var(--sl-color-accent);
   color: var(--sl-color-white);
 }
 @media (pointer: coarse) {
-  :is(.pdk-demo-lang, .pdk-demo-copy) {
+  .pdk-demo-langs button,
+  .pdk-demo-copy {
     min-height: 2.75rem;
   }
 }
+@media (max-width: 24rem) {
+  .pdk-demo-langs button {
+    padding: 0 0.4rem;
+  }
+  .pdk-demo-code-bar {
+    gap: 0.25rem;
+    padding-inline: 0.25rem;
+  }
+}
+/* The whole example is always visible: long lines wrap, nothing scrolls. */
 .pdk-demo pre {
   margin: 0;
   padding: 0.75rem 0.9rem;
-  max-height: 15rem;
-  overflow: auto;
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   font-family: var(--sl-font-mono);
   font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--sl-color-gray-1);
   background: none;
   border: 0;
+}
+/* A wrapped line hangs under its first characters, so it reads as one line. */
+.pdk-demo-line {
+  display: block;
+  padding-inline-start: 3ch;
+  text-indent: -3ch;
+}
+.pdk-demo-str {
+  white-space: nowrap;
 }
 .pdk-demo-note {
   margin: 0;

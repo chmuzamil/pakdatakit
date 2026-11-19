@@ -249,12 +249,36 @@ export function call(lang: Lang, ex: Example): string {
   }
 }
 
-/** The stated result as a comment, in the language's own literal style. */
-export function resultComment(lang: Lang, value: unknown): string {
+/** An object result on one line, as the language would write a literal. */
+function inline(lang: Lang, value: object): string {
+  const entries = Object.entries(value).map(([k, v]) => {
+    const val =
+      v !== null && typeof v === 'object' && !isDate(v)
+        ? inline(lang, v)
+        : lit(lang, v);
+    if (lang === 'py' || lang === 'dart') return `'${k}': ${val}`;
+    if (lang === 'php') return `'${k}' => ${val}`;
+    return `${k}: ${val}`;
+  });
+  if (lang === 'php') return `[${entries.join(', ')}]`;
+  if (lang === 'py' || lang === 'dart') return `{${entries.join(', ')}}`;
+  return `{ ${entries.join(', ')} }`;
+}
+
+/**
+ * The stated result as a comment, in the language's own literal style.
+ * `compact` puts an object on one line (the home page demo).
+ */
+export function resultComment(
+  lang: Lang,
+  value: unknown,
+  compact = false,
+): string {
   const c = lang === 'py' ? '#' : '//';
   if (value === null || typeof value !== 'object') {
     return `${c} → ${lit(lang, value)}`;
   }
+  if (compact) return `${c} → ${inline(lang, value)}`;
   const json = JSON.stringify(value, null, 2)
     .split('\n')
     .map((line, i) => (i === 0 ? `${c} → ${line}` : `${c}   ${line}`))
@@ -295,12 +319,16 @@ export function header(lang: Lang, examples: Example[]): string {
 }
 
 /** A whole snippet: imports, then each example with its result. */
-export function snippet(lang: Lang, examples: Example[]): string {
+export function snippet(
+  lang: Lang,
+  examples: Example[],
+  compact = false,
+): string {
   const body = examples
     .map((ex) => {
       const expr = call(lang, ex);
       const stmt = lang === 'py' ? expr : `${expr};`;
-      return `${stmt}\n${resultComment(lang, ex.expected)}`;
+      return `${stmt}\n${resultComment(lang, ex.expected, compact)}`;
     })
     .join('\n\n');
   return `${header(lang, examples)}\n\n${body}`;

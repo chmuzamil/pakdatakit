@@ -37,21 +37,21 @@ const markdown = withMarkdown.has(path) ? `/${path}.md` : null;
 <Default />
 {
   markdown && (
-    <div class="pdk-page-actions">
-      <a href={markdown} type="text/markdown">
+    <div class="pdk-page-actions" role="group" aria-label="This page as Markdown">
+      <a class="pdk-page-action" href={markdown} type="text/markdown">
         View as Markdown
       </a>
-      <button type="button" class="pdk-copy-page" data-src={markdown}>
+      <button type="button" class="pdk-page-action pdk-copy-page" data-src={markdown}>
         Copy page
       </button>
-      <span class="sr-only" role="status" aria-live="polite" />
     </div>
+    <span class="sr-only pdk-page-status" role="status" aria-live="polite" />
   )
 }
 
 <script>
   for (const button of document.querySelectorAll<HTMLButtonElement>('.pdk-copy-page')) {
-    const status = button.nextElementSibling as HTMLElement | null;
+    const status = document.querySelector<HTMLElement>('.pdk-page-status');
     let timer: number | undefined;
     button.addEventListener('click', async () => {
       let message: string;
@@ -101,33 +101,50 @@ const markdown = withMarkdown.has(path) ? `/${path}.md` : null;
     color: var(--sl-color-white);
     text-decoration: underline;
   }
+  /* Two small matching buttons, joined into one group. */
   .pdk-page-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    align-items: center;
+    display: inline-flex;
     margin-top: 0.75rem;
-    font-size: var(--sl-text-sm);
   }
-  .pdk-page-actions a,
-  .pdk-copy-page {
+  .pdk-page-action {
+    display: inline-flex;
+    align-items: center;
     min-height: 2rem;
-    color: var(--sl-color-gray-2);
-  }
-  .pdk-copy-page {
     border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.375rem;
     background: transparent;
-    padding: 0.2rem 0.65rem;
+    padding: 0 0.75rem;
+    color: var(--sl-color-gray-2);
     font: inherit;
+    font-size: var(--sl-text-sm);
+    line-height: 1;
+    text-decoration: none;
     cursor: pointer;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background-color 0.15s;
   }
-  .pdk-copy-page:hover {
+  .pdk-page-action:first-child {
+    border-radius: 0.375rem 0 0 0.375rem;
+  }
+  .pdk-page-action:last-child {
+    border-radius: 0 0.375rem 0.375rem 0;
+    margin-inline-start: -1px;
+  }
+  .pdk-page-action:hover {
+    position: relative;
     border-color: var(--sl-color-accent);
+    background: var(--sl-color-accent-low);
     color: var(--sl-color-white);
   }
-  .pdk-copy-page:focus-visible {
+  .pdk-page-action:focus-visible {
+    position: relative;
     outline: 2px solid var(--sl-color-accent);
     outline-offset: 2px;
+  }
+  @media (pointer: coarse) {
+    .pdk-page-action {
+      min-height: 2.75rem;
+    }
   }
 </style>

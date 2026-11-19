@@ -296,6 +296,10 @@
 .sl-markdown-content .pdk-rows > div > * {
   margin-top: 0;
 }
+/* Starlight indents <dd> in page content; result rows set their own layout. */
+.sl-markdown-content .pdk-rows dd {
+  margin-inline-start: 0;
+}
 .sl-markdown-content .pdk-card > * + * {
   margin-top: 0.75rem;
 }

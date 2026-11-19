@@ -28,7 +28,7 @@ export default function IbanWidget() {
         rows={[
           ['Bank', bank?.name],
           ['Type', bank?.type],
-          ['Active', bank ? (bank.active ? 'yes' : 'no') : null],
+          ['Active', bank ? (bank.active ? 'Yes' : 'No') : null, 'text'],
         ]}
       />
     </div>

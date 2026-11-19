@@ -32,12 +32,17 @@ export function Rows({
     <dl className="pdk-rows">
       {rows.map(([k, v, kind]) => {
         const empty = v === null || v === undefined || v === '';
+        // Monospace only for codes and numbers (CNICs, IBANs, Rs. amounts,
+        // percentages); words such as a province, gender or bank name are set
+        // in the body font.
+        const words =
+          kind === 'text' || (typeof v === 'string' && /[a-z]{3,}/.test(v));
         return (
           <div key={k} className="pdk-row">
             <dt>{k}</dt>
             <dd
               key={empty ? '' : String(v)}
-              className={kind === 'text' ? 'text' : undefined}
+              className={words ? 'text' : undefined}
             >
               {empty ? '—' : v}
             </dd>

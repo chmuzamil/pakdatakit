@@ -52,6 +52,7 @@ export const pk = {
   passport: decorator('passport'),
   vehiclePlate: decorator('vehiclePlate'),
   codPhone: decorator('codPhone'),
+  amount: decorator('amount'),
 };
 
 /** Validates a CNIC. See {@link pk}. */
@@ -78,3 +79,8 @@ export const IsVehiclePlate = pk.vehiclePlate;
  * `phoneRiskSignals` flag. See {@link pk}.
  */
 export const IsCodPhone = pk.codPhone;
+/**
+ * Validates a rupee amount as people type it (`150,000`, `Rs. 1,50,000/-`,
+ * `1.5 lakh`): one that `parseAmount` reads. See {@link pk}.
+ */
+export const IsPakAmount = pk.amount;

@@ -1,4 +1,5 @@
 import { validateCNIC } from '../cnic.js';
+import { parseAmount } from '../format.js';
 import { validateIBAN } from '../iban.js';
 import { validateLandline } from '../numbers.js';
 import { validatePassport } from '../passport.js';
@@ -35,6 +36,10 @@ export const RULES = {
   codPhone: {
     test: (value: string) => phoneRiskSignals(value).length === 0,
     message: 'Enter a mobile number a courier can call',
+  },
+  amount: {
+    test: (value: string) => parseAmount(value) !== null,
+    message: 'Enter an amount in rupees, like 150,000 or 1.5 lakh',
   },
 } satisfies Record<string, Rule>;
 

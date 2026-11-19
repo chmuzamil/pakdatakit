@@ -273,6 +273,7 @@ describe('tax and landline rules', () => {
       'passport',
       'vehiclePlate',
       'codPhone',
+      'amount',
     ]);
     for (const adapter of [
       pkValibot,
@@ -295,6 +296,21 @@ describe('codPhone', () => {
     }
     expect(schema.safeParse('03001234567').error?.issues[0]?.message).toBe(
       'Enter a mobile number a courier can call',
+    );
+  });
+});
+
+describe('amount', () => {
+  it('accepts an amount parseAmount reads and rejects the rest', () => {
+    const schema = pkZod.amount();
+    for (const value of ['150,000', 'Rs. 1,50,000/-', '1.5 lakh', '2.25cr']) {
+      expect(schema.safeParse(value).success, value).toBe(true);
+    }
+    for (const value of ['', '-500', '5-10k', '500 600', '1,50', 'abc']) {
+      expect(schema.safeParse(value).success, value).toBe(false);
+    }
+    expect(schema.safeParse('x').error?.issues[0]?.message).toBe(
+      'Enter an amount in rupees, like 150,000 or 1.5 lakh',
     );
   });
 });

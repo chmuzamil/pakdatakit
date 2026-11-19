@@ -1,0 +1,34 @@
+{
+  "module": "input",
+  "title": "As-you-type input",
+  "examples": [
+    {
+      "id": "format-cnic",
+      "title": "Format a CNIC as it is typed",
+      "fn": "formatCNICInput",
+      "args": ["3520212345"],
+      "expected": "35202-12345"
+    },
+    {
+      "id": "check-cnic",
+      "title": "A CNIC that is still being typed",
+      "fn": "checkCNICInput",
+      "args": ["35202-12"],
+      "expected": "incomplete"
+    },
+    {
+      "id": "format-phone",
+      "title": "Format a mobile number",
+      "fn": "formatPhoneInput",
+      "args": ["+923001234567"],
+      "expected": "+92 300 1234567"
+    },
+    {
+      "id": "check-iban",
+      "title": "An IBAN that can't become valid",
+      "fn": "checkIBANInput",
+      "args": ["GB29"],
+      "expected": "invalid"
+    }
+  ]
+}

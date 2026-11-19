@@ -1,0 +1,48 @@
+{
+  "module": "holidays",
+  "title": "Public holidays",
+  "examples": [
+    {
+      "id": "is-holiday",
+      "title": "Is Independence Day a holiday?",
+      "fn": "isPakistanHoliday",
+      "args": ["2026-08-14"],
+      "expected": true
+    },
+    {
+      "id": "on",
+      "title": "The holiday on a date (observed Eid)",
+      "fn": "getHolidaysOn",
+      "args": ["2026-03-20"],
+      "expected": [
+        {
+          "id": "eid-ul-fitr",
+          "name": "Eid ul Fitr",
+          "date": "2026-03-20",
+          "type": "religious",
+          "estimated": false,
+          "source": "https://cabinet.gov.pk/SiteImage/Misc/files/Holidays/EidulFitr%202026.pdf"
+        }
+      ]
+    },
+    {
+      "id": "christian",
+      "title": "26 December, for Christian employees",
+      "fn": "getHolidaysOn",
+      "args": ["2026-12-26"],
+      "kwargs": {
+        "includeChristianHolidays": true
+      },
+      "expected": [
+        {
+          "id": "day-after-christmas",
+          "name": "Day after Christmas",
+          "date": "2026-12-26",
+          "type": "religious",
+          "estimated": false,
+          "christiansOnly": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+---
+title: Rupee formatting
+description: Format amounts as Pakistani rupees (Rs. 150,000) or in lakh and crore (25 Lakh, 1.25 Crore).
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import FormatWidget from '../../../components/widgets/FormatWidget.tsx';
+
+`import { formatPKR, formatLakh } from 'pakdatakit/format'`
+
+Two ways to show a rupee amount: with comma separators and the `Rs.` prefix, or in the lakh and crore units used for prices and salaries in Pakistan.
+
+<FormatWidget client:visible />
+
+## Examples
+
+<LangTabs module="format" />
+
+## Reference
+
+### formatPKR()
+
+```ts
+function formatPKR(amount: number): string;
+```
+
+**Parameters.** `amount`: in PKR.
+
+**Returns** the amount with comma separators, rounded to whole rupees, such as `"Rs. 150,000"`. Negative amounts are prefixed with `-`: `"-Rs. 500"`.
+
+**Caveats.** Throws a `RangeError` if `amount` is `NaN` or infinite.
+
+**Related:** [`formatLakh()`](#formatlakh).
+
+### formatLakh()
+
+```ts
+function formatLakh(amount: number): string;
+```
+
+**Parameters.** `amount`: in PKR.
+
+**Returns** amounts of 1 crore or more as `"N Crore"` (`10000000` → `"1 Crore"`), amounts of 1 lakh or more as `"N Lakh"` (`2500000` → `"25 Lakh"`), and smaller amounts as [`formatPKR()`](#formatpkr) does. Negative amounts are prefixed with `-`.
+
+**Caveats.** Values are rounded to two decimals before the unit is chosen, so `9999999` is `"1 Crore"`, not `"100 Lakh"`. Throws a `RangeError` if `amount` is `NaN` or infinite.
+
+**Related:** [`formatPKR()`](#formatpkr), [numbers in words](/docs/words/) for cheques.
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/format`](/api/typescript/format/)
+- [Numbers in words](/docs/words/)

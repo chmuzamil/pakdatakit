@@ -1,0 +1,34 @@
+{
+  "module": "courier",
+  "title": "Courier",
+  "examples": [
+    {
+      "id": "status",
+      "title": "Map a PostEx status",
+      "fn": "mapCourierStatus",
+      "args": ["PostEx", "Out for Delivery"],
+      "expected": "out-for-delivery"
+    },
+    {
+      "id": "status-unmapped",
+      "title": "Couriers with no public list return null",
+      "fn": "mapCourierStatus",
+      "args": ["TCS", "Delivered"],
+      "expected": null
+    },
+    {
+      "id": "city",
+      "title": "Normalise a short city name",
+      "fn": "normalizeCityForCourier",
+      "args": ["LHR"],
+      "expected": "Lahore"
+    },
+    {
+      "id": "city-old",
+      "title": "The old name Lyallpur",
+      "fn": "normalizeCityForCourier",
+      "args": ["lyallpur"],
+      "expected": "Faisalabad"
+    }
+  ]
+}

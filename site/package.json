@@ -11,7 +11,8 @@
     "check:links": "linkinator http://localhost:4329/ --config linkinator.config.json",
     "check:quality": "playwright test",
     "check:redirects": "node scripts/api-redirects.mjs --check",
-    "check:llms": "node scripts/check-llms.mjs"
+    "check:llms": "node scripts/check-llms.mjs",
+    "check:guides": "node scripts/check-guides.mjs"
   },
   "dependencies": {
     "@astrojs/react": "7.1.9",

@@ -1,6 +1,6 @@
 ---
 title: Module guides
-description: Guides to the main pakdatakit modules, with a live example on each page and code in TypeScript, Python, Dart, C# and PHP.
+description: Guides to every pakdatakit module, with a live example on each page and code in TypeScript, Python, Dart, C# and PHP.
 tableOfContents: false
 ---
 
@@ -8,42 +8,174 @@ import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 Each guide explains what a module checks or calculates, what it returns and where its data comes from. Every guide has a live example that runs in your browser, and the same examples in all five languages, checked against every port on each build.
 
+## Identity
+
 <CardGrid>
   <LinkCard
     title="CNIC"
     href="/docs/cnic/"
-    description="Validate CNIC numbers and read the province and gender they encode. A format check, not NADRA verification."
+    description="Validate Pakistani CNIC numbers and read the province of registration and gender they encode. A format check, not NADRA verification."
   />
+  <LinkCard
+    title="Passport"
+    href="/docs/passport/"
+    description="Check that a Pakistani passport number has the common shape of two letters and seven digits. A format check, not DGIP verification."
+  />
+  <LinkCard
+    title="Vehicle plates"
+    href="/docs/vehicle/"
+    description="Split a Pakistani vehicle registration number into series letters, number and optional year, and check its common shape."
+  />
+</CardGrid>
+
+## Phone
+
+<CardGrid>
   <LinkCard
     title="Phone"
     href="/docs/phone/"
-    description="Validate mobile numbers, format them as E.164 and find the network a number was first issued on."
+    description="Validate Pakistani mobile numbers, format them as E.164, and find the network a number was first issued on."
   />
+  <LinkCard
+    title="Mobile networks"
+    href="/docs/networks/"
+    description="Find the mobile operator a Pakistani 03XX prefix was originally allocated to (Jazz, Zong, Ufone, Telenor or SCO)."
+  />
+  <LinkCard
+    title="Landlines and special numbers"
+    href="/docs/numbers/"
+    description="Identify and format any Pakistani phone number (mobile, landline, UAN, toll-free, premium or personal) and look up landline area codes."
+  />
+  <LinkCard
+    title="WhatsApp links"
+    href="/docs/whatsapp/"
+    description="Create a wa.me click-to-chat link for a Pakistani mobile number, with an optional pre-filled message."
+  />
+</CardGrid>
+
+## Banking and payments
+
+<CardGrid>
   <LinkCard
     title="IBAN and banks"
     href="/docs/iban/"
-    description="Validate IBANs with the mod-97 checksum and look up the bank from its code."
+    description="Validate Pakistani IBANs with the mod-97 checksum and look up the bank, its type and status from the bank code."
   />
   <LinkCard
     title="Raast QR"
     href="/docs/raast/"
-    description="Create, read and check Raast payment QR codes following the State Bank's standard."
+    description="Create, read and check Raast payment QR codes following the State Bank of Pakistan's QR standard."
   />
+  <LinkCard
+    title="Electricity and gas bills"
+    href="/docs/bills/"
+    description="Check Pakistani electricity bill reference numbers, customer IDs, K-Electric account numbers and SNGPL or SSGC gas consumer numbers."
+  />
+  <LinkCard
+    title="Numbers in words"
+    href="/docs/words/"
+    description="Write numbers and rupee amounts in words with lakh and crore, in English or Urdu, including cheque style (“Rupees … Only”)."
+  />
+  <LinkCard
+    title="Rupee formatting"
+    href="/docs/format/"
+    description="Format amounts as Pakistani rupees (Rs. 150,000) or in lakh and crore (25 Lakh, 1.25 Crore)."
+  />
+</CardGrid>
+
+## Tax and FBR
+
+<CardGrid>
   <LinkCard
     title="Sales tax"
     href="/docs/salestax/"
-    description="Federal and provincial sales tax rates on any date since July 2019, with the law behind each rate."
+    description="Sales tax rates for goods (FBR) and services (PRA, SRB, KPRA, BRA, ICT) on any date since July 2019, with the law behind each rate and exact paisa amounts."
   />
   <LinkCard
     title="Income tax on salary"
     href="/docs/incometax/"
-    description="Tax on salaries from the Income Tax Ordinance's salaried rate table, tax years 2020 to 2027."
+    description="Income tax on salary from the salaried rate table of the Income Tax Ordinance 2001, tax years 2020 to 2027, exact to the paisa."
   />
   <LinkCard
-    title="Postal codes"
-    href="/docs/postal/"
-    description="Postal codes of cities and every delivery post office in Pakistan Post's directory."
+    title="NTN and STRN"
+    href="/docs/tax/"
+    description="Check the format of Pakistani National Tax Numbers (NTN) and Sales Tax Registration Numbers (STRN). A format check, not FBR verification."
+  />
+  <LinkCard
+    title="FBR digital invoicing"
+    href="/docs/fbr-invoice/"
+    description="Build FBR Digital Invoicing JSON with the sales tax worked out, and check it offline against PRAL's DI API v1.12 rules, with FBR's error codes."
   />
 </CardGrid>
 
-Looking for something else? The [TypeScript API reference](/api/typescript/) lists every function in all 32 modules.
+## Geography and postal
+
+<CardGrid>
+  <LinkCard
+    title="Postal codes and post offices"
+    href="/docs/postal/"
+    description="Postal codes of Pakistani cities and every delivery post office in Pakistan Post's directory, including villages."
+  />
+  <LinkCard
+    title="Provinces, districts and tehsils"
+    href="/docs/geo/"
+    description="Pakistan's provinces, divisions, districts and tehsils offline: the province of a city or district, and the 2023 census divisions and tehsils."
+  />
+  <LinkCard
+    title="Addresses"
+    href="/docs/address/"
+    description="Parse free-form Pakistani addresses into street, area, city, district, province and postal code, flag a city in the wrong province, and format them."
+  />
+</CardGrid>
+
+## Delivery and COD
+
+<CardGrid>
+  <LinkCard
+    title="COD address and phone checks"
+    href="/docs/quality/"
+    description="Score how complete a Pakistani delivery address is and flag phone numbers a courier cannot reach, for cash on delivery orders."
+  />
+  <LinkCard
+    title="Courier (experimental)"
+    href="/docs/courier/"
+    description="Experimental. Map a Pakistani courier's own delivery status to one shared vocabulary, and normalise how a city is written for courier forms."
+  />
+</CardGrid>
+
+## Text and dates
+
+<CardGrid>
+  <LinkCard
+    title="Urdu and text"
+    href="/docs/text/"
+    description="URL slugs that keep Urdu letters, Urdu alphabetical sorting, right-to-left checks, Urdu and English digits, and Roman Urdu spelling clean-up."
+  />
+  <LinkCard
+    title="Hijri dates"
+    href="/docs/hijri/"
+    description="Convert between Gregorian and Hijri (Islamic) dates with the tabular calendar, name Hijri months and check for Ramadan, with a day offset for moon sighting."
+  />
+  <LinkCard
+    title="Public holidays"
+    href="/docs/holidays/"
+    description="Pakistan's federal public holidays for any year from 1948, with Eid and Ashura dates as observed in 2020–2026 and estimated after that."
+  />
+</CardGrid>
+
+## Forms
+
+<CardGrid>
+  <LinkCard
+    title="As-you-type input"
+    href="/docs/input/"
+    description="Format CNIC, mobile number and IBAN fields while the user types, and tell a half-typed value apart from a wrong one."
+  />
+  <LinkCard
+    title="Form kits and adapters"
+    href="/docs/forms/"
+    description="Ready-made CNIC, mobile and IBAN inputs and checkout and KYC forms for React, Vue, Angular and Flutter, plus Zod, Yup, Joi and other schema adapters."
+  />
+</CardGrid>
+
+Every function and type is in the [TypeScript API reference](/api/typescript/).

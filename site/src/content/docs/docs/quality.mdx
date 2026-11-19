@@ -1,0 +1,96 @@
+---
+title: COD address and phone checks
+description: Score how complete a Pakistani delivery address is and flag phone numbers a courier cannot reach, for cash on delivery orders.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import QualityWidget from '../../../components/widgets/QualityWidget.tsx';
+
+`import { scoreAddress, phoneRiskSignals } from 'pakdatakit/quality'`
+
+Two checks for cash on delivery and other courier orders. `scoreAddress()` says how much a free-form address tells a rider. `phoneRiskSignals()` flags a phone number a courier cannot reach by SMS or call, or that looks made up.
+
+<QualityWidget client:visible />
+
+:::caution[Heuristics, not verification]
+Both functions are heuristics. An address score says how much the address tells a rider, not whether the address exists. Phone flags come from the number itself: no list of real numbers, no personal data, no network call.
+:::
+
+## Examples
+
+<LangTabs module="quality" />
+
+## Reference
+
+### scoreAddress()
+
+```ts
+function scoreAddress(input: string): AddressScore;
+
+type AddressPart =
+  'city' | 'houseNumber' | 'street' | 'area' | 'postalCode' | 'landmark';
+
+interface AddressScore {
+  score: number; // 0 (unusable) to 100 (every part present and consistent)
+  missing: AddressPart[]; // in the order of ADDRESS_WEIGHTS
+  parsed: ParsedAddress; // as parseAddress reads it, with any extra warnings
+}
+
+const ADDRESS_WEIGHTS: Readonly<Record<AddressPart, number>> = {
+  city: 30,
+  houseNumber: 20,
+  street: 15,
+  area: 10,
+  postalCode: 15,
+  landmark: 10,
+};
+```
+
+**Parameters.** `input`: a free-form Pakistani delivery address.
+
+**Returns** a score from 0 to 100, the parts not found, and the parsed address. It looks for a city, a house, plot or flat number, a street, an area, a postal code and a landmark ("near", "opp", "nazd", "qareeb" and their Urdu forms), and adds up `ADDRESS_WEIGHTS`. It never throws.
+
+**Caveats.**
+
+- This is a heuristic: it says how much an address tells a rider, not whether the address exists.
+- A postal code scores in full only when it is a known post office code; an unknown one scores 5.
+- A post office in a different province from the city lowers the score, with a warning in `parsed.warnings`.
+
+**Related:** [`parseAddress()`](/docs/address/), [Postal codes](/docs/postal/).
+
+### phoneRiskSignals()
+
+```ts
+function phoneRiskSignals(input: string): PhoneRiskFlag[];
+
+type PhoneRiskFlag =
+  | 'invalid'
+  | 'landline'
+  | 'not-mobile'
+  | 'repeated-digits'
+  | 'sequential-digits'
+  | 'test-number';
+```
+
+**Parameters.** `input`: a phone number in local or international format.
+
+**Returns** a list of reasons to double-check the number. A valid mobile number with nothing suspicious returns `[]`. It never throws.
+
+- `invalid`: not a Pakistani phone number.
+- `landline`: a fixed-line number (no SMS, often unanswered).
+- `not-mobile`: a UAN, toll-free or other service number.
+- `repeated-digits`: the 7-digit subscriber part uses at most two different digits (`0300-0000000`, `0300-1111112`).
+- `sequential-digits`: the subscriber part is a run such as `1234567` or `7654321`.
+- `test-number`: a placeholder often typed into forms (`03XX-1234567`, `03XX-7654321`, `0312-3456789`).
+
+**Caveats.** Pure heuristics on the number itself: no list of real numbers, no personal data, no network call.
+
+**Related:** [`analyzeNumber()`](/docs/numbers/#analyzenumber), [`validatePhone()`](/docs/phone/#validatephone).
+
+## Related
+
+- [Address](/docs/address/): parse a free-form address.
+- [Courier](/docs/courier/): courier helpers.
+- [Numbers](/docs/numbers/): landlines, UAN and toll-free numbers.
+- [Phone](/docs/phone/): validate and format mobile numbers.
+- [API reference](/api/typescript/quality/)

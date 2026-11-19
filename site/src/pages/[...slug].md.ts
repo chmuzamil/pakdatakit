@@ -59,6 +59,11 @@ function toMarkdown(body: string): string {
           new RegExp(`${k}="([^"]*)"`).exec(attrs)?.[1] ?? '';
         return `- [${a('title')}](${new URL(a('href'), SITE).href})${a('description') ? `: ${a('description')}` : ''}`;
       })
+      // framework tabs (the forms guide): a heading per tab
+      .replace(
+        /^\s*<TabItem\s+label="([^"]+)"[^>]*>\s*$/gm,
+        (_, label: string) => `**${label}**`,
+      )
       // live widgets and other self-closing components: left out
       .replace(/^\s*<[A-Z][A-Za-z]*\b[^>]*\/>\s*$/gm, '')
       // wrappers (CardGrid, Card): keep what is inside

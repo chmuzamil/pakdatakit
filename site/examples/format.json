@@ -1,0 +1,27 @@
+{
+  "module": "format",
+  "title": "Rupee formatting",
+  "examples": [
+    {
+      "id": "pkr",
+      "title": "Rupees, rounded to whole rupees",
+      "fn": "formatPKR",
+      "args": [150000.4],
+      "expected": "Rs. 150,000"
+    },
+    {
+      "id": "lakh",
+      "title": "In lakh",
+      "fn": "formatLakh",
+      "args": [2500000],
+      "expected": "25 Lakh"
+    },
+    {
+      "id": "crore",
+      "title": "In crore",
+      "fn": "formatLakh",
+      "args": [125000000],
+      "expected": "12.5 Crore"
+    }
+  ]
+}

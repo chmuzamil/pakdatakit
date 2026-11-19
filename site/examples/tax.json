@@ -1,0 +1,42 @@
+{
+  "module": "tax",
+  "title": "NTN and STRN",
+  "examples": [
+    {
+      "id": "business",
+      "title": "A business NTN with a check digit",
+      "fn": "analyzeNTN",
+      "args": ["1234567-8"],
+      "expected": {
+        "type": "business",
+        "digits": "12345678",
+        "formatted": "1234567-8"
+      }
+    },
+    {
+      "id": "individual",
+      "title": "An individual's NTN is their CNIC",
+      "fn": "analyzeNTN",
+      "args": ["35202-1234567-1"],
+      "expected": {
+        "type": "individual",
+        "digits": "3520212345671",
+        "formatted": "35202-1234567-1"
+      }
+    },
+    {
+      "id": "validate-bad",
+      "title": "Too few digits",
+      "fn": "validateNTN",
+      "args": ["12345"],
+      "expected": false
+    },
+    {
+      "id": "strn",
+      "title": "Validate an STRN",
+      "fn": "validateSTRN",
+      "args": ["12-34-5678-901-23"],
+      "expected": true
+    }
+  ]
+}

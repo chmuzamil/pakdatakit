@@ -93,6 +93,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Every exported module has a guide
+        run: npm run check:guides
+
       - name: Build the site
         run: npm run build
 

@@ -1,0 +1,129 @@
+---
+title: Provinces, districts and tehsils
+description: "Pakistan's provinces, divisions, districts and tehsils offline: the province of a city or district, and the 2023 census divisions and tehsils."
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import GeoWidget from '../../../components/widgets/GeoWidget.tsx';
+
+`import { getProvince, searchCities, getDistrictProvince, searchDistricts, getDistrictsByProvince, getDivisions, getDivisionOfDistrict, getTehsils, getTehsilDistrict } from 'pakdatakit/geo'`
+
+Looks up the province of a city or district, lists and searches districts, and reads the divisions and tehsils of the 2023 census. Names are matched case-insensitively and inconsistent spacing is ignored.
+
+<GeoWidget client:visible />
+
+:::caution[Divisions and tehsils are the 2023 census's]
+The districts list is today's (177 districts as of October 2026), but divisions and tehsils come from Table 1 of the 2023 census: 30 divisions, 136 districts and 591 tehsil-level units. Each tehsil is recorded under the district it was in at the census, which may have been split since. Azad Jammu and Kashmir and Gilgit-Baltistan are not covered by the census tables.
+:::
+
+## Examples
+
+<LangTabs module="geo" />
+
+## Reference
+
+### getProvince()
+
+```ts
+function getProvince(city: string): string | null;
+```
+
+**Parameters.** `city`: a city name, case-insensitive.
+
+**Returns** the province, or `null` when no exact city match is found.
+
+**Caveats.** The city list is district headquarters and major towns, plus every city that has a postal code in the library's postal data.
+
+**Related:** [`searchCities()`](#searchcities), [`getDistrictProvince()`](#getdistrictprovince).
+
+### searchCities()
+
+```ts
+function searchCities(query: string): string[];
+```
+
+**Returns** the city names that contain `query` (case-insensitive), sorted alphabetically. An empty query returns `[]`.
+
+### getDistrictProvince()
+
+```ts
+function getDistrictProvince(district: string): string | null;
+```
+
+**Returns** the province of a district, or `null` when no exact district match is found.
+
+**Caveats.** Districts that were split or renamed still resolve under their former names (Quetta, Dera Bugti, Upper Dera Bugti, South Waziristan, Upper Swat), so names stored before the change keep working. These former names are not listed by `searchDistricts()` or `getDistrictsByProvince()`.
+
+### searchDistricts()
+
+```ts
+function searchDistricts(query: string): string[];
+```
+
+**Returns** the district names that contain `query` (case-insensitive), sorted alphabetically.
+
+### getDistrictsByProvince()
+
+```ts
+function getDistrictsByProvince(province: string): string[];
+```
+
+**Returns** every district of a province (case-insensitive), sorted alphabetically.
+
+**Caveats.** The list is the 177 districts as of October 2026. A few rest on notifications or news reports not yet confirmed on an official page, among them Central Dir, Allai and Paharpur in Khyber Pakhtunkhwa; see [data sources](/data/).
+
+### getDivisions()
+
+```ts
+function getDivisions(province?: string): string[];
+```
+
+**Parameters.** `province`: optional, case-insensitive. Without it, every division is returned.
+
+**Returns** division names, sorted alphabetically.
+
+**Caveats.** The list is the 30 divisions of the 2023 census: Punjab 9, Sindh 6, Khyber Pakhtunkhwa 7 and Balochistan 8. Islamabad has no division, and the census tables do not cover Azad Jammu and Kashmir or Gilgit-Baltistan. Divisions created since the census (such as Gujrat in Punjab) are not included.
+
+### getDivisionOfDistrict()
+
+```ts
+function getDivisionOfDistrict(district: string): string | null;
+```
+
+**Returns** the division a district belonged to in the 2023 census, or `null` if not known.
+
+**Caveats.** Census-district caveat: only the 136 districts of the 2023 census have a division here, under the name they had then (so `Quetta`, `Dera Bugti` and `South Waziristan` work, and their successors do not). Districts created after the census, and those of Azad Jammu and Kashmir, Gilgit-Baltistan and Islamabad, return `null`.
+
+### getTehsils()
+
+```ts
+function getTehsils(district: string): string[];
+```
+
+**Parameters.** `district`: a district name, case-insensitive; former names such as `Quetta` and `South Waziristan` work.
+
+**Returns** the tehsils (talukas, sub-divisions) of the district, sorted alphabetically.
+
+**Caveats.** Census-district caveat: the data is the 591 tehsil-level units of the 2023 census, each recorded under the district it was in then. For a district of the 2023 census this returns its census tehsils, even if some have since moved to a new district (so `Rawalpindi` still lists Murree). For a district created after the census it returns only the tehsils an official source places in it, which can be an empty list. Azad Jammu and Kashmir and Gilgit-Baltistan are not covered.
+
+**Related:** [`getTehsilDistrict()`](#gettehsildistrict).
+
+### getTehsilDistrict()
+
+```ts
+function getTehsilDistrict(tehsil: string, province?: string): string | null;
+```
+
+**Parameters.** `tehsil`: a tehsil, taluka or sub-division name, case-insensitive. `province`: optional, to narrow the search.
+
+**Returns** the district the tehsil was in at the 2023 census, or `null` when the name is unknown or still matches more than one district.
+
+**Caveats.** Census-district caveat: the result is the census district, which may have been split since (a tehsil of `Quetta` is now in Quetta East or Quetta West). A few names are shared by tehsils in different districts (`Saddar`, `Sahiwal`, `Khanpur`); pass the province to tell them apart.
+
+**Related:** [`getTehsils()`](#gettehsils).
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/geo`](/api/typescript/geo/)
+- [Addresses](/docs/address/) and [postal codes](/docs/postal/)
+- [Data sources](/data/)

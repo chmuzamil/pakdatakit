@@ -1,0 +1,41 @@
+{
+  "module": "geo",
+  "title": "Geography",
+  "examples": [
+    {
+      "id": "province",
+      "title": "Province of a city",
+      "fn": "getProvince",
+      "args": ["Hyderabad"],
+      "expected": "Sindh"
+    },
+    {
+      "id": "division",
+      "title": "Division of a census district",
+      "fn": "getDivisionOfDistrict",
+      "args": ["Attock"],
+      "expected": "Rawalpindi"
+    },
+    {
+      "id": "tehsils",
+      "title": "Tehsils of a census district",
+      "fn": "getTehsils",
+      "args": ["Attock"],
+      "expected": [
+        "Attock",
+        "Fateh Jang",
+        "Hasan Abdal",
+        "Hazro",
+        "Jand",
+        "Pindi Gheb"
+      ]
+    },
+    {
+      "id": "tehsil-district",
+      "title": "District of a tehsil",
+      "fn": "getTehsilDistrict",
+      "args": ["Murree"],
+      "expected": "Rawalpindi"
+    }
+  ]
+}

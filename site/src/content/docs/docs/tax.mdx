@@ -1,0 +1,77 @@
+---
+title: NTN and STRN
+description: Check the format of Pakistani National Tax Numbers (NTN) and Sales Tax Registration Numbers (STRN). A format check, not FBR verification.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import TaxWidget from '../../../components/widgets/TaxWidget.tsx';
+
+`import { analyzeNTN, validateNTN, validateSTRN } from 'pakdatakit/tax'`
+
+Checks the shape of a National Tax Number and a Sales Tax Registration Number. Individuals use their 13-digit CNIC as their NTN (since the Finance Act 2015). Companies and associations of persons have a 7-digit NTN, often written with an 8th check digit as `1234567-8`.
+
+<TaxWidget client:visible />
+
+:::caution[A format check, not FBR verification]
+FBR does not publish the check-digit algorithm for NTNs, or the check digit or meaning of the digit groups for STRNs. These functions check the format only. They do not tell you whether a number is registered with FBR.
+:::
+
+## Examples
+
+<LangTabs module="tax" />
+
+## Reference
+
+### analyzeNTN()
+
+```ts
+function analyzeNTN(ntn: string): NTNInfo | null;
+
+type NTNType = 'individual' | 'business';
+
+interface NTNInfo {
+  type: NTNType;
+  digits: string; // 7, 8 or 13 digits, without separators
+  formatted: string; // 1234567-8, or #####-#######-# for a CNIC
+}
+```
+
+**Parameters.** `ntn`: an NTN in any common format. A CNIC is read as an individual's NTN; 7 digits, optionally followed by a check digit, as a business NTN.
+
+**Returns** the type, the digits and a display form, or `null` when the format is not valid.
+
+**Caveats.** FBR does not publish the check-digit algorithm, so the check digit is not verified.
+
+**Related:** [`validateNTN()`](#validatentn), [CNIC](/docs/cnic/).
+
+### validateNTN()
+
+```ts
+function validateNTN(ntn: string): boolean;
+```
+
+**Parameters.** `ntn`: as for `analyzeNTN()`.
+
+**Returns** `true` when the format is valid: a CNIC for individuals, or 7 digits (optionally followed by a check digit) for businesses.
+
+**Related:** [`analyzeNTN()`](#analyzentn).
+
+### validateSTRN()
+
+```ts
+function validateSTRN(strn: string): boolean;
+```
+
+**Parameters.** `strn`: 13 digits, with optional spaces or dashes.
+
+**Returns** `true` when the format is valid.
+
+**Caveats.** FBR does not publish a check-digit algorithm or the meaning of the digit groups, so this validates the format only.
+
+**Related:** [Sales tax](/docs/salestax/), [FBR Digital Invoicing](/docs/fbr-invoice/).
+
+## Related
+
+- [CNIC](/docs/cnic/): the number individuals use as their NTN.
+- [Income tax](/docs/incometax/) and [sales tax](/docs/salestax/).
+- [API reference for `pakdatakit/tax`](/api/typescript/tax/).

@@ -1,0 +1,120 @@
+---
+title: Urdu and text
+description: URL slugs that keep Urdu letters, Urdu alphabetical sorting, right-to-left checks, Urdu and English digits, and Roman Urdu spelling clean-up.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import TextWidget from '../../../components/widgets/TextWidget.tsx';
+
+`import { slugify, compareUrdu, isRTL, wrapBidi, toUrduDigits, toEnglishDigits, normalizeText, normalizeRomanUrdu } from 'pakdatakit/text'`
+
+Small helpers for text that mixes Urdu and English: slugs that keep Urdu letters as they are, sorting in Urdu alphabetical order, telling whether text reads right to left, isolating an English order number inside an Urdu sentence, and switching between Urdu digits (<span lang="ur" dir="rtl">۰–۹</span>) and English digits (0–9).
+
+<TextWidget client:visible />
+
+## Examples
+
+<LangTabs module="text" />
+
+## Reference
+
+### slugify()
+
+```ts
+function slugify(input: string, options?: SlugifyOptions): string;
+
+type SlugScript = 'any' | 'latin' | 'urdu';
+
+interface SlugifyOptions {
+  script?: SlugScript; // default 'any'
+}
+```
+
+**Parameters.** `input`: any text. `options.script`: `any` (the default) keeps Latin and Urdu letters, `latin` keeps only `a-z`, `urdu` keeps only Urdu letters. Digits are always kept, as `0-9`.
+
+**Returns** lower-case words joined by `-`, or `''` when nothing is left (or the input is not a string). It never throws.
+
+**Caveats.** Urdu letters are kept as they are, with no transliteration: Urdu does not write short vowels, so there is no single Roman spelling. Diacritics, tatweel and zero-width characters are dropped, the Arabic look-alikes <span lang="ur" dir="rtl">ك ي ى</span> become the Urdu <span lang="ur" dir="rtl">ک ی ی</span>, Urdu and Arabic-Indic digits become `0-9`, and accented Latin-1 letters lose their accents (`é` → `e`, `ß` → `ss`). Anything else separates words.
+
+**Related:** [`toEnglishDigits()`](#toenglishdigits).
+
+### compareUrdu()
+
+```ts
+function compareUrdu(a: string, b: string): -1 | 0 | 1;
+```
+
+**Parameters.** Two strings. Pass the function itself to `Array.sort`: `words.sort(compareUrdu)`.
+
+**Returns** `-1`, `0` or `1`. A value that is not a string is treated as `''`. It never throws, and it returns `0` only for identical strings.
+
+**Caveats.** Letters follow the Unicode CLDR collation for Urdu (`ur`, CLDR 49). A letter joined with <span lang="ur" dir="rtl">ھ</span> is a letter of its own, so <span lang="ur" dir="rtl">بھ</span> comes after every other <span lang="ur" dir="rtl">ب</span> word. <span lang="ur" dir="rtl">أ ؤ ۂ ئ ۓ</span> sort as <span lang="ur" dir="rtl">ا و ہ ی ے</span> and come just after them when words are otherwise equal, and diacritics only break ties. Outside the Urdu letters, spaces and punctuation come first, then digits digit by digit (Urdu, Arabic-Indic and ASCII digits are equal, and `10` comes before `2`), then Urdu letters, then other Arabic-script characters, then everything else by code point, ignoring ASCII case.
+
+The government's National Language Promotion Department does not publish a sort order online, so CLDR is the order cited. The implementation was checked against ICU's `ur` collator on 200,000 random pairs of Urdu words; see [data sources](/data/).
+
+### isRTL()
+
+```ts
+function isRTL(text: string): boolean;
+```
+
+**Returns** `true` when the first letter of the text is from a right-to-left script such as Urdu or Arabic. Digits, punctuation and spaces are skipped, as in the Unicode bidirectional algorithm's paragraph rule, so `isRTL('123 سلام')` is `true` and `isRTL('Order نمبر')` is `false`. Returns `false` when there is no letter or the input is not a string. It never throws.
+
+**Related:** [`wrapBidi()`](#wrapbidi).
+
+### wrapBidi()
+
+```ts
+function wrapBidi(text: string, direction?: BidiDirection): string;
+
+type BidiDirection = 'auto' | 'rtl' | 'ltr';
+```
+
+**Parameters.** `text`: the part to isolate, such as a name or an order number. `direction`: `auto` (the default), `rtl` or `ltr`.
+
+**Returns** the text wrapped in Unicode directional isolates, so that something written in one direction does not reorder the sentence around it (for example an English order number inside an Urdu message). It uses FIRST STRONG ISOLATE (U+2068) by default, RIGHT-TO-LEFT ISOLATE (U+2067) for `rtl` and LEFT-TO-RIGHT ISOLATE (U+2066) for `ltr`, closed with POP DIRECTIONAL ISOLATE (U+2069). Any other direction is treated as `auto`. Returns `''` when the input is not a string. It never throws.
+
+```ts
+`آرڈر ${wrapBidi('PDK-1042')} بھیج دیا گیا`;
+```
+
+**Related:** [`isRTL()`](#isrtl).
+
+### toUrduDigits()
+
+```ts
+function toUrduDigits(text: string): string;
+```
+
+**Returns** the text with English and Arabic-Indic digits changed to Urdu digits (<span lang="ur" dir="rtl">۰–۹</span>). Everything else is left as it is.
+
+### toEnglishDigits()
+
+```ts
+function toEnglishDigits(text: string): string;
+```
+
+**Returns** the text with Urdu and Arabic-Indic digits changed to English digits (0–9).
+
+### normalizeText()
+
+```ts
+function normalizeText(text: string): string;
+```
+
+**Returns** the text trimmed, with whitespace collapsed and Unicode NFC applied.
+
+### normalizeRomanUrdu()
+
+```ts
+function normalizeRomanUrdu(text: string): string;
+```
+
+**Returns** the text with common informal Roman Urdu spellings changed to a preferred form (`kia` → `kya`, `ap` → `aap`, `shukria` → `shukriya`, `nhi` → `nahi` and a few more). It also applies [`normalizeText()`](#normalizetext) and changes Urdu and Arabic-Indic digits to English.
+
+**Caveats.** Only unambiguous variants are changed: words like `men`/`mein` ("in") and `main` ("I") are left alone, because rewriting them changes the meaning. A capitalized word keeps its capital; all-caps words (acronyms such as `AP`) are left unchanged.
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/text`](/api/typescript/text/)
+- [Numbers in words](/docs/words/), in English or Urdu

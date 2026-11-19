@@ -1,0 +1,93 @@
+---
+title: Landlines and special numbers
+description: Identify and format any Pakistani phone number (mobile, landline, UAN, toll-free, premium or personal) and look up landline area codes.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import NumbersWidget from '../../../components/widgets/NumbersWidget.tsx';
+
+`import { analyzeNumber, getNumberType, validateLandline, getAreaCode } from 'pakdatakit/numbers'`
+
+Identifies and formats any Pakistani telephone number: mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal (`0122`). For landlines and UANs it also gives the area code and the cities it serves.
+
+<NumbersWidget client:visible />
+
+## Examples
+
+<LangTabs module="numbers" />
+
+## Reference
+
+### analyzeNumber()
+
+```ts
+function analyzeNumber(phone: string): NumberInfo | null;
+
+type NumberType =
+  'mobile' | 'landline' | 'uan' | 'toll-free' | 'premium' | 'personal';
+
+interface NumberInfo {
+  type: NumberType;
+  formatted: string; // national format, e.g. 021-111-825-888
+  e164: string | null; // e.g. +9221111825888
+  areaCode: string | null; // e.g. 021, for landlines and UANs
+  cities: string[]; // cities served by the area code, when known
+}
+```
+
+**Parameters.** `phone`: a number in local or international format.
+
+**Returns** the number details, or `null` if it is not a valid Pakistani number. `formatted` is the national format with the trunk prefix and separators.
+
+**Caveats.**
+
+- `e164` is `null` for a UAN dialled without an area code (`111-123-456`).
+- `cities` is filled only when the area code is known.
+- Number patterns come from Google libphonenumber's PK metadata (v9.0.41).
+
+**Related:** [`getNumberType()`](#getnumbertype), [`analyzePhone()`](/docs/phone/#analyzephone) for mobile numbers only.
+
+### getNumberType()
+
+```ts
+function getNumberType(phone: string): NumberType | null;
+```
+
+**Parameters.** `phone`: a number in local or international format.
+
+**Returns** the number type, or `null` if it is not a valid Pakistani number.
+
+**Related:** [`analyzeNumber()`](#analyzenumber).
+
+### validateLandline()
+
+```ts
+function validateLandline(phone: string): boolean;
+```
+
+**Parameters.** `phone`: a number in local or international format, such as `042-35761234`.
+
+**Returns** `true` for a valid landline (fixed-line) number. Mobile numbers, UANs and toll-free numbers return `false`.
+
+**Related:** [`validatePhone()`](/docs/phone/#validatephone) for mobile numbers.
+
+### getAreaCode()
+
+```ts
+function getAreaCode(city: string): string | null;
+```
+
+**Parameters.** `city`: a city name, case-insensitive.
+
+**Returns** the landline area code with the trunk prefix (for example `"042"`), or `null` if the city is not in the dataset.
+
+**Data.** 114 area codes, from the numbering plan PTA sent to the ITU in November 2021, which lists every code with its district. Names are spelt as the districts in the library's district list.
+
+**Related:** [`analyzeNumber()`](#analyzenumber).
+
+## Related
+
+- [Phone](/docs/phone/): validate and format mobile numbers.
+- [Networks](/docs/networks/): the original operator of a mobile prefix.
+- [Quality](/docs/quality/): flags for landlines and made-up numbers given for a delivery.
+- [API reference](/api/typescript/numbers/)

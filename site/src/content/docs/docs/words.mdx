@@ -1,0 +1,64 @@
+---
+title: Numbers in words
+description: Write numbers and rupee amounts in words with lakh and crore, in English or Urdu, including cheque style (“Rupees … Only”).
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+import WordsWidget from '../../../components/widgets/WordsWidget.tsx';
+
+`import { numberToWords, amountInWords } from 'pakdatakit/words'`
+
+Writes numbers the way they are said in Pakistan: hundred, thousand, lakh, crore, arab and kharab, not million and billion. `amountInWords()` adds rupees and paisa, as on cheques and invoices, in English or Urdu.
+
+<WordsWidget client:visible />
+
+## Examples
+
+<LangTabs module="words" />
+
+## Reference
+
+### numberToWords()
+
+```ts
+function numberToWords(n: number, options?: NumberToWordsOptions): string;
+
+type WordsLanguage = 'en' | 'ur';
+
+interface NumberToWordsOptions {
+  language?: WordsLanguage; // default 'en'
+}
+```
+
+**Parameters.** `n`: a safe integer; negative numbers start with `minus` (<span lang="ur" dir="rtl">منفی</span> in Urdu). `options.language`: `'en'` (the default) or `'ur'`.
+
+**Returns** the number in words: `numberToWords(125000)` is `"one lakh twenty-five thousand"`, and in Urdu <span lang="ur" dir="rtl">ایک لاکھ پچیس ہزار</span>.
+
+**Caveats.** Throws a `RangeError` if `n` is not a safe integer, or if `language` is not `'en'` or `'ur'`. In Urdu, every number from 0 to 99 has a word of its own (<span lang="ur" dir="rtl">پچیس</span> for 25), not tens plus ones.
+
+**Related:** [`amountInWords()`](#amountinwords).
+
+### amountInWords()
+
+```ts
+function amountInWords(amount: number, options?: AmountInWordsOptions): string;
+
+interface AmountInWordsOptions {
+  language?: WordsLanguage; // default 'en'
+  cheque?: boolean;
+}
+```
+
+**Parameters.** `amount`: in PKR, zero or more. `options.language`: `'en'` or `'ur'`. `options.cheque`: cheque style, `"Rupees One Lakh Twenty-Five Thousand Only"` in English, or the words followed by <span lang="ur" dir="rtl">روپے صرف</span> in Urdu.
+
+**Returns** the amount in words, with paisa: `amountInWords(125000.5)` is `"one lakh twenty-five thousand rupees and fifty paisa"`.
+
+**Caveats.** Amounts are rounded to the nearest paisa. Throws a `RangeError` if `amount` is negative, not finite or too large.
+
+**Related:** [`numberToWords()`](#numbertowords), [rupee formatting](/docs/format/) for `Rs. 150,000` and `25 Lakh`.
+
+## Related
+
+- [TypeScript API reference for `pakdatakit/words`](/api/typescript/words/)
+- [Rupee formatting](/docs/format/)
+- [Urdu and text](/docs/text/) for Urdu digits

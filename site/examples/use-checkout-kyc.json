@@ -94,6 +94,16 @@
         "postalCode": null,
         "warnings": ["Karachi is in Sindh, but the address says Punjab"]
       }
+    },
+    {
+      "id": "mask",
+      "title": "Mask CNICs in notes before you log them",
+      "fn": "maskCNICs",
+      "args": ["Customer said CNIC is 35202-1234567-1"],
+      "expected": {
+        "text": "Customer said CNIC is XXXXX-XXXXXXX-X",
+        "count": 1
+      }
     }
   ]
 }

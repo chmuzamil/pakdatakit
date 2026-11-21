@@ -240,6 +240,22 @@ getCNICInfo('invalid');
 
 The first digit is the province where the CNIC was first registered, which is not necessarily where the holder lives now. The last digit is odd for male and even for female.
 
+### findCNICs() / maskCNICs()
+
+Finds or masks CNICs in free text, such as a chat message or a note, for example before logging it.
+
+```ts
+findCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');
+// [{ raw: '35202-1234567-1', digits: '3520212345671',
+//    formatted: '35202-1234567-1', start: 6, end: 21 }]
+
+maskCNICs('My CNIC is 35202 1234567-1');
+// { text: 'My CNIC is XXXXX XXXXXXX-X', count: 1 }
+maskCNICs(text, { mask: '*' });
+```
+
+A match is 13 digits starting with a province code (1-8), together or in 5-7-1 groups with any hyphen, dash, dot or space between the groups (the two may differ), in ASCII, Urdu or Arabic-Indic digits, and never next to another digit. It is a pattern match: other 13-digit numbers starting with 1-8 also match. `validateCNIC` stays strict. Offsets are UTF-16 code units in TypeScript, Dart and C#, and code points in Python and PHP.
+
 ---
 
 ## Phone Utilities
@@ -503,7 +519,7 @@ getNetwork('03451234567');
 
 ### analyzeNumber() / getNumberType() / validateLandline() / getAreaCode()
 
-Identifies any Pakistani number: mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal (`0122`). Uses the same number patterns as Google's libphonenumber, plus PTCL's area-code list.
+Identifies any Pakistani number: mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal (`0122`). Service numbers follow PTA's numbering plan: a UAN is an area code, `111` and six digits (`111-123-456` without the area code also works); toll-free is `0800` and five digits; premium is `0900` and five digits. Landline patterns come from Google's libphonenumber, with area codes from PTA's plan.
 
 ```ts
 analyzeNumber('021-111-825-888');
@@ -514,6 +530,8 @@ analyzeNumber('042 35761234');
 
 getNumberType('0800-12345'); // 'toll-free'
 validateLandline('051-9260138'); // true
+validateLandline('021-111-123-456'); // false: a UAN
+validateLandline('021-111-123-456', { services: true }); // true: UAN, toll-free or premium
 getAreaCode('Mardan'); // '0937'
 ```
 
@@ -690,6 +708,18 @@ Flags: `invalid`, `landline`, `not-mobile` (UAN, toll-free and other service num
 
 Normalizes informal Roman Urdu spellings (`ap kia ker` → `aap kya kar`).
 
+### romanUrduKey()
+
+A phonetic key so that different Roman Urdu spellings of a name match. Compare keys, not text.
+
+```ts
+romanUrduKey('Mubeen') === romanUrduKey('Mobeen'); // true
+romanUrduKey('Muhammad Rehman'); // 'muhmd rahmn', the same as 'Mohammad Rahman'
+romanUrduKey('Hussain') === romanUrduKey('Hassan'); // false
+```
+
+On 277 spellings of 118 common Pakistani names, 96.8% of same-name pairs share a key and 0.021% of different-name pairs do. Treat a match as "probably the same", not proof.
+
 ### toUrduDigits() / toEnglishDigits()
 
 Convert between English, Urdu, and Arabic-Indic digits.
@@ -736,15 +766,19 @@ Income tax on a salaried individual's taxable income, from the salaried rate tab
 
 ```ts
 calculateSalaryTax(1_800_000, { taxYear: 2026 });
-// { tax: 72000, monthly: 6000, effectiveRate: 4,
+// { tax: 72000, surcharge: 0, total: 72000, monthly: 6000, effectiveRate: 4,
 //   slab: { over: 1200000, upTo: 2200000, fixed: 6000, rate: 11 }, taxYear: 2026 }
+
+// With the section 4AB surcharge (above Rs 10 million):
+calculateSalaryTax(12_000_000, { taxYear: 2026, includeSurcharge: true });
+// { tax: 3381000, surcharge: 304290, total: 3685290, monthly: 307107.5, … }
 
 calculateMonthlySalaryTax(150_000, { taxYear: 2026 })?.monthly; // 6000
 getSalaryTaxSlabs(2027); // the table, its law and FBR source
 getTaxYear('2025-07-01'); // 2026
 ```
 
-Without `taxYear` or `date`, the current tax year is used, and a year that is not covered returns `null`. Tax is rounded half up to the paisa. Only the rate table is applied: the surcharge, tax credits, exemptions, the separate rate for pensions and withholding adjustments are not. Sources and the full table are in [DATA.md](DATA.md#income-tax-on-salary-income-tax-slabsjson).
+Without `taxYear` or `date`, the current tax year is used, and a year that is not covered returns `null`. Tax is rounded half up to the paisa. With `includeSurcharge: true` the section 4AB surcharge is added: a percentage of the whole tax once taxable income exceeds Rs 10 million (10% in tax year 2025, 9% for salaried individuals in 2026, none in 2027 or before 2025). It is off by default in 2.x so that existing results don't change, and will be on by default in 3.0. Tax credits, exemptions, the separate rate for pensions, super tax and withholding adjustments are not applied. Sources and the full table are in [DATA.md](DATA.md#income-tax-on-salary-income-tax-slabsjson).
 
 ---
 
@@ -1155,18 +1189,18 @@ Checks a scanned QR before anyone pays, for example to warn about a QR sticker t
 
 ```ts
 validateRaastQr(scannedText);
-// { valid: false, errors: ['expired'], warnings: [], qr: { iban: 'PK36…', amount: 1500, … } }
+// { valid: false, kind: 'p2p', errors: ['expired'], warnings: [], qr: { iban: 'PK36…', amount: 1500, … } }
 ```
 
-| Errors                     | Meaning                                                      |
-| -------------------------- | ------------------------------------------------------------ |
-| `not-a-raast-qr`           | Not a Pakistani payment QR                                   |
-| `bad-checksum`             | The QR was damaged or its contents were edited               |
-| `no-iban` / `invalid-iban` | No IBAN, or one that fails its checksum                      |
-| `expired`                  | A QR with an amount is past its expiry                       |
-| `missing-expiry`           | A QR with an amount has no expiry, so banking apps reject it |
+| Errors                     | Meaning                                                                |
+| -------------------------- | ---------------------------------------------------------------------- |
+| `not-a-raast-qr`           | Not a Pakistani payment QR                                             |
+| `bad-checksum`             | The QR was damaged or its contents were edited                         |
+| `no-iban` / `invalid-iban` | A person-to-person QR with no IBAN, or an IBAN that fails its checksum |
+| `expired`                  | A QR with an amount is past its expiry                                 |
+| `missing-expiry`           | A QR with an amount has no expiry, so banking apps reject it           |
 
-Warnings (payment still works): `amount-ignored` when a static QR carries an amount that apps ignore, and `expires-soon` when it expires within an hour (`expiresSoonMs` changes this). Pass `now` to check against another time.
+Warnings (payment still works): `amount-ignored` when a static QR carries an amount that apps ignore, `expires-soon` when it expires within an hour (`expiresSoonMs` changes this), and `no-iban` for a merchant QR without an IBAN, which pays through the merchant's own scheme. `kind` is `'p2p'`, `'merchant'` or `null`. Pass `now` to check against another time.
 
 ---
 
@@ -1238,7 +1272,7 @@ import { pk } from 'pakdatakit/superstruct';
 const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
 ```
 
-Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()`, `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags) and `pk.amount()` (an amount `parseAmount()` reads, such as `1.5 lakh`; convert it with `parseAmount` on submit). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()`, `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags), `pk.landline({ services: true })` (also UAN, toll-free and premium numbers) and `pk.amount()` (an amount `parseAmount()` reads, such as `1.5 lakh`; convert it with `parseAmount` on submit). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
 
 ### class-validator and NestJS
 
@@ -1261,7 +1295,7 @@ export class CreateCustomerDto {
 }
 ```
 
-Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport`, `IsVehiclePlate`, `IsCodPhone` and `IsPakAmount`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline` (with `{ services: true }` for UAN, toll-free and premium numbers), `IsPakPassport`, `IsVehiclePlate`, `IsCodPhone` and `IsPakAmount`, also available as `pk.cnic()` and so on. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ### As-you-type helpers
 

@@ -1,5 +1,58 @@
 # Changelog
 
+## 2.7.0
+
+Minor release: new features and one accuracy fix behind an option. Every
+port gives the same results on the shared test vectors (35,000+, about 1,800
+new).
+
+### Added
+
+- **Salary tax surcharge.** `calculateSalaryTax()` and
+  `calculateMonthlySalaryTax()` take `includeSurcharge` and return
+  `surcharge` and `total`. The section 4AB surcharge is a percentage of the
+  whole tax once taxable income exceeds Rs 10 million: 10% in tax year 2025
+  (Finance Act 2024), 9% for salaried individuals in 2026 (Finance Act
+  2025), and none in 2027 (Finance Act 2026) or before 2025. With the
+  option, `monthly` and `effectiveRate` include the surcharge.
+  `includeSurcharge` is off by default in 2.x, so existing results don't
+  change; it will be on by default in 3.0. `getSalaryTaxSlabs()` gives each
+  year's `surcharge` with its law and FBR source (DATA.md has the details).
+- **Service numbers as landlines.** `validateLandline(phone, { services: true })`
+  also accepts UAN (`021-111-123-456`, `111-123-456`), toll-free
+  (`0800-12345`) and premium-rate (`0900-12345`) numbers; `analyzeNumber()`
+  tells them apart with `type`. The same option is in `pk.landline()`,
+  `IsPakLandline()`, the .NET `[PakLandline(Services = true)]` and
+  `IsPakLandline(services: true)`, and Laravel's `pk_landline:services`.
+- **CNICs in free text.** `findCNICs(text)` returns each CNIC with its
+  digits, formatted form and position; `maskCNICs(text, { mask })` replaces
+  their digits (`XXXXX-XXXXXXX-X`) and counts them. They accept any or mixed
+  separators and ASCII, Urdu or Arabic-Indic digits, and never cut a CNIC
+  out of a longer number. They are pattern matches, so other 13-digit
+  numbers starting with 1-8 also match; `validateCNIC()` stays strict.
+- **`romanUrduKey(text)`**: a phonetic key so that spellings of a name match
+  (`Mubeen`/`Mobeen`, `Muhammad`/`Mohammad`/`Muhammed`, `Rehman`/`Rahman`,
+  `Chaudhry`/`Chaudhary`/`Chaudhery`). On 277 spellings of 118 common
+  Pakistani names, 96.8% of same-name pairs match and 0.021% of
+  different-name pairs do. `normalizeRomanUrdu()` is unchanged.
+- **`validateRaastQr()` returns `kind`** (`'p2p'`, `'merchant'` or `null`).
+
+### Changed
+
+- **Toll-free numbers follow PTA's numbering plan**: `0800` and five digits.
+  The 8-digit form after `0800`, taken from libphonenumber, is no longer
+  accepted, because PTA's plan does not list it. UAN and premium-rate
+  formats are now documented against PTA's plan too (DATA.md).
+- **A merchant Raast QR without an IBAN is valid**, with the warning
+  `no-iban`: merchant QRs may pay through the merchant's own scheme. A
+  person-to-person QR without an IBAN is still an error.
+- Fuller doc comments for `validateCNIC`, `NTNInfo`, `NTNType`,
+  `SlugScript`, `SlugifyOptions`, `BidiDirection` and `WordsLanguage`, so
+  every API reference page has a full description; the site's CI now fails
+  on an API page description under 70 characters.
+- DATA.md corrects the description of the surcharge: it is a percentage of
+  the whole tax, not of the tax on income above Rs 10 million.
+
 ## 2.6.0
 
 Minor release: one new feature. Every port gives the same results on the

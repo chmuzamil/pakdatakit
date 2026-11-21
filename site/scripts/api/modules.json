@@ -3,7 +3,7 @@
   "dotnet": {
     "address": ["ParsedAddress", "Address"],
     "bills": ["ElectricityRefType", "GasCompany", "ElectricityRef", "Bills"],
-    "cnic": ["CnicGender", "CnicInfo", "Cnic"],
+    "cnic": ["CnicGender", "CnicInfo", "CnicMatch", "MaskedText", "Cnic"],
     "courier": ["CourierStatus", "Courier"],
     "data-version": ["PakData"],
     "fbr-invoice": [
@@ -28,6 +28,7 @@
     "iban": ["BankType", "BankInfo", "Iban"],
     "incometax": [
       "SalaryTaxSlab",
+      "SalaryTaxSurcharge",
       "SalaryTaxYear",
       "SalaryTaxOptions",
       "SalaryTax",
@@ -71,7 +72,7 @@
   "php": {
     "address": ["ParsedAddress", "Address"],
     "bills": ["ElectricityRef", "Bills"],
-    "cnic": ["CnicInfo", "Cnic"],
+    "cnic": ["CnicInfo", "CnicMatch", "MaskedText", "Cnic"],
     "courier": ["Courier"],
     "data-version": ["PakData"],
     "fbr-invoice": ["FbrInvoiceError", "FbrInvoiceValidation", "FbrInvoice"],
@@ -80,7 +81,13 @@
     "hijri": ["HijriDate", "Hijri"],
     "holidays": ["Holiday", "Holidays"],
     "iban": ["BankInfo", "Iban"],
-    "incometax": ["SalaryTaxSlab", "SalaryTaxYear", "SalaryTax", "IncomeTax"],
+    "incometax": [
+      "SalaryTaxSlab",
+      "SalaryTaxSurcharge",
+      "SalaryTaxYear",
+      "SalaryTax",
+      "IncomeTax"
+    ],
     "input": ["Input"],
     "networks": ["Networks"],
     "numbers": ["NumberInfo", "Numbers"],

@@ -54,6 +54,30 @@
       "fn": "getTaxYear",
       "args": ["2026-11-18"],
       "expected": 2027
+    },
+    {
+      "id": "surcharge",
+      "title": "With the surcharge (tax year 2026, Rs. 12 million)",
+      "fn": "calculateSalaryTax",
+      "args": [12000000],
+      "kwargs": {
+        "taxYear": 2026,
+        "includeSurcharge": true
+      },
+      "expected": {
+        "tax": 3381000,
+        "surcharge": 304290,
+        "total": 3685290,
+        "monthly": 307107.5,
+        "effectiveRate": 30.71,
+        "slab": {
+          "over": 4100000,
+          "upTo": null,
+          "fixed": 616000,
+          "rate": 35
+        },
+        "taxYear": 2026
+      }
     }
   ]
 }

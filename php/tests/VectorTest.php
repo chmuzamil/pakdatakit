@@ -389,6 +389,10 @@ final class VectorTest extends TestCase
         return $functions = [
             'validateCNIC' => $one(Cnic::validate(...)),
             'getCNICInfo' => $one(Cnic::getInfo(...)),
+            'findCNICs' => static fn (array $a, array $k): mixed => Cnic::findAll($a[0] ?? null),
+            'maskCNICs' => static fn (array $a, array $k): mixed => array_key_exists('mask', $k)
+                ? Cnic::mask($a[0] ?? null, $k['mask'])
+                : Cnic::mask($a[0] ?? null),
             'validatePhone' => $one(Phone::validate(...)),
             'formatPhone' => $one(Phone::format(...)),
             'analyzePhone' => $one(Phone::analyze(...)),
@@ -432,6 +436,7 @@ final class VectorTest extends TestCase
             'toEnglishDigits' => $one(Text::toEnglishDigits(...)),
             'slugify' => static fn (array $a, array $k): mixed => Text::slugify($a[0], $k),
             'compareUrdu' => static fn (array $a, array $k): mixed => Text::compareUrdu($a[0], $a[1]),
+            'romanUrduKey' => static fn (array $a, array $k): mixed => Text::romanUrduKey($a[0] ?? null),
             'isRTL' => static fn (array $a, array $k): mixed => Text::isRtl($a[0]),
             'wrapBidi' => static fn (array $a, array $k): mixed => count($a) > 1
                 ? Text::wrapBidi($a[0], $a[1])
@@ -472,7 +477,10 @@ final class VectorTest extends TestCase
             'parseVehiclePlate' => $one(VehiclePlate::parse(...)),
             'analyzeNumber' => $one(Numbers::analyze(...)),
             'getNumberType' => $one(Numbers::getNumberType(...)),
-            'validateLandline' => $one(Numbers::validateLandline(...)),
+            'validateLandline' => static fn (array $a, array $k): mixed => Numbers::validateLandline(
+                $a[0] ?? null,
+                ($k['services'] ?? false) === true,
+            ),
             'getAreaCode' => $one(Numbers::getAreaCode(...)),
             'createRaastP2PQr' => static fn (array $a, array $k): mixed => RaastQr::createP2P($k),
             'createMerchantQr' => static fn (array $a, array $k): mixed => RaastQr::createMerchant($k),

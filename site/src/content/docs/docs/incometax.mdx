@@ -23,13 +23,19 @@ The salaried rate table is in the First Schedule, Part I, Division I, clause (2)
 ```ts
 function calculateSalaryTax(
   annualIncome: number,
-  options?: { taxYear?: number; date?: string | Date },
+  options?: {
+    taxYear?: number;
+    date?: string | Date;
+    includeSurcharge?: boolean; // default false in 2.x, true from 3.0
+  },
 ): SalaryTax | null;
 
 interface SalaryTax {
-  tax: number; // for the year, rounded half up to the paisa
-  monthly: number;
-  effectiveRate: number; // percent
+  tax: number; // from the rate table, rounded half up to the paisa
+  surcharge: number; // section 4AB, 0 unless includeSurcharge
+  total: number; // tax + surcharge
+  monthly: number; // total / 12
+  effectiveRate: number; // percent of total
   slab: { over: number; upTo: number | null; fixed: number; rate: number };
   taxYear: number;
 }
@@ -37,18 +43,35 @@ interface SalaryTax {
 
 **Returns** the tax on an annual taxable salary. Without `taxYear` or `date`, the current tax year is used; a year that is not covered returns `null`.
 
-**Caveats.** Only the rate table is applied. The surcharge, tax credits, exemptions and allowances are not. (For tax year 2027 the surcharge on salaried individuals was withdrawn by the Finance Act 2026.) This is an estimate, not tax advice.
+**Caveats.**
+
+- With `includeSurcharge: true` the section 4AB surcharge is added: a percentage of the whole tax once taxable income exceeds Rs 10 million. One rupee over the threshold adds it in full.
+
+| Tax year  | Surcharge on salaried individuals | Law                                                          |
+| --------- | --------------------------------- | ------------------------------------------------------------ |
+| 2020–2024 | none                              | section 4AB did not exist                                    |
+| 2025      | 10% of the tax                    | Finance Act 2024, s. 8(2)                                    |
+| 2026      | 9% of the tax                     | Finance Act 2025 (proviso); FBR Circular No. 01 of 2025-26   |
+| 2027      | none                              | Finance Act 2026, s. 5(2)(b); FBR Circular No. 02 of 2026-27 |
+
+- `includeSurcharge` is off by default in 2.x, so existing results don't change. It will be on by default in 3.0.
+- Tax credits, exemptions, allowances and super tax are not applied. This is an estimate, not tax advice.
+- Sources, with links and the dates checked: [data sources](/data/).
 
 ### calculateMonthlySalaryTax()
 
 ```ts
 function calculateMonthlySalaryTax(
   monthlySalary: number,
-  options?: { taxYear?: number; date?: string | Date },
+  options?: {
+    taxYear?: number;
+    date?: string | Date;
+    includeSurcharge?: boolean;
+  },
 ): SalaryTax | null;
 ```
 
-**Returns** the same result for a monthly salary (twelve times the month).
+**Returns** the same result for a monthly salary (twelve times the month): `monthly` is the amount to withhold each month, including the surcharge when `includeSurcharge` is set.
 
 ### getTaxYear()
 

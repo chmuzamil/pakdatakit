@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.7.0
+
+Minor release: new features and one accuracy fix behind an option. Every
+port gives the same results on the shared test vectors (35,000+, about 1,800
+new).
+
+### Added
+
+- **Salary tax surcharge.** `calculateSalaryTax()` and `calculateMonthlySalaryTax()` take `includeSurcharge` and return `surcharge` and `total`; `getSalaryTaxSlabs()` gives each year's `SalaryTaxSurcharge` (`null` before 2025). The section 4AB surcharge
+  is a percentage of the whole tax once taxable income exceeds Rs 10
+  million: 10% in tax year 2025, 9% for salaried individuals in 2026, and
+  none in 2027 or before 2025. The option is off by default in 2.x, so
+  existing results don't change; it will be on by default in 3.0.
+- **Service numbers as landlines.** `validateLandline(phone, services: true)` also accepts UAN,
+  toll-free and premium-rate numbers.
+- **CNICs in free text.** `findCNICs(text)` returns `CNICMatch` objects (`raw`, `digits`, `formatted`, `start`, `end`; offsets in UTF-16 code units); `maskCNICs(text, mask: 'X')` returns `MaskedText`. Pattern matches: other 13-digit
+  numbers starting with 1-8 also match; CNIC validation stays strict.
+- **Phonetic keys for Roman Urdu names**: `romanUrduKey(text)` (without NFKD in Dart, accents are folded with a table generated from Node.js: `scripts/generate-latin-fold-dart.mjs`), so that `Mubeen` and
+  `Mobeen`, or `Rehman` and `Rahman`, match.
+- **Raast**: `RaastQrValidation.kind` (`RaastQrKind?`) and the warning `RaastQrWarning.noIban`.
+
+### Changed
+
+- Toll-free numbers follow PTA's numbering plan: `0800` and five digits; the
+  8-digit form is no longer accepted.
+- A merchant Raast QR without an IBAN is valid with the warning `no-iban`; a
+  person-to-person QR without an IBAN is still an error.
+
+
 ## 2.6.0
 
 Minor release: one new feature. Every port gives the same results on the

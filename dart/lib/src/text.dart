@@ -1,4 +1,5 @@
 import 'internal/js.dart';
+import 'internal/latin_fold.dart';
 import 'internal/normalize.dart';
 import 'internal/unicode.dart';
 
@@ -70,7 +71,8 @@ String _matchCase(String original, String replacement) {
 // Slugs, Urdu sorting and bidirectional text
 // ---------------------------------------------------------------------------
 
-/// Which letters [slugify] keeps.
+/// Which letters [slugify] keeps in a URL slug: [any] (Latin and Urdu),
+/// [latin] (a-z only) or [urdu] (Urdu letters only).
 enum SlugScript {
   /// Latin and Urdu letters (the default).
   any('any'),
@@ -394,7 +396,8 @@ bool isRTL(String text) {
   return false;
 }
 
-/// Direction for [wrapBidi].
+/// Direction for [wrapBidi]: [auto] follows the first strong letter, [rtl]
+/// and [ltr] force right-to-left or left-to-right.
 enum BidiDirection {
   /// FIRST STRONG ISOLATE (U+2068): the direction of the first letter.
   auto('auto'),
@@ -434,3 +437,165 @@ String wrapBidi(String text, [BidiDirection direction = BidiDirection.auto]) {
   };
   return '$open$text\u2069';
 }
+
+/// Two-letter spellings of one sound, and what each becomes in a key.
+const Map<String, String> _keyDigraphs = {
+  'kh': 'kh',
+  'gh': 'g',
+  'sh': 'sh',
+  'ch': 'ch',
+  'ph': 'f',
+  'th': 't',
+  'dh': 'd',
+  'bh': 'b',
+  'jh': 'j',
+  'zh': 'z',
+  'ck': 'k',
+};
+
+/// Letters written for the same sound as another letter.
+const Map<String, String> _keyLetters = {
+  'c': 'k',
+  'q': 'k',
+  'v': 'w',
+  'x': 'ks',
+};
+
+const String _plainVowels = 'aeiou';
+
+final RegExp _doubledLetter = RegExp(r'([^e])\1+');
+final RegExp _roundVowelStart = RegExp(r'^[ao][uw]');
+final RegExp _frontVowelStart = RegExp(r'^(a[iye]|e[iy])');
+final RegExp _keyWordBreak = RegExp(r'[^a-z]+');
+
+/// The sound class of a vowel letter: a (a, e), i (i, y) or u (o, u, w).
+String _vowelClass(String letter) {
+  if (letter == 'a' || letter == 'e') return 'a';
+  if (letter == 'i' || letter == 'y') return 'i';
+  return 'u';
+}
+
+/// The sound class of a word's first vowel sound: ee is i (Zeeshan, Heera);
+/// a word-initial e is i (Ebrahim, Esmail); au, aw, ou and ow are u
+/// (Chaudhry, Choudhry, Chowdhury); ai, ay, ae, ei and ey are e (Saeed,
+/// Faisal, Sheikh); otherwise the class of the first letter.
+String _firstVowelClass(String run, bool wordStart) {
+  if (run.startsWith('ee')) return 'i';
+  if (wordStart && run.startsWith('e')) return 'i';
+  if (_roundVowelStart.hasMatch(run)) return 'u';
+  if (_frontVowelStart.hasMatch(run)) return 'e';
+  return _vowelClass(run[0]);
+}
+
+/// The phonetic key of one word of lowercase ASCII letters.
+String _wordKey(String word) {
+  // 1. One letter per sound.
+  final buffer = StringBuffer();
+  for (var i = 0; i < word.length;) {
+    final pair =
+        i + 2 <= word.length ? _keyDigraphs[word.substring(i, i + 2)] : null;
+    if (pair != null) {
+      buffer.write(pair);
+      i += 2;
+    } else {
+      final letter = word[i];
+      buffer.write(_keyLetters[letter] ?? letter);
+      i += 1;
+    }
+  }
+  // 2. Doubled letters count once (Muhammad, Rehmaan), except ee, which
+  //    is written for a long i (Zeeshan, Heera, Saeed).
+  var letters =
+      buffer.toString().replaceAllMapped(_doubledLetter, (m) => m[1]!);
+  // 3. Which letters are vowels: a, e, i, o, u; y except at the start; w
+  //    after a vowel and before a consonant or the end (Chowdhury).
+  final vowel = <bool>[];
+  for (var i = 0; i < letters.length; i++) {
+    final letter = letters[i];
+    // As in TypeScript, the end of the word counts as a plain vowel here
+    // ('aeiou' contains ''), so a final w is not a vowel.
+    final next = i + 1 < letters.length ? letters[i + 1] : '';
+    vowel.add(
+      _plainVowels.contains(letter) ||
+          (letter == 'y' && i > 0) ||
+          (letter == 'w' &&
+              i > 0 &&
+              vowel[i - 1] &&
+              !_plainVowels.contains(next)),
+    );
+  }
+  // 4. A final h after a vowel is silent (Fatimah, Sarah).
+  final last = letters.length - 1;
+  if (last > 0 && letters[last] == 'h' && vowel[last - 1]) {
+    letters = letters.substring(0, last);
+    vowel.removeLast();
+  }
+  // 5. Consonants, the first vowel sound and a final vowel sound.
+  final key = StringBuffer();
+  var firstVowelDone = false;
+  for (var i = 0; i < letters.length;) {
+    if (!vowel[i]) {
+      key.write(letters[i]);
+      i += 1;
+      continue;
+    }
+    var end = i;
+    while (end < letters.length && vowel[end]) {
+      end += 1;
+    }
+    final run = letters.substring(i, end);
+    if (!firstVowelDone) {
+      key.write(_firstVowelClass(run, i == 0));
+      firstVowelDone = true;
+    } else if (end == letters.length) {
+      key.write(run.endsWith('ee') ? 'i' : _vowelClass(run[run.length - 1]));
+    }
+    i = end;
+  }
+  return key.toString();
+}
+
+/// Lowercases [text], applies NFKD, removes U+0300-036F and replaces any
+/// other character that is not a-z with a space.
+String _foldToLatin(String text) {
+  final buffer = StringBuffer();
+  for (final rune in jsToLowerCase(text).runes) {
+    if (rune >= 0x61 && rune <= 0x7a) {
+      buffer.writeCharCode(rune);
+    } else if (rune < 0x300 || rune > 0x36f) {
+      buffer.write(latinFold[rune] ?? ' ');
+    }
+  }
+  return buffer.toString();
+}
+
+/// A phonetic key for Roman Urdu, so that different spellings of the same
+/// name or word match: `Mubeen` and `Mobeen`, `Muhammad`, `Mohammad` and
+/// `Muhammed`, `Rehman` and `Rahman`, `Chaudhry`, `Chaudhary` and
+/// `Chaudhery`. Compare keys, not the text.
+///
+/// Each word keeps its consonants, its first vowel sound and a vowel sound
+/// at its end. Letters for one sound are merged (`kh`, `sh`, `ch`; `ph` and
+/// `f`; `q`, `c` and `k`; `v` and `w`; `th` and `t`, `dh` and `d`), doubled
+/// letters count once, `e` counts as `a`, `o` as `u`, and a final `h` after
+/// a vowel is dropped. Accents are removed and anything other than Latin
+/// letters splits words. The key is not meant to be shown: it is an opaque
+/// string.
+///
+/// Different names can share a key (`Hamid` and `Hamad`), so treat a match
+/// as "probably the same", not proof. [normalizeRomanUrdu] is a different
+/// tool: it rewrites informal spellings into readable text.
+///
+/// ```dart
+/// romanUrduKey('Mubeen') == romanUrduKey('Mobeen'); // true
+/// romanUrduKey('Muhammad Rehman'); // 'muhmd rahmn'
+/// romanUrduKey('Hussain') == romanUrduKey('Hassan'); // false
+/// ```
+///
+/// Returns the key, one part per word separated by spaces, or `''` for text
+/// with no Latin letters. Never throws.
+String romanUrduKey(String text) => _foldToLatin(text)
+    .split(_keyWordBreak)
+    .where((word) => word.isNotEmpty)
+    .map(_wordKey)
+    .join(' ');

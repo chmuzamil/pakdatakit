@@ -18,6 +18,15 @@ import {
 
 const YEARS = getSalaryTaxYears();
 
+/** "9% of the tax when taxable income is above Rs. 10,000,000", or why none. */
+function surchargeRule(
+  surcharge: { rate: number; over: number } | null,
+): string {
+  if (surcharge === null) return 'None in this tax year';
+  if (surcharge.rate === 0) return 'None for salaried individuals this year';
+  return `${surcharge.rate}% of the tax when taxable income is above ${rs(surcharge.over)}`;
+}
+
 export default function SalaryTaxTool({
   dataChecked,
 }: {
@@ -35,8 +44,11 @@ export default function SalaryTaxTool({
     amount === null
       ? null
       : state.per === 'month'
-        ? calculateMonthlySalaryTax(amount, { taxYear: year })
-        : calculateSalaryTax(amount, { taxYear: year });
+        ? calculateMonthlySalaryTax(amount, {
+            taxYear: year,
+            includeSurcharge: true,
+          })
+        : calculateSalaryTax(amount, { taxYear: year, includeSurcharge: true });
   const table = getSalaryTaxSlabs(year);
   useEffect(() => {
     if (
@@ -113,7 +125,15 @@ export default function SalaryTaxTool({
         </p>
         <Rows
           rows={[
-            ['Tax per year', rs(result?.tax)],
+            ['Tax from the rate table', rs(result?.tax)],
+            result && result.surcharge === 0
+              ? [
+                  'Surcharge (section 4AB)',
+                  `Rs. 0: ${surchargeRule(table?.surcharge ?? null).toLowerCase()}`,
+                  'text',
+                ]
+              : ['Surcharge (section 4AB)', rs(result?.surcharge)],
+            ['Total tax per year', rs(result?.total)],
             ['Tax per month', rs(result?.monthly)],
             ['Effective rate', result ? `${result.effectiveRate}%` : null],
             [
@@ -171,12 +191,30 @@ export default function SalaryTaxTool({
             </a>
             . <strong>Checked:</strong> {dataChecked}.
           </p>
+          <p className="pdk-note">
+            <strong>Surcharge:</strong> {surchargeRule(table.surcharge)}.
+            {table.surcharge ? (
+              <>
+                {' '}
+                It is a percentage of the whole tax, so one rupee over the
+                threshold adds it in full. {table.surcharge.law}.{' '}
+                <strong>Source:</strong>{' '}
+                <a href={table.surcharge.source} rel="noopener">
+                  {table.surcharge.source}
+                </a>
+                .
+              </>
+            ) : (
+              <> Section 4AB was added by the Finance Act 2024.</>
+            )}
+          </p>
         </section>
       ) : null}
       <p className="pdk-note">
-        An estimate from the salaried rate table only: it applies when salary is
-        more than 75% of taxable income, and does not include tax credits,
-        exemptions or allowances. Not tax advice.
+        An estimate from the salaried rate table and the section 4AB surcharge:
+        the table applies when salary is more than 75% of taxable income, and it
+        does not include tax credits, exemptions, allowances or super tax. Not
+        tax advice.
       </p>
       <PrivacyNote />
     </div>

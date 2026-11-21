@@ -5,7 +5,9 @@ import 'internal/normalize.dart';
 final RegExp _businessNtn = RegExp(r'^(\d{7})(?:[-‐‑‒–— ]?(\d))?$');
 final RegExp _strn = RegExp(r'^\d{13}$');
 
-/// Kind of National Tax Number.
+/// Kind of taxpayer a National Tax Number belongs to: [individual] when the
+/// NTN is a 13-digit CNIC, [business] for a company's or association's
+/// 7-digit NTN.
 enum NTNType {
   /// An individual's NTN: their 13-digit CNIC.
   individual('individual'),
@@ -22,7 +24,8 @@ enum NTNType {
   String toJson() => value;
 }
 
-/// Result of [analyzeNTN].
+/// What [analyzeNTN] reads from a National Tax Number: the kind of
+/// taxpayer, the digits and the usual display form.
 class NTNInfo {
   /// Creates an NTN info value.
   const NTNInfo({

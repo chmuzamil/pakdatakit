@@ -524,3 +524,91 @@ def test_fbr_invoice_never_raises() -> None:
                 assert built is not None
                 pdk.validate_fbr_invoice(built.invoice)
                 pdk.validate_fbr_invoice(invoice)
+
+
+def test_landline_services() -> None:
+    assert pdk.validate_landline("042-35761234") is True
+    assert pdk.validate_landline("021-111-123-456") is False
+    assert pdk.validate_landline("021-111-123-456", services=True) is True
+    assert pdk.validate_landline("111-123-456", services=True) is True
+    assert pdk.validate_landline("0800-12345", services=True) is True
+    assert pdk.validate_landline("0900-12345", services=True) is True
+    assert pdk.validate_landline("0122-123456", services=True) is False
+    assert pdk.validate_landline("0300-1234567", services=True) is False
+    # Toll-free is 800 and exactly five digits.
+    assert pdk.get_number_type("0800-12345") == "toll-free"
+    assert pdk.get_number_type("0800-12345678") is None
+    for value in HOSTILE_INPUTS + [True, 1.5, [], {}]:
+        assert pdk.validate_landline(value, services=True) is False or isinstance(value, str)
+
+
+def test_cnics_in_text() -> None:
+    text = "CNIC: 35202-1234567-1, phone 0300-1234567"
+    found = pdk.find_cnics(text)
+    assert found == [pdk.CNICMatch("35202-1234567-1", "3520212345671", "35202-1234567-1", 6, 21)]
+    assert text[found[0].start : found[0].end] == found[0].raw
+    mixed = pdk.find_cnics("x ۳۵۲۰۲ 1234567-١ y")
+    assert len(mixed) == 1 and mixed[0].digits == "3520212345671" and mixed[0].formatted == "35202-1234567-1"
+    assert pdk.find_cnics("1235202-1234567-1") == []
+    assert pdk.find_cnics("35202-1234567-12") == []
+    assert pdk.find_cnics("95202-1234567-1") == []
+    assert pdk.mask_cnics("My CNIC is 35202-1234567-1") == pdk.MaskedText("My CNIC is XXXXX-XXXXXXX-X", 1)
+    assert pdk.mask_cnics("35202 1234567 1", mask="*").text == "***** ******* *"
+    assert pdk.mask_cnics("35202 1234567 1", mask=5).text == "XXXXX XXXXXXX X"  # type: ignore[arg-type]
+    assert pdk.mask_cnics("a 3520212345671 b 61101-7654321-2", mask=r"\1").count == 2
+    assert pdk.mask_cnics("3520212345671", mask=r"\1").text == r"\1" * 13
+    for value in HOSTILE_INPUTS + [True, 1.5, [], {}]:
+        if not isinstance(value, str):
+            assert pdk.find_cnics(value) == []
+            assert pdk.mask_cnics(value) == pdk.MaskedText("", 0)
+
+
+def test_roman_urdu_key() -> None:
+    key = pdk.roman_urdu_key
+    assert key("Mubeen") == key("Mobeen")
+    assert key("Muhammad") == key("Mohammad") == key("Muhammed")
+    assert key("Rehman") == key("Rahman")
+    assert key("Chaudhry") == key("Chaudhary") == key("Chaudhery")
+    assert key("Muhammad Rehman") == "muhmd rahmn"
+    assert key("Hussain") != key("Hassan")
+    assert key("Fatimah") == key("Fatima")
+    assert key("Zéeshan") == key("Zeeshan")
+    assert key("سلام") == ""
+    for value in HOSTILE_INPUTS + [True, 1.5, [], {}]:
+        assert isinstance(key(value), str)  # type: ignore[arg-type]
+    assert key(None) == "" and key(42) == ""  # type: ignore[arg-type]
+
+
+def test_raast_kind_and_merchant_without_iban() -> None:
+    payload = pdk.create_merchant_qr(
+        {"fields": {"00": "A000000736", "01": "MERCHANT42"}}, "Aziz General Store", "Karachi"
+    )
+    result = pdk.validate_raast_qr(payload)
+    assert (result.valid, result.kind, result.errors, result.warnings) == (True, "merchant", [], ["no-iban"])
+    p2p = pdk.validate_raast_qr(pdk.create_raast_p2p_qr(IBAN))
+    assert p2p.kind == "p2p" and p2p.valid
+    missing = pdk.validate_raast_qr("hello")
+    assert missing.kind is None and missing.errors == ["not-a-raast-qr"]
+    assert [f.name for f in dataclasses.fields(pdk.RaastQrValidation)][:2] == ["valid", "kind"]
+
+
+def test_salary_tax_surcharge() -> None:
+    plain = pdk.calculate_salary_tax(12_000_000, tax_year=2026)
+    assert plain is not None and plain.surcharge == 0 and plain.total == plain.tax == 3_381_000
+    result = pdk.calculate_salary_tax(12_000_000, tax_year=2026, include_surcharge=True)
+    assert result is not None
+    assert (result.tax, result.surcharge, result.total, result.monthly) == (3_381_000, 304_290, 3_685_290, 307_107.5)
+    assert result.effective_rate == 30.71
+    assert [f.name for f in dataclasses.fields(pdk.SalaryTax)] == [
+        "tax", "surcharge", "total", "monthly", "effective_rate", "slab", "tax_year",
+    ]
+    # Only above Rs 10 million, and not in years without one.
+    at_limit = pdk.calculate_salary_tax(10_000_000, tax_year=2026, include_surcharge=True)
+    assert at_limit is not None and at_limit.surcharge == 0
+    assert pdk.calculate_salary_tax(12_000_000, tax_year=2027, include_surcharge=True).surcharge == 0  # type: ignore[union-attr]
+    assert pdk.calculate_salary_tax(12_000_000, tax_year=2024, include_surcharge=True).surcharge == 0  # type: ignore[union-attr]
+    monthly = pdk.calculate_monthly_salary_tax(1_000_000, tax_year=2026, include_surcharge=True)
+    assert monthly is not None and monthly.total == 3_685_290
+    slabs = pdk.get_salary_tax_slabs(2026)
+    assert slabs is not None and isinstance(slabs.surcharge, pdk.SalaryTaxSurcharge) and slabs.surcharge.rate == 9
+    assert pdk.get_salary_tax_slabs(2024).surcharge is None  # type: ignore[union-attr]

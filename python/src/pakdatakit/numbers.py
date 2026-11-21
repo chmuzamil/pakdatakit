@@ -12,8 +12,18 @@ from ._internal.phone_utils import normalize_phone_digits
 
 __all__ = ["NumberInfo", "analyze_number", "get_number_type", "validate_landline", "get_area_code"]
 
-# Number patterns from Google libphonenumber's PK metadata (v9.0.41). They apply
-# to the national significant number, without the trunk prefix 0.
+# Number patterns. They apply to the national significant number, without the
+# trunk prefix 0.
+#
+# - Fixed lines and area codes: Google libphonenumber's PK metadata (v9.0.41),
+#   which matches PTA's numbering plan (ITU, 9 November 2021).
+# - UAN: an area code, then 111 and six digits (PTA's plan, "National Universal
+#   Access Number"). Written without the area code, ``111-XXX-XXX`` is how UANs
+#   are advertised and dialled within a city.
+# - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
+# - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
+#   9.1.4, "current structure"; the 2021 plan does not list 0900).
+# - Personal (0122): libphonenumber only; no PTA document lists it.
 _FIXED_LINE = re.compile(
     r"(?:(?:(?:21|42)[2-9]|58[126])[0-9]{7}|(?:2[25]|4[0146-9]|5[1-35-7]|6[1-8]|7[14]|8[16]|91)[2-9][0-9]{6,7}|(?:2(?:3[2358]|4[2-4]|9[2-8])|45[3479]|54[2-467]|60[468]|72[236]|8(?:2[2-689]|3[23578]|4[3478]|5[2356])|9(?:2[2-8]|3[27-9]|4[2-6]|6[3569]|9[25-8]))[2-9][0-9]{5,6})\Z"
 )
@@ -21,7 +31,7 @@ _UAN = re.compile(
     r"((?:2(?:[125]|3[2358]|4[2-4]|9[2-8])|4(?:[0-246-9]|5[3479])|5(?:[1-35-7]|4[2-467])|6(?:0[468]|[1-8])|7(?:[14]|2[236])|8(?:[16]|2[2-689]|3[23578]|4[3478]|5[2356])|9(?:1|22|3[27-9]|4[2-6]|6[3569]|9[2-7])))111([0-9]{6})\Z"
 )
 _UAN_WITHOUT_AREA_CODE = re.compile(r"111([0-9]{6})\Z")
-_TOLL_FREE = re.compile(r"800([0-9]{5}(?:[0-9]{3})?)\Z")
+_TOLL_FREE = re.compile(r"800([0-9]{5})\Z")
 _PREMIUM = re.compile(r"900([0-9]{5})\Z")
 _PERSONAL = re.compile(r"122([0-9]{6})\Z")
 _NATIONAL = re.compile(r"[0-9]{8,12}\Z")
@@ -161,9 +171,32 @@ def get_number_type(phone: str) -> Optional[str]:
     return info.type if info else None
 
 
-def validate_landline(phone: str) -> bool:
-    """Validates a landline (fixed-line) number such as ``042-35761234``."""
-    return get_number_type(phone) == "landline"
+# The number types validate_landline accepts with ``services=True``.
+_SERVICE_TYPES = frozenset({"uan", "toll-free", "premium"})
+
+
+def validate_landline(phone: str, *, services: bool = False) -> bool:
+    """Validates a Pakistani landline (fixed-line) number such as ``042-35761234``.
+
+    With ``services=True`` it also accepts the non-geographic service numbers a
+    business may give as its landline: UAN (``021-111-123-456``,
+    ``111-123-456``), toll-free (``0800-12345``) and premium rate
+    (``0900-12345``); :func:`analyze_number` tells them apart with its ``type``
+    field. Returns ``False`` for a value that is not a string. Never raises.
+
+    >>> validate_landline("042-35761234")
+    True
+    >>> validate_landline("021-111-123-456")
+    False
+    >>> validate_landline("021-111-123-456", services=True)
+    True
+    """
+    if not isinstance(phone, str):
+        return False
+    kind = get_number_type(phone)
+    if kind == "landline":
+        return True
+    return services is True and kind in _SERVICE_TYPES
 
 
 def get_area_code(city: str) -> Optional[str]:

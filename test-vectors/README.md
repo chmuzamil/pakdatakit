@@ -9,14 +9,14 @@ port replays them and fails on any difference.
 
 <!-- vectors:count -->
 
-35,173 vectors in 27 files:
+35,182 vectors in 27 files:
 
 - `address.json`: 870
 - `bills.json`: 354
 - `cnic.json`: 185
 - `courier.json`: 1,670
 - `data-version.json`: 1
-- `docs-examples.json`: 136
+- `docs-examples.json`: 145
 - `fbr-invoice.json`: 158
 - `format.json`: 1,040
 - `geo.json`: 4,583

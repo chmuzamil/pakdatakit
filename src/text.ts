@@ -517,7 +517,7 @@ function wordKey(word: string): string {
   //    is written for a long i (Zeeshan, Heera, Saeed).
   letters = letters.replace(/([^e])\1+/g, '$1');
   // 3. Which letters are vowels: a, e, i, o, u; y except at the start; w
-  //    after a vowel and before a consonant or the end (Chowdhury).
+  //    after a vowel and before a consonant, not at the end (Chowdhury).
   const vowel: boolean[] = [];
   for (let i = 0; i < letters.length; i += 1) {
     const letter = letters[i] as string;

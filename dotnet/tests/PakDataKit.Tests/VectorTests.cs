@@ -437,6 +437,7 @@ public sealed class VectorTests(ITestOutputHelper output)
             TaxYear = k.GetValueOrDefault("taxYear") is { } year ? Integer(year) : null,
             Date = date as string ?? (date is null or DateTime ? null : Str(date)),
             OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,
+            IncludeSurcharge = OptBool(k.GetValueOrDefault("includeSurcharge")) ?? false,
         };
     }
 
@@ -476,14 +477,19 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["calculateSalesTax"] = ["rate", "province", "kind", "date", "inclusive"],
         ["validateFbrInvoice"] = ["today"],
         ["slugify"] = ["script"],
-        ["calculateSalaryTax"] = ["taxYear", "date"],
-        ["calculateMonthlySalaryTax"] = ["taxYear", "date"],
+        ["calculateSalaryTax"] = ["taxYear", "date", "includeSurcharge"],
+        ["calculateMonthlySalaryTax"] = ["taxYear", "date", "includeSurcharge"],
+        ["validateLandline"] = ["services"],
+        ["maskCNICs"] = ["mask"],
     };
 
     private static readonly Dictionary<string, Call> Functions = new()
     {
         ["validateCNIC"] = One(v => Cnic.Validate(v)),
         ["getCNICInfo"] = One(Cnic.GetInfo),
+        // TypeScript reads a text that is not a string as no text; .NET takes null.
+        ["findCNICs"] = (a, _) => Cnic.FindAll(Loose(a[0])),
+        ["maskCNICs"] = (a, k) => Cnic.Mask(Loose(a[0]), k.GetValueOrDefault("mask") as string),
         ["validatePhone"] = One(v => Phone.Validate(v)),
         ["formatPhone"] = One(Phone.Format),
         ["analyzePhone"] = One(Phone.Analyze),
@@ -528,6 +534,7 @@ public sealed class VectorTests(ITestOutputHelper output)
         }),
         ["normalizeText"] = One(Text.Normalize),
         ["normalizeRomanUrdu"] = One(Text.NormalizeRomanUrdu),
+        ["romanUrduKey"] = (a, _) => Text.RomanUrduKey(Loose(a[0])),
         ["toUrduDigits"] = One(Text.ToUrduDigits),
         ["toEnglishDigits"] = One(Text.ToEnglishDigits),
         ["slugify"] = (a, k) => Text.Slugify(
@@ -573,7 +580,9 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["parseVehiclePlate"] = One(VehiclePlate.Parse),
         ["analyzeNumber"] = One(Numbers.Analyze),
         ["getNumberType"] = One(v => Numbers.GetNumberType(v)),
-        ["validateLandline"] = One(v => Numbers.ValidateLandline(v)),
+        // A phone that is not a string is invalid in TypeScript; .NET takes null.
+        ["validateLandline"] = (a, k) =>
+            Numbers.ValidateLandline(Loose(a[0]), OptBool(k.GetValueOrDefault("services")) ?? false),
         ["getAreaCode"] = One(Numbers.GetAreaCode),
         ["createRaastP2PQr"] = (_, k) =>
         {

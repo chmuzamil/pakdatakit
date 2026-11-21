@@ -284,9 +284,13 @@ final class RaastQr
 
     /**
      * Checks whether a Raast QR code can be paid. Never throws. Errors: not
-     * a Pakistani payment QR, checksum mismatch, no IBAN or an invalid IBAN,
-     * expired, or a fixed-amount QR without an expiry. Warnings: an amount in
-     * a static QR (apps ignore it), or a QR that expires soon.
+     * a Pakistani payment QR, checksum mismatch, a person-to-person QR with
+     * no IBAN, an IBAN that fails its checksum, expired, or a fixed-amount QR
+     * without an expiry. Warnings: an amount in a static QR (apps ignore it),
+     * a QR that expires soon, or a merchant QR with no IBAN (`no-iban`):
+     * merchant QRs may pay through the merchant's own scheme, so it is
+     * valid, but the payee can't be checked from the QR. The result's `kind`
+     * is `p2p`, `merchant`, or null when the text is not a Raast QR.
      *
      * @param DateTimeInterface|null $now The time to check the expiry against; defaults to now
      * @param int|float $expiresSoonMs How close to expiry counts as "soon"; defaults to one hour
@@ -298,7 +302,7 @@ final class RaastQr
     ): RaastQrValidation {
         $qr = self::parse($payload);
         if ($qr === null) {
-            return new RaastQrValidation(false, ['not-a-raast-qr'], [], null);
+            return new RaastQrValidation(false, null, ['not-a-raast-qr'], [], null);
         }
 
         $errors = [];
@@ -309,7 +313,12 @@ final class RaastQr
             $errors[] = 'bad-checksum';
         }
         if ($qr->iban === null) {
-            $errors[] = 'no-iban';
+            // A merchant QR may route through the merchant's scheme without an IBAN.
+            if ($qr->kind === 'merchant') {
+                $warnings[] = 'no-iban';
+            } else {
+                $errors[] = 'no-iban';
+            }
         } elseif (!$qr->ibanValid) {
             $errors[] = 'invalid-iban';
         }
@@ -331,7 +340,7 @@ final class RaastQr
             }
         }
 
-        return new RaastQrValidation($errors === [], $errors, $warnings, $qr);
+        return new RaastQrValidation($errors === [], $qr->kind, $errors, $warnings, $qr);
     }
 
     // -------------------------------------------------------------------- EMV

@@ -53,9 +53,22 @@ function parseRaastQr(payload: string): ParsedRaastQr | null;
 ### validateRaastQr()
 
 ```ts
-function validateRaastQr(payload: string, now?: Date): RaastQrValidation;
+function validateRaastQr(
+  payload: string,
+  options?: { now?: Date; expiresSoonMs?: number },
+): RaastQrValidation;
+
+interface RaastQrValidation {
+  valid: boolean;
+  kind: 'p2p' | 'merchant' | null; // null when the text is not a Raast QR
+  errors: RaastQrError[]; // 'bad-checksum', 'no-iban', 'expired' …
+  warnings: RaastQrWarning[]; // 'amount-ignored', 'expires-soon', 'no-iban'
+  qr: ParsedRaastQr | null;
+}
 ```
 
-**Returns** whether a scanned QR is safe to pay: the CRC, IBAN checksum, amount and expiry, with readable problems.
+**Returns** whether a scanned QR is safe to pay: the CRC, IBAN checksum, amount and expiry, with readable problems, and the kind of QR.
+
+**Caveats.** A merchant QR without an IBAN is valid, with the warning `no-iban`: merchant QRs may pay through the merchant's own scheme, so the payee can't be checked from the QR. A person-to-person QR without an IBAN is an error (`no-iban` in `errors`).
 
 **Related:** [IBAN and banks](/docs/iban/), [`createMerchantQr()`](/api/typescript/raast/functions/createmerchantqr/).

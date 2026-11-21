@@ -33,7 +33,7 @@ public sealed class IncomeTaxTests
     public void AppliesTheSlabForTheYear()
     {
         Assert.Equal(
-            new SalaryTax(72000, 6000, 4, new SalaryTaxSlab(1200000, 2200000, 6000, 11), 2026),
+            new SalaryTax(72000, 0, 72000, 6000, 4, new SalaryTaxSlab(1200000, 2200000, 6000, 11), 2026),
             IncomeTax.CalculateSalaryTax(1_800_000, Year(2026)));
         Assert.Equal(120000, IncomeTax.CalculateSalaryTax(1_800_000, Year(2025))?.Tax);
         Assert.Equal(1774000, IncomeTax.CalculateSalaryTax(8_000_000, Year(2027))?.Tax);
@@ -80,6 +80,65 @@ public sealed class IncomeTaxTests
         var slabs = IncomeTax.GetSalaryTaxSlabs(2026)!.Slabs;
         ((SalaryTaxSlab[])slabs)[0] = new SalaryTaxSlab(0, 600000, 0, 99);
         Assert.Equal(0, IncomeTax.GetSalaryTaxSlabs(2026)!.Slabs[0].Rate);
+    }
+
+    [Fact]
+    public void AddsTheSection4ABSurchargeOnlyWhenAsked()
+    {
+        // Off by default: the 2.x results stay the same.
+        var plain = IncomeTax.CalculateSalaryTax(12_000_000, Year(2026))!;
+        Assert.Equal(0, plain.Surcharge);
+        Assert.Equal(plain.Tax, plain.Total);
+        // TY2026: 9% of the whole tax for salaried individuals above Rs 10 million.
+        var with = IncomeTax.CalculateSalaryTax(
+            12_000_000, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true })!;
+        Assert.Equal(3381000, with.Tax);
+        Assert.Equal(304290, with.Surcharge);
+        Assert.Equal(3685290, with.Total);
+        Assert.Equal(307107.5, with.Monthly);
+        // TY2025: 10%.
+        Assert.Equal(
+            346500,
+            IncomeTax.CalculateSalaryTax(
+                12_000_000, new SalaryTaxOptions { TaxYear = 2025, IncludeSurcharge = true })?.Surcharge);
+        // TY2027 (none for salaried) and before 2025 (no section 4AB): nothing.
+        foreach (var taxYear in new[] { 2027, 2024, 2020 })
+        {
+            Assert.Equal(
+                0,
+                IncomeTax.CalculateSalaryTax(
+                    12_000_000, new SalaryTaxOptions { TaxYear = taxYear, IncludeSurcharge = true })?.Surcharge);
+        }
+        // The monthly form uses the same surcharge.
+        Assert.Equal(
+            307107.5,
+            IncomeTax.CalculateMonthlySalaryTax(
+                1_000_000, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true })?.Monthly);
+    }
+
+    [Fact]
+    public void ChargesTheSurchargeOnlyAboveRs10MillionOnTheWholeTax()
+    {
+        SalaryTax? At(double income) =>
+            IncomeTax.CalculateSalaryTax(income, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true });
+        Assert.Equal(0, At(10_000_000)?.Surcharge);
+        Assert.Equal(241290, At(10_000_000.01)?.Surcharge);
+    }
+
+    [Fact]
+    public void GivesEachYearItsSurchargeWithTheLawAndSource()
+    {
+        Assert.Null(IncomeTax.GetSalaryTaxSlabs(2024)!.Surcharge);
+        Assert.Equal(10, IncomeTax.GetSalaryTaxSlabs(2025)!.Surcharge!.Rate);
+        Assert.Equal(10_000_000, IncomeTax.GetSalaryTaxSlabs(2025)!.Surcharge!.Over);
+        Assert.Equal(9, IncomeTax.GetSalaryTaxSlabs(2026)!.Surcharge!.Rate);
+        Assert.Equal(0, IncomeTax.GetSalaryTaxSlabs(2027)!.Surcharge!.Rate);
+        foreach (var year in new[] { 2025, 2026, 2027 })
+        {
+            Assert.StartsWith(
+                "https://download1.fbr.gov.pk/", IncomeTax.GetSalaryTaxSlabs(year)!.Surcharge!.Source,
+                StringComparison.Ordinal);
+        }
     }
 
     [Fact]

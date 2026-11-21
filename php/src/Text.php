@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PakDataKit;
 
 use PakDataKit\Internal\Js;
+use PakDataKit\Internal\LatinFold;
 use PakDataKit\Internal\Unicode;
 
 /**
@@ -280,6 +281,154 @@ final class Text
             default => "\u{2068}",
         };
         return $open . $text . "\u{2069}";
+    }
+
+    /** romanUrduKey(): two-letter spellings of one sound, and what each becomes in a key. */
+    private const KEY_DIGRAPHS = [
+        'kh' => 'kh', 'gh' => 'g', 'sh' => 'sh', 'ch' => 'ch', 'ph' => 'f', 'th' => 't',
+        'dh' => 'd', 'bh' => 'b', 'jh' => 'j', 'zh' => 'z', 'ck' => 'k',
+    ];
+
+    /** romanUrduKey(): letters written for the same sound as another letter. */
+    private const KEY_LETTERS = ['c' => 'k', 'q' => 'k', 'v' => 'w', 'x' => 'ks'];
+
+    private const PLAIN_VOWELS = 'aeiou';
+
+    /**
+     * A phonetic key for Roman Urdu, so that different spellings of the same
+     * name or word match: `Mubeen` and `Mobeen`, `Muhammad`, `Mohammad` and
+     * `Muhammed`, `Rehman` and `Rahman`, `Chaudhry`, `Chaudhary` and
+     * `Chaudhery`. Compare keys, not the text.
+     *
+     * Each word keeps its consonants, its first vowel sound and a vowel sound
+     * at its end. Letters for one sound are merged (`kh`, `sh`, `ch`; `ph`
+     * and `f`; `q`, `c` and `k`; `v` and `w`; `th` and `t`, `dh` and `d`),
+     * doubled letters count once, `e` counts as `a`, `o` as `u`, and a final
+     * `h` after a vowel is dropped. Accents are removed (compatibility
+     * decomposition, as JavaScript's `normalize('NFKD')`, without the intl
+     * extension) and anything other than Latin letters splits words. The key
+     * is not meant to be shown: it is an opaque string.
+     *
+     * Different names can share a key (`Hamid` and `Hamad`), so treat a match
+     * as "probably the same", not proof. normalizeRomanUrdu() is a different
+     * tool: it rewrites informal spellings into readable text.
+     *
+     * ```php
+     * Text::romanUrduKey('Mubeen') === Text::romanUrduKey('Mobeen'); // true
+     * Text::romanUrduKey('Muhammad Rehman'); // 'muhmd rahmn'
+     * ```
+     *
+     * @param mixed $text A name or other Roman Urdu text
+     * @return string The key, one part per word separated by spaces; `''` for
+     *   text with no Latin letters or a value that is not a string. Never throws.
+     */
+    public static function romanUrduKey(mixed $text): string
+    {
+        if (!is_string($text)) {
+            return '';
+        }
+        $lower = Unicode::lower(mb_scrub($text, 'UTF-8'));
+        // NFKD, then drop U+0300-036F, keeping only a-z (anything else splits words).
+        $folded = '';
+        foreach (Js::codePoints($lower) as $char) {
+            if (strlen($char) === 1) {
+                $folded .= $char;
+            } else {
+                $folded .= LatinFold::MAP[self::codePoint($char)] ?? ' ';
+            }
+        }
+        $words = preg_split('/[^a-z]+/', $folded, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        return implode(' ', array_map(self::wordKey(...), $words));
+    }
+
+    /** The phonetic key of one word of lowercase ASCII letters. */
+    private static function wordKey(string $word): string
+    {
+        // 1. One letter per sound.
+        $letters = '';
+        $length = strlen($word);
+        for ($i = 0; $i < $length;) {
+            $pair = self::KEY_DIGRAPHS[substr($word, $i, 2)] ?? null;
+            if ($pair !== null) {
+                $letters .= $pair;
+                $i += 2;
+            } else {
+                $letters .= self::KEY_LETTERS[$word[$i]] ?? $word[$i];
+                $i += 1;
+            }
+        }
+        // 2. Doubled letters count once, except ee (a long i).
+        $letters = (string) preg_replace('/([^e])\1+/', '$1', $letters);
+        // 3. Vowels: a, e, i, o, u; y except at the start; w after a vowel
+        //    and before a consonant, not at the end.
+        $length = strlen($letters);
+        $vowel = [];
+        for ($i = 0; $i < $length; $i++) {
+            $letter = $letters[$i];
+            $next = $i + 1 < $length ? $letters[$i + 1] : '';
+            $vowel[] = str_contains(self::PLAIN_VOWELS, $letter)
+                || ($letter === 'y' && $i > 0)
+                || ($letter === 'w' && $i > 0 && $vowel[$i - 1]
+                    && !str_contains(self::PLAIN_VOWELS, $next));
+        }
+        // 4. A final h after a vowel is silent.
+        $last = $length - 1;
+        if ($last > 0 && $letters[$last] === 'h' && $vowel[$last - 1]) {
+            $letters = substr($letters, 0, $last);
+            array_pop($vowel);
+            $length--;
+        }
+        // 5. Consonants, the first vowel sound and a final vowel sound.
+        $key = '';
+        $firstVowelDone = false;
+        for ($i = 0; $i < $length;) {
+            if (!$vowel[$i]) {
+                $key .= $letters[$i];
+                $i++;
+                continue;
+            }
+            $end = $i;
+            while ($end < $length && $vowel[$end]) {
+                $end++;
+            }
+            $run = substr($letters, $i, $end - $i);
+            if (!$firstVowelDone) {
+                $key .= self::firstVowelClass($run, $i === 0);
+                $firstVowelDone = true;
+            } elseif ($end === $length) {
+                $key .= str_ends_with($run, 'ee') ? 'i' : self::vowelClass($run[strlen($run) - 1]);
+            }
+            $i = $end;
+        }
+        return $key;
+    }
+
+    /** The sound class of a vowel letter: a (a, e), i (i, y) or u (o, u, w). */
+    private static function vowelClass(string $letter): string
+    {
+        return match ($letter) {
+            'a', 'e' => 'a',
+            'i', 'y' => 'i',
+            default => 'u',
+        };
+    }
+
+    /** The sound class of a word's first vowel sound (see romanUrduKey()). */
+    private static function firstVowelClass(string $run, bool $wordStart): string
+    {
+        if (str_starts_with($run, 'ee')) {
+            return 'i';
+        }
+        if ($wordStart && str_starts_with($run, 'e')) {
+            return 'i';
+        }
+        if (preg_match('/^[ao][uw]/', $run) === 1) {
+            return 'u';
+        }
+        if (preg_match('/^(a[iye]|e[iy])/', $run) === 1) {
+            return 'e';
+        }
+        return self::vowelClass($run[0]);
     }
 
     /** The code point of one character from Js::codePoints(); a malformed byte sequence is decoded as far as it goes. */

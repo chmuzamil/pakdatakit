@@ -130,6 +130,20 @@ public sealed class DataAnnotationsTests
     }
 
     [Fact]
+    public void PakLandlineAcceptsServiceNumbersWithServices()
+    {
+        var plain = new PakLandlineAttribute();
+        var services = new PakLandlineAttribute { Services = true };
+        Assert.True(plain.IsValid("042-35761234"));
+        Assert.False(plain.IsValid("021-111-123-456"));
+        foreach (var number in new[] { "021-111-123-456", "0800-78686", "0900-12345", "042-35761234" })
+            Assert.True(services.IsValid(number), number);
+        Assert.False(services.IsValid("03001234567"));
+        Assert.True(services.IsValid(""));
+        Assert.False(services.IsValid(42));
+    }
+
+    [Fact]
     public void RejectsValuesThatAreNotStrings()
     {
         Assert.False(new CnicAttribute().IsValid(3520212345671));
@@ -163,6 +177,20 @@ public sealed class FluentValidationTests
 
     private static List<string> Errors(Customer customer) =>
         new CustomerValidator().Validate(customer).Errors.Select(e => e.ErrorMessage).ToList();
+
+    private sealed class OfficeValidator : AbstractValidator<Customer>
+    {
+        public OfficeValidator() => RuleFor(c => c.Landline).IsPakLandline(services: true);
+    }
+
+    [Fact]
+    public void IsPakLandlineAcceptsServiceNumbersWithServices()
+    {
+        Assert.NotEmpty(Errors(new Customer("3520212345671", Landline: "021-111-123-456")));
+        foreach (var number in new[] { "021-111-123-456", "0800-78686", "0900-12345", "042-35761234", "" })
+            Assert.True(new OfficeValidator().Validate(new Customer(null, Landline: number)).IsValid, number);
+        Assert.False(new OfficeValidator().Validate(new Customer(null, Landline: "03001234567")).IsValid);
+    }
 
     [Fact]
     public void AcceptsValidValues()

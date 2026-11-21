@@ -95,7 +95,10 @@ const CNIC_IN_TEXT = new RegExp(
   'g',
 );
 
-/** A CNIC found by {@link findCNICs}. */
+/**
+ * A CNIC that {@link findCNICs} found in free text: as written, its digits,
+ * its formatted form and where it is in the text.
+ */
 export interface CNICMatch {
   /** The text as written, e.g. `35202 1234567-1` or with Urdu digits. */
   raw: string;
@@ -155,7 +158,10 @@ export interface MaskCNICsOptions {
   mask?: string;
 }
 
-/** Result of {@link maskCNICs}. */
+/**
+ * What {@link maskCNICs} returns: the text with every CNIC's digits masked,
+ * and how many CNICs it masked.
+ */
 export interface MaskedText {
   /** The text with every CNIC's digits masked; separators are kept. */
   text: string;

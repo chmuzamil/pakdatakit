@@ -37,8 +37,18 @@ public sealed record NumberInfo(
 /// <summary>Landline, UAN, toll-free, premium and personal numbers.</summary>
 public static class Numbers
 {
-    // Number patterns from Google libphonenumber's PK metadata (v9.0.41). They
-    // apply to the national significant number, without the trunk prefix 0.
+    // Number patterns. They apply to the national significant number, without
+    // the trunk prefix 0.
+    //
+    // - Fixed lines and area codes: Google libphonenumber's PK metadata
+    //   (v9.0.41), which matches PTA's numbering plan (ITU, 9 November 2021).
+    // - UAN: an area code, then 111 and six digits (PTA's plan, "National
+    //   Universal Access Number"). Written without the area code, 111-XXX-XXX
+    //   is how UANs are advertised and dialled within a city.
+    // - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
+    // - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
+    //   9.1.4, "current structure"; the 2021 plan does not list 0900).
+    // - Personal (0122): libphonenumber only; no PTA document lists it.
     private static readonly SafeRegex FixedLine = Js.Rx(
         "^(?:(?:(?:21|42)[2-9]|58[126])[0-9]{7}|(?:2[25]|4[0146-9]|5[1-35-7]|6[1-8]|7[14]|8[16]|91)[2-9][0-9]{6,7}|(?:2(?:3[2358]|4[2-4]|9[2-8])|45[3479]|54[2-467]|60[468]|72[236]|8(?:2[2-689]|3[23578]|4[3478]|5[2356])|9(?:2[2-8]|3[27-9]|4[2-6]|6[3569]|9[25-8]))[2-9][0-9]{5,6})\\z");
 
@@ -46,7 +56,7 @@ public static class Numbers
         "^((?:2(?:[125]|3[2358]|4[2-4]|9[2-8])|4(?:[0-246-9]|5[3479])|5(?:[1-35-7]|4[2-467])|6(?:0[468]|[1-8])|7(?:[14]|2[236])|8(?:[16]|2[2-689]|3[23578]|4[3478]|5[2356])|9(?:1|22|3[27-9]|4[2-6]|6[3569]|9[2-7])))111([0-9]{6})\\z");
 
     private static readonly SafeRegex UanWithoutAreaCode = Js.Rx("^111([0-9]{6})\\z");
-    private static readonly SafeRegex TollFree = Js.Rx("^800([0-9]{5}(?:[0-9]{3})?)\\z");
+    private static readonly SafeRegex TollFree = Js.Rx("^800([0-9]{5})\\z");
     private static readonly SafeRegex Premium = Js.Rx("^900([0-9]{5})\\z");
     private static readonly SafeRegex Personal = Js.Rx("^122([0-9]{6})\\z");
     private static readonly SafeRegex National = Js.Rx("^[0-9]{8,12}\\z");
@@ -126,9 +136,43 @@ public static class Numbers
     public static NumberType? GetNumberType(string? phone) => Analyze(phone)?.Type;
 
     /// <summary>Validates a landline (fixed-line) number such as <c>042-35761234</c>.</summary>
-    /// <param name="phone">Number to validate.</param>
-    /// <returns><c>true</c> if it is a valid landline number.</returns>
-    public static bool ValidateLandline(string? phone) => GetNumberType(phone) == NumberType.Landline;
+    /// <remarks>
+    /// UAN, toll-free and premium-rate numbers are not landlines here; use
+    /// <see cref="ValidateLandline(string?, bool)"/> with <c>services: true</c>
+    /// to accept them too.
+    /// </remarks>
+    /// <param name="phone">Number in local or international format.</param>
+    /// <returns><c>true</c> if it is a valid landline number. Never throws.</returns>
+    public static bool ValidateLandline(string? phone) => ValidateLandline(phone, services: false);
+
+    /// <summary>
+    /// Validates a landline (fixed-line) number such as <c>042-35761234</c>.
+    /// With <paramref name="services"/> it also accepts the non-geographic
+    /// service numbers a business may give as its landline: UAN
+    /// (<c>021-111-123-456</c>, <c>111-123-456</c>), toll-free
+    /// (<c>0800-12345</c>) and premium rate (<c>0900-12345</c>);
+    /// <see cref="Analyze"/> tells them apart with its <see cref="NumberInfo.Type"/>.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// Numbers.ValidateLandline("042-35761234");                     // true
+    /// Numbers.ValidateLandline("021-111-123-456");                  // false
+    /// Numbers.ValidateLandline("021-111-123-456", services: true);  // true
+    /// </code>
+    /// </remarks>
+    /// <param name="phone">Number in local or international format.</param>
+    /// <param name="services"><c>true</c> to also accept UAN, toll-free and premium-rate numbers.</param>
+    /// <returns>
+    /// <c>true</c> for a valid landline number (or service number, with
+    /// <paramref name="services"/>). Never throws.
+    /// </returns>
+    public static bool ValidateLandline(string? phone, bool services)
+    {
+        if (phone is null) return false;
+        var type = GetNumberType(phone);
+        if (type == NumberType.Landline) return true;
+        return services && type is NumberType.Uan or NumberType.TollFree or NumberType.Premium;
+    }
 
     /// <summary>Returns the landline area code for a city, with trunk prefix (e.g. <c>042</c>).</summary>
     /// <param name="city">City name; case and spacing are ignored.</param>

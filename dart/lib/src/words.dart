@@ -1,6 +1,7 @@
 import 'internal/js.dart';
 
-/// Language for number words.
+/// Language for numbers and amounts in words: [en] for English with lakh
+/// and crore, [ur] for Urdu script.
 enum WordsLanguage {
   /// English.
   en('en'),

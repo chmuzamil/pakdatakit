@@ -32,10 +32,14 @@ use PakDataKit\{Postal, Geo, Currency, Words, Hijri, Holidays, RaastQr};
 Cnic::validate('35202-1234567-1');            // true
 Cnic::getInfo('35202-1234567-1');
 // CnicInfo { digits: '3520212345671', formatted: '35202-1234567-1', province: 'Punjab', gender: 'male' }
+Cnic::findAll('CNIC: 35202-1234567-1, phone 0300-1234567');
+// [CnicMatch { raw: '35202-1234567-1', digits: '3520212345671', formatted: '35202-1234567-1', start: 6, end: 21 }]
+Cnic::mask('My CNIC is 35202-1234567-1')->text;   // 'My CNIC is XXXXX-XXXXXXX-X'
 
 Phone::format('0300 1234567');                // '+923001234567'
 Networks::getNetwork('0300 1234567');         // 'Jazz'
 Numbers::validateLandline('042-35761234');    // true
+Numbers::validateLandline('021-111-123-456', services: true);  // true (UAN, toll-free, premium)
 
 Iban::validate('PK36SCBL0000001123456702');   // true
 Iban::getBank('PK36SCBL0000001123456702');    // 'Standard Chartered Bank (Pakistan) Limited'
@@ -65,7 +69,13 @@ $payload = RaastQr::createP2P([
     'expiresIn' => '1d',
 ]);
 RaastQr::validate($payload)->valid;           // true
+RaastQr::validate($payload)->kind;            // 'p2p' ('merchant', or null when not a Raast QR)
 ```
+
+`RaastQr::validate()` treats a merchant QR that names no IBAN as valid, with
+the warning `no-iban` (it pays through the merchant's own scheme, so the payee
+can't be checked from the QR); a person-to-person QR with no IBAN is still an
+error.
 
 Results are small read-only objects with the same property names as the npm
 package; call `->toArray()` for an array.
@@ -75,6 +85,7 @@ package; call `->toArray()` for an array.
 | npm                                                    | PHP                                                                               |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
 | `validateCNIC`, `getCNICInfo`                          | `Cnic::validate`, `Cnic::getInfo`                                                 |
+| `findCNICs`, `maskCNICs`                               | `Cnic::findAll`, `Cnic::mask`                                                     |
 | `validatePhone`, `formatPhone`, `analyzePhone`         | `Phone::validate`, `Phone::format`, `Phone::analyze`                              |
 | `getNetwork`                                           | `Networks::getNetwork`                                                            |
 | `analyzeNumber`, `validateLandline`, `getAreaCode`     | `Numbers::analyze`, `Numbers::validateLandline`, `Numbers::getAreaCode`           |
@@ -95,6 +106,7 @@ package; call `->toArray()` for an array.
 | `numberToWords`, `amountInWords`                       | `Words::numberToWords`, `Words::amountInWords`                                    |
 | `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text::normalize`, `Text::normalizeRomanUrdu`, `Text::toUrduDigits`               |
 | `slugify`, `compareUrdu`                               | `Text::slugify`, `Text::compareUrdu`                                              |
+| `romanUrduKey`                                         | `Text::romanUrduKey`                                                              |
 | `isRTL`, `wrapBidi`                                    | `Text::isRtl`, `Text::wrapBidi`                                                   |
 | `toHijri`, `fromHijri`, `formatHijri`, `isRamadan`     | `Hijri::toHijri`, `Hijri::fromHijri`, `Hijri::format`, `Hijri::isRamadan`         |
 | `getPakistanHolidays`, `getHolidaysOn`, …              | `Holidays::getHolidays`, `Holidays::getHolidaysOn`, `Holidays::isHoliday`         |
@@ -111,6 +123,20 @@ package; call `->toArray()` for an array.
 | `expectedSalesTax`, `FBR_DI_SPEC_VERSION`              | `FbrInvoice::expectedSalesTax`, `FbrInvoice::SPEC_VERSION`                        |
 | `mapCourierStatus`, `normalizeCityForCourier`          | `Courier::mapStatus`, `Courier::normalizeCity`                                    |
 | `dataVersion`                                          | `PakData::version()`                                                              |
+
+`Cnic::findAll()` finds CNICs in free text (a chat message, a note) and
+`Cnic::mask()` masks their digits, for example before logging. A match is 13
+digits starting with a province digit (1-8), together or in 5-7-1 groups with
+any hyphen, dash, dot or space between the groups (the two may differ), in
+ASCII, Urdu or Arabic-Indic digits, and never next to another digit. Any other
+13-digit number starting with 1-8 matches too. `start` and `end` count code
+points, so use `mb_substr()`. `Cnic::mask($text, '*')` takes the mask string;
+anything that is not a string gives `[]` or an empty `MaskedText`.
+
+`Numbers::validateLandline($phone, services: true)` also accepts UAN
+(`021-111-123-456`, `111-123-456`), toll-free (`0800` and five digits) and
+premium-rate (`0900` and five digits) numbers, as in PTA's numbering plan;
+`Numbers::analyze()` tells them apart by `type`.
 
 Divisions and tehsils come from the 2023 census (30 divisions, 591 tehsils).
 Each tehsil is recorded under the district it was in at the census, so
@@ -217,6 +243,13 @@ then Urdu letters, then other Arabic-script characters (the look-alikes ك ي ه
 and other scripts. It needs neither intl nor ICU, so the order is the same as
 in the npm package and the other ports.
 
+`Text::romanUrduKey()` gives a phonetic key for Roman Urdu, so that spellings
+of one name match: `Mubeen` and `Mobeen`, `Muhammad` and `Mohammad`,
+`Chaudhry` and `Chaudhary` (`Text::romanUrduKey('Muhammad Rehman')` is
+`'muhmd rahmn'`). Compare keys; don't show them. Different names can share a
+key (`Hamid` and `Hamad`), so a match means "probably the same". Accents are
+removed as JavaScript's `normalize('NFKD')` does, without intl.
+
 `Text::isRtl()` is true when the first letter is from a right-to-left script.
 `Text::wrapBidi()` wraps text in Unicode directional isolates (FSI … PDI, or
 RLI/LRI with `Text::BIDI_RTL` / `Text::BIDI_LTR`). All four take any value:
@@ -274,8 +307,11 @@ is named after the June it ends in.
 use PakDataKit\IncomeTax;
 
 IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026]);
-// SalaryTax { tax: 72000.0, monthly: 6000.0, effectiveRate: 4.0,
+// SalaryTax { tax: 72000.0, surcharge: 0.0, total: 72000.0, monthly: 6000.0, effectiveRate: 4.0,
 //   slab: SalaryTaxSlab { over: 1200000, upTo: 2200000, fixed: 6000, rate: 11 }, taxYear: 2026 }
+
+IncomeTax::calculateSalary(12_000_000, ['taxYear' => 2026, 'includeSurcharge' => true]);
+// SalaryTax { tax: 3381000.0, surcharge: 304290.0, total: 3685290.0, monthly: 307107.5, … }
 
 IncomeTax::calculateMonthlySalary(150_000, ['taxYear' => 2026])?->monthly;  // 6000.0
 IncomeTax::getSalarySlabs(2027);       // SalaryTaxYear: the table, its law and FBR source
@@ -283,14 +319,21 @@ IncomeTax::getSalaryYears();           // [2020, 2021, …, 2027]
 IncomeTax::getTaxYear('2025-07-01');   // 2026
 ```
 
-Options are `taxYear` (an integer; it wins over `date`) and `date`
-(`YYYY-MM-DD` or a `DateTimeInterface`); without either, today's tax year is
-used. A year that is not covered, a non-integer `taxYear`, an invalid date, or
+Options are `taxYear` (an integer; it wins over `date`), `date`
+(`YYYY-MM-DD` or a `DateTimeInterface`) and `includeSurcharge`; without
+`taxYear` or `date`, today's tax year is used. A year that is not covered, a non-integer `taxYear`, an invalid date, or
 an amount that is not a number from 0 to one trillion (strings and booleans
 included) returns `null`, never an exception. Tax is computed in whole paisa
-and rounded half up. Only the rate table is applied: the surcharge, tax
-credits, exemptions, the separate rate for pensions and withholding
-adjustments are not.
+and rounded half up.
+
+`'includeSurcharge' => true` adds the section 4AB surcharge: a percentage of
+the whole tax once taxable income exceeds Rs 10 million (10% in tax year 2025,
+9% for salaried individuals in 2026, none in 2027 or before 2025). It is off
+by default in 2.x, so existing results do not change. `monthly` is `total / 12`
+and `effectiveRate` is based on `total`. `SalaryTaxYear::$surcharge` gives each
+year's rate, threshold, law and source (null before 2025). Tax credits,
+exemptions, the separate rate for pensions, super tax and withholding
+adjustments are not applied.
 
 ### FBR Digital Invoicing
 
@@ -423,7 +466,8 @@ $request->validate([
 ]);
 ```
 
-Rules: `pk_cnic`, `pk_phone`, `pk_iban`, `pk_ntn`, `pk_strn`, `pk_landline`,
+Rules: `pk_cnic`, `pk_phone`, `pk_iban`, `pk_ntn`, `pk_strn`, `pk_landline`
+(`pk_landline:services` also accepts UAN, toll-free and premium numbers),
 `pk_passport`, `pk_vehicle_plate`, `pk_electricity_ref` (an electricity bill
 reference number, customer ID or K-Electric account number),
 `pk_cod_phone` (a mobile number a courier can call: no
@@ -446,6 +490,7 @@ $request->validate([
 `Rules\Cnic`, `Rules\Phone`, `Rules\Iban`, `Rules\Ntn`, `Rules\Strn`,
 `Rules\Landline`, `Rules\Passport`, `Rules\VehiclePlate`,
 `Rules\ElectricityRef`, `Rules\CodPhone` and `Rules\Amount`.
+`new Rules\Landline(services: true)` is `pk_landline:services`.
 
 ### Messages
 

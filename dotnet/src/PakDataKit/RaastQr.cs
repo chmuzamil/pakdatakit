@@ -30,7 +30,7 @@ public enum RaastQrError
     /// <summary>The CRC checksum does not match.</summary>
     BadChecksum,
 
-    /// <summary>The QR code carries no IBAN.</summary>
+    /// <summary>A person-to-person QR code carries no IBAN.</summary>
     NoIban,
 
     /// <summary>The IBAN is not a valid Pakistani IBAN.</summary>
@@ -51,6 +51,12 @@ public enum RaastQrWarning
 
     /// <summary>The QR code expires soon.</summary>
     ExpiresSoon,
+
+    /// <summary>
+    /// A merchant QR code names no IBAN. It pays through the merchant's own
+    /// scheme, so it is valid, but the payee can't be checked from the QR.
+    /// </summary>
+    NoIban,
 }
 
 /// <summary>Options for <see cref="RaastQr.CreateP2P"/>.</summary>
@@ -189,11 +195,18 @@ public sealed record ParsedRaastQr
 
 /// <summary>Result of <see cref="RaastQr.Validate"/>.</summary>
 /// <param name="Valid"><c>true</c> when there are no errors.</param>
+/// <param name="Kind">
+/// <see cref="RaastQrKind.P2p"/> for a person-to-person QR,
+/// <see cref="RaastQrKind.Merchant"/> for a merchant QR, <c>null</c> when the
+/// text is not a Raast QR.
+/// </param>
 /// <param name="Errors">Reasons the QR cannot be paid.</param>
 /// <param name="Warnings">Things worth showing the user.</param>
 /// <param name="Qr">The parsed QR, or <c>null</c> if it could not be read.</param>
 public sealed record RaastQrValidation(
-    bool Valid, IReadOnlyList<RaastQrError> Errors, IReadOnlyList<RaastQrWarning> Warnings, ParsedRaastQr? Qr);
+    bool Valid,
+    RaastQrKind? Kind,
+    IReadOnlyList<RaastQrError> Errors, IReadOnlyList<RaastQrWarning> Warnings, ParsedRaastQr? Qr);
 
 /// <summary>
 /// Raast QR codes: SBP person-to-person and EMVCo merchant QR payloads, per
@@ -429,10 +442,20 @@ public static class RaastQr
 
     /// <summary>
     /// Checks whether a Raast QR code can be paid. Errors: not a Pakistani
-    /// payment QR, checksum mismatch, no IBAN or an invalid IBAN, expired, or
-    /// a fixed-amount QR without an expiry. Warnings: an amount in a static
-    /// QR (apps ignore it), or a QR that expires soon.
+    /// payment QR, checksum mismatch, a person-to-person QR with no IBAN, an
+    /// IBAN that fails its checksum, expired, or a fixed-amount QR without an
+    /// expiry. Warnings: an amount in a static QR (apps ignore it), a QR that
+    /// expires soon, or a merchant QR with no IBAN
+    /// (<see cref="RaastQrWarning.NoIban"/>): merchant QRs may pay through the
+    /// merchant's own scheme, so it is valid, but the payee can't be checked
+    /// from the QR.
     /// </summary>
+    /// <remarks>
+    /// <code>
+    /// RaastQr.Validate(scannedText);
+    /// // Valid = false, Kind = P2p, Errors = [Expired], Warnings = [], Qr = { ... }
+    /// </code>
+    /// </remarks>
     /// <param name="payload">Text decoded from the QR code.</param>
     /// <param name="now">The time to check the expiry against. Defaults to the current local time.</param>
     /// <param name="expiresSoonMs">How close to expiry counts as "soon", in milliseconds. Defaults to one hour.</param>
@@ -440,14 +463,19 @@ public static class RaastQr
     public static RaastQrValidation Validate(string? payload, DateTime? now = null, double expiresSoonMs = 3_600_000)
     {
         var qr = Parse(payload);
-        if (qr is null) return new RaastQrValidation(false, [RaastQrError.NotARaastQr], [], null);
+        if (qr is null) return new RaastQrValidation(false, null, [RaastQrError.NotARaastQr], [], null);
 
         var errors = new List<RaastQrError>();
         var warnings = new List<RaastQrWarning>();
         var current = now ?? DateTime.Now;
 
         if (!qr.CrcValid) errors.Add(RaastQrError.BadChecksum);
-        if (qr.Iban is null) errors.Add(RaastQrError.NoIban);
+        if (qr.Iban is null)
+        {
+            // A merchant QR may route through the merchant's scheme without an IBAN.
+            if (qr.Kind == RaastQrKind.Merchant) warnings.Add(RaastQrWarning.NoIban);
+            else errors.Add(RaastQrError.NoIban);
+        }
         else if (!qr.IbanValid) errors.Add(RaastQrError.InvalidIban);
 
         if (qr.Kind == RaastQrKind.P2p)
@@ -463,7 +491,7 @@ public static class RaastQr
             }
         }
 
-        return new RaastQrValidation(errors.Count == 0, errors, warnings, qr);
+        return new RaastQrValidation(errors.Count == 0, qr.Kind, errors, warnings, qr);
     }
 
     // ------------------------------------------------------------------ EMV

@@ -68,18 +68,31 @@ final class IncomeTax
      * from the salaried rate table (see getSalarySlabs()). Tax is rounded
      * half up to the paisa, reading the amount as written.
      *
-     * Only the rate table is applied: the surcharge, tax credits,
-     * exemptions, the separate pension rate and withholding adjustments
-     * are not.
+     * With `includeSurcharge => true` it adds the section 4AB surcharge: a
+     * percentage of the whole tax once taxable income exceeds Rs 10 million
+     * (10% in tax year 2025, 9% for salaried individuals in 2026, none in
+     * 2027 or before 2025). Because it applies to the whole tax, one rupee
+     * over Rs 10 million adds it in full. It is off by default in 2.x so
+     * that existing results do not change, and will be on by default in 3.0.
+     *
+     * Tax credits, exemptions, the separate pension rate, super tax and
+     * withholding adjustments are not applied. This is an estimate, not tax
+     * advice.
      *
      * Options:
      * - `taxYear` (int): e.g. `2026`; takes precedence over `date`
      * - `date` (string `YYYY-MM-DD` or DateTimeInterface): a day in the tax year
-     * Without either, today's tax year is used.
+     * - `includeSurcharge` (bool): add the section 4AB surcharge; default false
+     * Without `taxYear` or `date`, today's tax year is used.
+     *
+     * ```php
+     * IncomeTax::calculateSalary(12_000_000, ['taxYear' => 2026, 'includeSurcharge' => true]);
+     * // tax 3381000, surcharge 304290, total 3685290, monthly 307107.5
+     * ```
      *
      * @param mixed $annualIncome Taxable income for the year in rupees
      *     (int|float), 0 to one trillion
-     * @param array{taxYear?: mixed, date?: mixed}|null $options
+     * @param array{taxYear?: mixed, date?: mixed, includeSurcharge?: mixed}|null $options
      * @return SalaryTax|null Null for an invalid amount or a tax year that
      *     is not covered. Never throws.
      */
@@ -90,7 +103,7 @@ final class IncomeTax
             return null;
         }
         $year = self::findYear($options);
-        return $year === null ? null : self::compute($paisa, $year);
+        return $year === null ? null : self::compute($paisa, $year, ($options['includeSurcharge'] ?? false) === true);
     }
 
     /**
@@ -98,7 +111,7 @@ final class IncomeTax
      * × 12`, and `monthly` is the tax to withhold each month.
      *
      * @param mixed $monthlySalary Rupees (int|float), 0 to one trillion
-     * @param array{taxYear?: mixed, date?: mixed}|null $options As for calculateSalary()
+     * @param array{taxYear?: mixed, date?: mixed, includeSurcharge?: mixed}|null $options As for calculateSalary()
      * @return SalaryTax|null Null for an invalid amount or a tax year that
      *     is not covered. Never throws.
      */
@@ -109,7 +122,7 @@ final class IncomeTax
             return null;
         }
         $year = self::findYear($options);
-        return $year === null ? null : self::compute($paisa * 12, $year);
+        return $year === null ? null : self::compute($paisa * 12, $year, ($options['includeSurcharge'] ?? false) === true);
     }
 
     /** @param array<string, mixed>|null $options */
@@ -137,7 +150,7 @@ final class IncomeTax
         return null;
     }
 
-    private static function compute(int $incomePaisa, SalaryTaxYear $year): SalaryTax
+    private static function compute(int $incomePaisa, SalaryTaxYear $year, bool $includeSurcharge): SalaryTax
     {
         $slab = $year->slabs[0];
         foreach ($year->slabs as $candidate) {
@@ -150,12 +163,23 @@ final class IncomeTax
         if ($incomePaisa > $slab->over * 100) {
             $taxPaisa += self::mulDivHalfUp($incomePaisa - $slab->over * 100, $rateBp, 10_000);
         }
+        $surcharge = $year->surcharge;
+        $surchargePaisa = $includeSurcharge
+            && $surcharge !== null
+            && $surcharge->rate > 0
+            && $incomePaisa > $surcharge->over * 100
+            ? self::mulDivHalfUp($taxPaisa, (int) round($surcharge->rate * 100), 10_000)
+            : 0;
+        $totalPaisa = $taxPaisa + $surchargePaisa;
         return new SalaryTax(
             tax: Money::fromPaisa($taxPaisa),
-            monthly: Money::fromPaisa(Money::divideHalfUp($taxPaisa, 12)),
+            surcharge: Money::fromPaisa($surchargePaisa),
+            total: Money::fromPaisa($totalPaisa),
+            monthly: Money::fromPaisa(Money::divideHalfUp($totalPaisa, 12)),
             // The tax is at most 35% of an income of at most 1.2 × 10^15
-            // paisa, so `taxPaisa × 10000` stays below 4.2 × 10^18.
-            effectiveRate: $incomePaisa === 0 ? 0.0 : Money::divideHalfUp($taxPaisa * 10_000, $incomePaisa) / 100,
+            // paisa and the surcharge at most 10% of the tax, so
+            // `totalPaisa × 10000` stays below 4.7 × 10^18.
+            effectiveRate: $incomePaisa === 0 ? 0.0 : Money::divideHalfUp($totalPaisa * 10_000, $incomePaisa) / 100,
             slab: $slab,
             taxYear: $year->taxYear,
         );
@@ -192,6 +216,12 @@ final class IncomeTax
                         ),
                         $entry['slabs'],
                     ),
+                    surcharge: isset($entry['surcharge']) ? new SalaryTaxSurcharge(
+                        rate: $entry['surcharge']['rate'],
+                        over: $entry['surcharge']['over'],
+                        law: $entry['surcharge']['law'],
+                        source: $entry['surcharge']['source'],
+                    ) : null,
                 );
             }
         }

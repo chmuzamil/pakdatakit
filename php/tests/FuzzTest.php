@@ -121,7 +121,7 @@ final class FuzzTest extends TestCase
                     continue;
                 }
                 $type = $parameters[0]->getType();
-                $takesString = $type !== null && str_contains((string) $type, 'string');
+                $takesString = $type !== null && (str_contains((string) $type, 'string') || (string) $type === 'mixed');
                 $restOptional = array_reduce(
                     array_slice($parameters, 1),
                     static fn (bool $ok, $p): bool => $ok && $p->isOptional(),
@@ -150,6 +150,7 @@ final class FuzzTest extends TestCase
             'RaastQr::parse', 'RaastQr::validate', 'Holidays::isHoliday', 'Holidays::getHolidaysOn',
             'Holidays::tryGetHolidaysOn', 'Quality::scoreAddress', 'Quality::phoneRiskSignals',
             'Bills::parseElectricityRef', 'Bills::validateElectricityRef', 'Courier::normalizeCity',
+            'Cnic::findAll', 'Cnic::mask', 'Text::romanUrduKey', 'Text::slugify',
         ] as $expected) {
             self::assertContains($expected, $names);
         }
@@ -517,7 +518,7 @@ final class FuzzTest extends TestCase
         }
         self::assertSame([2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027], IncomeTax::getSalaryYears());
         self::assertSame(
-            ['tax' => 72000.0, 'monthly' => 6000.0, 'effectiveRate' => 4.0,
+            ['tax' => 72000.0, 'surcharge' => 0.0, 'total' => 72000.0, 'monthly' => 6000.0, 'effectiveRate' => 4.0,
                 'slab' => ['over' => 1200000, 'upTo' => 2200000, 'fixed' => 6000, 'rate' => 11], 'taxYear' => 2026],
             IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026])?->toArray(),
         );

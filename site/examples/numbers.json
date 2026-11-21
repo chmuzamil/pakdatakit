@@ -35,6 +35,29 @@
       "fn": "getAreaCode",
       "args": ["Faisalabad"],
       "expected": "041"
+    },
+    {
+      "id": "services",
+      "title": "Accept UAN, toll-free and premium numbers too",
+      "fn": "validateLandline",
+      "args": ["021-111-123-456"],
+      "kwargs": {
+        "services": true
+      },
+      "expected": true
+    },
+    {
+      "id": "toll-free",
+      "title": "A toll-free number: 0800 and five digits",
+      "fn": "analyzeNumber",
+      "args": ["0800-78686"],
+      "expected": {
+        "type": "toll-free",
+        "formatted": "0800-78686",
+        "e164": "+9280078686",
+        "areaCode": null,
+        "cities": []
+      }
     }
   ]
 }

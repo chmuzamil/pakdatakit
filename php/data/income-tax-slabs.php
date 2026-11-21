@@ -24,6 +24,7 @@ return [
             ['over' => 50000000, 'upTo' => 75000000, 'fixed' => 13295000, 'rate' => 32.5],
             ['over' => 75000000, 'upTo' => null, 'fixed' => 21420000, 'rate' => 35],
         ],
+        'surcharge' => null,
     ],
     [
         'taxYear' => 2021,
@@ -45,6 +46,7 @@ return [
             ['over' => 50000000, 'upTo' => 75000000, 'fixed' => 13295000, 'rate' => 32.5],
             ['over' => 75000000, 'upTo' => null, 'fixed' => 21420000, 'rate' => 35],
         ],
+        'surcharge' => null,
     ],
     [
         'taxYear' => 2022,
@@ -66,6 +68,7 @@ return [
             ['over' => 50000000, 'upTo' => 75000000, 'fixed' => 13295000, 'rate' => 32.5],
             ['over' => 75000000, 'upTo' => null, 'fixed' => 21420000, 'rate' => 35],
         ],
+        'surcharge' => null,
     ],
     [
         'taxYear' => 2023,
@@ -82,6 +85,7 @@ return [
             ['over' => 6000000, 'upTo' => 12000000, 'fixed' => 1005000, 'rate' => 32.5],
             ['over' => 12000000, 'upTo' => null, 'fixed' => 2955000, 'rate' => 35],
         ],
+        'surcharge' => null,
     ],
     [
         'taxYear' => 2024,
@@ -97,6 +101,7 @@ return [
             ['over' => 3600000, 'upTo' => 6000000, 'fixed' => 435000, 'rate' => 27.5],
             ['over' => 6000000, 'upTo' => null, 'fixed' => 1095000, 'rate' => 35],
         ],
+        'surcharge' => null,
     ],
     [
         'taxYear' => 2025,
@@ -112,6 +117,7 @@ return [
             ['over' => 3200000, 'upTo' => 4100000, 'fixed' => 430000, 'rate' => 30],
             ['over' => 4100000, 'upTo' => null, 'fixed' => 700000, 'rate' => 35],
         ],
+        'surcharge' => ['rate' => 10, 'over' => 10000000, 'law' => 'Income Tax Ordinance 2001, s. 4AB, inserted by the Finance Act 2024, s. 8(2): 10% of the tax under Division I where taxable income exceeds Rs 10 million', 'source' => 'https://download1.fbr.gov.pk/Docs/2024630146346801FinanceAct-2024.pdf'],
     ],
     [
         'taxYear' => 2026,
@@ -127,6 +133,7 @@ return [
             ['over' => 3200000, 'upTo' => 4100000, 'fixed' => 346000, 'rate' => 30],
             ['over' => 4100000, 'upTo' => null, 'fixed' => 616000, 'rate' => 35],
         ],
+        'surcharge' => ['rate' => 9, 'over' => 10000000, 'law' => 'Income Tax Ordinance 2001, s. 4AB, proviso added by the Finance Act 2025: 9% for an individual with income under the head Salary, where taxable income exceeds Rs 10 million', 'source' => 'https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf'],
     ],
     [
         'taxYear' => 2027,
@@ -144,5 +151,6 @@ return [
             ['over' => 5600000, 'upTo' => 7000000, 'fixed' => 976000, 'rate' => 32],
             ['over' => 7000000, 'upTo' => null, 'fixed' => 1424000, 'rate' => 35],
         ],
+        'surcharge' => ['rate' => 0, 'over' => 10000000, 'law' => 'Income Tax Ordinance 2001, s. 4AB, proviso substituted by the Finance Act 2026, s. 5(2)(b): no surcharge for an individual with income under the head Salary', 'source' => 'https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf'],
     ],
 ];

@@ -12,6 +12,7 @@ from ._internal.normalize import normalize_whitespace, to_ascii_digits
 __all__ = [
     "normalize_text",
     "normalize_roman_urdu",
+    "roman_urdu_key",
     "to_urdu_digits",
     "to_english_digits",
     "SlugScript",
@@ -404,3 +405,143 @@ def wrap_bidi(text: Any, direction: Any = "auto") -> str:
     else:
         opener = "⁨"
     return f"{opener}{text}⁩"
+
+
+# Two-letter spellings of one sound, and what each becomes in a key.
+_KEY_DIGRAPHS = {
+    "kh": "kh",
+    "gh": "g",
+    "sh": "sh",
+    "ch": "ch",
+    "ph": "f",
+    "th": "t",
+    "dh": "d",
+    "bh": "b",
+    "jh": "j",
+    "zh": "z",
+    "ck": "k",
+}
+
+# Letters written for the same sound as another letter.
+_KEY_LETTERS = {"c": "k", "q": "k", "v": "w", "x": "ks"}
+
+_PLAIN_VOWELS = "aeiou"
+_DOUBLED = re.compile(r"([^e])\1+")
+_ROUND_START = re.compile(r"[ao][uw]")
+_E_START = re.compile(r"a[iye]|e[iy]")
+_COMBINING_MARKS = re.compile("[" + chr(0x0300) + "-" + chr(0x036F) + "]")
+_NOT_LATIN = re.compile("[^a-z]+")
+
+
+def _vowel_class(letter: str) -> str:
+    """The sound class of a vowel letter: a (a, e), i (i, y) or u (o, u, w)."""
+    if letter in ("a", "e"):
+        return "a"
+    if letter in ("i", "y"):
+        return "i"
+    return "u"
+
+
+def _first_vowel_class(run: str, word_start: bool) -> str:
+    """The sound class of a word's first vowel sound: ee is i (Zeeshan, Heera);
+    a word-initial e is i (Ebrahim, Esmail); au, aw, ou and ow are u
+    (Chaudhry, Choudhry, Chowdhury); ai, ay, ae, ei and ey are e (Saeed,
+    Faisal, Sheikh); otherwise the class of the first letter."""
+    if run.startswith("ee"):
+        return "i"
+    if word_start and run.startswith("e"):
+        return "i"
+    if _ROUND_START.match(run):
+        return "u"
+    if _E_START.match(run):
+        return "e"
+    return _vowel_class(run[0])
+
+
+def _word_key(word: str) -> str:
+    """The phonetic key of one word of lowercase ASCII letters."""
+    # 1. One letter per sound.
+    parts = []
+    i = 0
+    while i < len(word):
+        pair = _KEY_DIGRAPHS.get(word[i : i + 2])
+        if pair is not None:
+            parts.append(pair)
+            i += 2
+        else:
+            parts.append(_KEY_LETTERS.get(word[i], word[i]))
+            i += 1
+    # 2. Doubled letters count once (Muhammad, Rehmaan), except ee, which is
+    #    written for a long i (Zeeshan, Heera, Saeed).
+    letters = _DOUBLED.sub(r"\1", "".join(parts))
+    # 3. Which letters are vowels: a, e, i, o, u; y except at the start; w
+    #    after a vowel and not before a plain vowel. (At the end of a word the
+    #    next letter is "", which the npm package counts as a plain vowel, so a
+    #    final w is a consonant.)
+    vowel: List[bool] = []
+    for i, letter in enumerate(letters):
+        following = letters[i + 1] if i + 1 < len(letters) else ""
+        vowel.append(
+            letter in _PLAIN_VOWELS
+            or (letter == "y" and i > 0)
+            or (letter == "w" and i > 0 and vowel[i - 1] and following not in _PLAIN_VOWELS)
+        )
+    # 4. A final h after a vowel is silent (Fatimah, Sarah).
+    last = len(letters) - 1
+    if last > 0 and letters[last] == "h" and vowel[last - 1]:
+        letters = letters[:last]
+        vowel.pop()
+    # 5. Consonants, the first vowel sound and a final vowel sound.
+    key = []
+    first_vowel_done = False
+    i = 0
+    while i < len(letters):
+        if not vowel[i]:
+            key.append(letters[i])
+            i += 1
+            continue
+        end = i
+        while end < len(letters) and vowel[end]:
+            end += 1
+        run = letters[i:end]
+        if not first_vowel_done:
+            key.append(_first_vowel_class(run, i == 0))
+            first_vowel_done = True
+        elif end == len(letters):
+            key.append("i" if run.endswith("ee") else _vowel_class(run[-1]))
+        i = end
+    return "".join(key)
+
+
+def roman_urdu_key(text: Any) -> str:
+    """A phonetic key for Roman Urdu, so that different spellings of the same
+    name or word match: ``Mubeen`` and ``Mobeen``, ``Muhammad``, ``Mohammad``
+    and ``Muhammed``, ``Rehman`` and ``Rahman``, ``Chaudhry``, ``Chaudhary``
+    and ``Chaudhery``. Compare keys, not the text.
+
+    Each word keeps its consonants, its first vowel sound and a vowel sound at
+    its end. Letters for one sound are merged (``kh``, ``sh``, ``ch``; ``ph``
+    and ``f``; ``q``, ``c`` and ``k``; ``v`` and ``w``; ``th`` and ``t``,
+    ``dh`` and ``d``), doubled letters count once, ``e`` counts as ``a``,
+    ``o`` as ``u``, and a final ``h`` after a vowel is dropped. Accents are
+    removed and anything other than Latin letters splits words. The key is not
+    meant to be shown: it is an opaque string.
+
+    Different names can share a key (``Hamid`` and ``Hamad``), so treat a match
+    as "probably the same", not proof. :func:`normalize_roman_urdu` is a
+    different tool: it rewrites informal spellings into readable text.
+
+    Returns the key, one part per word separated by spaces; ``""`` for text
+    with no Latin letters or a value that is not a string. Never raises.
+
+    >>> roman_urdu_key("Mubeen") == roman_urdu_key("Mobeen")
+    True
+    >>> roman_urdu_key("Muhammad Rehman")
+    'muhmd rahmn'
+    >>> roman_urdu_key("Hussain") == roman_urdu_key("Hassan")
+    False
+    """
+    if not isinstance(text, str):
+        return ""
+    folded = _COMBINING_MARKS.sub("", unicodedata.normalize("NFKD", text.lower()))
+    return " ".join(_word_key(word) for word in _NOT_LATIN.split(folded) if word)

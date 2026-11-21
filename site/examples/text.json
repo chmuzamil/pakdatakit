@@ -32,6 +32,20 @@
       "fn": "toUrduDigits",
       "args": ["0300-1234567"],
       "expected": "۰۳۰۰-۱۲۳۴۵۶۷"
+    },
+    {
+      "id": "key",
+      "title": "A phonetic key for spelling variants",
+      "fn": "romanUrduKey",
+      "args": ["Muhammad Rehman"],
+      "expected": "muhmd rahmn"
+    },
+    {
+      "id": "key-variant",
+      "title": "Another spelling, the same key",
+      "fn": "romanUrduKey",
+      "args": ["Mohammad Rahman"],
+      "expected": "muhmd rahmn"
     }
   ]
 }

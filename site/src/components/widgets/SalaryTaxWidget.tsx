@@ -7,7 +7,9 @@ export default function SalaryTaxWidget() {
   const [salary, setSalary] = useState('5000000');
   const { value, invalid } = amountField(salary);
   const result =
-    value === null ? null : calculateSalaryTax(value, { taxYear: 2027 });
+    value === null
+      ? null
+      : calculateSalaryTax(value, { taxYear: 2027, includeSurcharge: true });
   return (
     <div className="pdk-card" data-widget="incometax">
       <div className="pdk-field">
@@ -30,12 +32,14 @@ export default function SalaryTaxWidget() {
       </div>
       <p className="sr-only" aria-live="polite">
         {result
-          ? `${rs(result.tax)} for the year, ${result.effectiveRate}% effective`
+          ? `${rs(result.total)} for the year, ${result.effectiveRate}% effective`
           : ''}
       </p>
       <Rows
         rows={[
           ['Tax for the year', rs(result?.tax)],
+          ['Surcharge', rs(result?.surcharge)],
+          ['Total', rs(result?.total)],
           ['Per month', rs(result?.monthly)],
           ['Effective rate', result ? `${result.effectiveRate}%` : null],
           [

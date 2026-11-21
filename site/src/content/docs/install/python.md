@@ -1,6 +1,6 @@
 ---
 title: Install for Python
-description: Install pakdatakit from PyPI for Python 3.9 and later.
+description: Install pakdatakit from PyPI for Python 3.9 and later, with no dependencies, and validate CNICs, phones and IBANs in a few lines.
 ---
 
 ```bash

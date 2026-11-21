@@ -39,7 +39,7 @@
     "label": "WhatsApp links",
     "group": "Phone and messaging",
     "component": "WhatsAppPlayground",
-    "description": "Generate wa.me click-to-chat links for Pakistani mobile numbers."
+    "description": "Generate wa.me click-to-chat links for Pakistani mobile numbers, with an optional pre-filled message, and see the code for it."
   },
   {
     "slug": "geo",

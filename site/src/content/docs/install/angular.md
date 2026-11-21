@@ -1,6 +1,6 @@
 ---
 title: Install for Angular
-description: Install pakdatakit-angular for directives, pipes and form validators.
+description: Install pakdatakit-angular for CNIC, phone and IBAN input directives, pipes, form validators and ready-made checkout and KYC forms.
 ---
 
 ```bash

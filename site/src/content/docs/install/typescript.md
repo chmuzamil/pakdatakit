@@ -1,6 +1,6 @@
 ---
 title: Install for TypeScript and JavaScript
-description: Install pakdatakit from npm for Node.js, browsers, Bun and Deno.
+description: Install pakdatakit from npm for Node.js, browsers, Bun and Deno. Zero dependencies, ESM and CommonJS, and one import per module.
 ---
 
 ```bash

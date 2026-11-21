@@ -1,0 +1,41 @@
+---
+title: Use cases
+description: End-to-end walkthroughs for Pakistani apps, covering checkout and KYC, FBR digital invoicing, payroll tax, COD screening, Raast collection and bill payment.
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Each walkthrough starts from a real task, takes it step by step with code in TypeScript, Python, Dart, C# and PHP, and ends with the pitfalls and what the library does not do. The tax and FBR pages give their sources and the date each was checked; none of them is legal or tax advice.
+
+<CardGrid>
+  <LinkCard
+    title="Checkout and KYC forms"
+    description="CNIC and mobile fields that format as you type, checks on submit, and an address whose city matches its province."
+    href="/use-cases/checkout-kyc/"
+  />
+  <LinkCard
+    title="FBR digital invoicing"
+    description="Build the invoice JSON, work out the sales tax and check it offline against PRAL's rules before your code posts it."
+    href="/use-cases/fbr-digital-invoicing/"
+  />
+  <LinkCard
+    title="Payroll and salary tax"
+    description="Read salaries typed as 1.5 lakh or 2,50,000, find the tax year and estimate the monthly tax."
+    href="/use-cases/payroll-salary-tax/"
+  />
+  <LinkCard
+    title="COD order screening"
+    description="Spot phone numbers a rider can't reach and thin addresses before booking a courier."
+    href="/use-cases/cod-screening/"
+  />
+  <LinkCard
+    title="Collecting payments with Raast QR"
+    description="A QR per order with the amount, an expiry and the order number, scanned by any banking app."
+    href="/use-cases/raast-collection/"
+  />
+  <LinkCard
+    title="Bill payment forms"
+    description="Check electricity and gas bill numbers and read the amount as typed, like 4,350 or 12.5k."
+    href="/use-cases/bill-payment/"
+  />
+</CardGrid>

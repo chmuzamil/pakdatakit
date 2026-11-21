@@ -1,0 +1,75 @@
+{
+  "module": "use-payroll-salary-tax",
+  "title": "Payroll and salary tax",
+  "examples": [
+    {
+      "id": "typed",
+      "title": "Read a salary as HR types it",
+      "fn": "parseAmount",
+      "args": ["1.5 lakh"],
+      "expected": {
+        "value": 150000,
+        "raw": "1.5 lakh"
+      }
+    },
+    {
+      "id": "typed-grouped",
+      "title": "Or with lakh grouping and a currency mark",
+      "fn": "parseAmount",
+      "args": ["Rs. 2,50,000/-"],
+      "expected": {
+        "value": 250000,
+        "raw": "Rs. 2,50,000/-"
+      }
+    },
+    {
+      "id": "typed-bad",
+      "title": "A range is not one salary",
+      "fn": "parseAmount",
+      "args": ["1-1.5 lakh"],
+      "expected": null
+    },
+    {
+      "id": "year",
+      "title": "The tax year of the payroll month",
+      "fn": "getTaxYear",
+      "args": ["2026-11-20"],
+      "expected": 2027
+    },
+    {
+      "id": "monthly",
+      "title": "Tax on Rs. 150,000 a month",
+      "fn": "calculateMonthlySalaryTax",
+      "args": [150000],
+      "kwargs": {
+        "taxYear": 2027
+      },
+      "expected": {
+        "tax": 72000,
+        "monthly": 6000,
+        "effectiveRate": 4,
+        "slab": {
+          "over": 1200000,
+          "upTo": 2200000,
+          "fixed": 6000,
+          "rate": 11
+        },
+        "taxYear": 2027
+      }
+    },
+    {
+      "id": "payslip",
+      "title": "The amount on the payslip",
+      "fn": "formatPKR",
+      "args": [144000],
+      "expected": "Rs. 144,000"
+    },
+    {
+      "id": "words",
+      "title": "In words, for a cheque or letter",
+      "fn": "amountInWords",
+      "args": [144000],
+      "expected": "one lakh forty-four thousand rupees"
+    }
+  ]
+}

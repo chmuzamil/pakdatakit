@@ -1,0 +1,99 @@
+{
+  "module": "use-checkout-kyc",
+  "title": "Checkout and KYC forms",
+  "examples": [
+    {
+      "id": "type-cnic",
+      "title": "Format a CNIC while it is typed",
+      "fn": "formatCNICInput",
+      "args": ["3520212345671"],
+      "expected": "35202-1234567-1"
+    },
+    {
+      "id": "type-cnic-state",
+      "title": "Half-typed is not wrong",
+      "fn": "checkCNICInput",
+      "args": ["35202-12"],
+      "expected": "incomplete"
+    },
+    {
+      "id": "type-phone",
+      "title": "Format a mobile number while it is typed",
+      "fn": "formatPhoneInput",
+      "args": ["+923001234567"],
+      "expected": "+92 300 1234567"
+    },
+    {
+      "id": "type-phone-state",
+      "title": "An unallocated prefix is wrong at once",
+      "fn": "checkPhoneInput",
+      "args": ["0360-12"],
+      "expected": "invalid"
+    },
+    {
+      "id": "cnic",
+      "title": "Check the CNIC on submit",
+      "fn": "validateCNIC",
+      "args": ["35202-1234567-1"],
+      "expected": true
+    },
+    {
+      "id": "cnic-info",
+      "title": "What the CNIC itself says",
+      "fn": "getCNICInfo",
+      "args": ["35202-1234567-1"],
+      "expected": {
+        "digits": "3520212345671",
+        "formatted": "35202-1234567-1",
+        "province": "Punjab",
+        "gender": "male"
+      }
+    },
+    {
+      "id": "phone",
+      "title": "Store the mobile number as E.164",
+      "fn": "formatPhone",
+      "args": ["0300 1234567"],
+      "expected": "+923001234567"
+    },
+    {
+      "id": "network",
+      "title": "The network the number was first issued on",
+      "fn": "getNetwork",
+      "args": ["0300 1234567"],
+      "expected": "Jazz"
+    },
+    {
+      "id": "address",
+      "title": "Read the address",
+      "fn": "parseAddress",
+      "args": ["House 12, Street 5, F-7/2, Islamabad 44000"],
+      "expected": {
+        "raw": "House 12, Street 5, F-7/2, Islamabad 44000",
+        "street": "House 12",
+        "area": "Street 5, F-7/2",
+        "city": "Islamabad",
+        "district": null,
+        "province": "Islamabad Capital Territory",
+        "postalCode": "44000",
+        "warnings": []
+      }
+    },
+    {
+      "id": "address-mismatch",
+      "title": "A city in the wrong province",
+      "fn": "parseAddress",
+      "args": ["Saddar, Karachi, Punjab"],
+      "expected": {
+        "raw": "Saddar, Karachi, Punjab",
+        "street": "Saddar",
+        "area": null,
+        "city": "Karachi",
+        "district": null,
+        "province": "Punjab",
+        "postalCode": null,
+        "warnings": ["Karachi is in Sindh, but the address says Punjab"]
+      }
+    }
+  ]
+}

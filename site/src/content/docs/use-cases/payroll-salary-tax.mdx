@@ -1,0 +1,126 @@
+---
+title: Payroll and salary tax
+description: A payroll walkthrough for Pakistan, reading salaries typed as 1.5 lakh or 2,50,000, finding the tax year, and estimating monthly salary income tax from the law's rate table.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import LangTabs from '../../../components/LangTabs.astro';
+import SalaryTaxWidget from '../../../components/widgets/SalaryTaxWidget.tsx';
+
+:::note[An estimate, not tax advice]
+The library applies the salaried rate table only. It is not tax advice, and it is not a substitute for your payroll provider, your tax adviser or FBR's own calculations.
+:::
+
+## The problem
+
+A payroll screen takes salaries typed by people: `150000`, `1,50,000`, `Rs. 2,50,000/-`, `1.5 lakh`. It then needs the tax year of the pay month and the income tax to set aside each month. Reading the amounts loosely (dropping everything but digits) turns `1.5 lakh` into 15, and `1-1.5 lakh` into 1115.
+
+The demo below reads the salary with [`parseAmount()`](/docs/amount/), so `5000000`, `50 lakh` and `Rs. 50,00,000` all work.
+
+<SalaryTaxWidget client:visible />
+
+## 1. Read the salary as typed
+
+`parseAmount()` reads one rupee amount the way people write it in Pakistan, with international or lakh grouping, `Rs.`, `PKR`, `/-`, `k`, `lakh` and `crore`, and Urdu digits. It returns `null` for anything that isn't one amount, such as a range, so you can ask again instead of guessing.
+
+<LangTabs
+  module="use-payroll-salary-tax"
+  ids={['typed', 'typed-grouped', 'typed-bad']}
+/>
+
+## 2. Find the tax year
+
+Pakistan's tax year runs from 1 July to 30 June and is named after the year it ends in: tax year 2027 runs from 1 July 2026 to 30 June 2027 (Finance Act 2026, s. 1(2), which brings it into force on 1 July 2026; checked 18 November 2026).
+
+<LangTabs module="use-payroll-salary-tax" ids={['year']} />
+
+## 3. Estimate the monthly tax
+
+`calculateMonthlySalaryTax()` applies the salaried rate table to twelve times the monthly salary, and returns the tax for the year, per month, the effective rate and the slab used. For tax year 2027 the table is the one substituted by the Finance Act 2026, s. 5(44)(a)(i), and restated in FBR Circular No. 02 of 2026-27, paragraph 7 (both checked 18 November 2026).
+
+<LangTabs module="use-payroll-salary-tax" ids={['monthly']} />
+
+## 4. Show it on the payslip
+
+`formatPKR()` writes the amount with grouping, and `amountInWords()` writes it in words with lakh and crore, for a cheque or a letter.
+
+<LangTabs module="use-payroll-salary-tax" ids={['payslip', 'words']} />
+
+## In your framework
+
+The salary field accepts what `parseAmount()` reads; convert it with `parseAmount()` before you store it.
+
+<Tabs syncKey="framework">
+<TabItem label="React">
+
+```tsx
+import { z } from 'zod';
+import { pk } from 'pakdatakit/zod';
+import { parseAmount } from 'pakdatakit/format';
+
+const SalaryForm = z.object({
+  monthlySalary: pk.amount({
+    message: 'Enter an amount, like 1,50,000 or 1.5 lakh',
+  }),
+});
+
+// On submit, after the schema has passed:
+const rupees = parseAmount(values.monthlySalary)!.value;
+```
+
+</TabItem>
+<TabItem label="Laravel">
+
+```php
+use PakDataKit\Currency;
+
+$request->validate(['monthly_salary' => ['required', 'pk_amount']]);
+
+$rupees = Currency::parseAmount($request->input('monthly_salary'))->value;
+```
+
+</TabItem>
+<TabItem label="NestJS">
+
+```ts
+import { IsPakAmount } from 'pakdatakit/class-validator';
+
+export class SalaryDto {
+  @IsPakAmount()
+  monthlySalary!: string; // convert with parseAmount() in the service
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Pitfalls
+
+- **Stripping non-digits.** `1.5 lakh` becomes 15 and `1-1.5 lakh` becomes 1115. Use `parseAmount()` and ask again when it returns `null`.
+- **Using the calendar year.** Salary paid in November 2026 is in tax year 2027. Pass the pay date to `getTaxYear()`, or pass `taxYear` explicitly.
+- **Using the table for someone it doesn't fit.** The salaried table applies when salary is more than 75% of taxable income (Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2)).
+- **Rounding.** Tax is rounded half up to the paisa. Rounding to whole rupees, as the Ordinance does, is left to you.
+- **Monthly × 12 is not always the year.** A raise, a bonus or a joiner mid-year changes the annual figure; recompute from the actual annual taxable salary.
+
+## What this library does not do
+
+- **It applies the rate table only.** Tax credits, exemptions, allowances, the separate rate for pension from a former employer, and withholding adjustments are not applied.
+- **It does not apply the surcharge under section 4AB.** For tax year 2027 the Finance Act 2026, s. 5(2)(b), provides that no surcharge is payable by salaried individuals; FBR Circular No. 02 of 2026-27, paragraph 8, confirms it (checked 18 November 2026). For earlier years, the surcharge described in [Data sources](/data/) is not included.
+- **It does not file returns, issue certificates or deposit tax** with FBR, and calls no FBR service.
+- **It is not tax advice.** It does not tell you what is taxable or how to treat any payment.
+- **It covers tax years 2020 to 2027.** Other years return `null`.
+
+## Sources and date checked
+
+| What                                    | Source                                                                                                                                                                                | Checked          |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Tax year 2027 rate table and start date | [Finance Act, 2026](https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf), Gazette of Pakistan, 26 June 2026: s. 5(44)(a)(i) (table), s. 1(2) (in force 1 July 2026) | 18 November 2026 |
+| No surcharge for salaried, 2027         | The same Act, s. 5(2)(b); [FBR Circular No. 02 of 2026-27](https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf), 8 September 2026, paragraph 8                 | 18 November 2026 |
+| The table, as consolidated              | [FBR's consolidated Income Tax Ordinance 2001](https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf)                                                         | 18 November 2026 |
+| Tax years 2020 to 2026                  | FBR's consolidated Ordinance for each year, listed in [Data sources](/data/)                                                                                                          | 18 November 2026 |
+
+## Related
+
+- Guides: [Income tax on salary](/docs/incometax/), [Reading amounts](/docs/amount/), [Numbers in words](/docs/words/), [Rupee formatting](/docs/format/)
+- Tool: [Salary tax calculator](/tools/salary-tax/)
+- [TypeScript API reference for `pakdatakit/incometax`](/api/typescript/incometax/)

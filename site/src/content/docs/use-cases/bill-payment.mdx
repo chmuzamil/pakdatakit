@@ -1,0 +1,106 @@
+---
+title: Bill payment forms
+description: A bill payment form for Pakistani electricity and gas bills, checking the reference or consumer number format and reading the amount as typed, like 4,350 or 12.5k.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import LangTabs from '../../../components/LangTabs.astro';
+import BillPaymentWidget from '../../../components/widgets/BillPaymentWidget.tsx';
+
+## The problem
+
+A bill payment screen in an app, a wallet or an agent's tool asks for two things: the bill's number and the amount. Bill numbers come in several shapes (a 14-digit electricity reference number, a customer ID, a K-Electric account number, an SNGPL or SSGC consumer number), and amounts are typed as `4350`, `4,350`, `Rs. 4,350/-` or `12.5k`. Catching a wrong format or a misread amount before paying saves a failed payment, or a wrong one.
+
+<BillPaymentWidget client:visible />
+
+## 1. Check the bill number's format
+
+`parseElectricityRef()` recognises a DISCO reference number (14 digits, with urban or rural `U`/`R`), a DISCO customer ID (10 digits, or 11 for LESCO) and a K-Electric account number (13 digits starting with `04000`). `validateGasConsumerNumber()` checks an SNGPL consumer number (11 digits) or an SSGC customer number (10 digits). These are the formats the utilities' own bill pages ask for.
+
+<LangTabs module="use-bill-payment" ids={['reference', 'k-electric', 'gas']} />
+
+## 2. Read the amount as typed
+
+[`parseAmount()`](/docs/amount/) reads one rupee amount with grouping, `Rs.`, `/-`, `k`, `lakh` or Urdu digits, and returns `null` for anything that isn't one amount. `formatAmountInput()` writes it back, so the payer can see what will be paid before confirming.
+
+<LangTabs module="use-bill-payment" ids={['amount', 'amount-short', 'echo']} />
+
+## 3. Write it on the receipt
+
+`amountInWords()` writes the amount in words, with lakh and crore.
+
+<LangTabs module="use-bill-payment" ids={['words']} />
+
+## In your framework
+
+<Tabs syncKey="framework">
+<TabItem label="Laravel">
+
+```php
+use PakDataKit\Currency;
+
+$request->validate([
+    'reference' => ['required', 'pk_electricity_ref'],
+    'amount' => ['required', 'pk_amount'],
+]);
+
+$rupees = Currency::parseAmount($request->input('amount'))->value;
+```
+
+</TabItem>
+<TabItem label="NestJS">
+
+```ts
+import { IsPakAmount } from 'pakdatakit/class-validator';
+
+export class BillPaymentDto {
+  reference!: string; // check with validateElectricityRef() in the service
+
+  @IsPakAmount()
+  amount!: string; // convert with parseAmount() in the service
+}
+```
+
+</TabItem>
+<TabItem label="React">
+
+```tsx
+import { z } from 'zod';
+import { pk } from 'pakdatakit/zod';
+import { validateElectricityRef } from 'pakdatakit/bills';
+
+const BillForm = z.object({
+  reference: z
+    .string()
+    .refine(validateElectricityRef, 'Check the reference number on your bill'),
+  amount: pk.amount(),
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Pitfalls
+
+- **Guessing the company from the number.** No official source says which digits of a reference number or customer ID belong to which DISCO, so `disco` is `null` except for K-Electric. Ask the payer to pick the company.
+- **Treating a valid format as a real bill.** No check digit is published, so a mistyped digit can still pass the format check.
+- **Keeping old reference numbers.** IESCO notes that reference numbers can change.
+- **Stripping non-digits from the amount.** `12.5k` would become 125. Use `parseAmount()`, and echo the amount back before paying.
+- **K-Electric's other numbers.** K-Electric says its contract and consumer numbers are for its internal use, so only the 13-digit account number is accepted.
+
+## What this library does not do
+
+- **It does not fetch a bill**, its amount, due date or late payment surcharge, from any utility.
+- **It does not guess the DISCO** from a reference number or customer ID.
+- **It does not check that a bill exists or is unpaid.** It checks the format only.
+- **It does not pay anything** or connect to any payment network.
+
+## Sources and date checked
+
+The formats come from the utilities' own bill pages, all retrieved 18 November 2026: PITC's bill pages for the 11 DISCOs (for example [bill.pitc.com.pk/lescobill](https://bill.pitc.com.pk/lescobill)), K-Electric ([ke.com.pk](https://ke.com.pk/bills-e-payments/)), [SNGPL](https://www.sngpl.com.pk/login.jsp?mdids=85) and [SSGC](https://viewbill.ssgc.com.pk/web/). Details are in [Data sources](/data/).
+
+## Related
+
+- Guides: [Electricity and gas bills](/docs/bills/), [Reading amounts](/docs/amount/), [Numbers in words](/docs/words/)
+- Playground: [Bills](/playground/bills/)
+- [TypeScript API reference for `pakdatakit/bills`](/api/typescript/bills/)

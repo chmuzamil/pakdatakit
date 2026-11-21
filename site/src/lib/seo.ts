@@ -21,6 +21,8 @@ export function breadcrumbs(path: string, title: string): Crumb[] {
   const top = parts[0];
   if (top === 'docs' && parts.length > 1)
     crumbs.push({ name: 'Module guides', url: '/docs/' });
+  if (top === 'use-cases' && parts.length > 1)
+    crumbs.push({ name: 'Use cases', url: '/use-cases/' });
   if (top === 'playground' && parts.length > 1)
     crumbs.push({ name: 'Playground', url: '/playground/' });
   if (top === 'releases' && parts.length > 1)

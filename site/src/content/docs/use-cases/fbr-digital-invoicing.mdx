@@ -1,0 +1,124 @@
+---
+title: FBR digital invoicing, end to end
+description: Build an FBR Digital Invoicing JSON invoice, work out the sales tax, and check it offline against PRAL's DI API v1.12 rules before your own code posts it.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import LangTabs from '../../../components/LangTabs.astro';
+import FbrInvoiceWidget from '../../../components/widgets/FbrInvoiceWidget.tsx';
+
+:::note[Not legal or tax advice]
+This page shows how the library builds and checks invoice JSON. It does not tell you whether, when or how you must invoice through FBR's system. For that, read the rules and FBR's notices, or ask a tax adviser.
+:::
+
+## The problem
+
+FBR's Digital Invoicing (DI) system takes each invoice as JSON posted to a gateway run by PRAL. The gateway rejects an invoice with an error code, such as `0104` when the sales tax on a line doesn't match the rate. Finding those problems before you post saves a round trip per mistake, and catches them in tests.
+
+<FbrInvoiceWidget client:visible />
+
+## 1. Find the rate on the invoice date
+
+`getSalesTaxRate()` returns the standard rate in force on a date, with the law it comes from and an official document. The standard rate on goods has been 18% since 23 February 2023 (Sales Tax Act 1990, s. 3(1), as amended by the Finance (Supplementary) Act 2023; [FBR's consolidated Act, updated up to 30 June 2026](https://download1.fbr.gov.pk/Docs/20267171373418951SalesTaxAct1990updatedupto30.06.2026.pdf); checked 18 November 2026).
+
+<LangTabs module="use-fbr-digital-invoicing" ids={['rate']} />
+
+## 2. Check the buyer's NTN
+
+An NTN in the invoice is 7 digits, and a CNIC 13 (PRAL's specification and error guide, checked 18 November 2026). `validateNTN()` checks the format; it does not ask FBR whether the buyer is registered.
+
+<LangTabs module="use-fbr-digital-invoicing" ids={['buyer-ntn']} />
+
+## 3. Work out the tax and build the invoice
+
+`expectedSalesTax()` gives the tax FBR expects on one line: the value excluding sales tax × the rate for a percentage rate (`1000 × 18% = 180`), quantity × amount for a per-unit rate. `buildFbrInvoice()` fills in each line's tax this way, adds the defaults FBR's samples use, and returns the invoice with its column totals.
+
+<LangTabs module="use-fbr-digital-invoicing" ids={['line-tax', 'build']} />
+
+## 4. Validate before you post
+
+`validateFbrInvoice()` returns every problem it finds, each with FBR's error code. Pass `today` to reject an invoice dated later (error `0043`).
+
+<LangTabs
+  module="use-fbr-digital-invoicing"
+  ids={['validate', 'validate-bad']}
+/>
+
+## 5. Post it with your own code
+
+Send the invoice to PRAL's `validateinvoicedata` or `postinvoicedata` endpoint with your own HTTP client and your own token. The library has no HTTP client and handles no tokens.
+
+<Tabs syncKey="framework">
+<TabItem label="NestJS">
+
+```ts
+import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  buildFbrInvoice,
+  validateFbrInvoice,
+  type FbrInvoiceInput,
+} from 'pakdatakit/fbr-invoice';
+
+@Injectable()
+export class InvoiceService {
+  prepare(input: FbrInvoiceInput, today: string) {
+    const built = buildFbrInvoice(input);
+    if (!built) throw new BadRequestException('Not an invoice');
+    const { valid, errors } = validateFbrInvoice(built.invoice, { today });
+    if (!valid) throw new BadRequestException(errors);
+    return built.invoice; // post this with your own client and token
+  }
+}
+```
+
+</TabItem>
+<TabItem label="Laravel">
+
+```php
+use PakDataKit\FbrInvoice;
+
+$built = FbrInvoice::build($request->input('invoice'));
+abort_if($built === null, 422, 'Not an invoice');
+
+$result = FbrInvoice::validate($built['invoice'], ['today' => now()->toDateString()]);
+if (! $result->valid) {
+    return response()->json(['errors' => $result->errors], 422);
+}
+// Post $built['invoice'] with your own HTTP client and token.
+```
+
+</TabItem>
+</Tabs>
+
+## Pitfalls
+
+- **Rounding your own way.** The specification allows 2 decimals and gives no rounding rule. The library rounds half up to the paisa and accepts a declared tax within one paisa of it; that is the library's choice, not FBR's.
+- **Assuming every rate is a percentage.** Lines with a rate that is neither `N%` nor `Rs.N` (`Exempt`, combined rates) get 0 tax from `buildFbrInvoice()` unless you give the tax yourself.
+- **Copying the field table's spelling.** Key names follow the specification's sample JSON (`invoiceType`, `buyerRegistrationType`), and `invoiceType` is `Sale Invoice`, as in the samples.
+- **Expecting invoice totals in the JSON.** The specification has no invoice-level totals; the totals `buildFbrInvoice()` returns are for your own records.
+- **Validating without `today`.** A future date (error `0043`) is only caught when you pass today's date.
+
+## What this library does not do
+
+- **It does not submit anything to FBR.** There is no HTTP client and no token handling; your code posts the invoice.
+- **It does not check FBR's reference data.** Registration status, and whether a province, HS code, unit, rate, sale type or SRO is in FBR's lists or fits the others, need FBR's reference APIs. They are checked for presence only.
+- **It does not check the original invoice of a debit note.**
+- **It does not decide whether you must use digital invoicing**, or which rate, sale type or SRO applies to your goods. Those are questions for FBR's rules or your tax adviser.
+- **It covers standard rates only** in `getSalesTaxRate()`: reduced rates, exemptions, the Third Schedule and further tax are not covered.
+
+## Sources and date checked
+
+| What                                   | Source                                                                                                                                                                           | Checked          |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Fields, sale types and error codes     | PRAL, [Technical Specification for DI API, version 1.12](https://download1.fbr.gov.pk/Docs/20257301172130815TechnicalDocumentationforDIAPIV1.12.pdf) (last updated 24 July 2025) | 18 November 2026 |
+| Number rules, SROs, reduced-rate goods | PRAL, [Error Message Guide (Sales)](<https://dicrm.pral.com.pk/assets/docs/Manuals/Error%20Message%20Guide%20-%20(Sales).pdf>)                                                   | 18 November 2026 |
+| Legal basis                            | [S.R.O. 69(I)/2025](<https://download1.fbr.gov.pk/SROs/2025129141598258SRO69(I)2025.pdf>), Sales Tax Rules chapter XIV                                                           | 18 November 2026 |
+| 18% standard rate on goods             | [Sales Tax Act 1990, updated up to 30 June 2026](https://download1.fbr.gov.pk/Docs/20267171373418951SalesTaxAct1990updatedupto30.06.2026.pdf), s. 3(1)                           | 18 November 2026 |
+
+Where the documents disagree or are silent, and what the code does then, is in [Data sources](/data/).
+
+## Related
+
+- Guides: [FBR digital invoicing](/docs/fbr-invoice/), [Sales tax](/docs/salestax/), [NTN and STRN](/docs/tax/)
+- Tool: [Sales tax calculator](/tools/sales-tax/), [FBR invoice playground](/playground/fbr-invoice/)
+- [TypeScript API reference for `pakdatakit/fbr-invoice`](/api/typescript/fbr-invoice/)

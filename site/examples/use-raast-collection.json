@@ -1,0 +1,95 @@
+{
+  "module": "use-raast-collection",
+  "title": "Raast payment collection",
+  "examples": [
+    {
+      "id": "iban",
+      "title": "Check the IBAN you collect into",
+      "fn": "validateIBAN",
+      "args": ["PK36SCBL0000001123456702"],
+      "expected": true
+    },
+    {
+      "id": "bank",
+      "title": "Its bank",
+      "fn": "getBankFromIBAN",
+      "args": ["PK36SCBL0000001123456702"],
+      "expected": "Standard Chartered Bank (Pakistan) Limited"
+    },
+    {
+      "id": "qr",
+      "title": "A QR for one order, with the amount",
+      "fn": "createRaastP2PQr",
+      "args": [],
+      "kwargs": {
+        "iban": "PK36SCBL0000001123456702",
+        "amount": 2450,
+        "expiresIn": "2h",
+        "particulars": "Order 1042",
+        "now": {
+          "$date": "2026-11-20T10:00:00"
+        }
+      },
+      "expected": "0002020102120202000424PK36SCBL0000001123456702050424500610Order 104207122011202612001004163F"
+    },
+    {
+      "id": "read",
+      "title": "Read it back, as a test before printing",
+      "fn": "parseRaastQr",
+      "args": [
+        "0002020102120202000424PK36SCBL0000001123456702050424500610Order 104207122011202612001004163F"
+      ],
+      "expected": {
+        "kind": "p2p",
+        "dynamic": true,
+        "crcValid": true,
+        "iban": "PK36SCBL0000001123456702",
+        "ibanValid": true,
+        "amount": 2450,
+        "expiresAt": "2026-11-20T12:00",
+        "bankName": null,
+        "particulars": "Order 1042",
+        "merchantName": null,
+        "city": null,
+        "mcc": null,
+        "billNumber": null,
+        "dueDate": null,
+        "amountAfterDueDate": null,
+        "fields": [
+          {
+            "id": "00",
+            "value": "02"
+          },
+          {
+            "id": "01",
+            "value": "12"
+          },
+          {
+            "id": "02",
+            "value": "00"
+          },
+          {
+            "id": "04",
+            "value": "PK36SCBL0000001123456702"
+          },
+          {
+            "id": "05",
+            "value": "2450"
+          },
+          {
+            "id": "06",
+            "value": "Order 1042"
+          },
+          {
+            "id": "07",
+            "value": "201120261200"
+          },
+          {
+            "id": "10",
+            "value": "163F"
+          }
+        ]
+      }
+    }
+  ]
+}

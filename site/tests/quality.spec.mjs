@@ -35,6 +35,16 @@ const PAGES = [
     'forms',
   ].map((m) => `/docs/${m}/`),
   '/docs/',
+  // Use cases: each walks through a task with code and a live demo.
+  '/use-cases/',
+  ...[
+    'checkout-kyc',
+    'fbr-digital-invoicing',
+    'payroll-salary-tax',
+    'cod-screening',
+    'raast-collection',
+    'bill-payment',
+  ].map((m) => `/use-cases/${m}/`),
   '/tools/cnic/',
   '/tools/iban/',
   '/tools/salary-tax/',

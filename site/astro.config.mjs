@@ -188,6 +188,31 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Use cases',
+          collapsed: true,
+          items: [
+            { label: 'All use cases', link: '/use-cases/' },
+            {
+              label: 'Checkout and KYC forms',
+              link: '/use-cases/checkout-kyc/',
+            },
+            {
+              label: 'FBR digital invoicing',
+              link: '/use-cases/fbr-digital-invoicing/',
+            },
+            {
+              label: 'Payroll and salary tax',
+              link: '/use-cases/payroll-salary-tax/',
+            },
+            { label: 'COD order screening', link: '/use-cases/cod-screening/' },
+            {
+              label: 'Raast payment collection',
+              link: '/use-cases/raast-collection/',
+            },
+            { label: 'Bill payment forms', link: '/use-cases/bill-payment/' },
+          ],
+        },
+        {
           label: 'Tools',
           items: [
             { label: 'CNIC checker', link: '/tools/cnic/' },

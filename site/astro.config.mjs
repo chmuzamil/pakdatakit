@@ -8,6 +8,8 @@ import { readFileSync } from 'node:fs';
 import { lastModified } from './src/lib/lastmod.mjs';
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc';
 import { GITHUB, INDEXABLE, SITE } from './site.config.mjs';
+import apiModules from './src/lib/api-modules.json' with { type: 'json' };
+import { PORTS, portApi } from './src/lib/api-ports.mjs';
 
 // The TypeScript API reference uses the same entry points as the root
 // typedoc.json, rendered as Starlight pages under /api/typescript/.
@@ -16,6 +18,22 @@ const rootTypedoc = JSON.parse(
 );
 
 const lang = (code, label) => ({ label, link: `/install/${code}/` });
+/** The sidebar group of a port's API reference (pages from scripts/api/render.mjs). */
+const portApiGroup = (port) => {
+  const ids = new Set(portApi(port).modules.map((m) => m.id));
+  return {
+    label: `${PORTS[port].label} API`,
+    collapsed: true,
+    items: [
+      { label: 'Overview', link: `/api/${port}/` },
+      ...apiModules.groups
+        .flatMap((g) => g.modules)
+        .filter((m) => ids.has(m.id))
+        .map((m) => ({ label: m.title, link: `/api/${port}/${m.id}/` })),
+    ],
+  };
+};
+
 /** A collapsible sidebar group of module guides: [label, slug] pairs. */
 const guides = (label, items) => ({
   label,
@@ -233,7 +251,13 @@ export default defineConfig({
         },
         {
           label: 'Reference',
-          items: [typeDocSidebarGroup],
+          items: [
+            typeDocSidebarGroup,
+            portApiGroup('python'),
+            portApiGroup('dart'),
+            portApiGroup('dotnet'),
+            portApiGroup('php'),
+          ],
         },
         {
           label: 'Project',

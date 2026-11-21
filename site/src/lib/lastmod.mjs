@@ -74,6 +74,17 @@ export function sourcesFor(path) {
     ];
   if (top === 'playground')
     return ['site/src/components/playground', 'site/src/pages/playground'];
+  if (top === 'api' && ['python', 'dart', 'dotnet', 'php'].includes(rest[0]))
+    return [
+      `site/api-data/${rest[0]}.json`,
+      'site/scripts/api/render.mjs',
+      ...(rest[1]
+        ? []
+        : [
+            'site/src/components/PortApiLanding.astro',
+            'site/src/lib/api-modules.json',
+          ]),
+    ];
   if (top === 'api' && rest[0] === 'typescript') {
     if (!rest[1]) return ['src', 'site/src/pages/api/typescript/index.astro'];
     if (rest[1] === 'adapters') return [`src/adapters/${rest[2]}.ts`];

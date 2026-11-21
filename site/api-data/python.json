@@ -1,0 +1,3610 @@
+{
+  "language": "python",
+  "package": "pakdatakit",
+  "generator": "griffe 2.4.1",
+  "modules": [
+    {
+      "id": "address",
+      "name": "pakdatakit.address",
+      "import": "from pakdatakit.address import ...",
+      "source": "python/src/pakdatakit/address.py",
+      "doc": "Free-form Pakistani address parsing and formatting.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "ParsedAddress",
+          "signature": "@dataclass(frozen=True)\nclass ParsedAddress",
+          "doc": "Parsed components of a Pakistani mailing address.",
+          "fields": [
+            {
+              "name": "raw",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "street",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": ""
+            },
+            {
+              "name": "area",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": ""
+            },
+            {
+              "name": "city",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": ""
+            },
+            {
+              "name": "district",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": ""
+            },
+            {
+              "name": "province",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": ""
+            },
+            {
+              "name": "postal_code",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": ""
+            },
+            {
+              "name": "warnings",
+              "type": "List[str]",
+              "default": "field(default_factory=list)",
+              "doc": "Inconsistencies found while parsing, e.g. a city in a different province."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "parse_address",
+          "signature": "def parse_address(address: str) -> ParsedAddress",
+          "doc": "Parses a free-form Pakistani address into structured components.\n\nExtracts the postal code, matches known cities, districts and provinces,\nand assigns the remaining segments to `street` and `area`.",
+          "params": [
+            {
+              "name": "address",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "ParsedAddress"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "format_address",
+          "signature": "def format_address(\n    parts: Any = None,\n    *,\n    street: Optional[str] = None,\n    area: Optional[str] = None,\n    city: Optional[str] = None,\n    district: Optional[str] = None,\n    province: Optional[str] = None,\n    postal_code: Optional[str] = None,\n    raw: Optional[str] = None,\n    warnings: Any = None,\n) -> str",
+          "doc": "Formats address components into a single mailing line.\n\nPass a {@link ParsedAddress} (or a dict with the same keys), keyword\narguments, or both (keywords win). Only the components given are included.",
+          "params": [
+            {
+              "name": "parts",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            },
+            {
+              "name": "street",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "area",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "city",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "district",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "province",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "postal_code",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "raw",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "warnings",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bills",
+      "name": "pakdatakit.bills",
+      "import": "from pakdatakit.bills import ...",
+      "source": "python/src/pakdatakit/bills.py",
+      "doc": "Pakistani utility bill numbers: electricity references and gas consumer numbers.",
+      "entries": [
+        {
+          "kind": "type",
+          "name": "ElectricityRefType",
+          "signature": "ElectricityRefType = Literal['reference', 'customer-id', 'k-electric']",
+          "doc": "Kind of electricity bill identifier.  - `reference`: the 14-digit reference number on a DISCO (WAPDA) bill, optionally followed by `U` (urban) or `R` (rural). - `customer-id`: the customer ID on a DISCO bill: 10 digits, or 11 for LESCO. - `k-electric`: a 13-digit K-Electric account number (`04000…`)."
+        },
+        {
+          "kind": "type",
+          "name": "GasCompany",
+          "signature": "GasCompany = Literal['SNGPL', 'SSGC']",
+          "doc": "A gas company whose consumer number format is published."
+        },
+        {
+          "kind": "class",
+          "name": "ElectricityRef",
+          "signature": "@dataclass(frozen=True)\nclass ElectricityRef",
+          "doc": "Result of {@link parse_electricity_ref}.",
+          "fields": [
+            {
+              "name": "type",
+              "type": "ElectricityRefType",
+              "default": null,
+              "doc": "`reference`, `customer-id` or `k-electric`."
+            },
+            {
+              "name": "digits",
+              "type": "str",
+              "default": null,
+              "doc": "The digits, without separators or the U/R letter."
+            },
+            {
+              "name": "formatted",
+              "type": "str",
+              "default": null,
+              "doc": "Display form: `01 14111 1234567 U` for a reference (2, 5 and 7 digits, as on PITC's bill illustration), the digits for the others."
+            },
+            {
+              "name": "urban_rural",
+              "type": "Optional[Literal['U', 'R']]",
+              "default": null,
+              "doc": "`U` or `R` when given after a reference number, otherwise `None`."
+            },
+            {
+              "name": "disco",
+              "type": "Optional[Literal['K-Electric']]",
+              "default": null,
+              "doc": "`K-Electric` for a K-Electric account; otherwise always `None`, because no official source maps reference or customer ID digits to a DISCO."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "parse_electricity_ref",
+          "signature": "def parse_electricity_ref(ref: str) -> Optional[ElectricityRef]",
+          "doc": "Parses a Pakistani electricity bill identifier: a DISCO reference number,\na DISCO customer ID or a K-Electric account number.\n\nPITC's bill pages take a 14-digit reference number with a separate U/R\nchoice, or a 10-digit customer ID (11 digits for LESCO); K-Electric asks for\na 13-digit account number starting with `04000`. No check digit is\npublished, so only the format is checked. Spaces, dashes and dots are\nignored, and Urdu digits are accepted. See DATA.md in the repository.\n\nReturns `None` if the input matches none of the formats. Never raises.",
+          "params": [
+            {
+              "name": "ref",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[ElectricityRef]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_electricity_ref",
+          "signature": "def validate_electricity_ref(ref: str) -> bool",
+          "doc": "Validates a Pakistani electricity bill identifier. See {@link parse_electricity_ref}.",
+          "params": [
+            {
+              "name": "ref",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_gas_consumer_number",
+          "signature": "def validate_gas_consumer_number(number: str, company: GasCompany) -> bool",
+          "doc": "Validates a gas bill consumer number: 11 digits for SNGPL, 10 digits for\nSSGC, as their bill pages ask for. No check digit is published, so only the\nformat is checked. `company` is `SNGPL` or `SSGC` (any case); anything\nelse returns `False`. Never raises. See DATA.md in the repository.",
+          "params": [
+            {
+              "name": "number",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "company",
+              "type": "GasCompany",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cnic",
+      "name": "pakdatakit.cnic",
+      "import": "from pakdatakit.cnic import ...",
+      "source": "python/src/pakdatakit/cnic.py",
+      "doc": "CNIC (Computerized National Identity Card) validation and decoding.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "CNICInfo",
+          "signature": "@dataclass(frozen=True)\nclass CNICInfo",
+          "doc": "Information encoded in a CNIC number.",
+          "fields": [
+            {
+              "name": "digits",
+              "type": "str",
+              "default": null,
+              "doc": "The CNIC as 13 digits without separators."
+            },
+            {
+              "name": "formatted",
+              "type": "str",
+              "default": null,
+              "doc": "The CNIC in `#####-#######-#` form."
+            },
+            {
+              "name": "province",
+              "type": "str",
+              "default": null,
+              "doc": "Province where the CNIC was first registered (from the first digit)."
+            },
+            {
+              "name": "gender",
+              "type": "str",
+              "default": null,
+              "doc": "`\"male\"` (odd last digit) or `\"female\"` (even last digit)."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "validate_cnic",
+          "signature": "def validate_cnic(cnic: str) -> bool",
+          "doc": "Validates a Pakistani CNIC number (structure only).\n\nAccepts `3520212345671`, `35202-1234567-1`, `35202 1234567 1` and Urdu digits.",
+          "params": [
+            {
+              "name": "cnic",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_cnic_info",
+          "signature": "def get_cnic_info(cnic: str) -> Optional[CNICInfo]",
+          "doc": "Reads the province of registration and gender encoded in a CNIC.\n\nReturns `None` if the CNIC is invalid.",
+          "params": [
+            {
+              "name": "cnic",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[CNICInfo]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "courier",
+      "name": "pakdatakit.courier",
+      "import": "from pakdatakit.courier import ...",
+      "source": "python/src/pakdatakit/courier.py",
+      "doc": "Helpers for orders shipped with Pakistani couriers: status mapping and city names.\n\nThere are no API clients: nothing is sent anywhere.",
+      "entries": [
+        {
+          "kind": "type",
+          "name": "Courier",
+          "signature": "Courier = Literal['TCS', 'Leopards', 'PostEx', 'M&P', 'Trax', 'BlueEx']",
+          "doc": "Couriers that {@link map_courier_status} knows about."
+        },
+        {
+          "kind": "type",
+          "name": "CourierStatus",
+          "signature": "CourierStatus = Literal['pending', 'booked', 'picked-up', 'in-transit', 'out-for-delivery', 'attempted', 'under-review', 'delivered', 'returning', 'returned', 'cancelled']",
+          "doc": "A courier's status in one vocabulary, from order to delivery or return. Experimental: the values may change in a minor release while more couriers' status lists are added."
+        },
+        {
+          "kind": "function",
+          "name": "map_courier_status",
+          "signature": "def map_courier_status(courier: str, raw: Any) -> Optional[CourierStatus]",
+          "doc": "Maps a courier's own status (its name, numeric ID or code, as the\ncourier documents it) to a {@link CourierStatus}.\n\nMatching ignores case and extra spaces. PostEx's \"Attempt Made: <reason>\"\nhistory messages map to `attempted`. `raw` is a string or a\nnon-negative integer (`5` and `5.0` are the same as `\"5\"`).\n\nOnly statuses the courier documents publicly are mapped: PostEx's API\nguide and one Leopards status. TCS, M&P, Trax and BlueEx publish no list,\nso they always return `None`, as does any status not in the list. No API\nis called.\n\n`courier` is `TCS`, `Leopards`, `PostEx`, `M&P`, `Trax` or\n`BlueEx` (case-insensitive; `LCS`, `MnP` and `Blue Ex` are\naccepted). Returns the status, or `None`. Never raises.\n\nExperimental: only PostEx and one Leopards status are mapped so far. The\nmapping and the {@link CourierStatus} values may change in a minor\nrelease as other couriers' lists are added.",
+          "params": [
+            {
+              "name": "courier",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "raw",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[CourierStatus]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "normalize_city_for_courier",
+          "signature": "def normalize_city_for_courier(input: str) -> Optional[str]",
+          "doc": "Maps the way a customer or a courier writes a city to the city's name in\npakdatakit's city list, so orders can be matched against a courier's\nservice list.\n\nAccepts the exact name in any case, short forms (`LHR`, `Khi`,\n`Pindi`, `Isb`, `FSD`), the old name Lyallpur, a trailing \"city\", and\nthe main cities in Urdu script.\n\n```python\n>>> normalize_city_for_courier(\"LHR\")\n'Lahore'\n>>> normalize_city_for_courier(\"Karachi City\")\n'Karachi'\n>>> normalize_city_for_courier(\"Atlantis\") is None\nTrue\n```\n\nReturns a city from the city list, or `None`. Never raises.",
+          "params": [
+            {
+              "name": "input",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "data-version",
+      "name": "pakdatakit.data_version",
+      "import": "from pakdatakit.data_version import ...",
+      "source": "python/src/pakdatakit/data_version.py",
+      "doc": "Date the bundled datasets were last checked against their sources.",
+      "entries": [
+        {
+          "kind": "constant",
+          "name": "DATA_VERSION",
+          "signature": "DATA_VERSION = '2026-11-18'",
+          "doc": "Date (YYYY-MM-DD) the bundled datasets were last checked against their sources. Same value as `dataVersion` in the npm package; see DATA.md."
+        },
+        {
+          "kind": "constant",
+          "name": "data_version",
+          "signature": "data_version = DATA_VERSION",
+          "doc": "Alias matching the npm package's `dataVersion` export."
+        }
+      ]
+    },
+    {
+      "id": "fbr-invoice",
+      "name": "pakdatakit.fbr_invoice",
+      "import": "from pakdatakit.fbr_invoice import ...",
+      "source": "python/src/pakdatakit/fbr_invoice.py",
+      "doc": "FBR Digital Invoicing (DI): types for the invoice JSON that is posted to\nPRAL's gateway, a builder that works out the sales tax, and an offline\nvalidator for the rules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12 (last\nupdated 24 July 2025), and PRAL's \"Error Message Guide (Sales)\"; see DATA.md.\nNothing here talks to FBR: there is no HTTP client and no token handling.\nValues that only FBR's reference APIs can confirm (provinces, HS codes, units,\nrates, sale types, SRO numbers) are checked for presence, not against FBR's\nlists.\n\nThe invoice is a plain `dict` with the camelCase keys FBR expects, so it can\nbe sent with `json.dumps` as is. The `TypedDict` classes below describe it.",
+      "entries": [
+        {
+          "kind": "constant",
+          "name": "FBR_DI_SPEC_VERSION",
+          "signature": "FBR_DI_SPEC_VERSION = '1.12'",
+          "doc": "Version of PRAL's technical specification this module follows."
+        },
+        {
+          "kind": "type",
+          "name": "FbrInvoiceType",
+          "signature": "FbrInvoiceType = Literal['Sale Invoice', 'Debit Note']",
+          "doc": "`invoiceType` values in the specification."
+        },
+        {
+          "kind": "type",
+          "name": "FbrRegistrationType",
+          "signature": "FbrRegistrationType = Literal['Registered', 'Unregistered']",
+          "doc": "`buyerRegistrationType` values in the specification."
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceItemInput",
+          "signature": "class FbrInvoiceItemInput(_FbrInvoiceItemOptional)",
+          "doc": "An item for {@link build_fbr_invoice}: the tax and defaults may be left out.",
+          "fields": [
+            {
+              "name": "extraTax",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "furtherTax",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sroScheduleNo",
+              "type": "str",
+              "default": null,
+              "doc": "Required when the rate is not 18% (error 0077)."
+            },
+            {
+              "name": "fedPayable",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "discount",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sroItemSerialNo",
+              "type": "str",
+              "default": null,
+              "doc": "Required when `sroScheduleNo` is given (error 0078)."
+            },
+            {
+              "name": "hsCode",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "productDescription",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "rate",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "uoM",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "quantity",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "valueSalesExcludingST",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "saleType",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "salesTaxApplicable",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "salesTaxWithheldAtSource",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "totalValues",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "fixedNotifiedValueOrRetailPrice",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceItem",
+          "signature": "class FbrInvoiceItem(_FbrInvoiceItemOptional)",
+          "doc": "One line of an invoice (spec 4.1, `items`). Amounts are in rupees.",
+          "fields": [
+            {
+              "name": "extraTax",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "furtherTax",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sroScheduleNo",
+              "type": "str",
+              "default": null,
+              "doc": "Required when the rate is not 18% (error 0077)."
+            },
+            {
+              "name": "fedPayable",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "discount",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sroItemSerialNo",
+              "type": "str",
+              "default": null,
+              "doc": "Required when `sroScheduleNo` is given (error 0078)."
+            },
+            {
+              "name": "hsCode",
+              "type": "str",
+              "default": null,
+              "doc": "HS code, e.g. `0101.2100`."
+            },
+            {
+              "name": "productDescription",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "rate",
+              "type": "str",
+              "default": null,
+              "doc": "Rate as FBR's SaleTypeToRate API describes it: `18%`, `Rs.3`, `Exempt` ..."
+            },
+            {
+              "name": "uoM",
+              "type": "str",
+              "default": null,
+              "doc": "Unit of measure as in FBR's UoM API, e.g. `Numbers, pieces, units`."
+            },
+            {
+              "name": "quantity",
+              "type": "float",
+              "default": null,
+              "doc": "Up to 4 decimals."
+            },
+            {
+              "name": "totalValues",
+              "type": "float",
+              "default": null,
+              "doc": "\"Total Sales Value (Including Tax)\". FBR's own samples send 0."
+            },
+            {
+              "name": "valueSalesExcludingST",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "fixedNotifiedValueOrRetailPrice",
+              "type": "float",
+              "default": null,
+              "doc": "Notified or retail price; required for Third Schedule goods."
+            },
+            {
+              "name": "salesTaxApplicable",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "salesTaxWithheldAtSource",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "saleType",
+              "type": "str",
+              "default": null,
+              "doc": "Sale type as in FBR's transaction type API, e.g. `Goods at standard rate (default)`."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoice",
+          "signature": "class FbrInvoice(_FbrInvoiceOptional)",
+          "doc": "The invoice body for `postinvoicedata` and `validateinvoicedata` (spec 4.1, 4.2).",
+          "fields": [
+            {
+              "name": "scenarioId",
+              "type": "str",
+              "default": null,
+              "doc": "Sandbox only: `SN001` to `SN028`."
+            },
+            {
+              "name": "invoiceType",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "invoiceDate",
+              "type": "str",
+              "default": null,
+              "doc": "`YYYY-MM-DD`."
+            },
+            {
+              "name": "sellerNTNCNIC",
+              "type": "str",
+              "default": null,
+              "doc": "7-digit NTN or 13-digit CNIC."
+            },
+            {
+              "name": "sellerBusinessName",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sellerProvince",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sellerAddress",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerNTNCNIC",
+              "type": "str",
+              "default": null,
+              "doc": "7-digit NTN or 13-digit CNIC; may be empty for an unregistered buyer."
+            },
+            {
+              "name": "buyerBusinessName",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerProvince",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerAddress",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerRegistrationType",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "invoiceRefNo",
+              "type": "str",
+              "default": null,
+              "doc": "FBR invoice number of the original invoice; required for a debit note."
+            },
+            {
+              "name": "items",
+              "type": "List[FbrInvoiceItem]",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceInput",
+          "signature": "class FbrInvoiceInput(_FbrInvoiceOptional)",
+          "doc": "Input for {@link build_fbr_invoice} (`invoiceRefNo` and `buyerNTNCNIC` may be left out).",
+          "fields": [
+            {
+              "name": "scenarioId",
+              "type": "str",
+              "default": null,
+              "doc": "Sandbox only: `SN001` to `SN028`."
+            },
+            {
+              "name": "invoiceType",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "invoiceDate",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sellerNTNCNIC",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sellerBusinessName",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sellerProvince",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sellerAddress",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerNTNCNIC",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerBusinessName",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerProvince",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerAddress",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "buyerRegistrationType",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "invoiceRefNo",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "items",
+              "type": "List[FbrInvoiceItemInput]",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceTotals",
+          "signature": "class FbrInvoiceTotals(TypedDict)",
+          "doc": "Column totals of an invoice, in rupees. Not sent to FBR.",
+          "fields": [
+            {
+              "name": "quantity",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "valueSalesExcludingST",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "salesTaxApplicable",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "salesTaxWithheldAtSource",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "extraTax",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "furtherTax",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "fedPayable",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "discount",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceBuild",
+          "signature": "@dataclass(frozen=True)\nclass FbrInvoiceBuild",
+          "doc": "Result of {@link build_fbr_invoice}.",
+          "fields": [
+            {
+              "name": "invoice",
+              "type": "Dict[str, Any]",
+              "default": null,
+              "doc": "The invoice, a `dict` with FBR's camelCase keys."
+            },
+            {
+              "name": "totals",
+              "type": "Dict[str, float]",
+              "default": null,
+              "doc": "Column totals (camelCase keys), for your own records."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceError",
+          "signature": "@dataclass(frozen=True)\nclass FbrInvoiceError",
+          "doc": "One problem found by {@link validate_fbr_invoice}.",
+          "fields": [
+            {
+              "name": "code",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "FBR's error code (spec 7 and the Error Message Guide), or `None` for a required field the specification gives no code for."
+            },
+            {
+              "name": "field",
+              "type": "str",
+              "default": null,
+              "doc": "Where: `invoiceDate`, `items[0].rate` ..."
+            },
+            {
+              "name": "message",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceValidation",
+          "signature": "@dataclass(frozen=True)\nclass FbrInvoiceValidation",
+          "doc": "Result of {@link validate_fbr_invoice}.",
+          "fields": [
+            {
+              "name": "valid",
+              "type": "bool",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "errors",
+              "type": "List[FbrInvoiceError]",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "expected_sales_tax",
+          "signature": "def expected_sales_tax(item: Any) -> Optional[float]",
+          "doc": "The sales tax FBR expects on a line, in rupees, or `None` when the\nrate is not a plain percentage or per-unit amount (spec 7, errors 0102,\n0104, 0105):\n\n- `N%` on Third Schedule goods: retail price x rate (0102);\n- `N%` otherwise: value excluding sales tax x rate (0104);\n- `Rs.N`: quantity x N (0105).\n\nRounded half up to the paisa (the specification allows 2 decimals and\ngives no rounding rule). `item` is a `dict` with FBR's camelCase keys.\nNever raises.\n\n```python\n>>> expected_sales_tax({\"rate\": \"18%\", \"valueSalesExcludingST\": 1234})\n222.12\n>>> expected_sales_tax({\"rate\": \"Rs.3\", \"quantity\": 12})\n36.0\n```",
+          "params": [
+            {
+              "name": "item",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[float]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "build_fbr_invoice",
+          "signature": "def build_fbr_invoice(input: Any) -> Optional[FbrInvoiceBuild]",
+          "doc": "Builds an FBR digital invoice from your own fields, working out\n`salesTaxApplicable` on each line where you leave it out (see\n{@link expected_sales_tax}; uses {@link calculate_sales_tax}). Lines with\na rate that is neither `N%` nor `Rs.N` (`Exempt`, combined rates)\nget 0 unless you give the tax.\n\n`input` is a `dict` with FBR's camelCase keys (see\n{@link FbrInvoiceInput}). `salesTaxWithheldAtSource`, `totalValues`\nand `fixedNotifiedValueOrRetailPrice` default to 0, and\n`invoiceRefNo` and `buyerNTNCNIC` to `\"\"`, as in FBR's samples.\nNothing else is filled in or changed (other keys are kept); check the\nresult with {@link validate_fbr_invoice}.\n\nAlso returns column totals, which are for your own records: the\nspecification has no invoice-level totals.\n\nReturns {@link FbrInvoiceBuild} (`invoice`, `totals`), or `None`\nif `input` is not a `dict` with an `items` list of `dict` items.\nNever raises.",
+          "params": [
+            {
+              "name": "input",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[FbrInvoiceBuild]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_fbr_invoice",
+          "signature": "def validate_fbr_invoice(\n    invoice: Any,\n    *,\n    today: Any = None,\n) -> FbrInvoiceValidation",
+          "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns\nevery problem with FBR's error code.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith `today` (`YYYY-MM-DD`), a future date (0043); seller and buyer\nNTN/CNIC (0401, 0402, 0009), self-invoicing (0058), names, provinces\n(0073, 0074), addresses, buyer registration type (0012), the reference\nnumber of a debit note (0026), the sandbox scenario, and on each line: HS\ncode (0044), rate (0020), unit, sale type (0013), required and valid\namounts (0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial\n(0077, 0078), Third Schedule retail price (0090), extra tax on\nreduced-rate goods (0091) and the sales tax arithmetic (0102, 0104, 0105,\nto within one paisa).\n\nNot checked, because they need FBR's data: registration status, whether a\nprovince, HS code, unit, rate, sale type or SRO is in FBR's lists or fits\nthe others, and the original invoice of a debit note.\n\n`invoice` is a `dict` with FBR's camelCase keys; any value (untrusted\nJSON) is accepted. Returns {@link FbrInvoiceValidation} (`valid`,\n`errors`). Never raises.",
+          "params": [
+            {
+              "name": "invoice",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "today",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "FbrInvoiceValidation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "format",
+      "name": "pakdatakit.format",
+      "import": "from pakdatakit.format import ...",
+      "source": "python/src/pakdatakit/format.py",
+      "doc": "Pakistani Rupee and lakh/crore formatting.",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "format_pkr",
+          "signature": "def format_pkr(amount: Number) -> str",
+          "doc": "Formats an amount as `\"Rs. 150,000\"`, rounded to whole rupees.\n\nRaises `ValueError` if `amount` is NaN or infinite.",
+          "params": [
+            {
+              "name": "amount",
+              "type": "Number",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "format_lakh",
+          "signature": "def format_lakh(amount: Number) -> str",
+          "doc": "Formats an amount with lakh/crore units (`\"25 Lakh\"`, `\"1 Crore\"`).\n\nValues are rounded to two decimals before the unit is chosen, so\n`9999999` renders as `\"1 Crore\"`. Smaller amounts fall back to\n{@link format_pkr}. Raises `ValueError` if `amount` is NaN or infinite.",
+          "params": [
+            {
+              "name": "amount",
+              "type": "Number",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "class",
+          "name": "ParsedAmount",
+          "signature": "@dataclass(frozen=True)\nclass ParsedAmount",
+          "doc": "Result of {@link parse_amount}.",
+          "fields": [
+            {
+              "name": "value",
+              "type": "float",
+              "default": null,
+              "doc": "The amount in rupees, rounded half-up to the paisa (2 decimals)."
+            },
+            {
+              "name": "raw",
+              "type": "str",
+              "default": null,
+              "doc": "The input with surrounding whitespace removed."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "parse_amount",
+          "signature": "def parse_amount(input: Any) -> Optional[ParsedAmount]",
+          "doc": "Reads a rupee amount the way people type it in Pakistan, and returns it\nin rupees, rounded half-up to the paisa. Returns `None` for anything that\nis not exactly one non-negative amount; it never raises.\n\nAccepted:\n\n- digits, with or without grouping: `150000`, `150,000`\n  (international) or `1,50,000` (Pakistani: groups of two, then three),\n  and decimals (`1,234.50`, `.5`, `5.`); a grouping must be complete\n  and consistent;\n- Urdu (`۱۵۰۰۰۰`) and Arabic-Indic (`١٥٠٠٠٠`) digits, also\n  mixed with 0-9, and the Arabic decimal and thousands separators\n  (`٫`, `٬`);\n- one currency mark before or after the number: `Rs`, `Rs.`, `PKR`\n  or `₨` (any case), and a trailing `/-` (`Rs. 5,000/-`);\n- one shorthand unit after the number, with or without a space, in any\n  case: `k`, `thousand(s)`, `hazar`, `ہزار` (x 1,000); `lakh(s)`,\n  `lac(s)`, `لاکھ` (x 100,000); `crore(s)`, `cr`, `کروڑ`\n  (x 10,000,000). Decimals work with units: `1.5 lakh` is 150,000 and\n  `2.25cr` is 22,500,000;\n- whitespace around and between the parts (spaces, tabs, line breaks and\n  no-break spaces).\n\nRejected (`None`): non-string or empty input, negative or signed amounts\n(`-500`, `+500`), ranges (`5-10k`), more than one number\n(`500 600`), two currency marks or two units, leftover letters\n(`500 rupees`, `5kk`), grouping that could be read two ways or is\nbroken (`1,50`, `1.500,00`, `1,5000`), and amounts over Rs. 50\ntrillion (50 lakh crore), beyond which a float can no longer hold every\npaisa exactly.\n\nThe arithmetic is done on the digits, so the result is exact: `1.005`\nrounds to 1.01 and `1.5 lakh` is exactly 150000.\n\n```python\n>>> parse_amount(\"Rs. 1,50,000/-\")\nParsedAmount(value=150000.0, raw='Rs. 1,50,000/-')\n>>> parse_amount(\"2.25cr\")\nParsedAmount(value=22500000.0, raw='2.25cr')\n>>> parse_amount(\"5-10k\") is None\nTrue\n```",
+          "params": [
+            {
+              "name": "input",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[ParsedAmount]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "format_amount_input",
+          "signature": "def format_amount_input(input: Any) -> Optional[str]",
+          "doc": "Writes back an amount typed in any form {@link parse_amount} accepts,\nfor showing next to the field (\"= Rs. 150,000\"): `Rs.`, international\ngrouping, and paisa only when there are any (`Rs. 1,234.50`). Returns\n`None` when {@link parse_amount} does; it never raises.\n\n```python\n>>> format_amount_input(\"1.5 lakh\")\n'Rs. 150,000'\n```",
+          "params": [
+            {
+              "name": "input",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "geo",
+      "name": "pakdatakit.geo",
+      "import": "from pakdatakit.geo import ...",
+      "source": "python/src/pakdatakit/geo.py",
+      "doc": "Cities, districts and provinces.",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "get_province",
+          "signature": "def get_province(city: str) -> Optional[str]",
+          "doc": "Returns the province for a city name (case- and spacing-insensitive), or `None`.",
+          "params": [
+            {
+              "name": "city",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "search_cities",
+          "signature": "def search_cities(query: str) -> List[str]",
+          "doc": "Searches cities by partial, case-insensitive name; sorted.",
+          "params": [
+            {
+              "name": "query",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_district_province",
+          "signature": "def get_district_province(district: str) -> Optional[str]",
+          "doc": "Returns the province for a district name, or `None`.",
+          "params": [
+            {
+              "name": "district",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "search_districts",
+          "signature": "def search_districts(query: str) -> List[str]",
+          "doc": "Searches districts by partial, case-insensitive name; sorted.",
+          "params": [
+            {
+              "name": "query",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_districts_by_province",
+          "signature": "def get_districts_by_province(province: str) -> List[str]",
+          "doc": "Returns all districts in a province (case-insensitive), sorted.",
+          "params": [
+            {
+              "name": "province",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_divisions",
+          "signature": "def get_divisions(province: Optional[str] = None) -> List[str]",
+          "doc": "Returns the administrative divisions of Pakistan, or of one province, sorted.\n\nThe list is the 30 divisions of the 2023 census: Punjab 9, Sindh 6, Khyber\nPakhtunkhwa 7 and Balochistan 8. Islamabad has no division, and the census\ntables do not cover Azad Jammu and Kashmir or Gilgit-Baltistan. Divisions\ncreated since the census (such as Gujrat in Punjab) are not included.\n\n`province` is case-insensitive; leave it out for all divisions.",
+          "params": [
+            {
+              "name": "province",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_division_of_district",
+          "signature": "def get_division_of_district(district: str) -> Optional[str]",
+          "doc": "Returns the division a district belonged to in the 2023 census, or `None`.\n\nCensus-district caveat: only the 136 districts of the 2023 census have a\ndivision here, under the name they had then (so `Quetta`, `Dera Bugti`\nand `South Waziristan` work, and their successors do not). Districts\ncreated after the census, and those of Azad Jammu and Kashmir,\nGilgit-Baltistan and Islamabad, return `None`.",
+          "params": [
+            {
+              "name": "district",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_tehsils",
+          "signature": "def get_tehsils(district: str) -> List[str]",
+          "doc": "Returns the tehsils (talukas, sub-divisions) of a district, sorted.\n\nCensus-district caveat: the data is the 591 tehsil-level units of the 2023\ncensus, each recorded under the district it was in then. For a district of\nthe 2023 census this returns its census tehsils, even if some have since\nmoved to a new district (so `Rawalpindi` still lists Murree). For a\ndistrict created after the census it returns only the tehsils an official\nsource places in it, which can be an empty list. Azad Jammu and Kashmir\nand Gilgit-Baltistan are not covered.\n\n`district` is case-insensitive; former names such as `Quetta` and\n`South Waziristan` work.",
+          "params": [
+            {
+              "name": "district",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_tehsil_district",
+          "signature": "def get_tehsil_district(\n    tehsil: str,\n    province: Optional[str] = None,\n) -> Optional[str]",
+          "doc": "Returns the district a tehsil was in at the 2023 census, or `None`.\n\nCensus-district caveat: the result is the census district, which may have\nbeen split since (a tehsil of `Quetta` is now in Quetta East or Quetta\nWest). A few names are shared by tehsils in different districts\n(`Saddar`, `Sahiwal`, `Khanpur`); pass the province to tell them\napart. Returns `None` when the name is unknown or still matches more\nthan one district.",
+          "params": [
+            {
+              "name": "tehsil",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "province",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "hijri",
+      "name": "pakdatakit.hijri",
+      "import": "from pakdatakit.hijri import ...",
+      "source": "python/src/pakdatakit/hijri.py",
+      "doc": "Tabular Islamic (Hijri) calendar conversions.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "HijriDate",
+          "signature": "@dataclass(frozen=True)\nclass HijriDate",
+          "doc": "Islamic (Hijri) date components.",
+          "fields": [
+            {
+              "name": "year",
+              "type": "int",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "month",
+              "type": "int",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "day",
+              "type": "int",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "to_hijri",
+          "signature": "def to_hijri(date: _dt.date, *, offset: Optional[int] = 0) -> HijriDate",
+          "doc": "Converts a Gregorian date to a tabular (\"islamic-civil\") Hijri date.\n\nActual dates in Pakistan follow moon sighting and can differ by a day or\ntwo; pass `offset` (whole days) to adjust. Accepts `date` or\n`datetime` (its calendar date is used). Raises `ValueError` for a\nnon-date or a non-integer offset.",
+          "params": [
+            {
+              "name": "date",
+              "type": "_dt.date",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "offset",
+              "type": "Optional[int]",
+              "default": "0",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "HijriDate"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "from_hijri",
+          "signature": "def from_hijri(hijri: Any, *, offset: Optional[int] = 0) -> _dt.date",
+          "doc": "Converts a Hijri date to a Gregorian `datetime.date`.\n\n`hijri` may be a {@link HijriDate}, a `{\"year\", \"month\", \"day\"}` dict\nor a `(year, month, day)` tuple. Raises `ValueError` if out of range.",
+          "params": [
+            {
+              "name": "hijri",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "offset",
+              "type": "Optional[int]",
+              "default": "0",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "_dt.date"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "format_hijri",
+          "signature": "def format_hijri(date: _dt.date, *, offset: Optional[int] = 0) -> str",
+          "doc": "Formats a Gregorian date as a Hijri string, e.g. `\"14 Ramadan 1447\"`.",
+          "params": [
+            {
+              "name": "date",
+              "type": "_dt.date",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "offset",
+              "type": "Optional[int]",
+              "default": "0",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_hijri_month_name",
+          "signature": "def get_hijri_month_name(month: int) -> Optional[str]",
+          "doc": "Returns the English name of a Hijri month (1-12), or `None`.",
+          "params": [
+            {
+              "name": "month",
+              "type": "int",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "is_ramadan",
+          "signature": "def is_ramadan(date: _dt.date, *, offset: Optional[int] = 0) -> bool",
+          "doc": "Returns whether a Gregorian date falls in Ramadan.",
+          "params": [
+            {
+              "name": "date",
+              "type": "_dt.date",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "offset",
+              "type": "Optional[int]",
+              "default": "0",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "id": "holidays",
+      "name": "pakdatakit.holidays",
+      "import": "from pakdatakit.holidays import ...",
+      "source": "python/src/pakdatakit/holidays.py",
+      "doc": "Pakistan's federal public holidays.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Holiday",
+          "signature": "@dataclass(frozen=True)\nclass Holiday",
+          "doc": "A public holiday on a specific date.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "name",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "date",
+              "type": "str",
+              "default": null,
+              "doc": "Date as `YYYY-MM-DD`."
+            },
+            {
+              "name": "type",
+              "type": "str",
+              "default": null,
+              "doc": "`\"national\"` or `\"religious\"`."
+            },
+            {
+              "name": "estimated",
+              "type": "bool",
+              "default": null,
+              "doc": "`True` when an Islamic date is estimated from the tabular Hijri calendar."
+            },
+            {
+              "name": "christians_only",
+              "type": "Optional[bool]",
+              "default": "None",
+              "doc": "`True` for holidays that apply to Christian employees only."
+            },
+            {
+              "name": "source",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "Source of an observed Islamic holiday date."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_pakistan_holidays",
+          "signature": "def get_pakistan_holidays(\n    year: int,\n    *,\n    include_christian_holidays: bool = False,\n    announced: Optional[Mapping[str, Sequence[str]]] = None,\n    hijri_offset: Optional[int] = 0,\n) -> List[Holiday]",
+          "doc": "Lists Pakistan's federal public holidays for a year, sorted by date.\n\nIslamic holidays use the dates observed after moon sighting (2020 onwards).\nFor years not in the dataset they are estimated from the tabular Hijri\ncalendar and marked `estimated=True`; pass `announced` (e.g.\n`{\"eid-ul-fitr\": [\"2027-03-10\"]}`) to use official dates instead.\n\nRaises `ValueError` for a year outside 1948-9999.",
+          "params": [
+            {
+              "name": "year",
+              "type": "int",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "include_christian_holidays",
+              "type": "bool",
+              "default": "False",
+              "keywordOnly": true
+            },
+            {
+              "name": "announced",
+              "type": "Optional[Mapping[str, Sequence[str]]]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "hijri_offset",
+              "type": "Optional[int]",
+              "default": "0",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "List[Holiday]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_holidays_on",
+          "signature": "def get_holidays_on(\n    date: Union[_dt.date, str],\n    **options: Any = {},\n) -> List[Holiday]",
+          "doc": "Returns the public holidays on a date (`date`/`datetime` or `YYYY-MM-DD`).\n\nAccepts the same keyword options as {@link get_pakistan_holidays}.",
+          "params": [
+            {
+              "name": "date",
+              "type": "Union[_dt.date, str]",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "**options",
+              "type": "Any",
+              "default": "{}",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[Holiday]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "is_pakistan_holiday",
+          "signature": "def is_pakistan_holiday(date: Union[_dt.date, str], **options: Any = {}) -> bool",
+          "doc": "Returns whether a date is a federal public holiday.",
+          "params": [
+            {
+              "name": "date",
+              "type": "Union[_dt.date, str]",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "**options",
+              "type": "Any",
+              "default": "{}",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "id": "iban",
+      "name": "pakdatakit.iban",
+      "import": "from pakdatakit.iban import ...",
+      "source": "python/src/pakdatakit/iban.py",
+      "doc": "Pakistani IBAN validation and bank lookup.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "BankInfo",
+          "signature": "@dataclass(frozen=True)\nclass BankInfo",
+          "doc": "A bank (or other institution) that issues Pakistani IBANs.",
+          "fields": [
+            {
+              "name": "code",
+              "type": "str",
+              "default": null,
+              "doc": "4-letter IBAN bank code (characters 5-8 of the IBAN)."
+            },
+            {
+              "name": "name",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "type",
+              "type": "str",
+              "default": null,
+              "doc": "`commercial` (a private commercial bank), `public-sector` (a public sector commercial bank, such as National Bank of Pakistan), `islamic`, `microfinance`, `digital`, `emi` (electronic money institution such as a wallet), `foreign`, `specialized` or `central` (State Bank of Pakistan). The groups are the State Bank's."
+            },
+            {
+              "name": "active",
+              "type": "bool",
+              "default": null,
+              "doc": "`False` for banks that merged into another or have closed."
+            },
+            {
+              "name": "merged_into",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "Code of the bank this one merged into, if it no longer exists."
+            },
+            {
+              "name": "alias_of",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "Main code of the same bank, when this is an older code still in use."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "validate_iban",
+          "signature": "def validate_iban(iban: str) -> bool",
+          "doc": "Validates a 24-character `PK` IBAN (format and ISO 13616 mod-97 checksum).",
+          "params": [
+            {
+              "name": "iban",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_bank_from_iban",
+          "signature": "def get_bank_from_iban(iban: str) -> Optional[str]",
+          "doc": "Returns the bank name for a valid IBAN, or `None`.",
+          "params": [
+            {
+              "name": "iban",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_bank_info",
+          "signature": "def get_bank_info(iban_or_code: str) -> Optional[BankInfo]",
+          "doc": "Returns details of the bank that issued an IBAN: name, type and whether\nit still exists. Also accepts a 4-letter bank code such as `\"MEZN\"`.\n\nReturns `None` if the IBAN is invalid or the code unknown.",
+          "params": [
+            {
+              "name": "iban_or_code",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[BankInfo]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_banks",
+          "signature": "def get_banks() -> List[BankInfo]",
+          "doc": "Lists every bank code in the dataset, including merged banks and older\nalias codes. Filter it for a bank picker, e.g.\n`[b for b in get_banks() if b.active and not b.alias_of]`.",
+          "params": [],
+          "returns": {
+            "type": "List[BankInfo]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "incometax",
+      "name": "pakdatakit.incometax",
+      "import": "from pakdatakit.incometax import ...",
+      "source": "python/src/pakdatakit/incometax.py",
+      "doc": "Income tax on salary in Pakistan, from the salaried rate table.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "SalaryTaxSlab",
+          "signature": "@dataclass(frozen=True)\nclass SalaryTaxSlab",
+          "doc": "One band of the salaried rate table: income above `over` (and up to\n`up_to`) pays `fixed` plus `rate` percent of the amount above `over`.",
+          "fields": [
+            {
+              "name": "over",
+              "type": "float",
+              "default": null,
+              "doc": "Lower bound in rupees (income must exceed it)."
+            },
+            {
+              "name": "up_to",
+              "type": "Optional[float]",
+              "default": null,
+              "doc": "Upper bound in rupees, or `None` for the top band."
+            },
+            {
+              "name": "fixed",
+              "type": "float",
+              "default": null,
+              "doc": "Tax on the income up to `over`, in rupees."
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent of the income above `over`."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SalaryTaxYear",
+          "signature": "@dataclass(frozen=True)\nclass SalaryTaxYear",
+          "doc": "The salaried rate table for one tax year (1 July to 30 June).",
+          "fields": [
+            {
+              "name": "tax_year",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year, named after the June it ends in: 2026 is 1 July 2025 to 30 June 2026."
+            },
+            {
+              "name": "from_",
+              "type": "str",
+              "default": null,
+              "doc": "`YYYY-MM-DD`, always 1 July. (`from` in the npm package; `from_` because `from` is a keyword.)"
+            },
+            {
+              "name": "to",
+              "type": "str",
+              "default": null,
+              "doc": "`YYYY-MM-DD`, always 30 June."
+            },
+            {
+              "name": "law",
+              "type": "str",
+              "default": null,
+              "doc": "The law that sets the table."
+            },
+            {
+              "name": "source",
+              "type": "str",
+              "default": null,
+              "doc": "Official document."
+            },
+            {
+              "name": "slabs",
+              "type": "List[SalaryTaxSlab]",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SalaryTax",
+          "signature": "@dataclass(frozen=True)\nclass SalaryTax",
+          "doc": "Result of {@link calculate_salary_tax} and {@link calculate_monthly_salary_tax}.",
+          "fields": [
+            {
+              "name": "tax",
+              "type": "float",
+              "default": null,
+              "doc": "Tax for the year, in rupees, rounded half up to the paisa."
+            },
+            {
+              "name": "monthly",
+              "type": "float",
+              "default": null,
+              "doc": "`tax / 12`, rounded half up to the paisa."
+            },
+            {
+              "name": "effective_rate",
+              "type": "float",
+              "default": null,
+              "doc": "`tax` as a percent of the income, rounded half up to 2 decimals."
+            },
+            {
+              "name": "slab",
+              "type": "SalaryTaxSlab",
+              "default": null,
+              "doc": "The band the income falls in."
+            },
+            {
+              "name": "tax_year",
+              "type": "int",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_tax_year",
+          "signature": "def get_tax_year(date: Any = None) -> Optional[int]",
+          "doc": "The tax year (July to June) that contains a date, or `None` for an\ninvalid date.\n\n`date` is `YYYY-MM-DD` or a `datetime.date`, and defaults to today's\nlocal date. Never raises.\n\n```python\n>>> get_tax_year(\"2025-07-01\")\n2026\n```",
+          "params": [
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[int]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_salary_tax_slabs",
+          "signature": "def get_salary_tax_slabs(tax_year: Any = None) -> Optional[SalaryTaxYear]",
+          "doc": "Returns the salaried rate table for a tax year: Division I of Part I of\nthe First Schedule to the Income Tax Ordinance 2001, clause (2), which\napplies when salary is more than 75% of taxable income.\n\nCovers tax years 2020 to 2027, each from FBR's consolidated Ordinance.\n`tax_year` is e.g. `2026` (1 July 2025 to 30 June 2026) and defaults to\nthe current tax year. Returns `None` for a year that is not covered.\nNever raises.",
+          "params": [
+            {
+              "name": "tax_year",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[SalaryTaxYear]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_salary_tax_years",
+          "signature": "def get_salary_tax_years() -> List[int]",
+          "doc": "Which tax years {@link get_salary_tax_slabs} covers, oldest first.",
+          "params": [],
+          "returns": {
+            "type": "List[int]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "calculate_salary_tax",
+          "signature": "def calculate_salary_tax(\n    annual_income: Any,\n    *,\n    tax_year: Any = None,\n    date: Any = None,\n) -> Optional[SalaryTax]",
+          "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link get_salary_tax_slabs}).\n\n`annual_income` is the taxable income for the year in rupees, 0 to 1\ntrillion (at most 2 decimals count). `tax_year` (e.g. `2026`) takes\nprecedence over `date` (`YYYY-MM-DD` or a `datetime.date`, a day in\nthe tax year); with neither, the current tax year is used.\n\nThe rate table only: the surcharge, tax credits, exemptions, the separate\npension rate and withholding adjustments are not applied. Returns `None`\nfor an invalid amount or a tax year that is not covered. Never raises.\n\n```python\n>>> calculate_salary_tax(1_800_000, tax_year=2026).tax\n72000.0\n```",
+          "params": [
+            {
+              "name": "annual_income",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "tax_year",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "Optional[SalaryTax]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "calculate_monthly_salary_tax",
+          "signature": "def calculate_monthly_salary_tax(\n    monthly_salary: Any,\n    *,\n    tax_year: Any = None,\n    date: Any = None,\n) -> Optional[SalaryTax]",
+          "doc": "{@link calculate_salary_tax} for a monthly salary: the income is\n`monthly_salary * 12`, and `monthly` is the tax to withhold each month.\n\n```python\n>>> calculate_monthly_salary_tax(150_000, tax_year=2026).monthly\n6000.0\n```",
+          "params": [
+            {
+              "name": "monthly_salary",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "tax_year",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "Optional[SalaryTax]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "input",
+      "name": "pakdatakit.input",
+      "import": "from pakdatakit.input import ...",
+      "source": "python/src/pakdatakit/input.py",
+      "doc": "As-you-type formatters and checkers for form fields.\n\nEach `check_*_input` function returns one of:\n\n- `\"empty\"`: nothing entered yet\n- `\"incomplete\"`: what has been typed so far can still become valid\n- `\"valid\"`: complete and valid\n- `\"invalid\"`: cannot become valid by typing more",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "format_cnic_input",
+          "signature": "def format_cnic_input(value: str) -> str",
+          "doc": "Formats a CNIC as the user types: `35202-1234567-1`.",
+          "params": [
+            {
+              "name": "value",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "check_cnic_input",
+          "signature": "def check_cnic_input(value: str) -> str",
+          "doc": "Checks a CNIC while the user is typing (`\"35202-12\"` -> `\"incomplete\"`).",
+          "params": [
+            {
+              "name": "value",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "format_phone_input",
+          "signature": "def format_phone_input(value: str) -> str",
+          "doc": "Formats a mobile number as the user types: `0300-1234567`, or\n`+92 300 1234567` when the user starts with the country code.",
+          "params": [
+            {
+              "name": "value",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "check_phone_input",
+          "signature": "def check_phone_input(value: str) -> str",
+          "doc": "Checks a mobile number while the user is typing; the `03XX` prefix is\nchecked as soon as it is complete.",
+          "params": [
+            {
+              "name": "value",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "format_iban_input",
+          "signature": "def format_iban_input(value: str) -> str",
+          "doc": "Formats an IBAN as the user types: uppercase, in groups of four, up to 24 characters.",
+          "params": [
+            {
+              "name": "value",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "check_iban_input",
+          "signature": "def check_iban_input(value: str) -> str",
+          "doc": "Checks a Pakistani IBAN while the user is typing.",
+          "params": [
+            {
+              "name": "value",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        }
+      ]
+    },
+    {
+      "id": "networks",
+      "name": "pakdatakit.networks",
+      "import": "from pakdatakit.networks import ...",
+      "source": "python/src/pakdatakit/networks.py",
+      "doc": "Mobile network detection from the `03XX` prefix.",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "get_network",
+          "signature": "def get_network(phone: str) -> str",
+          "doc": "Returns the network a number's prefix was originally allocated to.\n\nOne of `\"Jazz\"`, `\"Zong\"`, `\"Telenor\"`, `\"Ufone\"`, `\"SCO\"` or\n`\"Unknown\"`. Because of number portability the current carrier may differ.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        }
+      ]
+    },
+    {
+      "id": "numbers",
+      "name": "pakdatakit.numbers",
+      "import": "from pakdatakit.numbers import ...",
+      "source": "python/src/pakdatakit/numbers.py",
+      "doc": "Landline, UAN, toll-free, premium and personal numbers.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "NumberInfo",
+          "signature": "@dataclass(frozen=True)\nclass NumberInfo",
+          "doc": "Result of {@link analyze_number}.",
+          "fields": [
+            {
+              "name": "type",
+              "type": "str",
+              "default": null,
+              "doc": "`mobile`, `landline`, `uan`, `toll-free`, `premium` or `personal`."
+            },
+            {
+              "name": "formatted",
+              "type": "str",
+              "default": null,
+              "doc": "National format with trunk prefix and separators, e.g. `021-111-825-888`."
+            },
+            {
+              "name": "e164",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "E.164 format; `None` for a UAN dialled without an area code."
+            },
+            {
+              "name": "area_code",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "Area code with trunk prefix (e.g. `021`) for landlines and UANs."
+            },
+            {
+              "name": "cities",
+              "type": "List[str]",
+              "default": "field(default_factory=list)",
+              "doc": "Cities served by the area code, when known."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "analyze_number",
+          "signature": "def analyze_number(phone: str) -> Optional[NumberInfo]",
+          "doc": "Identifies and formats any Pakistani telephone number.\n\nHandles mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate\n(`0900`) and personal (`0122`) numbers. Returns `None` if invalid.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[NumberInfo]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_number_type",
+          "signature": "def get_number_type(phone: str) -> Optional[str]",
+          "doc": "Returns the type of a Pakistani telephone number, or `None`.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_landline",
+          "signature": "def validate_landline(phone: str) -> bool",
+          "doc": "Validates a landline (fixed-line) number such as `042-35761234`.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_area_code",
+          "signature": "def get_area_code(city: str) -> Optional[str]",
+          "doc": "Returns the landline area code for a city with trunk prefix (`\"042\"`), or `None`.",
+          "params": [
+            {
+              "name": "city",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "passport",
+      "name": "pakdatakit.passport",
+      "import": "from pakdatakit.passport import ...",
+      "source": "python/src/pakdatakit/passport.py",
+      "doc": "Pakistani passport number checks.",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "validate_passport",
+          "signature": "def validate_passport(passport: str) -> bool",
+          "doc": "Validates the format of a Pakistani passport number: two letters followed\nby seven digits, e.g. `AB1234567`. Case, surrounding spaces and spaces or\ndashes between the letters and digits are ignored.\n\nDGIP does not publish the format, so this checks the common shape only;\nother passport types may differ. See DATA.md in the repository.",
+          "params": [
+            {
+              "name": "passport",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "id": "phone",
+      "name": "pakdatakit.phone",
+      "import": "from pakdatakit.phone import ...",
+      "source": "python/src/pakdatakit/phone.py",
+      "doc": "Pakistani mobile number validation, formatting and analysis.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "PhoneAnalysis",
+          "signature": "@dataclass(frozen=True)\nclass PhoneAnalysis",
+          "doc": "Combined phone validation, formatting and network analysis result.",
+          "fields": [
+            {
+              "name": "valid",
+              "type": "bool",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "formatted",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "network",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "normalize_phone_digits",
+          "signature": "def normalize_phone_digits(phone: str) -> Optional[str]",
+          "doc": "Normalizes a phone string to digits with country code (no leading plus).\n\nReturns `None` when the input is not a Pakistani mobile number on an\nallocated `03XX` prefix.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_phone",
+          "signature": "def validate_phone(phone: str) -> bool",
+          "doc": "Validates a Pakistani mobile number on an allocated `03XX` prefix.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "format_phone",
+          "signature": "def format_phone(phone: str) -> Optional[str]",
+          "doc": "Formats a mobile number as E.164 (`+923001234567`), or `None` if invalid.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "analyze_phone",
+          "signature": "def analyze_phone(phone: str) -> PhoneAnalysis",
+          "doc": "Validates, formats and detects the network of a mobile number in one call.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "PhoneAnalysis"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_phone_prefix",
+          "signature": "def get_phone_prefix(phone: str) -> Optional[str]",
+          "doc": "Returns the local mobile prefix (`0XXX`), or `None` if invalid.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "postal",
+      "name": "pakdatakit.postal",
+      "import": "from pakdatakit.postal import ...",
+      "source": "python/src/pakdatakit/postal.py",
+      "doc": "Pakistani postal code lookups.",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "get_city_by_postal_code",
+          "signature": "def get_city_by_postal_code(postal_code: str) -> Optional[str]",
+          "doc": "Returns the city for a Pakistani postal code (whitespace is ignored), or `None`.\n\nOnly codes of post offices in a city on pakdatakit's city list return a\ncity (`54660` -> `Lahore`). The code of a post office in a town or\nvillage that is not on the list returns `None`; use\n{@link get_post_office} for those.",
+          "params": [
+            {
+              "name": "postal_code",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_postal_code",
+          "signature": "def get_postal_code(city: str) -> Optional[str]",
+          "doc": "Returns the primary (GPO) postal code for a city, or `None`.",
+          "params": [
+            {
+              "name": "city",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_postal_codes",
+          "signature": "def get_postal_codes(city: str) -> List[str]",
+          "doc": "Returns all known postal codes for a city, sorted.",
+          "params": [
+            {
+              "name": "city",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "search_postal_codes",
+          "signature": "def search_postal_codes(query: str) -> List[str]",
+          "doc": "Searches postal entries by city name, area, or postal code prefix.",
+          "params": [
+            {
+              "name": "query",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_postal_areas",
+          "signature": "def get_postal_areas(city: str) -> List[str]",
+          "doc": "Returns known area names for a city's postal entries, sorted.",
+          "params": [
+            {
+              "name": "city",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        },
+        {
+          "kind": "class",
+          "name": "PostOffice",
+          "signature": "@dataclass(frozen=True)\nclass PostOffice",
+          "doc": "A delivery post office from Pakistan Post's post code directory.",
+          "fields": [
+            {
+              "name": "code",
+              "type": "str",
+              "default": null,
+              "doc": "5-digit post code, e.g. `48330`."
+            },
+            {
+              "name": "office",
+              "type": "str",
+              "default": null,
+              "doc": "Office name as the directory gives it, in title case, e.g. `Dulmial`."
+            },
+            {
+              "name": "town",
+              "type": "str",
+              "default": null,
+              "doc": "The city the office belongs to when that is known (`Lahore` for an office in Lahore); otherwise the office's own name, which for most offices is its town or village."
+            },
+            {
+              "name": "district",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "The district, when the town is the headquarters a district is named after; otherwise `None`. The directory has no district column."
+            },
+            {
+              "name": "province",
+              "type": "str",
+              "default": null,
+              "doc": "Province or territory."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_post_office",
+          "signature": "def get_post_office(code: str) -> Optional[PostOffice]",
+          "doc": "Returns the delivery post office for a post code, from Pakistan Post's\ndirectory of about 2,560 offices.\n\nUnlike {@link get_city_by_postal_code}, which only answers for codes in\nthe cities pakdatakit lists, this knows every delivery office, including\nthose in towns and villages. Whitespace in `code` is ignored.\n\nReturns `None` if the code is not in the directory.\n\n```python\n>>> get_post_office(\"48330\")\nPostOffice(code='48330', office='Dulmial', town='Dulmial', district=None, province='Punjab')\n```",
+          "params": [
+            {
+              "name": "code",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[PostOffice]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "search_post_offices",
+          "signature": "def search_post_offices(query: str) -> List[PostOffice]",
+          "doc": "Searches Pakistan Post's directory by office name, town or post code.\n\nMatching is case-insensitive: an office matches when its name or town\ncontains the query, or its code starts with it. Returns the matching post\noffices, sorted by post code.",
+          "params": [
+            {
+              "name": "query",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[PostOffice]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "quality",
+      "name": "pakdatakit.quality",
+      "import": "from pakdatakit.quality import ...",
+      "source": "python/src/pakdatakit/quality.py",
+      "doc": "Address completeness scores and phone number risk signals for deliveries.",
+      "entries": [
+        {
+          "kind": "type",
+          "name": "AddressPart",
+          "signature": "AddressPart = Literal['city', 'houseNumber', 'street', 'area', 'postalCode', 'landmark']",
+          "doc": "A part of a delivery address that {@link score_address} looks for."
+        },
+        {
+          "kind": "constant",
+          "name": "ADDRESS_WEIGHTS",
+          "signature": "ADDRESS_WEIGHTS: Mapping[str, int]",
+          "doc": "Points for each part of an address. They add up to 100. A postal code scores in full only when it is a known post office code; an unknown one scores 5. Keys are the camelCase part names used in `AddressScore.missing`."
+        },
+        {
+          "kind": "class",
+          "name": "AddressScore",
+          "signature": "@dataclass(frozen=True)\nclass AddressScore",
+          "doc": "Result of {@link score_address}.",
+          "fields": [
+            {
+              "name": "score",
+              "type": "int",
+              "default": null,
+              "doc": "0 (unusable) to 100 (every part present and consistent)."
+            },
+            {
+              "name": "missing",
+              "type": "List[str]",
+              "default": null,
+              "doc": "Parts not found, in the order of {@link ADDRESS_WEIGHTS}."
+            },
+            {
+              "name": "parsed",
+              "type": "ParsedAddress",
+              "default": null,
+              "doc": "The address as {@link parse_address} reads it, with any extra warnings."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "score_address",
+          "signature": "def score_address(address: str) -> AddressScore",
+          "doc": "Scores how complete a free-form Pakistani delivery address is, for cash\non delivery and other courier use.\n\nBuilt on {@link parse_address}. It looks for a city, a house, plot or flat\nnumber, a street, an area, a postal code and a landmark (\"near\", \"opp\",\n\"nazd\", \"qareeb\", \"سامنے\" ...), and adds up {@link ADDRESS_WEIGHTS}. A\npostal code that is a known post office raises the score more than an\nunknown one, and a post office in a different province from the city\nlowers it (with a warning in `parsed.warnings`).\n\nThis is a heuristic: it says how much an address tells a rider, not\nwhether the address exists. It never raises.\n\n```python\n>>> score_address(\"House 12, Street 4, Block B, Gulberg III, near Liberty Market, Lahore 54660\").score\n100\n```",
+          "params": [
+            {
+              "name": "address",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "AddressScore"
+          }
+        },
+        {
+          "kind": "type",
+          "name": "PhoneRiskFlag",
+          "signature": "PhoneRiskFlag = Literal['invalid', 'landline', 'not-mobile', 'repeated-digits', 'sequential-digits', 'test-number']",
+          "doc": "A reason to double-check a phone number given for a delivery."
+        },
+        {
+          "kind": "function",
+          "name": "phone_risk_signals",
+          "signature": "def phone_risk_signals(phone: str) -> List[str]",
+          "doc": "Flags a phone number that a courier cannot reach by SMS or call, or\nthat looks made up. Pure heuristics on the number itself: no list of real\nnumbers, no personal data, no network call.\n\n- `invalid`: not a Pakistani phone number.\n- `landline`: a fixed-line number (no SMS, often unanswered).\n- `not-mobile`: a UAN, toll-free or other service number.\n- `repeated-digits`: the 7-digit subscriber part uses at most two\n  different digits (`0300-0000000`, `0300-1111112`).\n- `sequential-digits`: the subscriber part is a run such as `1234567`\n  or `7654321`.\n- `test-number`: a placeholder often typed into forms\n  (`03XX-1234567`, `03XX-7654321`, `0312-3456789`).\n\nA valid mobile number with nothing suspicious returns `[]`. It never\nraises.\n\n```python\n>>> phone_risk_signals(\"03001234567\")\n['sequential-digits', 'test-number']\n```",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "raast",
+      "name": "pakdatakit.raast",
+      "import": "from pakdatakit.raast import ...",
+      "source": "python/src/pakdatakit/raast.py",
+      "doc": "Raast QR codes: SBP person-to-person and EMVCo merchant QR payloads.\n\nImplements SBP's \"Standard for Interoperable QR Code for Person-to-Person and\nMerchant Payments\" v1.0 (DI&SD Circular Letter No. 1 of 2022, Annex-I).",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "EmvField",
+          "signature": "@dataclass(frozen=True)\nclass EmvField",
+          "doc": "A parsed EMV field. `children` is set for template fields.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "value",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "children",
+              "type": "Optional[List['EmvField']]",
+              "default": "None",
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "MerchantAccountInfo",
+          "signature": "@dataclass(frozen=True)\nclass MerchantAccountInfo",
+          "doc": "Account details for a merchant QR, as issued by the merchant's bank.",
+          "fields": [
+            {
+              "name": "fields",
+              "type": "Mapping[str, str]",
+              "default": null,
+              "doc": "Sub-fields of the template, keyed by 2-digit ID, in the order given."
+            },
+            {
+              "name": "tag",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "Template tag. SBP reserves `28`-`30` for Raast. Defaults to `28`."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ParsedRaastQr",
+          "signature": "@dataclass(frozen=True)\nclass ParsedRaastQr",
+          "doc": "Result of {@link parse_raast_qr}.",
+          "fields": [
+            {
+              "name": "kind",
+              "type": "str",
+              "default": null,
+              "doc": "`\"p2p\"` for person-to-person QR codes, `\"merchant\"` for EMVCo merchant QR codes."
+            },
+            {
+              "name": "dynamic",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the QR carries a fixed amount (point of initiation 12)."
+            },
+            {
+              "name": "crc_valid",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the CRC checksum matches."
+            },
+            {
+              "name": "iban",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "iban_valid",
+              "type": "bool",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "amount",
+              "type": "Optional[float]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "expires_at",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "P2P: expiry of a dynamic QR as local `YYYY-MM-DDTHH:mm`."
+            },
+            {
+              "name": "bank_name",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "particulars",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "merchant_name",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "city",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "mcc",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "bill_number",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "due_date",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Due date as `YYYY-MM-DD`."
+            },
+            {
+              "name": "amount_after_due_date",
+              "type": "Optional[float]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "fields",
+              "type": "List[EmvField]",
+              "default": null,
+              "doc": "All top-level fields, with template fields parsed into `children`."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RaastQrValidation",
+          "signature": "@dataclass(frozen=True)\nclass RaastQrValidation",
+          "doc": "Result of {@link validate_raast_qr}.",
+          "fields": [
+            {
+              "name": "valid",
+              "type": "bool",
+              "default": null,
+              "doc": "`True` when there are no errors."
+            },
+            {
+              "name": "errors",
+              "type": "List[str]",
+              "default": null,
+              "doc": "`not-a-raast-qr`, `bad-checksum`, `no-iban`, `invalid-iban`, `expired` or `missing-expiry`."
+            },
+            {
+              "name": "warnings",
+              "type": "List[str]",
+              "default": null,
+              "doc": "`amount-ignored` or `expires-soon`."
+            },
+            {
+              "name": "qr",
+              "type": "Optional[ParsedRaastQr]",
+              "default": null,
+              "doc": "The parsed QR, or `None` if it could not be read."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "create_raast_p2p_qr",
+          "signature": "def create_raast_p2p_qr(\n    iban: str,\n    *,\n    amount: Optional[Number] = None,\n    expires_at: Optional[_dt.datetime] = None,\n    expires_in: Optional[Duration] = None,\n    bank_name: Optional[str] = None,\n    particulars: Optional[str] = None,\n    scheme: Optional[str] = _DEFAULT_P2P_SCHEME,\n    now: Optional[_dt.datetime] = None,\n) -> str",
+          "doc": "Creates a Raast person-to-person QR payload (SBP P2P format `02`).\n\nMatches the QR codes banking apps generate, so Easypaisa, JazzCash and\nother apps can scan it. Encode the returned string with any QR library.\n\nA QR with an `amount` is dynamic and needs `expires_at` (a naive local\n`datetime`) or `expires_in` (milliseconds, a `timedelta`, or a string\nsuch as `\"30m\"`, `\"12h\"` or `\"7d\"`, counted from `now`, which\ndefaults to the current local time).\n\nRaises `ValueError` if the IBAN is invalid, a field is too long, or an\namount is given without an expiry.",
+          "params": [
+            {
+              "name": "iban",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "amount",
+              "type": "Optional[Number]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "expires_at",
+              "type": "Optional[_dt.datetime]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "expires_in",
+              "type": "Optional[Duration]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "bank_name",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "particulars",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "scheme",
+              "type": "Optional[str]",
+              "default": "_DEFAULT_P2P_SCHEME",
+              "keywordOnly": true
+            },
+            {
+              "name": "now",
+              "type": "Optional[_dt.datetime]",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "create_merchant_qr",
+          "signature": "def create_merchant_qr(\n    merchant_account: Union[MerchantAccountInfo, Mapping[str, Any]],\n    merchant_name: str,\n    city: str,\n    *,\n    mcc: Optional[str] = None,\n    amount: Optional[Number] = None,\n    dynamic: Optional[bool] = None,\n    bill_number: Optional[str] = None,\n    mobile_number: Optional[str] = None,\n    reference: Optional[str] = None,\n    due_date: Optional[_dt.date] = None,\n    amount_after_due_date: Optional[Number] = None,\n) -> str",
+          "doc": "Creates an EMVCo merchant-presented QR payload per SBP's Pakistan QR standard.\n\n`merchant_account` is a {@link MerchantAccountInfo} or a dict such as\n`{\"tag\": \"28\", \"fields\": {\"00\": \"A000000736\", \"01\": iban}}` holding the\ntemplate sub-fields your bank gives you.\n\nRaises `ValueError` if a field is missing, too long, or out of range.",
+          "params": [
+            {
+              "name": "merchant_account",
+              "type": "Union[MerchantAccountInfo, Mapping[str, Any]]",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "merchant_name",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "city",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "mcc",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "amount",
+              "type": "Optional[Number]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "dynamic",
+              "type": "Optional[bool]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "bill_number",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "mobile_number",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "reference",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "due_date",
+              "type": "Optional[_dt.date]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "amount_after_due_date",
+              "type": "Optional[Number]",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "parse_raast_qr",
+          "signature": "def parse_raast_qr(payload: str) -> Optional[ParsedRaastQr]",
+          "doc": "Parses a Raast QR payload (P2P format `02` or EMVCo merchant format `01`)\nand verifies its CRC. Returns `None` if it is not a well-formed Pakistani QR code.",
+          "params": [
+            {
+              "name": "payload",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[ParsedRaastQr]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_raast_qr",
+          "signature": "def validate_raast_qr(\n    payload: str,\n    *,\n    now: Optional[_dt.datetime] = None,\n    expires_soon_ms: Optional[Number] = None,\n) -> RaastQrValidation",
+          "doc": "Checks whether a Raast QR code can be paid.\n\nErrors: not a Pakistani payment QR, checksum mismatch, no IBAN or an\ninvalid IBAN, expired, or a fixed-amount QR without an expiry.\nWarnings: an amount in a static QR (apps ignore it), or a QR that expires\nwithin `expires_soon_ms` (default one hour) of `now` (default: the\ncurrent local time).",
+          "params": [
+            {
+              "name": "payload",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "now",
+              "type": "Optional[_dt.datetime]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "expires_soon_ms",
+              "type": "Optional[Number]",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "RaastQrValidation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "salestax",
+      "name": "pakdatakit.salestax",
+      "import": "from pakdatakit.salestax import ...",
+      "source": "python/src/pakdatakit/salestax.py",
+      "doc": "Standard sales tax rates in Pakistan and exact tax arithmetic.",
+      "entries": [
+        {
+          "kind": "type",
+          "name": "SalesTaxKind",
+          "signature": "SalesTaxKind = Literal['goods', 'services']",
+          "doc": "What is taxed: goods (federal sales tax) or services (provincial or ICT)."
+        },
+        {
+          "kind": "class",
+          "name": "SalesTaxRate",
+          "signature": "@dataclass(frozen=True)\nclass SalesTaxRate",
+          "doc": "One standard rate and the period it applied.",
+          "fields": [
+            {
+              "name": "kind",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "authority",
+              "type": "str",
+              "default": null,
+              "doc": "`FBR`, `PRA`, `SRB`, `KPRA` or `BRA`. FBR also collects ICT's tax on services."
+            },
+            {
+              "name": "province",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "For services: the province or `Islamabad Capital Territory`. `None` for goods."
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent, e.g. `18`."
+            },
+            {
+              "name": "from_",
+              "type": "str",
+              "default": null,
+              "doc": "First day it applied (`YYYY-MM-DD`). Coverage starts on 1 July 2019. (`from` in the npm package; `from_` because `from` is a keyword.)"
+            },
+            {
+              "name": "to",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Last day it applied, or `None` if it still applies."
+            },
+            {
+              "name": "law",
+              "type": "str",
+              "default": null,
+              "doc": "The law that sets it."
+            },
+            {
+              "name": "source",
+              "type": "str",
+              "default": null,
+              "doc": "Official document."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SalesTaxAmounts",
+          "signature": "@dataclass(frozen=True)\nclass SalesTaxAmounts",
+          "doc": "Result of {@link calculate_sales_tax} and {@link split_inclusive}, in rupees.",
+          "fields": [
+            {
+              "name": "net",
+              "type": "float",
+              "default": null,
+              "doc": "Value excluding tax (2 decimals at most)."
+            },
+            {
+              "name": "tax",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "gross",
+              "type": "float",
+              "default": null,
+              "doc": "Value including tax."
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent used."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_sales_tax_rate",
+          "signature": "def get_sales_tax_rate(\n    *,\n    kind: Any = None,\n    province: Optional[str] = None,\n    date: Any = None,\n) -> Optional[SalesTaxRate]",
+          "doc": "Returns the standard sales tax rate for goods (federal, Sales Tax Act\n1990) or for services in a province or Islamabad Capital Territory, on a\ngiven date.\n\n`kind` is `\"goods\"` or `\"services\"`. `province` (needed for\nservices) accepts the province names and `KP`, `KPK`, `ICT` and\n`Islamabad`. `date` is `YYYY-MM-DD` or a `datetime.date`, and\ndefaults to today's local date.\n\nOnly standard rates are covered, from 1 July 2019. Reduced, higher and\nsector rates are not. Returns `None` for an unknown province or kind, an\ninvalid date, a date before 1 July 2019, services without a province, or\ngoods in Azad Jammu and Kashmir or Gilgit-Baltistan. Never raises.\n\n```python\n>>> get_sales_tax_rate(kind=\"services\", province=\"Sindh\", date=\"2024-06-30\").rate\n13\n```",
+          "params": [
+            {
+              "name": "kind",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "province",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "Optional[SalesTaxRate]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "split_inclusive",
+          "signature": "def split_inclusive(gross: Any, rate: Any) -> Optional[SalesTaxAmounts]",
+          "doc": "Splits an amount that includes sales tax into its value and tax.\n\nThe value is rounded half up to the paisa and the tax is the rest, so\n`net + tax` is always `gross`. `gross` is 0 to 1 trillion rupees and\n`rate` a percent from 0 to 100 with at most 2 decimals. Returns `None`\nfor an invalid amount or rate. Never raises.\n\n```python\n>>> split_inclusive(1180, 18)\nSalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)\n```",
+          "params": [
+            {
+              "name": "gross",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "rate",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[SalesTaxAmounts]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "calculate_sales_tax",
+          "signature": "def calculate_sales_tax(\n    amount: Any,\n    *,\n    rate: Any = None,\n    province: Optional[str] = None,\n    kind: Any = None,\n    date: Any = None,\n    inclusive: Any = False,\n) -> Optional[SalesTaxAmounts]",
+          "doc": "Adds sales tax to an amount, or splits it out when `inclusive=True`.\n\nGive a `rate` (percent, 0 to 100, at most 2 decimals; it takes\nprecedence), or a `province` (and `kind`, default `\"services\"`, and\n`date`) to use the standard rate from {@link get_sales_tax_rate}. The\ntax is rounded half up to the paisa. `amount` is 0 to 1 trillion rupees.\n\nReturns `None` if the amount, rate or province is invalid or no rate\napplies. Never raises.\n\n```python\n>>> calculate_sales_tax(1000, rate=18)\nSalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)\n>>> calculate_sales_tax(1000, province=\"Punjab\", date=\"2026-11-18\").tax\n160.0\n```",
+          "params": [
+            {
+              "name": "amount",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "rate",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "province",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "kind",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "inclusive",
+              "type": "Any",
+              "default": "False",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "Optional[SalesTaxAmounts]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tax",
+      "name": "pakdatakit.tax",
+      "import": "from pakdatakit.tax import ...",
+      "source": "python/src/pakdatakit/tax.py",
+      "doc": "National Tax Number (NTN) and Sales Tax Registration Number (STRN) checks.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "NTNInfo",
+          "signature": "@dataclass(frozen=True)\nclass NTNInfo",
+          "doc": "Result of {@link analyze_ntn}.",
+          "fields": [
+            {
+              "name": "type",
+              "type": "str",
+              "default": null,
+              "doc": "`\"individual\"` (a CNIC) or `\"business\"` (7-digit NTN)."
+            },
+            {
+              "name": "digits",
+              "type": "str",
+              "default": null,
+              "doc": "Digits without separators (7, 8 or 13 digits)."
+            },
+            {
+              "name": "formatted",
+              "type": "str",
+              "default": null,
+              "doc": "`1234567-8` for business NTNs with a check digit, `#####-#######-#` for CNICs."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "analyze_ntn",
+          "signature": "def analyze_ntn(ntn: str) -> Optional[NTNInfo]",
+          "doc": "Analyzes an NTN: a 13-digit CNIC for individuals, or 7 digits (plus an\noptional check digit) for businesses. Format only; returns `None` if invalid.",
+          "params": [
+            {
+              "name": "ntn",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[NTNInfo]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_ntn",
+          "signature": "def validate_ntn(ntn: str) -> bool",
+          "doc": "Validates the format of an NTN. See {@link analyze_ntn}.",
+          "params": [
+            {
+              "name": "ntn",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_strn",
+          "signature": "def validate_strn(strn: str) -> bool",
+          "doc": "Validates the format of an STRN: 13 digits, with optional spaces or dashes.",
+          "params": [
+            {
+              "name": "strn",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "id": "text",
+      "name": "pakdatakit.text",
+      "import": "from pakdatakit.text import ...",
+      "source": "python/src/pakdatakit/text.py",
+      "doc": "Text normalization, Roman Urdu spelling, Urdu digits, slugs, Urdu sorting\nand bidirectional text.",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "normalize_text",
+          "signature": "def normalize_text(text: str) -> str",
+          "doc": "Trims, collapses whitespace and applies Unicode NFC.",
+          "params": [
+            {
+              "name": "text",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "normalize_roman_urdu",
+          "signature": "def normalize_roman_urdu(text: str) -> str",
+          "doc": "Normalizes informal Roman Urdu spellings (`kia` -> `kya`).\n\nAlso applies {@link normalize_text} and converts Urdu/Arabic digits to\nEnglish. A capitalized word keeps its capital; all-caps words are left alone.",
+          "params": [
+            {
+              "name": "text",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "to_urdu_digits",
+          "signature": "def to_urdu_digits(text: str) -> str",
+          "doc": "Converts English and Arabic-Indic digits to Urdu digits (۰-۹).",
+          "params": [
+            {
+              "name": "text",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "to_english_digits",
+          "signature": "def to_english_digits(text: str) -> str",
+          "doc": "Converts Urdu and Arabic-Indic digits to English digits (0-9).",
+          "params": [
+            {
+              "name": "text",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "type",
+          "name": "SlugScript",
+          "signature": "SlugScript = Literal['any', 'latin', 'urdu']",
+          "doc": "Which letters {@link slugify} keeps: `any` (Latin and Urdu), `latin` or `urdu`."
+        },
+        {
+          "kind": "type",
+          "name": "BidiDirection",
+          "signature": "BidiDirection = Literal['auto', 'rtl', 'ltr']",
+          "doc": "Direction for {@link wrap_bidi}."
+        },
+        {
+          "kind": "function",
+          "name": "slugify",
+          "signature": "def slugify(text: Any, *, script: Any = 'any') -> str",
+          "doc": "Turns text into a URL slug: lower-case words joined by `-`.\n\nUrdu letters are kept as they are (no transliteration). Diacritics,\ntatweel and zero-width characters are dropped, the Arabic look-alikes\nك ي ى become the Urdu ک ی ی, Urdu and Arabic-Indic digits become `0-9`,\nand accented Latin-1 letters lose their accents (`é` -> `e`, `ß` ->\n`ss`). Anything else separates words.\n\n`script` is `\"any\"` (default: Latin and Urdu letters), `\"latin\"`\n(only `a-z`) or `\"urdu\"` (only Urdu letters); any other value is\n`\"any\"`. Digits are always kept.\n\nReturns `\"\"` when nothing is left or `text` is not a string. Never raises.\n\n```python\n>>> slugify(\"Lahore Fort, 2024\")\n'lahore-fort-2024'\n>>> slugify(\"کراچی ۲۰۲۴\", script=\"urdu\")\n'کراچی-2024'\n```",
+          "params": [
+            {
+              "name": "text",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "script",
+              "type": "Any",
+              "default": "'any'",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "compare_urdu",
+          "signature": "def compare_urdu(a: Any, b: Any) -> int",
+          "doc": "Compares two strings in Urdu alphabetical order; use with\n`functools.cmp_to_key`.\n\nLetters follow the Unicode CLDR collation for Urdu (`ur`, CLDR 49):\nا آ ب بھ پ پھ ت تھ ٹ ٹھ ث ج جھ چ چھ ح خ د دھ ڈ ڈھ ذ ر رھ ڑ ڑھ ز ژ س ش ص ض\nط ظ ع غ ف ق ک کھ گ گھ ل لھ م مھ ن نھ ں ںھ و وھ ہ ھ ۃ ء ی یھ ے. A letter\njoined with ھ is a letter of its own. أ ؤ ۂ ئ ۓ sort as ا و ہ ی ے and come\njust after them when words are otherwise equal, and diacritics only break\nties, in CLDR's order.\n\nOutside the Urdu letters: spaces and punctuation come first, then digits\ndigit by digit (Urdu, Arabic-Indic and ASCII digits are equal; `10`\ncomes before `2`), then Urdu letters, then other Arabic-script\ncharacters (the look-alikes ك ي ى ه ة), then everything else by code\npoint, ignoring ASCII case. Strings that are still equal are ordered by\ncode point, so the result is 0 only for identical strings.\n\nReturns `-1`, `0` or `1`. A value that is not a string is treated as\n`\"\"`. Never raises.\n\n```python\n>>> from functools import cmp_to_key\n>>> sorted([\"ے\", \"بھائی\", \"آم\", \"باغ\", \"اب\"], key=cmp_to_key(compare_urdu))\n['اب', 'آم', 'باغ', 'بھائی', 'ے']\n```",
+          "params": [
+            {
+              "name": "a",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "b",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "int"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "is_rtl",
+          "signature": "def is_rtl(text: Any) -> bool",
+          "doc": "Whether text reads right to left: its first letter is from a\nright-to-left script such as Urdu or Arabic. Digits, punctuation and\nspaces are skipped, as in the Unicode bidirectional algorithm's paragraph\nrule.\n\nReturns `False` when there is no letter or `text` is not a string.\nNever raises.\n\n```python\n>>> is_rtl(\"123 سلام\")\nTrue\n>>> is_rtl(\"Order نمبر\")\nFalse\n```",
+          "params": [
+            {
+              "name": "text",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "wrap_bidi",
+          "signature": "def wrap_bidi(text: Any, direction: Any = 'auto') -> str",
+          "doc": "Wraps text in Unicode directional isolates, so a name or number in one\ndirection does not reorder the sentence around it (for example an English\norder number inside an Urdu message).\n\nUses FIRST STRONG ISOLATE (U+2068) by default, RIGHT-TO-LEFT ISOLATE\n(U+2067) for `\"rtl\"` and LEFT-TO-RIGHT ISOLATE (U+2066) for `\"ltr\"`,\nclosed with POP DIRECTIONAL ISOLATE (U+2069). Any other direction is\n`\"auto\"`.\n\nReturns `\"\"` when `text` is not a string. Never raises.\n\n```python\n>>> wrap_bidi(\"PDK-1042\")\n'\\u2068PDK-1042\\u2069'\n```",
+          "params": [
+            {
+              "name": "text",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "direction",
+              "type": "Any",
+              "default": "'auto'",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vehicle",
+      "name": "pakdatakit.vehicle",
+      "import": "from pakdatakit.vehicle import ...",
+      "source": "python/src/pakdatakit/vehicle.py",
+      "doc": "Pakistani vehicle registration number checks.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "VehiclePlate",
+          "signature": "@dataclass(frozen=True)\nclass VehiclePlate",
+          "doc": "Result of {@link parse_vehicle_plate}.",
+          "fields": [
+            {
+              "name": "series",
+              "type": "str",
+              "default": null,
+              "doc": "Letters before the number, e.g. `LEA`."
+            },
+            {
+              "name": "number",
+              "type": "str",
+              "default": null,
+              "doc": "Digits of the registration number, e.g. `1234`."
+            },
+            {
+              "name": "year",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Two-digit year printed on some older Punjab plates, e.g. `19`; otherwise `None`."
+            },
+            {
+              "name": "formatted",
+              "type": "str",
+              "default": null,
+              "doc": "Series and number joined with a dash, e.g. `LEA-1234` (without the year)."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "parse_vehicle_plate",
+          "signature": "def parse_vehicle_plate(plate: str) -> Optional[VehiclePlate]",
+          "doc": "Splits a vehicle registration number into its series letters, number and\noptional year, e.g. `LEA-1234` or `ABC 123`.\n\nThere is no single national format, so this accepts the common shape: 1-4\nletters, then 1-4 digits, optionally followed by a two-digit year after a\nseparator (`LEA-1234-19`). Series letters are not checked. Returns\n`None` if the plate does not have that shape. See DATA.md in the repository.",
+          "params": [
+            {
+              "name": "plate",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[VehiclePlate]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "validate_vehicle_plate",
+          "signature": "def validate_vehicle_plate(plate: str) -> bool",
+          "doc": "Validates the format of a vehicle registration number. See {@link parse_vehicle_plate}.",
+          "params": [
+            {
+              "name": "plate",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "id": "whatsapp",
+      "name": "pakdatakit.whatsapp",
+      "import": "from pakdatakit.whatsapp import ...",
+      "source": "python/src/pakdatakit/whatsapp.py",
+      "doc": "WhatsApp click-to-chat links.",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "create_whatsapp_link",
+          "signature": "def create_whatsapp_link(\n    phone: str,\n    message: Optional[str] = None,\n) -> Optional[str]",
+          "doc": "Creates a `wa.me` link for a Pakistani mobile number, or `None` if invalid.",
+          "params": [
+            {
+              "name": "phone",
+              "type": "str",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "message",
+              "type": "Optional[str]",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "words",
+      "name": "pakdatakit.words",
+      "import": "from pakdatakit.words import ...",
+      "source": "python/src/pakdatakit/words.py",
+      "doc": "Numbers and rupee amounts in words (English and Urdu, lakh/crore scale).",
+      "entries": [
+        {
+          "kind": "function",
+          "name": "number_to_words",
+          "signature": "def number_to_words(n: int, *, language: str = 'en') -> str",
+          "doc": "Converts a whole number to words (hundred, thousand, lakh, crore, arab, kharab).\n\n`number_to_words(125000)` -> `\"one lakh twenty-five thousand\"`;\n`language=\"ur\"` gives Urdu. Raises `ValueError` unless `n` is a safe\ninteger (`abs(n) <= 2**53 - 1`) or `language` is not `\"en\"`/`\"ur\"`.",
+          "params": [
+            {
+              "name": "n",
+              "type": "int",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "language",
+              "type": "str",
+              "default": "'en'",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "amount_in_words",
+          "signature": "def amount_in_words(\n    amount: Number,\n    *,\n    language: str = 'en',\n    cheque: bool = False,\n) -> str",
+          "doc": "Writes a rupee amount in words, with paisa, rounded to the nearest paisa.\n\n`amount_in_words(125000, cheque=True)` ->\n`\"Rupees One Lakh Twenty-Five Thousand Only\"`.\nRaises `ValueError` if `amount` is negative, not finite, or too large,\nor if `language` is not `\"en\"`/`\"ur\"`.",
+          "params": [
+            {
+              "name": "amount",
+              "type": "Number",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "language",
+              "type": "str",
+              "default": "'en'",
+              "keywordOnly": true
+            },
+            {
+              "name": "cheque",
+              "type": "bool",
+              "default": "False",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        }
+      ]
+    }
+  ]
+}

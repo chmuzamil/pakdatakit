@@ -21,3 +21,5 @@ $request->validate(['cnic' => ['required', 'pk_cnic'], 'phone' => 'pk_phone']);
 ```
 
 Package: [Packagist](https://packagist.org/packages/chmuzamil/pakdatakit)
+
+API reference: [every PHP class and method](/api/php/), including the Laravel rules and casts, generated from the docblocks.

@@ -241,6 +241,10 @@ ${tools}
 ### Reference
 
 - [TypeScript API reference](${api}/): every function, type and option in all modules
+- [Python API reference](${site}/api/python/): every public function, class and constant in the Python package
+- [Dart API reference](${site}/api/dart/): every public function, class, enum and constant in the Dart package
+- [.NET API reference](${site}/api/dotnet/): every public class, method, record and enum in the PakDataKit NuGet packages
+- [PHP API reference](${site}/api/php/): every public class, method and constant in the PHP package, with the Laravel bridge
 - [Playground](${site}/playground/): try every module in the browser
 - [Data sources](${site}/data/): where each dataset comes from, with counts and dates
 - [Releases](${site}/releases/): every version of every package

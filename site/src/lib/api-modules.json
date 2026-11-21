@@ -1,0 +1,191 @@
+{
+  "groups": [
+    {
+      "title": "Identity and contact",
+      "intro": "Check and format the numbers people type into sign-up and KYC forms.",
+      "modules": [
+        {
+          "id": "cnic",
+          "title": "CNIC",
+          "description": "Validate and format CNIC numbers; read the province and gender they encode."
+        },
+        {
+          "id": "phone",
+          "title": "Phone",
+          "description": "Validate, format and analyse mobile numbers in every common way they are written."
+        },
+        {
+          "id": "networks",
+          "title": "Networks",
+          "description": "Find the mobile network (Jazz, Zong, Telenor, Ufone…) from a number prefix."
+        },
+        {
+          "id": "numbers",
+          "title": "Landlines and number types",
+          "description": "Tell mobile, landline, toll-free and UAN numbers apart; look up area codes."
+        },
+        {
+          "id": "whatsapp",
+          "title": "WhatsApp",
+          "description": "Build wa.me links with an optional pre-filled message."
+        },
+        {
+          "id": "passport",
+          "title": "Passport",
+          "description": "Check the format of a Pakistani passport number."
+        },
+        {
+          "id": "input",
+          "title": "As-you-type input",
+          "description": "Format CNIC, phone and IBAN fields while the user types, and say what is missing."
+        }
+      ]
+    },
+    {
+      "title": "Banking and payments",
+      "intro": "Bank accounts, Raast QR codes and utility bills.",
+      "modules": [
+        {
+          "id": "iban",
+          "title": "IBAN and banks",
+          "description": "Validate IBANs (with the check digits) and find the bank they belong to."
+        },
+        {
+          "id": "raast",
+          "title": "Raast QR",
+          "description": "Create and read Raast person-to-person and merchant QR payloads."
+        },
+        {
+          "id": "bills",
+          "title": "Utility bills",
+          "description": "Parse electricity reference numbers and check gas consumer numbers."
+        }
+      ]
+    },
+    {
+      "title": "Tax and invoicing",
+      "intro": "Sales tax, income tax on salaries, NTN and FBR digital invoices.",
+      "modules": [
+        {
+          "id": "salestax",
+          "title": "Sales tax",
+          "description": "Federal and provincial sales tax rates by date; add tax or split it out."
+        },
+        {
+          "id": "incometax",
+          "title": "Income tax on salary",
+          "description": "Annual and monthly tax on salaries under each Finance Act."
+        },
+        {
+          "id": "tax",
+          "title": "NTN and STRN",
+          "description": "Validate and analyse NTN and STRN numbers."
+        },
+        {
+          "id": "fbr-invoice",
+          "title": "FBR digital invoicing",
+          "description": "Build and check invoices for the FBR digital invoicing API."
+        }
+      ]
+    },
+    {
+      "title": "Places and addresses",
+      "intro": "Provinces, districts, cities, postal codes, couriers and vehicle plates.",
+      "modules": [
+        {
+          "id": "geo",
+          "title": "Provinces, districts and cities",
+          "description": "Search cities and districts; get divisions, tehsils and provinces."
+        },
+        {
+          "id": "postal",
+          "title": "Postal codes",
+          "description": "Postal codes for cities and post offices, and the reverse."
+        },
+        {
+          "id": "address",
+          "title": "Addresses",
+          "description": "Parse a free-text address into parts and format it back."
+        },
+        {
+          "id": "courier",
+          "title": "Couriers",
+          "description": "Map courier tracking statuses to one set; match city names to each courier."
+        },
+        {
+          "id": "vehicle",
+          "title": "Vehicle plates",
+          "description": "Parse and validate vehicle registration plates."
+        }
+      ]
+    },
+    {
+      "title": "Text, numbers and dates",
+      "intro": "Urdu text, amounts in words, rupee formatting and the Hijri calendar.",
+      "modules": [
+        {
+          "id": "text",
+          "title": "Urdu and Roman Urdu text",
+          "description": "Normalise text, convert digits, slugify, compare Urdu and handle right-to-left."
+        },
+        {
+          "id": "words",
+          "title": "Amounts in words",
+          "description": "Write numbers and rupee amounts in words (lakh and crore)."
+        },
+        {
+          "id": "format",
+          "title": "Rupee formatting",
+          "description": "Format amounts as PKR with lakh and crore grouping."
+        },
+        {
+          "id": "hijri",
+          "title": "Hijri calendar",
+          "description": "Convert to and from Hijri dates; month names and Ramadan."
+        },
+        {
+          "id": "holidays",
+          "title": "Public holidays",
+          "description": "Pakistan’s public holidays for a year or a date."
+        }
+      ]
+    },
+    {
+      "title": "Data quality",
+      "intro": "Score the data you already have, and see which data version you ship.",
+      "modules": [
+        {
+          "id": "quality",
+          "title": "Address and phone checks",
+          "description": "Score how complete an address is; spot risky phone numbers."
+        },
+        {
+          "id": "data-version",
+          "title": "Data version",
+          "description": "The date of the bundled datasets, the same in every port."
+        }
+      ]
+    },
+    {
+      "title": "Framework integrations",
+      "intro": "The validators as ready-made rules for your framework.",
+      "modules": [
+        {
+          "id": "data-annotations",
+          "title": "DataAnnotations",
+          "description": "Validation attributes for ASP.NET Core model validation and Blazor forms (PakDataKit.DataAnnotations package)."
+        },
+        {
+          "id": "fluent-validation",
+          "title": "FluentValidation",
+          "description": "FluentValidation rules: IsCnic(), IsPakPhone(), IsPakIban() and more (PakDataKit.FluentValidation package)."
+        },
+        {
+          "id": "laravel",
+          "title": "Laravel",
+          "description": "Validation rules, Eloquent casts and the service provider that registers the pk_* rules."
+        }
+      ]
+    }
+  ]
+}

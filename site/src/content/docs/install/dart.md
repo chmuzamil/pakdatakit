@@ -17,3 +17,5 @@ calculateSalaryTax(5000000, taxYear: 2027)?.tax; // 802000
 Pure Dart, so it also works in Flutter apps, including Flutter web. For input formatters and form fields, see [Flutter](/install/flutter/).
 
 Package: [pub.dev](https://pub.dev/packages/pakdatakit)
+
+API reference: [every Dart function, class and enum](/api/dart/), generated from the doc comments.

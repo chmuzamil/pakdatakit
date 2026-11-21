@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Extracts the public API of the .NET port (dotnet/src) for the API
+       reference on pakdatakit.dev: the types and members come from reflection
+       over the built assemblies, the descriptions from the XML documentation
+       files the compiler writes (GenerateDocumentationFile). Dev tool only;
+       run with: dotnet run -c Release (from this folder). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\dotnet\src\PakDataKit\PakDataKit.csproj" />
+    <ProjectReference Include="..\..\..\..\dotnet\src\PakDataKit.DataAnnotations\PakDataKit.DataAnnotations.csproj" />
+    <ProjectReference Include="..\..\..\..\dotnet\src\PakDataKit.FluentValidation\PakDataKit.FluentValidation.csproj" />
+  </ItemGroup>
+
+</Project>

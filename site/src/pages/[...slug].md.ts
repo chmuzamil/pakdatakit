@@ -11,6 +11,8 @@ import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { SITE } from '../../site.config.mjs';
 import { LANGS, snippet, type Example } from '../lib/snippets';
+// @ts-expect-error plain JS module
+import { apiPageFor } from '../lib/api-ports.mjs';
 
 const examples = import.meta.glob<{ examples: Example[] }>(
   '../../examples/*.json',
@@ -45,10 +47,10 @@ function langTabs(module: string, ids?: string): string {
         return ex;
       })
     : file.examples;
-  return LANGS.map(
-    (lang) =>
-      `**${lang.label}**\n\n\`\`\`${lang.code}\n${snippet(lang.id, shown)}\n\`\`\``,
-  ).join('\n\n');
+  return LANGS.map((lang) => {
+    const api = apiPageFor(lang.id, module);
+    return `**${lang.label}**\n\n\`\`\`${lang.code}\n${snippet(lang.id, shown)}\n\`\`\`\n\n[${api.label}](${new URL(api.href, SITE).href})`;
+  }).join('\n\n');
 }
 
 function toMarkdown(body: string): string {

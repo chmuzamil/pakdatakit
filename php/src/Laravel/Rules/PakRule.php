@@ -19,6 +19,10 @@ abstract class PakRule implements ValidationRule
 
     abstract protected function passes(string $value): bool;
 
+    /**
+     * Runs the check: calls `$fail` with this rule's translated message when
+     * the value is not a string or does not pass.
+     */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (!is_string($value) || !$this->passes($value)) {

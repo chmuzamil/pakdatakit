@@ -17,3 +17,5 @@ calculate_salary_tax(5_000_000, tax_year=2027).tax  # 802000
 ```
 
 Package: [PyPI](https://pypi.org/project/pakdatakit/) · Same results as every other port, checked on 32,000+ shared test vectors.
+
+API reference: [every Python function and class](/api/python/), generated from the docstrings.

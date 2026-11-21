@@ -1,0 +1,4460 @@
+{
+  "language": "php",
+  "package": "chmuzamil/pakdatakit",
+  "generator": "PHP tokenizer (PhpToken) and a docblock reader",
+  "modules": [
+    {
+      "id": "address",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\ParsedAddress;\nuse PakDataKit\\Address;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "ParsedAddress",
+          "signature": "final readonly class ParsedAddress",
+          "doc": "Parsed components of a Pakistani mailing address.",
+          "fields": [
+            {
+              "name": "raw",
+              "type": "?string",
+              "default": "null",
+              "doc": "The address with whitespace normalized.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "street",
+              "type": "?string",
+              "default": "null",
+              "doc": "First remaining segment, usually house and street.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "area",
+              "type": "?string",
+              "default": "null",
+              "doc": "Remaining segments, usually the area or sector.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "city",
+              "type": "?string",
+              "default": "null",
+              "doc": "City, when one was recognised.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "district",
+              "type": "?string",
+              "default": "null",
+              "doc": "District, when one was recognised.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "?string",
+              "default": "null",
+              "doc": "Province, stated in the address or inferred from the city.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "postalCode",
+              "type": "?string",
+              "default": "null",
+              "doc": "5-digit postal code, when present.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "warnings",
+              "type": "array",
+              "default": "[]",
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ParsedAddress.php"
+        },
+        {
+          "kind": "class",
+          "name": "Address",
+          "signature": "final class Address",
+          "doc": "Free-form Pakistani address parsing and formatting.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "parse",
+              "signature": "public static function parse(?string $address): ParsedAddress",
+              "doc": "Parses a free-form Pakistani address into structured components. It\nextracts the postal code, matches known cities, districts and\nprovinces, and assigns the remaining segments to street and area.\nNever throws; unknown parts are null.",
+              "params": [
+                {
+                  "name": "$address",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "ParsedAddress",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "format",
+              "signature": "public static function format(ParsedAddress|array $parts): string",
+              "doc": "Formats address components into a single mailing line. Only the\ncomponents that are set are included; if none are, `raw` is returned.\nAccepts a ParsedAddress or an array with the same keys.",
+              "params": [
+                {
+                  "name": "$parts",
+                  "type": "ParsedAddress|array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Address.php"
+        }
+      ]
+    },
+    {
+      "id": "bills",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\ElectricityRef;\nuse PakDataKit\\Bills;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "ElectricityRef",
+          "signature": "final readonly class ElectricityRef",
+          "doc": "Result of Bills::parseElectricityRef().",
+          "fields": [
+            {
+              "name": "type",
+              "type": "string",
+              "default": null,
+              "doc": "Kind of identifier: `reference` (14-digit DISCO reference number),\n`customer-id` (DISCO customer ID, 10 or 11 digits) or `k-electric`\n(13-digit K-Electric account number). See the Bills constants.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "digits",
+              "type": "string",
+              "default": null,
+              "doc": "The digits, without separators or the U/R letter.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "formatted",
+              "type": "string",
+              "default": null,
+              "doc": "Display form: `01 14111 1234567 U` for a reference (2, 5 and 7\ndigits), the digits for the others.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "urbanRural",
+              "type": "?string",
+              "default": null,
+              "doc": "`U` or `R` when given after a reference number, otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "disco",
+              "type": "?string",
+              "default": null,
+              "doc": "`K-Electric` for a K-Electric account; otherwise null, because no\nofficial source maps reference or customer ID digits to a DISCO.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ElectricityRef.php"
+        },
+        {
+          "kind": "class",
+          "name": "Bills",
+          "signature": "final class Bills",
+          "doc": "Electricity and gas bill numbers.",
+          "fields": [
+            {
+              "name": "REFERENCE",
+              "type": null,
+              "default": "'reference'",
+              "doc": "ElectricityRef::$type of a 14-digit DISCO (WAPDA) reference number.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "CUSTOMER_ID",
+              "type": null,
+              "default": "'customer-id'",
+              "doc": "ElectricityRef::$type of a DISCO customer ID (10 digits, 11 for LESCO).",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "K_ELECTRIC",
+              "type": null,
+              "default": "'k-electric'",
+              "doc": "ElectricityRef::$type of a 13-digit K-Electric account number.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "SNGPL",
+              "type": null,
+              "default": "'SNGPL'",
+              "doc": "Sui Northern Gas Pipelines: 11-digit consumer numbers.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "SSGC",
+              "type": null,
+              "default": "'SSGC'",
+              "doc": "Sui Southern Gas Company: 10-digit consumer numbers.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "parseElectricityRef",
+              "signature": "public static function parseElectricityRef(?string $input): ?ElectricityRef",
+              "doc": "Parses a Pakistani electricity bill identifier: a DISCO reference\nnumber (14 digits, optionally followed by `U` or `R`), a DISCO\ncustomer ID (10 digits, 11 for LESCO) or a K-Electric account number\n(13 digits starting `04000`).\n\nFormats are those the utilities' own bill pages ask for; see DATA.md\nin the repository. No check digit is published, so only the format is\nchecked. Spaces, dashes and dots are ignored, and Urdu digits are\naccepted. Returns null if the input matches none of the formats.\nNever throws.",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?ElectricityRef",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validateElectricityRef",
+              "signature": "public static function validateElectricityRef(?string $input): bool",
+              "doc": "Validates a Pakistani electricity bill identifier. See parseElectricityRef(). Never throws.",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validateGasConsumerNumber",
+              "signature": "public static function validateGasConsumerNumber(?string $input, ?string $company): bool",
+              "doc": "Validates a gas bill consumer number: 11 digits for SNGPL, 10 digits\nfor SSGC, as their bill pages ask for (see DATA.md in the repository).\nNo check digit is published, so only the format is checked. The\ncompany is `SNGPL` or `SSGC` (any case); anything else returns false.\nNever throws.",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$company",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Bills.php"
+        }
+      ]
+    },
+    {
+      "id": "cnic",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\CnicInfo;\nuse PakDataKit\\Cnic;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "CnicInfo",
+          "signature": "final readonly class CnicInfo",
+          "doc": "Information encoded in a CNIC number.",
+          "fields": [
+            {
+              "name": "digits",
+              "type": "string",
+              "default": null,
+              "doc": "The CNIC as 13 digits without separators.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "formatted",
+              "type": "string",
+              "default": null,
+              "doc": "The CNIC in `#####-#######-#` form.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "string",
+              "default": null,
+              "doc": "Province where the CNIC was first registered (from the first digit).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "gender",
+              "type": "string",
+              "default": null,
+              "doc": "`male` (odd last digit) or `female` (even last digit).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/CnicInfo.php"
+        },
+        {
+          "kind": "class",
+          "name": "Cnic",
+          "signature": "final class Cnic",
+          "doc": "CNIC (Computerized National Identity Card) validation and decoding.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public static function validate(?string $cnic): bool",
+              "doc": "Validates a Pakistani CNIC number (structure only; NADRA publishes no\ncheck-digit algorithm). Accepts `3520212345671`, `35202-1234567-1`,\n`35202 1234567 1` and Urdu digits. Never throws.",
+              "params": [
+                {
+                  "name": "$cnic",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getInfo",
+              "signature": "public static function getInfo(?string $cnic): ?CnicInfo",
+              "doc": "Reads the province of first registration and the gender encoded in a\nCNIC. Returns null if the CNIC is invalid.",
+              "params": [
+                {
+                  "name": "$cnic",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?CnicInfo",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Cnic.php"
+        }
+      ]
+    },
+    {
+      "id": "courier",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Courier;",
+      "source": "php/src/Courier.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Courier",
+          "signature": "final class Courier",
+          "doc": "Helpers for orders shipped with Pakistani couriers: one status vocabulary\nfor the couriers' own statuses, and city names as customers and couriers\nwrite them. There are no API clients: nothing is sent anywhere.",
+          "fields": [
+            {
+              "name": "TCS",
+              "type": null,
+              "default": "'TCS'",
+              "doc": "Courier names, as mapStatus() accepts them.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "LEOPARDS",
+              "type": null,
+              "default": "'Leopards'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "POSTEX",
+              "type": null,
+              "default": "'PostEx'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "MNP",
+              "type": null,
+              "default": "'M&P'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "TRAX",
+              "type": null,
+              "default": "'Trax'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "BLUEEX",
+              "type": null,
+              "default": "'BlueEx'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "PENDING",
+              "type": null,
+              "default": "'pending'",
+              "doc": "Statuses mapStatus() returns, from order to delivery or return.\nExperimental: the values may change in a minor release while more\ncouriers' status lists are added.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "BOOKED",
+              "type": null,
+              "default": "'booked'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "PICKED_UP",
+              "type": null,
+              "default": "'picked-up'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "IN_TRANSIT",
+              "type": null,
+              "default": "'in-transit'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "OUT_FOR_DELIVERY",
+              "type": null,
+              "default": "'out-for-delivery'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "ATTEMPTED",
+              "type": null,
+              "default": "'attempted'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "UNDER_REVIEW",
+              "type": null,
+              "default": "'under-review'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "DELIVERED",
+              "type": null,
+              "default": "'delivered'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "RETURNING",
+              "type": null,
+              "default": "'returning'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "RETURNED",
+              "type": null,
+              "default": "'returned'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "CANCELLED",
+              "type": null,
+              "default": "'cancelled'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "mapStatus",
+              "signature": "public static function mapStatus(mixed $courier, mixed $raw): ?string",
+              "doc": "Maps a courier's own status (its name, numeric ID or code, as the\ncourier documents it) to one status (Courier::PENDING, BOOKED,\nPICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, ATTEMPTED, UNDER_REVIEW,\nDELIVERED, RETURNING, RETURNED or CANCELLED).\n\nMatching ignores case and extra spaces. PostEx's \"Attempt Made:\n<reason>\" history messages map to `attempted`. A numeric status may be\ngiven as a string or as a non-negative whole number (`5` or `5.0`).\n\nOnly statuses the courier documents publicly are mapped: PostEx's API\nguide and one Leopards status. TCS, M&P, Trax and BlueEx publish no\nlist, so they always return null, as does any status not in the list.\nNo API is called.\n\nExperimental: only PostEx and one Leopards status are mapped so far. The\nmapping and the status values may change in a minor release as other\ncouriers' lists are added.",
+              "params": [
+                {
+                  "name": "$courier",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "`TCS`, `Leopards`, `PostEx`, `M&P`, `Trax` or `BlueEx` (case-insensitive; `LCS`, `MnP` and `Blue Ex` are accepted)"
+                },
+                {
+                  "name": "$raw",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The status as the courier returned it (string or number)"
+                }
+              ],
+              "returns": {
+                "type": "string|null",
+                "doc": "The status, or null. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "normalizeCity",
+              "signature": "public static function normalizeCity(?string $input): ?string",
+              "doc": "Maps the way a customer or a courier writes a city to the city's name\nin the city list, so orders can be matched against a courier's service\nlist.\n\nAccepts the exact name in any case, short forms (`LHR`, `Khi`, `Pindi`,\n`Isb`, `FSD`), the old name Lyallpur, a trailing \"city\", and the main\ncities in Urdu script.\n\nCourier::normalizeCity('LHR');          // \"Lahore\"\nCourier::normalizeCity('lyallpur');     // \"Faisalabad\"\nCourier::normalizeCity('Karachi City'); // \"Karachi\"\nCourier::normalizeCity('Atlantis');     // null",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string|null",
+                "doc": "A city from the city list, or null. Never throws."
+              }
+            }
+          ],
+          "source": "php/src/Courier.php"
+        }
+      ]
+    },
+    {
+      "id": "data-version",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\PakData;",
+      "source": "php/src/PakData.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "PakData",
+          "signature": "final class PakData",
+          "doc": "Information about the bundled datasets.",
+          "fields": [
+            {
+              "name": "PACKAGE_VERSION",
+              "type": null,
+              "default": "'2.6.0'",
+              "doc": "Version of this package.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "version",
+              "signature": "public static function version(): string",
+              "doc": "Date (`YYYY-MM-DD`) the bundled datasets were last checked against\ntheir sources. Same value as `dataVersion` in the npm package; see\nDATA.md in the repository.",
+              "params": [],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/PakData.php"
+        }
+      ]
+    },
+    {
+      "id": "fbr-invoice",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\FbrInvoiceError;\nuse PakDataKit\\FbrInvoiceValidation;\nuse PakDataKit\\FbrInvoice;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "FbrInvoiceError",
+          "signature": "final readonly class FbrInvoiceError",
+          "doc": "One problem found by FbrInvoice::validate().",
+          "fields": [
+            {
+              "name": "code",
+              "type": "?string",
+              "default": null,
+              "doc": "FBR's error code (spec §7 and the Error Message Guide), e.g. `0401`,\nor null for a required field the specification gives no code for.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "field",
+              "type": "string",
+              "default": null,
+              "doc": "Where: `invoiceDate`, `items[0].rate` …",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/FbrInvoiceError.php"
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoiceValidation",
+          "signature": "final readonly class FbrInvoiceValidation",
+          "doc": "Result of FbrInvoice::validate().",
+          "fields": [
+            {
+              "name": "valid",
+              "type": "bool",
+              "default": null,
+              "doc": "True when there are no errors.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "errors",
+              "type": "array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/FbrInvoiceValidation.php"
+        },
+        {
+          "kind": "class",
+          "name": "FbrInvoice",
+          "signature": "final class FbrInvoice",
+          "doc": "FBR Digital Invoicing (DI): a builder that works out the sales tax on the\ninvoice JSON posted to PRAL's gateway, and an offline validator for the\nrules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12 (last\nupdated 24 July 2025), and PRAL's \"Error Message Guide (Sales)\". Nothing\nhere talks to FBR: there is no HTTP client and no token handling. Values\nthat only FBR's reference APIs can confirm (provinces, HS codes, units,\nrates, sale types, SRO numbers) are checked for presence, not against\nFBR's lists.\n\nAn invoice is the JSON object FBR expects, with its camelCase keys: an\nassociative array (as `json_decode($json, true)` gives) or a `stdClass`\n(as `json_decode($json)` gives). `items` is a list. An empty PHP array is\nread as an empty list, not as an object.",
+          "fields": [
+            {
+              "name": "SPEC_VERSION",
+              "type": null,
+              "default": "'1.12'",
+              "doc": "Version of PRAL's technical specification this class follows.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "SALE_INVOICE",
+              "type": null,
+              "default": "'Sale Invoice'",
+              "doc": "`invoiceType` values in the specification.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "DEBIT_NOTE",
+              "type": null,
+              "default": "'Debit Note'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "REGISTERED",
+              "type": null,
+              "default": "'Registered'",
+              "doc": "`buyerRegistrationType` values in the specification.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "UNREGISTERED",
+              "type": null,
+              "default": "'Unregistered'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "expectedSalesTax",
+              "signature": "public static function expectedSalesTax(mixed $item): ?float",
+              "doc": "The sales tax FBR expects on a line, in rupees, or null when the rate\nis not a plain percentage or per-unit amount (spec §7, errors 0102,\n0104, 0105):\n\n- `N%` on Third Schedule goods: retail price × rate (0102);\n- `N%` otherwise: value excluding sales tax × rate (0104);\n- `Rs.N`: quantity × N (0105).\n\nRounded half up to the paisa (the specification allows 2 decimals and\ngives no rounding rule).",
+              "params": [
+                {
+                  "name": "$item",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "A line of the invoice (array or object) with `rate` and `saleType`, `quantity`, `valueSalesExcludingST` or `fixedNotifiedValueOrRetailPrice`"
+                }
+              ],
+              "returns": {
+                "type": "float|null",
+                "doc": "Null for anything else. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "build",
+              "signature": "public static function build(mixed $input): ?array",
+              "doc": "Builds an FBR digital invoice from your own fields, working out\n`salesTaxApplicable` on each line where you leave it out (see\nexpectedSalesTax(); uses SalesTax::calculate()). Lines with a rate that\nis neither `N%` nor `Rs.N` (`Exempt`, combined rates) get 0 unless you\ngive the tax.\n\n`salesTaxWithheldAtSource`, `totalValues` and\n`fixedNotifiedValueOrRetailPrice` default to 0, and `invoiceRefNo` and\n`buyerNTNCNIC` to `''`, as in FBR's samples. Nothing else is filled in\nor changed (other keys are kept); check the result with validate().\n\nAlso returns column totals in rupees (`quantity`,\n`valueSalesExcludingST`, `salesTaxApplicable`,\n`salesTaxWithheldAtSource`, `extraTax`, `furtherTax`, `fedPayable`,\n`discount`), which are for your own records: the specification has no\ninvoice-level totals.",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The invoice fields (array or object) with an `items` list"
+                }
+              ],
+              "returns": {
+                "type": "array{invoice: array<string, mixed>, totals: array<string, float>}|null",
+                "doc": "Null if `$input` is not an object with an `items` list of objects. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public static function validate(\n    mixed $invoice,\n    ?array $options = null,\n): FbrInvoiceValidation",
+              "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns\nevery problem with FBR's error code.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith `today`, a future date (0043); seller and buyer NTN/CNIC (0401,\n0402, 0009), self-invoicing (0058), names, provinces (0073, 0074),\naddresses, buyer registration type (0012), the reference number of a\ndebit note (0026), the sandbox scenario, and on each line: HS code\n(0044), rate (0020), unit, sale type (0013), required and valid amounts\n(0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial (0077,\n0078), Third Schedule retail price (0090), extra tax on reduced-rate\ngoods (0091) and the sales tax arithmetic (0102, 0104, 0105, to within\none paisa).\n\nNot checked, because they need FBR's data: registration status, whether\na province, HS code, unit, rate, sale type or SRO is in FBR's lists or\nfits the others, and the original invoice of a debit note.",
+              "params": [
+                {
+                  "name": "$invoice",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The invoice (array or object), e.g. decoded JSON"
+                },
+                {
+                  "name": "$options",
+                  "type": "?array",
+                  "default": "null",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "FbrInvoiceValidation",
+                "doc": "Never throws."
+              }
+            }
+          ],
+          "source": "php/src/FbrInvoice.php"
+        }
+      ]
+    },
+    {
+      "id": "format",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Currency;\nuse PakDataKit\\ParsedAmount;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Currency",
+          "signature": "final class Currency",
+          "doc": "Pakistani Rupee and lakh/crore formatting, and reading amounts as typed.\nDoes not use number_format, sprintf or the locale.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "formatPkr",
+              "signature": "public static function formatPkr(int|float $amount): string",
+              "doc": "Formats an amount as `Rs. 150,000`, rounded to whole rupees.",
+              "params": [
+                {
+                  "name": "$amount",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if the amount is NaN or infinite"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "formatLakh",
+              "signature": "public static function formatLakh(int|float $amount): string",
+              "doc": "Formats an amount with lakh/crore units (`25 Lakh`, `1 Crore`). Values\nare rounded to two decimals before the unit is chosen, so `9999999`\ngives `1 Crore`. Smaller amounts fall back to formatPkr().",
+              "params": [
+                {
+                  "name": "$amount",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if the amount is NaN or infinite"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "tryFormatPkr",
+              "signature": "public static function tryFormatPkr(int|float $amount): ?string",
+              "doc": "formatPkr() without throwing: null for NaN or an infinite amount.",
+              "params": [
+                {
+                  "name": "$amount",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "tryFormatLakh",
+              "signature": "public static function tryFormatLakh(int|float $amount): ?string",
+              "doc": "formatLakh() without throwing: null for NaN or an infinite amount.",
+              "params": [
+                {
+                  "name": "$amount",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "parseAmount",
+              "signature": "public static function parseAmount(mixed $input): ?ParsedAmount",
+              "doc": "Reads a rupee amount the way people type it in Pakistan, and returns it in\nrupees, rounded half-up to the paisa. Returns `null` for anything that is\nnot exactly one non-negative amount; it never throws.\n\nAccepted:\n- digits, with or without grouping: `150000`, `150,000` (international) or\n  `1,50,000` (Pakistani: groups of two, then three), and decimals\n  (`1,234.50`, `.5`, `5.`); a grouping must be complete and consistent;\n- Urdu (`۱۵۰۰۰۰`) and Arabic-Indic (`١٥٠٠٠٠`) digits, also mixed with\n  0-9, and the Arabic decimal and thousands separators (`٫`, `٬`);\n- one currency mark before or after the number: `Rs`, `Rs.`, `PKR` or `₨`\n  (any case), and a trailing `/-` (`Rs. 5,000/-`);\n- one shorthand unit after the number, with or without a space, in any\n  case: `k`, `thousand(s)`, `hazar`, `ہزار` (× 1,000); `lakh(s)`, `lac(s)`,\n  `لاکھ` (× 100,000); `crore(s)`, `cr`, `کروڑ` (× 10,000,000). Decimals\n  work with units: `1.5 lakh` is 150,000 and `2.25cr` is 22,500,000;\n- whitespace around and between the parts (spaces, tabs, line breaks and\n  no-break spaces).\n\nRejected (`null`): empty input, negative or signed amounts (`-500`,\n`+500`), ranges (`5-10k`), more than one number (`500 600`), two currency\nmarks or two units, leftover letters (`500 rupees`, `5kk`), grouping that\ncould be read two ways or is broken (`1,50`, `1.500,00`, `1,5000`),\namounts over Rs. 50 trillion (50 lakh crore), beyond which a number can no\nlonger hold every paisa exactly, and values that are not strings.\n\nThe arithmetic is done on the digits, so the result is exact: `1.005`\nrounds to 1.01 and `1.5 lakh` is exactly 150000.\n\n```php\nCurrency::parseAmount('Rs. 1,50,000/-'); // value 150000.0, raw 'Rs. 1,50,000/-'\nCurrency::parseAmount('2.25cr');         // value 22500000.0, raw '2.25cr'\nCurrency::parseAmount('5-10k');          // null\n```",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The amount as typed"
+                }
+              ],
+              "returns": {
+                "type": "ParsedAmount|null",
+                "doc": "`value` and `raw`, or null if the input is not one amount"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formatAmountInput",
+              "signature": "public static function formatAmountInput(mixed $input): ?string",
+              "doc": "Writes back an amount typed in any form parseAmount() accepts, for\nshowing next to the field (\"= Rs. 150,000\"): `Rs.`, international\ngrouping, and paisa only when there are any (`Rs. 1,234.50`). Returns\n`null` when parseAmount() does; it never throws.",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The amount as typed"
+                }
+              ],
+              "returns": {
+                "type": "string|null",
+                "doc": "E.g. `\"Rs. 150,000\"` for `\"1.5 lakh\"`, or null"
+              }
+            }
+          ],
+          "source": "php/src/Currency.php"
+        },
+        {
+          "kind": "class",
+          "name": "ParsedAmount",
+          "signature": "final readonly class ParsedAmount",
+          "doc": "Result of Currency::parseAmount().",
+          "fields": [
+            {
+              "name": "value",
+              "type": "float",
+              "default": null,
+              "doc": "The amount in rupees, rounded half-up to the paisa (2 decimals).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "raw",
+              "type": "string",
+              "default": null,
+              "doc": "The input with surrounding whitespace removed.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ParsedAmount.php"
+        }
+      ]
+    },
+    {
+      "id": "geo",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Geo;",
+      "source": "php/src/Geo.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Geo",
+          "signature": "final class Geo",
+          "doc": "Cities, districts, divisions, tehsils and provinces.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getProvince",
+              "signature": "public static function getProvince(?string $city): ?string",
+              "doc": "Returns the province for a city name (case and spacing are ignored), or null.",
+              "params": [
+                {
+                  "name": "$city",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "searchCities",
+              "signature": "public static function searchCities(?string $query): array",
+              "doc": "Searches cities by partial, case-insensitive name; sorted.",
+              "params": [
+                {
+                  "name": "$query",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getDistrictProvince",
+              "signature": "public static function getDistrictProvince(?string $district): ?string",
+              "doc": "Returns the province for a district name, or null. Former names of\ndistricts that were split or renamed still resolve.",
+              "params": [
+                {
+                  "name": "$district",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "searchDistricts",
+              "signature": "public static function searchDistricts(?string $query): array",
+              "doc": "Searches districts by partial, case-insensitive name; sorted.",
+              "params": [
+                {
+                  "name": "$query",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getDistrictsByProvince",
+              "signature": "public static function getDistrictsByProvince(?string $province): array",
+              "doc": "Returns all districts in a province (case-insensitive), sorted.",
+              "params": [
+                {
+                  "name": "$province",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getDivisions",
+              "signature": "public static function getDivisions(?string $province = null): array",
+              "doc": "Returns the administrative divisions of Pakistan, or of one province\n(case-insensitive), sorted.\n\nThe list is the 30 divisions of the 2023 census: Punjab 9, Sindh 6,\nKhyber Pakhtunkhwa 7 and Balochistan 8. Islamabad has no division, and\nthe census tables do not cover Azad Jammu and Kashmir or\nGilgit-Baltistan. Divisions created since the census (such as Gujrat in\nPunjab) are not included.\n\nWith no argument or null, every division is returned. An empty,\nunknown or invalid UTF-8 province gives an empty array. Never throws.",
+              "params": [
+                {
+                  "name": "$province",
+                  "type": "?string",
+                  "default": "null",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getDivisionOfDistrict",
+              "signature": "public static function getDivisionOfDistrict(?string $district): ?string",
+              "doc": "Returns the division a district belonged to in the 2023 census, or\nnull if it is not known (case-insensitive).\n\nCensus-district caveat: only the 136 districts of the 2023 census have\na division here, under the name they had then (so `Quetta`, `Dera\nBugti` and `South Waziristan` work, and their successors do not).\nDistricts created after the census, and those of Azad Jammu and\nKashmir, Gilgit-Baltistan and Islamabad, return null.\n\nNull, empty, unknown or invalid UTF-8 input returns null. Never throws.",
+              "params": [
+                {
+                  "name": "$district",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getTehsils",
+              "signature": "public static function getTehsils(?string $district): array",
+              "doc": "Returns the tehsils (talukas, sub-divisions) of a district\n(case-insensitive), sorted. Former district names such as `Quetta` and\n`South Waziristan` work.\n\nCensus-district caveat: the data is the 591 tehsil-level units of the\n2023 census, each recorded under the district it was in then. For a\ndistrict of the 2023 census this returns its census tehsils, even if\nsome have since moved to a new district (so `Rawalpindi` still lists\nMurree). For a district created after the census it returns only the\ntehsils an official source places in it, which can be an empty array.\nAzad Jammu and Kashmir and Gilgit-Baltistan are not covered.\n\nNull, empty, unknown or invalid UTF-8 input returns an empty array.\nNever throws.",
+              "params": [
+                {
+                  "name": "$district",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getTehsilDistrict",
+              "signature": "public static function getTehsilDistrict(\n    ?string $tehsil,\n    ?string $province = null,\n): ?string",
+              "doc": "Returns the district a tehsil, taluka or sub-division was in at the\n2023 census, or null (case-insensitive).\n\nCensus-district caveat: the result is the census district, which may\nhave been split since (a tehsil of `Quetta` is now in Quetta East or\nQuetta West). A few names are shared by tehsils in different districts\n(`Saddar`, `Sahiwal`, `Khanpur`); pass the province to tell them apart.\nReturns null when the name is unknown or still matches more than one\ndistrict.\n\nA null province (the default) searches every province; an empty or\nunknown one matches nothing. Null, empty or invalid UTF-8 input\nreturns null. Never throws.",
+              "params": [
+                {
+                  "name": "$tehsil",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$province",
+                  "type": "?string",
+                  "default": "null",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Geo.php"
+        }
+      ]
+    },
+    {
+      "id": "hijri",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\HijriDate;\nuse PakDataKit\\Hijri;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "HijriDate",
+          "signature": "final readonly class HijriDate",
+          "doc": "Islamic (Hijri) date components.",
+          "fields": [
+            {
+              "name": "year",
+              "type": "int",
+              "default": null,
+              "doc": "Hijri year.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "month",
+              "type": "int",
+              "default": null,
+              "doc": "Month, 1 (Muharram) to 12 (Dhu al-Hijjah).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "day",
+              "type": "int",
+              "default": null,
+              "doc": "Day of the month, 1 to 30.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/HijriDate.php"
+        },
+        {
+          "kind": "class",
+          "name": "Hijri",
+          "signature": "final class Hijri",
+          "doc": "Tabular Islamic (Hijri) calendar conversions: the arithmetic\n\"islamic-civil\" calendar, the same algorithm as the npm package. It does\nnot use the intl extension or IntlCalendar.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toHijri",
+              "signature": "public static function toHijri(DateTimeInterface $date, int $offset = 0): HijriDate",
+              "doc": "Converts a Gregorian date to a tabular Hijri date. Actual dates in\nPakistan follow moon sighting and can differ by a day or two; pass\n`$offset` (whole days) to adjust. The calendar date of `$date` in its\nown time zone is used.",
+              "params": [
+                {
+                  "name": "$date",
+                  "type": "DateTimeInterface",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$offset",
+                  "type": "int",
+                  "default": "0",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "HijriDate",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fromHijri",
+              "signature": "public static function fromHijri(HijriDate $hijri, int $offset = 0): DateTimeImmutable",
+              "doc": "Converts a Hijri date to a Gregorian date (midnight, default time zone).",
+              "params": [
+                {
+                  "name": "$hijri",
+                  "type": "HijriDate",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$offset",
+                  "type": "int",
+                  "default": "0",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "DateTimeImmutable",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if the Hijri date is out of range"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "tryFromHijri",
+              "signature": "public static function tryFromHijri(HijriDate $hijri, int $offset = 0): ?DateTimeImmutable",
+              "doc": "fromHijri() without throwing: null if the Hijri date is out of range.",
+              "params": [
+                {
+                  "name": "$hijri",
+                  "type": "HijriDate",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$offset",
+                  "type": "int",
+                  "default": "0",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?DateTimeImmutable",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "format",
+              "signature": "public static function format(DateTimeInterface $date, int $offset = 0): string",
+              "doc": "Formats a Gregorian date as a Hijri string, e.g. `15 Ramadan 1447`.",
+              "params": [
+                {
+                  "name": "$date",
+                  "type": "DateTimeInterface",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$offset",
+                  "type": "int",
+                  "default": "0",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getMonthName",
+              "signature": "public static function getMonthName(int $month): ?string",
+              "doc": "Returns the English name of a Hijri month (1-12), or null.",
+              "params": [
+                {
+                  "name": "$month",
+                  "type": "int",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "isRamadan",
+              "signature": "public static function isRamadan(DateTimeInterface $date, int $offset = 0): bool",
+              "doc": "Returns whether a Gregorian date falls in Ramadan.",
+              "params": [
+                {
+                  "name": "$date",
+                  "type": "DateTimeInterface",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$offset",
+                  "type": "int",
+                  "default": "0",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Hijri.php"
+        }
+      ]
+    },
+    {
+      "id": "holidays",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Holiday;\nuse PakDataKit\\Holidays;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Holiday",
+          "signature": "final readonly class Holiday",
+          "doc": "A public holiday on a specific date.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "default": null,
+              "doc": "Identifier such as `eid-ul-fitr` or `independence-day`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "default": null,
+              "doc": "English name.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "date",
+              "type": "string",
+              "default": null,
+              "doc": "Date as `YYYY-MM-DD`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "default": null,
+              "doc": "`national` or `religious`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "estimated",
+              "type": "bool",
+              "default": null,
+              "doc": "True when an Islamic date is estimated from the tabular Hijri calendar.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "christiansOnly",
+              "type": "?bool",
+              "default": "null",
+              "doc": "True for holidays that apply to Christian employees only; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "?string",
+              "default": "null",
+              "doc": "Source of an observed Islamic holiday date, when known.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/Holiday.php"
+        },
+        {
+          "kind": "class",
+          "name": "Holidays",
+          "signature": "final class Holidays",
+          "doc": "Pakistan's federal public holidays.\n\nOptions, for every method, are an array with any of:\n- `includeChristianHolidays` (bool): include 26 December, a holiday for\n  Christian employees only. Defaults to false.\n- `announced` (array<string, list<string>>): observed or announced dates\n  (`YYYY-MM-DD`) for Islamic holidays, keyed by holiday ID such as\n  `eid-ul-fitr`, used instead of the dataset or estimate. An empty list\n  removes that holiday for the year.\n- `hijriOffset` (int): day offset applied to estimated Islamic dates.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getHolidays",
+              "signature": "public static function getHolidays(int $year, array $options = []): array",
+              "doc": "Lists Pakistan's federal public holidays for a year, sorted by date.\nIslamic holidays use the dates observed after moon sighting (2020\nonwards). For years not in the dataset they are estimated from the\ntabular Hijri calendar and marked `estimated`; pass `announced` to use\nofficial dates instead.",
+              "params": [
+                {
+                  "name": "$year",
+                  "type": "int",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": "[]",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<Holiday>",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if the year is outside 1948-9999, or an announced date is not `YYYY-MM-DD`"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "getHolidaysOn",
+              "signature": "public static function getHolidaysOn(\n    DateTimeInterface|string|null $date,\n    array $options = [],\n): array",
+              "doc": "Returns the public holidays that fall on a date. Never throws for the\ndate: text that is not a usable `YYYY-MM-DD` date gives an empty list\n(see tryGetHolidaysOn()).",
+              "params": [
+                {
+                  "name": "$date",
+                  "type": "DateTimeInterface|string|null",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": "[]",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<Holiday>",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if an announced date in the options is not `YYYY-MM-DD`"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "tryGetHolidaysOn",
+              "signature": "public static function tryGetHolidaysOn(\n    DateTimeInterface|string|null $date,\n    array $options = [],\n): ?array",
+              "doc": "Returns the public holidays that fall on a date, or null if the date\ntext is not `YYYY-MM-DD` or its year is outside 1948-9999 (the npm\npackage throws in that case).",
+              "params": [
+                {
+                  "name": "$date",
+                  "type": "DateTimeInterface|string|null",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": "[]",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<Holiday>|null",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if an announced date in the options is not `YYYY-MM-DD`"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "isHoliday",
+              "signature": "public static function isHoliday(\n    DateTimeInterface|string|null $date,\n    array $options = [],\n): bool",
+              "doc": "Returns whether a date is a Pakistani federal public holiday. Never\nthrows for the date: text that is not a usable date gives false.",
+              "params": [
+                {
+                  "name": "$date",
+                  "type": "DateTimeInterface|string|null",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": "[]",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if an announced date in the options is not `YYYY-MM-DD`"
+                }
+              ]
+            }
+          ],
+          "source": "php/src/Holidays.php"
+        }
+      ]
+    },
+    {
+      "id": "iban",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\BankInfo;\nuse PakDataKit\\Iban;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "BankInfo",
+          "signature": "final readonly class BankInfo",
+          "doc": "A bank (or other institution) that issues Pakistani IBANs.",
+          "fields": [
+            {
+              "name": "code",
+              "type": "string",
+              "default": null,
+              "doc": "4-letter IBAN bank code (characters 5-8 of the IBAN).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "default": null,
+              "doc": "Current name of the institution.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "default": null,
+              "doc": "`commercial`, `islamic`, `microfinance`, `digital`, `emi`, `foreign`, `specialized`, `public-sector` or `central`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "active",
+              "type": "bool",
+              "default": null,
+              "doc": "False for banks that merged into another or are no longer operating (such as one in liquidation).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "mergedInto",
+              "type": "?string",
+              "default": "null",
+              "doc": "Code of the bank this one merged into, if it no longer exists.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "aliasOf",
+              "type": "?string",
+              "default": "null",
+              "doc": "Main code of the same bank, when this is an older code still in use.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/BankInfo.php"
+        },
+        {
+          "kind": "class",
+          "name": "Iban",
+          "signature": "final class Iban",
+          "doc": "Pakistani IBAN validation and bank lookup.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public static function validate(?string $iban): bool",
+              "doc": "Validates a 24-character `PK` IBAN: format and ISO 13616 mod-97\nchecksum. Spaces and dashes are ignored; lowercase is accepted. Never\nthrows.",
+              "params": [
+                {
+                  "name": "$iban",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getBank",
+              "signature": "public static function getBank(?string $iban): ?string",
+              "doc": "Returns the bank name for a valid IBAN, or null.",
+              "params": [
+                {
+                  "name": "$iban",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getBankInfo",
+              "signature": "public static function getBankInfo(?string $ibanOrCode): ?BankInfo",
+              "doc": "Returns details of the bank that issued an IBAN: name, type and whether\nit still exists. Also accepts a 4-letter bank code such as `MEZN`.\nReturns null if the IBAN is invalid or the code unknown.",
+              "params": [
+                {
+                  "name": "$ibanOrCode",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?BankInfo",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getBanks",
+              "signature": "public static function getBanks(): array",
+              "doc": "Lists every bank code in the dataset, including merged banks and older\nalias codes. For a bank picker, keep those that are active and have no\naliasOf.",
+              "params": [],
+              "returns": {
+                "type": "list<BankInfo>",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Iban.php"
+        }
+      ]
+    },
+    {
+      "id": "incometax",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\SalaryTaxSlab;\nuse PakDataKit\\SalaryTaxYear;\nuse PakDataKit\\SalaryTax;\n// ...",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "SalaryTaxSlab",
+          "signature": "final readonly class SalaryTaxSlab",
+          "doc": "One band of the salaried rate table: income above `over` (and up to\n`upTo`) pays `fixed` plus `rate` percent of the amount above `over`.",
+          "fields": [
+            {
+              "name": "over",
+              "type": "int",
+              "default": null,
+              "doc": "Lower bound in rupees (income must exceed it).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "upTo",
+              "type": "?int",
+              "default": null,
+              "doc": "Upper bound in rupees, or null for the top band.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "fixed",
+              "type": "int",
+              "default": null,
+              "doc": "Tax on the income up to `over`, in rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "int|float",
+              "default": null,
+              "doc": "Percent of the income above `over`, e.g. `17.5`.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/SalaryTaxSlab.php"
+        },
+        {
+          "kind": "class",
+          "name": "SalaryTaxYear",
+          "signature": "final readonly class SalaryTaxYear",
+          "doc": "The salaried rate table for one tax year (1 July to 30 June).",
+          "fields": [
+            {
+              "name": "taxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year, named after the June it ends in: 2026 is 1 July 2025 to 30 June 2026.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "from",
+              "type": "string",
+              "default": null,
+              "doc": "`YYYY-MM-DD`, always 1 July.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "to",
+              "type": "string",
+              "default": null,
+              "doc": "`YYYY-MM-DD`, always 30 June.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "law",
+              "type": "string",
+              "default": null,
+              "doc": "The law that sets the table.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "string",
+              "default": null,
+              "doc": "Official document.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "slabs",
+              "type": "array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/SalaryTaxYear.php"
+        },
+        {
+          "kind": "class",
+          "name": "SalaryTax",
+          "signature": "final readonly class SalaryTax",
+          "doc": "Result of IncomeTax::calculateSalary() and IncomeTax::calculateMonthlySalary().",
+          "fields": [
+            {
+              "name": "tax",
+              "type": "float",
+              "default": null,
+              "doc": "Tax for the year, in rupees, rounded half up to the paisa.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "monthly",
+              "type": "float",
+              "default": null,
+              "doc": "`tax / 12`, rounded half up to the paisa.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveRate",
+              "type": "float",
+              "default": null,
+              "doc": "`tax` as a percent of the income, rounded half up to 2 decimals.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "slab",
+              "type": "SalaryTaxSlab",
+              "default": null,
+              "doc": "The band the income falls in.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "taxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year used.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/SalaryTax.php"
+        },
+        {
+          "kind": "class",
+          "name": "IncomeTax",
+          "signature": "final class IncomeTax",
+          "doc": "Income tax on salary: the salaried rate table of the Income Tax Ordinance\n2001 (First Schedule, Part I, Division I, clause (2), which applies when\nsalary is more than 75% of taxable income) for tax years 2020 to 2027,\neach from FBR's consolidated Ordinance. A tax year runs from 1 July to\n30 June and is named after the June it ends in. Amounts are computed\nexactly in whole paisa.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getSalarySlabs",
+              "signature": "public static function getSalarySlabs(mixed $taxYear = null): ?SalaryTaxYear",
+              "doc": "Returns the salaried rate table for a tax year.",
+              "params": [
+                {
+                  "name": "$taxYear",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "e.g. `2026` (1 July 2025 to 30 June 2026); null for the current tax year"
+                }
+              ],
+              "returns": {
+                "type": "SalaryTaxYear|null",
+                "doc": "Null for a year that is not covered (or not an integer). Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getSalaryYears",
+              "signature": "public static function getSalaryYears(): array",
+              "doc": "Which tax years getSalarySlabs() covers, oldest first.",
+              "params": [],
+              "returns": {
+                "type": "list<int>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getTaxYear",
+              "signature": "public static function getTaxYear(mixed $date = null): ?int",
+              "doc": "The tax year (July to June) that contains a date: the year, plus one\nfrom July on.",
+              "params": [
+                {
+                  "name": "$date",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "`YYYY-MM-DD` or a DateTimeInterface (its own calendar date); null for today in the default time zone"
+                }
+              ],
+              "returns": {
+                "type": "int|null",
+                "doc": "Null for an invalid date. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "calculateSalary",
+              "signature": "public static function calculateSalary(\n    mixed $annualIncome,\n    ?array $options = null,\n): ?SalaryTax",
+              "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see getSalarySlabs()). Tax is rounded\nhalf up to the paisa, reading the amount as written.\n\nOnly the rate table is applied: the surcharge, tax credits,\nexemptions, the separate pension rate and withholding adjustments\nare not.\n\nOptions:\n- `taxYear` (int): e.g. `2026`; takes precedence over `date`\n- `date` (string `YYYY-MM-DD` or DateTimeInterface): a day in the tax year\nWithout either, today's tax year is used.",
+              "params": [
+                {
+                  "name": "$annualIncome",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "Taxable income for the year in rupees (int|float), 0 to one trillion"
+                },
+                {
+                  "name": "$options",
+                  "type": "?array",
+                  "default": "null",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "SalaryTax|null",
+                "doc": "Null for an invalid amount or a tax year that is not covered. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "calculateMonthlySalary",
+              "signature": "public static function calculateMonthlySalary(\n    mixed $monthlySalary,\n    ?array $options = null,\n): ?SalaryTax",
+              "doc": "calculateSalary() for a monthly salary: the income is `monthlySalary\n× 12`, and `monthly` is the tax to withhold each month.",
+              "params": [
+                {
+                  "name": "$monthlySalary",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "Rupees (int|float), 0 to one trillion"
+                },
+                {
+                  "name": "$options",
+                  "type": "?array",
+                  "default": "null",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "SalaryTax|null",
+                "doc": "Null for an invalid amount or a tax year that is not covered. Never throws."
+              }
+            }
+          ],
+          "source": "php/src/IncomeTax.php"
+        }
+      ]
+    },
+    {
+      "id": "input",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Input;",
+      "source": "php/src/Input.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Input",
+          "signature": "final class Input",
+          "doc": "As-you-type formatters and checkers for form fields.\n\nEach check*() method returns one of:\n- `empty`: nothing entered yet\n- `incomplete`: what has been typed so far can still become valid\n- `valid`: complete and valid\n- `invalid`: cannot become valid by typing more\n\nNone of these methods throw.",
+          "fields": [
+            {
+              "name": "EMPTY",
+              "type": null,
+              "default": "'empty'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "INCOMPLETE",
+              "type": null,
+              "default": "'incomplete'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "VALID",
+              "type": null,
+              "default": "'valid'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "INVALID",
+              "type": null,
+              "default": "'invalid'",
+              "doc": "",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "formatCnic",
+              "signature": "public static function formatCnic(?string $value): string",
+              "doc": "Formats a CNIC as the user types: `35202-1234567-1`.",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "checkCnic",
+              "signature": "public static function checkCnic(?string $value): string",
+              "doc": "Checks a CNIC while the user is typing (`35202-12` is `incomplete`).",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formatPhone",
+              "signature": "public static function formatPhone(?string $value): string",
+              "doc": "Formats a mobile number as the user types: `0300-1234567`, or\n`+92 300 1234567` when the user starts with the country code.",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "checkPhone",
+              "signature": "public static function checkPhone(?string $value): string",
+              "doc": "Checks a mobile number while the user is typing. The `03XX` prefix is\nchecked as soon as it is complete.",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "formatIban",
+              "signature": "public static function formatIban(?string $value): string",
+              "doc": "Formats an IBAN as the user types: uppercase, in groups of four, up to 24 characters.",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "checkIban",
+              "signature": "public static function checkIban(?string $value): string",
+              "doc": "Checks a Pakistani IBAN while the user is typing.",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Input.php"
+        }
+      ]
+    },
+    {
+      "id": "networks",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Networks;",
+      "source": "php/src/Networks.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Networks",
+          "signature": "final class Networks",
+          "doc": "Mobile network detection from the `03XX` prefix.",
+          "fields": [
+            {
+              "name": "UNKNOWN",
+              "type": null,
+              "default": "'Unknown'",
+              "doc": "Value returned when the network cannot be determined.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getNetwork",
+              "signature": "public static function getNetwork(?string $phone): string",
+              "doc": "Returns the network a number's prefix was originally allocated to:\n`Jazz`, `Zong`, `Telenor`, `Ufone`, `SCO` or `Unknown`. With number\nportability the current carrier can differ. Never throws.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Networks.php"
+        }
+      ]
+    },
+    {
+      "id": "numbers",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\NumberInfo;\nuse PakDataKit\\Numbers;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "NumberInfo",
+          "signature": "final readonly class NumberInfo",
+          "doc": "Result of Numbers::analyze().",
+          "fields": [
+            {
+              "name": "type",
+              "type": "string",
+              "default": null,
+              "doc": "`mobile`, `landline`, `uan`, `toll-free`, `premium` or `personal`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "formatted",
+              "type": "string",
+              "default": null,
+              "doc": "National format with trunk prefix and separators, e.g. `021-111-825-888`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "e164",
+              "type": "?string",
+              "default": null,
+              "doc": "E.164 format; null for a UAN dialled without an area code.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "areaCode",
+              "type": "?string",
+              "default": "null",
+              "doc": "Area code with trunk prefix (e.g. `021`) for landlines and UANs.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "cities",
+              "type": "array",
+              "default": "[]",
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/NumberInfo.php"
+        },
+        {
+          "kind": "class",
+          "name": "Numbers",
+          "signature": "final class Numbers",
+          "doc": "Landline, UAN, toll-free, premium and personal numbers.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "analyze",
+              "signature": "public static function analyze(?string $phone): ?NumberInfo",
+              "doc": "Identifies and formats any Pakistani telephone number: mobile,\nlandline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) and\npersonal (`0122`) numbers. Returns null if the number is invalid.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?NumberInfo",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getNumberType",
+              "signature": "public static function getNumberType(?string $phone): ?string",
+              "doc": "Returns the kind of a Pakistani telephone number, or null if it is invalid.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validateLandline",
+              "signature": "public static function validateLandline(?string $phone): bool",
+              "doc": "Validates a landline (fixed-line) number such as `042-35761234`. Never throws.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getAreaCode",
+              "signature": "public static function getAreaCode(?string $city): ?string",
+              "doc": "Returns the landline area code for a city with trunk prefix (`042`), or null.",
+              "params": [
+                {
+                  "name": "$city",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Numbers.php"
+        }
+      ]
+    },
+    {
+      "id": "passport",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Passport;",
+      "source": "php/src/Passport.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Passport",
+          "signature": "final class Passport",
+          "doc": "Pakistani passport number checks.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public static function validate(?string $passport): bool",
+              "doc": "Validates the format of a Pakistani passport number: two letters\nfollowed by seven digits, e.g. `AB1234567`. Case, surrounding spaces\nand spaces or dashes between the letters and digits are ignored.\n\nDGIP does not publish the format, so this checks the common shape\nonly; other passport types may differ. See DATA.md in the repository.\nNever throws.",
+              "params": [
+                {
+                  "name": "$passport",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Passport.php"
+        }
+      ]
+    },
+    {
+      "id": "phone",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\PhoneAnalysis;\nuse PakDataKit\\Phone;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "PhoneAnalysis",
+          "signature": "final readonly class PhoneAnalysis",
+          "doc": "Combined phone validation, formatting and network result.",
+          "fields": [
+            {
+              "name": "valid",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the number is a valid Pakistani mobile number.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "formatted",
+              "type": "?string",
+              "default": null,
+              "doc": "E.164 form such as `+923001234567`, or null if invalid.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "network",
+              "type": "string",
+              "default": null,
+              "doc": "Network the prefix was originally allocated to, or `Unknown`.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/PhoneAnalysis.php"
+        },
+        {
+          "kind": "class",
+          "name": "Phone",
+          "signature": "final class Phone",
+          "doc": "Pakistani mobile number validation, formatting and analysis.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public static function validate(?string $phone): bool",
+              "doc": "Validates a Pakistani mobile number on an allocated `03XX` prefix.\nAccepts local (`0300 1234567`), international (`+92`, `0092`, `92`) and\nshort (`3001234567`) forms. Never throws.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "format",
+              "signature": "public static function format(?string $phone): ?string",
+              "doc": "Formats a mobile number as E.164 (`+923001234567`), or null if invalid.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "analyze",
+              "signature": "public static function analyze(?string $phone): PhoneAnalysis",
+              "doc": "Validates, formats and detects the network of a mobile number in one call.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "PhoneAnalysis",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Phone.php"
+        }
+      ]
+    },
+    {
+      "id": "postal",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\PostOffice;\nuse PakDataKit\\Postal;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "PostOffice",
+          "signature": "final readonly class PostOffice",
+          "doc": "A delivery post office from Pakistan Post's post code directory.",
+          "fields": [
+            {
+              "name": "code",
+              "type": "string",
+              "default": null,
+              "doc": "5-digit post code, e.g. `48330`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "office",
+              "type": "string",
+              "default": null,
+              "doc": "Office name as the directory gives it, in title case, e.g. `Dulmial`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "town",
+              "type": "string",
+              "default": null,
+              "doc": "The city the office belongs to when that is known (`Lahore` for an\noffice in Lahore); otherwise the office's own name, which for most\noffices is its town or village.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "district",
+              "type": "?string",
+              "default": null,
+              "doc": "The district, when the town is the headquarters a district is named after; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "string",
+              "default": null,
+              "doc": "Province or territory.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/PostOffice.php"
+        },
+        {
+          "kind": "class",
+          "name": "Postal",
+          "signature": "final class Postal",
+          "doc": "Pakistani postal code lookups.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getCity",
+              "signature": "public static function getCity(?string $postalCode): ?string",
+              "doc": "Returns the city for a postal code (whitespace is ignored), or null.",
+              "params": [
+                {
+                  "name": "$postalCode",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getCode",
+              "signature": "public static function getCode(?string $city): ?string",
+              "doc": "Returns the primary (GPO) postal code for a city, or null.",
+              "params": [
+                {
+                  "name": "$city",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getCodes",
+              "signature": "public static function getCodes(?string $city): array",
+              "doc": "Returns all known postal codes for a city, sorted.",
+              "params": [
+                {
+                  "name": "$city",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getAreas",
+              "signature": "public static function getAreas(?string $city): array",
+              "doc": "Returns known area names for a city's postal entries, sorted.",
+              "params": [
+                {
+                  "name": "$city",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "search",
+              "signature": "public static function search(?string $query): array",
+              "doc": "Searches postal entries by city name, area, or postal code prefix.",
+              "params": [
+                {
+                  "name": "$query",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": "Matching postal codes, sorted and without duplicates."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getPostOffice",
+              "signature": "public static function getPostOffice(?string $code): ?PostOffice",
+              "doc": "Returns the delivery post office for a post code (whitespace is\nignored), from Pakistan Post's directory of about 2,560 offices, or\nnull. Unlike getCity(), this knows offices in towns and villages too.",
+              "params": [
+                {
+                  "name": "$code",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?PostOffice",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "searchPostOffices",
+              "signature": "public static function searchPostOffices(?string $query): array",
+              "doc": "Searches Pakistan Post's directory: an office matches when its name or\ntown contains the query (case-insensitive), or its code starts with it.",
+              "params": [
+                {
+                  "name": "$query",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<PostOffice>",
+                "doc": "Matching offices, sorted by post code."
+              }
+            }
+          ],
+          "source": "php/src/Postal.php"
+        }
+      ]
+    },
+    {
+      "id": "quality",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\AddressScore;\nuse PakDataKit\\Quality;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "AddressScore",
+          "signature": "final readonly class AddressScore",
+          "doc": "Result of Quality::scoreAddress().",
+          "fields": [
+            {
+              "name": "score",
+              "type": "int",
+              "default": null,
+              "doc": "0 (unusable) to 100 (every part present and consistent).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "missing",
+              "type": "array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "parsed",
+              "type": "ParsedAddress",
+              "default": null,
+              "doc": "The address as Address::parse() reads it, with any extra warnings.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/AddressScore.php"
+        },
+        {
+          "kind": "class",
+          "name": "Quality",
+          "signature": "final class Quality",
+          "doc": "Delivery-quality checks for cash on delivery and other courier use: how\ncomplete an address is, and whether a phone number looks reachable.",
+          "fields": [
+            {
+              "name": "ADDRESS_WEIGHTS",
+              "type": null,
+              "default": null,
+              "doc": "Points for each part of an address (an AddressPart: `city`,\n`houseNumber`, `street`, `area`, `postalCode`, `landmark`). They add up\nto 100. A postal code scores in full only when it is a known post\noffice code; an unknown one scores 5.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "scoreAddress",
+              "signature": "public static function scoreAddress(?string $address): AddressScore",
+              "doc": "Scores how complete a free-form Pakistani delivery address is, for\ncash on delivery and other courier use.\n\nBuilt on Address::parse(). It looks for a city, a house, plot or flat\nnumber, a street, an area, a postal code and a landmark (\"near\",\n\"opp\", \"nazd\", \"qareeb\", \"سامنے\" …), and adds up ADDRESS_WEIGHTS. A\npostal code that is a known post office raises the score more than an\nunknown one, and a post office in a different province from the city\nlowers it (with a warning in `parsed->warnings`).\n\nThis is a heuristic: it says how much an address tells a rider, not\nwhether the address exists. Never throws.",
+              "params": [
+                {
+                  "name": "$address",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "AddressScore",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "phoneRiskSignals",
+              "signature": "public static function phoneRiskSignals(?string $phone): array",
+              "doc": "Flags a phone number that a courier cannot reach by SMS or call, or\nthat looks made up (a PhoneRiskFlag). Pure heuristics on the number\nitself: no list of real numbers, no personal data, no network call.\n\n- `invalid`: not a Pakistani phone number.\n- `landline`: a fixed-line number (no SMS, often unanswered).\n- `not-mobile`: a UAN, toll-free or other service number.\n- `repeated-digits`: the 7-digit subscriber part uses at most two\n  different digits (`0300-0000000`, `0300-1111112`).\n- `sequential-digits`: the subscriber part is a run such as `1234567`\n  or `7654321`.\n- `test-number`: a placeholder often typed into forms\n  (`03XX-1234567`, `03XX-7654321`, `0312-3456789`).\n\nA valid mobile number with nothing suspicious returns `[]`. Never\nthrows.",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "list<string>",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Quality.php"
+        }
+      ]
+    },
+    {
+      "id": "raast",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\EmvField;\nuse PakDataKit\\ParsedRaastQr;\nuse PakDataKit\\RaastQrValidation;\n// ...",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "EmvField",
+          "signature": "final readonly class EmvField",
+          "doc": "A parsed EMV field of a QR payload.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "default": null,
+              "doc": "2-digit field ID.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "default": null,
+              "doc": "Field value.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "children",
+              "type": "?array",
+              "default": "null",
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/EmvField.php"
+        },
+        {
+          "kind": "class",
+          "name": "ParsedRaastQr",
+          "signature": "final readonly class ParsedRaastQr",
+          "doc": "Result of RaastQr::parse().",
+          "fields": [
+            {
+              "name": "kind",
+              "type": "string",
+              "default": null,
+              "doc": "`p2p` for person-to-person QR codes, `merchant` for EMVCo merchant QR codes.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "dynamic",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the QR carries a fixed amount (point of initiation 12).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "crcValid",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the CRC checksum matches.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "iban",
+              "type": "?string",
+              "default": null,
+              "doc": "The payee's IBAN, if present.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "ibanValid",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the IBAN is a valid Pakistani IBAN.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "amount",
+              "type": "?float",
+              "default": null,
+              "doc": "Amount in rupees, if present.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "expiresAt",
+              "type": "?string",
+              "default": null,
+              "doc": "P2P: expiry of a dynamic QR as local `YYYY-MM-DDTHH:mm`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "bankName",
+              "type": "?string",
+              "default": null,
+              "doc": "P2P: bank name.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "particulars",
+              "type": "?string",
+              "default": null,
+              "doc": "P2P: payment description.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "merchantName",
+              "type": "?string",
+              "default": null,
+              "doc": "Merchant: merchant name.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "city",
+              "type": "?string",
+              "default": null,
+              "doc": "Merchant: city.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "mcc",
+              "type": "?string",
+              "default": null,
+              "doc": "Merchant: 4-digit category code.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "billNumber",
+              "type": "?string",
+              "default": null,
+              "doc": "Bill number, if present.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "dueDate",
+              "type": "?string",
+              "default": null,
+              "doc": "Due date as `YYYY-MM-DD`, if present.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "amountAfterDueDate",
+              "type": "?float",
+              "default": null,
+              "doc": "Amount payable after the due date, if present.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "fields",
+              "type": "array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ParsedRaastQr.php"
+        },
+        {
+          "kind": "class",
+          "name": "RaastQrValidation",
+          "signature": "final readonly class RaastQrValidation",
+          "doc": "Result of RaastQr::validate().",
+          "fields": [
+            {
+              "name": "valid",
+              "type": "bool",
+              "default": null,
+              "doc": "True when there are no errors.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "errors",
+              "type": "array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "warnings",
+              "type": "array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "qr",
+              "type": "?ParsedRaastQr",
+              "default": null,
+              "doc": "The parsed QR, or null if it could not be read.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/RaastQrValidation.php"
+        },
+        {
+          "kind": "class",
+          "name": "RaastQr",
+          "signature": "final class RaastQr",
+          "doc": "Raast QR codes: SBP person-to-person and EMVCo merchant QR payloads, per\nSBP's \"Standard for Interoperable QR Code for Person-to-Person and\nMerchant Payments\" v1.0. Encode the returned string with any QR library.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "createP2P",
+              "signature": "public static function createP2P(array $options): string",
+              "doc": "Creates a Raast person-to-person QR payload (SBP P2P format `02`). It\nmatches the QR codes banking apps generate, so Easypaisa, JazzCash and\nother apps can scan it.\n\nOptions:\n- `iban` (string, required): the payee's Pakistani IBAN\n- `amount` (int|float): fixed amount; makes the QR dynamic, which needs an expiry\n- `expiresAt` (DateTimeInterface): expiry of a dynamic QR, as local time\n- `expiresIn` (int|float|string): milliseconds, or `30m`, `12h`, `7d`, counted from `now`\n- `bankName` (string, at most 25 characters), `particulars` (at most 30)\n- `scheme` (string): defaults to `00`\n- `now` (DateTimeInterface): defaults to the current time",
+              "params": [
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if the IBAN is invalid, a field is too long, or an amount is given without an expiry"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "tryCreateP2P",
+              "signature": "public static function tryCreateP2P(array $options): ?string",
+              "doc": "createP2P() without throwing: null where it would throw.",
+              "params": [
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "createMerchant",
+              "signature": "public static function createMerchant(array $options): string",
+              "doc": "Creates an EMVCo merchant-presented QR payload per SBP's Pakistan QR\nstandard.\n\nOptions:\n- `merchantAccount` (array, required): `['tag' => '28', 'fields' => ['00' => 'A000000736', '01' => $iban]]`,\n  the template sub-fields your bank gives you; `tag` (26-51) defaults to `28`\n- `merchantName` (string, required, at most 25 characters)\n- `city` (string, required, at most 15 characters)\n- `mcc` (4 digits, defaults to `0000`), `amount`, `dynamic` (bool)\n- `billNumber`, `mobileNumber`, `reference`\n- `dueDate` (DateTimeInterface) with `amountAfterDueDate`",
+              "params": [
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if a field is missing, too long, or out of range"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "tryCreateMerchant",
+              "signature": "public static function tryCreateMerchant(array $options): ?string",
+              "doc": "createMerchant() without throwing: null where it would throw.",
+              "params": [
+                {
+                  "name": "$options",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "parse",
+              "signature": "public static function parse(?string $payload): ?ParsedRaastQr",
+              "doc": "Parses a Raast QR payload (P2P format `02` or EMVCo merchant format\n`01`) and verifies its CRC. Returns null if it is not a well-formed\nPakistani QR code. Never throws.",
+              "params": [
+                {
+                  "name": "$payload",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?ParsedRaastQr",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public static function validate(\n    ?string $payload,\n    ?DateTimeInterface $now = null,\n    int|float $expiresSoonMs = 3_600_000,\n): RaastQrValidation",
+              "doc": "Checks whether a Raast QR code can be paid. Never throws. Errors: not\na Pakistani payment QR, checksum mismatch, no IBAN or an invalid IBAN,\nexpired, or a fixed-amount QR without an expiry. Warnings: an amount in\na static QR (apps ignore it), or a QR that expires soon.",
+              "params": [
+                {
+                  "name": "$payload",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$now",
+                  "type": "?DateTimeInterface",
+                  "default": "null",
+                  "doc": "The time to check the expiry against; defaults to now"
+                },
+                {
+                  "name": "$expiresSoonMs",
+                  "type": "int|float",
+                  "default": "3_600_000",
+                  "doc": "How close to expiry counts as \"soon\"; defaults to one hour"
+                }
+              ],
+              "returns": {
+                "type": "RaastQrValidation",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/RaastQr.php"
+        }
+      ]
+    },
+    {
+      "id": "salestax",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\SalesTaxRate;\nuse PakDataKit\\SalesTaxAmounts;\nuse PakDataKit\\SalesTax;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "SalesTaxRate",
+          "signature": "final readonly class SalesTaxRate",
+          "doc": "One standard sales tax rate and the period it applied.",
+          "fields": [
+            {
+              "name": "kind",
+              "type": "string",
+              "default": null,
+              "doc": "`goods` (federal sales tax) or `services` (provincial or ICT).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "authority",
+              "type": "string",
+              "default": null,
+              "doc": "`FBR`, `PRA`, `SRB`, `KPRA` or `BRA`. FBR also collects ICT's tax on services.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "?string",
+              "default": null,
+              "doc": "For services: the province or `Islamabad Capital Territory`. Null for goods.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "int|float",
+              "default": null,
+              "doc": "Percent, e.g. `18`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "from",
+              "type": "string",
+              "default": null,
+              "doc": "First day it applied (`YYYY-MM-DD`). Coverage starts on 1 July 2019.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "to",
+              "type": "?string",
+              "default": null,
+              "doc": "Last day it applied (`YYYY-MM-DD`), or null if it still applies.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "law",
+              "type": "string",
+              "default": null,
+              "doc": "The law that sets it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "string",
+              "default": null,
+              "doc": "Official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/SalesTaxRate.php"
+        },
+        {
+          "kind": "class",
+          "name": "SalesTaxAmounts",
+          "signature": "final readonly class SalesTaxAmounts",
+          "doc": "Result of SalesTax::calculate() and SalesTax::splitInclusive(), in rupees.\n`net + tax` is always `gross`, to the paisa.",
+          "fields": [
+            {
+              "name": "net",
+              "type": "float",
+              "default": null,
+              "doc": "Value excluding tax, in rupees (2 decimals at most).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "tax",
+              "type": "float",
+              "default": null,
+              "doc": "The tax, in rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "gross",
+              "type": "float",
+              "default": null,
+              "doc": "Value including tax, in rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent used.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/SalesTaxAmounts.php"
+        },
+        {
+          "kind": "class",
+          "name": "SalesTax",
+          "signature": "final class SalesTax",
+          "doc": "Standard sales tax rates with the dates they applied, from 1 July 2019:\nfederal sales tax on goods (FBR), and sales tax on services in Punjab\n(PRA), Sindh (SRB), Khyber Pakhtunkhwa (KPRA), Balochistan (BRA) and\nIslamabad Capital Territory (FBR). Reduced, higher and sector rates are\nnot included. Amounts are computed exactly in whole paisa.",
+          "fields": [
+            {
+              "name": "GOODS",
+              "type": null,
+              "default": "'goods'",
+              "doc": "Kind of supply: goods, taxed federally.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "SERVICES",
+              "type": null,
+              "default": "'services'",
+              "doc": "Kind of supply: services, taxed by the province or ICT.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getRate",
+              "signature": "public static function getRate(?array $query): ?SalesTaxRate",
+              "doc": "Returns the standard sales tax rate for goods (federal, Sales Tax Act\n1990) or for services in a province or Islamabad Capital Territory,\non a given date.\n\nQuery:\n- `kind` (string, required): `goods` or `services` (SalesTax::GOODS, SalesTax::SERVICES)\n- `province` (string): for services, Punjab, Sindh, Khyber Pakhtunkhwa\n  (`KP`, `KPK`), Balochistan or Islamabad Capital Territory (`ICT`,\n  `Islamabad`). For goods it may be left out; Azad Jammu and Kashmir\n  and Gilgit-Baltistan give null.\n- `date` (string `YYYY-MM-DD` or DateTimeInterface, its own calendar\n  date): defaults to today in the default time zone\n\nReturns null for an unknown province or kind, an invalid date, or a\ndate before 1 July 2019. Never throws.",
+              "params": [
+                {
+                  "name": "$query",
+                  "type": "?array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?SalesTaxRate",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "calculate",
+              "signature": "public static function calculate(mixed $amount, ?array $options): ?SalesTaxAmounts",
+              "doc": "Adds sales tax to an amount, or splits it out when `inclusive` is set.\nThe tax is rounded half up to the paisa, reading the number as written\n(`1.005` is Rs 1.01).\n\nOptions: a `rate`, or a `province` (and `kind`, default `services`,\nand `date`) to use the standard rate from getRate():\n- `rate` (int|float): percent, 0 to 100, at most 2 decimals; takes precedence over `province`\n- `province` (string), `kind` (string), `date` (string|DateTimeInterface): as for getRate()\n- `inclusive` (bool): true if `$amount` already includes the tax",
+              "params": [
+                {
+                  "name": "$amount",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "Rupees (int|float), 0 to one trillion"
+                },
+                {
+                  "name": "$options",
+                  "type": "?array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "SalesTaxAmounts|null",
+                "doc": "Null if the amount, rate or province is invalid or no rate applies. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "splitInclusive",
+              "signature": "public static function splitInclusive(mixed $gross, mixed $rate): ?SalesTaxAmounts",
+              "doc": "Splits an amount that includes sales tax into its value and tax. The\nvalue is rounded half up to the paisa, and the tax is the rest, so\n`net + tax` is always `gross`.",
+              "params": [
+                {
+                  "name": "$gross",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "Amount including tax (int|float), 0 to one trillion rupees"
+                },
+                {
+                  "name": "$rate",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "Percent (int|float), 0 to 100, at most 2 decimals"
+                }
+              ],
+              "returns": {
+                "type": "SalesTaxAmounts|null",
+                "doc": "Null for an invalid amount or rate. Never throws."
+              }
+            }
+          ],
+          "source": "php/src/SalesTax.php"
+        }
+      ]
+    },
+    {
+      "id": "tax",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\NtnInfo;\nuse PakDataKit\\Tax;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "NtnInfo",
+          "signature": "final readonly class NtnInfo",
+          "doc": "Result of Tax::analyzeNtn().",
+          "fields": [
+            {
+              "name": "type",
+              "type": "string",
+              "default": null,
+              "doc": "`individual` (a CNIC) or `business` (7-digit NTN).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "digits",
+              "type": "string",
+              "default": null,
+              "doc": "Digits without separators (7, 8 or 13 digits).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "formatted",
+              "type": "string",
+              "default": null,
+              "doc": "`1234567-8` for business NTNs with a check digit, `#####-#######-#` for CNICs.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/NtnInfo.php"
+        },
+        {
+          "kind": "class",
+          "name": "Tax",
+          "signature": "final class Tax",
+          "doc": "National Tax Number (NTN) and Sales Tax Registration Number (STRN) checks.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "analyzeNtn",
+              "signature": "public static function analyzeNtn(?string $ntn): ?NtnInfo",
+              "doc": "Analyzes a National Tax Number: a 13-digit CNIC for individuals, or 7\ndigits (optionally followed by a check digit) for businesses. FBR does\nnot publish a check-digit algorithm, so this checks the format only.\nReturns null if the format is invalid.",
+              "params": [
+                {
+                  "name": "$ntn",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?NtnInfo",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validateNtn",
+              "signature": "public static function validateNtn(?string $ntn): bool",
+              "doc": "Validates the format of an NTN. See analyzeNtn(). Never throws.",
+              "params": [
+                {
+                  "name": "$ntn",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validateStrn",
+              "signature": "public static function validateStrn(?string $strn): bool",
+              "doc": "Validates the format of a Sales Tax Registration Number: 13 digits,\nwith optional spaces or dashes. Format only. Never throws.",
+              "params": [
+                {
+                  "name": "$strn",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Tax.php"
+        }
+      ]
+    },
+    {
+      "id": "text",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Text;",
+      "source": "php/src/Text.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Text",
+          "signature": "final class Text",
+          "doc": "Text normalization, Roman Urdu spelling, Urdu digits, URL slugs, Urdu\nalphabetical order and bidirectional text.",
+          "fields": [
+            {
+              "name": "SCRIPT_ANY",
+              "type": null,
+              "default": "'any'",
+              "doc": "slugify() script: keep Latin and Urdu letters (the default).",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "SCRIPT_LATIN",
+              "type": null,
+              "default": "'latin'",
+              "doc": "slugify() script: keep only `a-z`.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "SCRIPT_URDU",
+              "type": null,
+              "default": "'urdu'",
+              "doc": "slugify() script: keep only Urdu letters.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "BIDI_AUTO",
+              "type": null,
+              "default": "'auto'",
+              "doc": "wrapBidi() direction: FIRST STRONG ISOLATE (the default).",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "BIDI_RTL",
+              "type": null,
+              "default": "'rtl'",
+              "doc": "wrapBidi() direction: RIGHT-TO-LEFT ISOLATE.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            },
+            {
+              "name": "BIDI_LTR",
+              "type": null,
+              "default": "'ltr'",
+              "doc": "wrapBidi() direction: LEFT-TO-RIGHT ISOLATE.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "normalize",
+              "signature": "public static function normalize(?string $text): string",
+              "doc": "Trims, collapses whitespace and applies Unicode NFC. Never throws.",
+              "params": [
+                {
+                  "name": "$text",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "normalizeRomanUrdu",
+              "signature": "public static function normalizeRomanUrdu(?string $text): string",
+              "doc": "Normalizes informal Roman Urdu spellings (`kia` to `kya`). Also applies\nnormalize() and converts Urdu and Arabic-Indic digits to English. A\ncapitalized word keeps its capital; all-caps words are left alone.",
+              "params": [
+                {
+                  "name": "$text",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "toUrduDigits",
+              "signature": "public static function toUrduDigits(?string $text): string",
+              "doc": "Converts English and Arabic-Indic digits to Urdu digits (۰-۹).",
+              "params": [
+                {
+                  "name": "$text",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "toEnglishDigits",
+              "signature": "public static function toEnglishDigits(?string $text): string",
+              "doc": "Converts Urdu and Arabic-Indic digits to English digits (0-9).",
+              "params": [
+                {
+                  "name": "$text",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "slugify",
+              "signature": "public static function slugify(mixed $input, mixed $options = []): string",
+              "doc": "Turns text into a URL slug: lower-case words joined by `-`.\n\nUrdu letters are kept as they are (no transliteration: Urdu does not\nwrite short vowels, so there is no single Roman spelling). Diacritics,\ntatweel and zero-width characters are dropped, the Arabic look-alikes\nك ي ى become the Urdu ک ی ی, Urdu and Arabic-Indic digits become\n`0-9`, and accented Latin-1 letters lose their accents (`é` to `e`,\n`ß` to `ss`). Anything else separates words.\n\nOptions: `script` (`any`, the default, keeps Latin and Urdu letters;\n`latin` keeps only `a-z`; `urdu` keeps only Urdu letters; any other\nvalue is `any`). Digits are always kept.",
+              "params": [
+                {
+                  "name": "$input",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The text; anything that is not a string gives `''`"
+                },
+                {
+                  "name": "$options",
+                  "type": "mixed",
+                  "default": "[]",
+                  "doc": "`['script' => Text::SCRIPT_*]`"
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": "The slug, or `''` when nothing is left. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "compareUrdu",
+              "signature": "public static function compareUrdu(mixed $a, mixed $b): int",
+              "doc": "Compares two strings in Urdu alphabetical order, for usort().\n\nLetters follow the Unicode CLDR collation for Urdu (`ur`, CLDR 49):\nا آ ب بھ پ پھ ت تھ ٹ ٹھ ث ج جھ چ چھ ح خ د دھ ڈ ڈھ ذ ر رھ ڑ ڑھ ز ژ س ش ص\nض ط ظ ع غ ف ق ک کھ گ گھ ل لھ م مھ ن نھ ں ںھ و وھ ہ ھ ۃ ء ی یھ ے. A letter\njoined with ھ is a letter of its own (so بھ comes after every other ب\nword). أ ؤ ۂ ئ ۓ sort as ا و ہ ی ے and come just after them when words\nare otherwise equal, and diacritics only break ties, in CLDR's order.\n\nOutside the Urdu letters: spaces and punctuation come first, then\ndigits digit by digit (Urdu, Arabic-Indic and ASCII digits are equal;\n`10` comes before `2`), then Urdu letters, then other Arabic-script\ncharacters (the look-alikes ك ي ى ه ة), then everything else by code\npoint, ignoring ASCII case. Strings that are still equal are ordered\nby code point, so the result is 0 only for identical strings. The\norder does not depend on intl or ICU.",
+              "params": [
+                {
+                  "name": "$a",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "A string; anything else is treated as `''`"
+                },
+                {
+                  "name": "$b",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "A string; anything else is treated as `''`"
+                }
+              ],
+              "returns": {
+                "type": "int",
+                "doc": "-1, 0 or 1. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "isRtl",
+              "signature": "public static function isRtl(mixed $text): bool",
+              "doc": "Whether text reads right to left: its first letter is from a\nright-to-left script such as Urdu or Arabic. Digits, punctuation and\nspaces are skipped, as in the Unicode bidirectional algorithm's\nparagraph rule.",
+              "params": [
+                {
+                  "name": "$text",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The text; anything that is not a string gives false"
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": "False when there is no letter. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "wrapBidi",
+              "signature": "public static function wrapBidi(mixed $text, mixed $direction = self::BIDI_AUTO): string",
+              "doc": "Wraps text in Unicode directional isolates, so a name or number in\none direction does not reorder the sentence around it (for example an\nEnglish order number inside an Urdu message).\n\nUses FIRST STRONG ISOLATE (U+2068) by default, RIGHT-TO-LEFT ISOLATE\n(U+2067) for `rtl` and LEFT-TO-RIGHT ISOLATE (U+2066) for `ltr`,\nclosed with POP DIRECTIONAL ISOLATE (U+2069). Any other direction is\n`auto`.",
+              "params": [
+                {
+                  "name": "$text",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The text; anything that is not a string gives `''`"
+                },
+                {
+                  "name": "$direction",
+                  "type": "mixed",
+                  "default": "self::BIDI_AUTO",
+                  "doc": "Text::BIDI_AUTO, Text::BIDI_RTL or Text::BIDI_LTR"
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": "The wrapped text. Never throws."
+              }
+            }
+          ],
+          "source": "php/src/Text.php"
+        }
+      ]
+    },
+    {
+      "id": "vehicle",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\VehiclePlateInfo;\nuse PakDataKit\\VehiclePlate;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "VehiclePlateInfo",
+          "signature": "final readonly class VehiclePlateInfo",
+          "doc": "Result of VehiclePlate::parse().",
+          "fields": [
+            {
+              "name": "series",
+              "type": "string",
+              "default": null,
+              "doc": "Letters before the number, e.g. `LEA`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "number",
+              "type": "string",
+              "default": null,
+              "doc": "Digits of the registration number, e.g. `1234`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "year",
+              "type": "?string",
+              "default": null,
+              "doc": "Two-digit year printed on some older Punjab plates, e.g. `19`; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "formatted",
+              "type": "string",
+              "default": null,
+              "doc": "Series and number joined with a dash, e.g. `LEA-1234` (without the year).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/VehiclePlateInfo.php"
+        },
+        {
+          "kind": "class",
+          "name": "VehiclePlate",
+          "signature": "final class VehiclePlate",
+          "doc": "Pakistani vehicle registration number checks.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "parse",
+              "signature": "public static function parse(?string $plate): ?VehiclePlateInfo",
+              "doc": "Splits a vehicle registration number into its series letters, number\nand optional year, e.g. `LEA-1234` or `ABC 123`.\n\nThere is no single national format, so this accepts the common shape:\n1-4 letters, then 1-4 digits, optionally followed by a two-digit year\nafter a separator (`LEA-1234-19`). Series letters are not checked.\nReturns null if the plate does not have that shape.",
+              "params": [
+                {
+                  "name": "$plate",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?VehiclePlateInfo",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public static function validate(?string $plate): bool",
+              "doc": "Validates the format of a vehicle registration number. See parse(). Never throws.",
+              "params": [
+                {
+                  "name": "$plate",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/VehiclePlate.php"
+        }
+      ]
+    },
+    {
+      "id": "whatsapp",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\WhatsApp;",
+      "source": "php/src/WhatsApp.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "WhatsApp",
+          "signature": "final class WhatsApp",
+          "doc": "WhatsApp click-to-chat links.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "createLink",
+              "signature": "public static function createLink(?string $phone, ?string $message = null): ?string",
+              "doc": "Creates a `wa.me` link for a Pakistani mobile number, or null if the\nnumber is invalid. Never throws: a message that is not valid UTF-8\nalso gives null (the npm package throws for an unpaired surrogate).",
+              "params": [
+                {
+                  "name": "$phone",
+                  "type": "?string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$message",
+                  "type": "?string",
+                  "default": "null",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/WhatsApp.php"
+        }
+      ]
+    },
+    {
+      "id": "words",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\Words;",
+      "source": "php/src/Words.php",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Words",
+          "signature": "final class Words",
+          "doc": "Numbers and rupee amounts in words (English and Urdu, lakh/crore scale).",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "numberToWords",
+              "signature": "public static function numberToWords(int|float $number, string $language = 'en'): string",
+              "doc": "Converts a whole number to words using hundred, thousand, lakh, crore,\narab and kharab: `125000` gives `one lakh twenty-five thousand`.",
+              "params": [
+                {
+                  "name": "$number",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$language",
+                  "type": "string",
+                  "default": "'en'",
+                  "doc": "`en` (default) or `ur`"
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if the number is not a safe integer (a whole number between ±9,007,199,254,740,991), or the language is not `en` or `ur`"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "amountInWords",
+              "signature": "public static function amountInWords(\n    int|float $amount,\n    string $language = 'en',\n    bool $cheque = false,\n): string",
+              "doc": "Writes a rupee amount in words, with paisa, rounded to the nearest\npaisa. With `$cheque`, `125000` gives\n`Rupees One Lakh Twenty-Five Thousand Only`.",
+              "params": [
+                {
+                  "name": "$amount",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$language",
+                  "type": "string",
+                  "default": "'en'",
+                  "doc": "`en` (default) or `ur`"
+                },
+                {
+                  "name": "$cheque",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": ""
+              },
+              "throws": [
+                {
+                  "type": "InvalidArgumentException",
+                  "doc": "if the amount is negative, not finite or too large, or the language is not `en` or `ur`"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "tryNumberToWords",
+              "signature": "public static function tryNumberToWords(\n    int|float $number,\n    string $language = 'en',\n): ?string",
+              "doc": "numberToWords() without throwing: null where it would throw.",
+              "params": [
+                {
+                  "name": "$number",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$language",
+                  "type": "string",
+                  "default": "'en'",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "tryAmountInWords",
+              "signature": "public static function tryAmountInWords(\n    int|float $amount,\n    string $language = 'en',\n    bool $cheque = false,\n): ?string",
+              "doc": "amountInWords() without throwing: null where it would throw.",
+              "params": [
+                {
+                  "name": "$amount",
+                  "type": "int|float",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$language",
+                  "type": "string",
+                  "default": "'en'",
+                  "doc": ""
+                },
+                {
+                  "name": "$cheque",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Words.php"
+        }
+      ]
+    },
+    {
+      "id": "laravel",
+      "name": "PakDataKit\\Laravel\\Casts",
+      "import": "use PakDataKit\\Laravel\\Casts\\CnicCast;\nuse PakDataKit\\Laravel\\Casts\\IbanCast;\nuse PakDataKit\\Laravel\\Casts\\PhoneCast;\n// ...",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "Casts\\CnicCast",
+          "signature": "final class CnicCast implements CastsAttributes",
+          "doc": "Eloquent cast for a CNIC. Stores the 13 digits; reads back as `35202-1234567-1`.\n\nA value that is not valid is stored and returned unchanged: validate it\nwith the matching rule before saving.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "get",
+              "signature": "public function get(Model $model, string $key, mixed $value, array $attributes): ?string",
+              "doc": "Reads the stored CNIC back as `35202-1234567-1`. A value that is not valid is returned unchanged.\nA value that is not a string is returned as a string if it is scalar,\nand as null otherwise.",
+              "params": [
+                {
+                  "name": "$model",
+                  "type": "Model",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$key",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$value",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$attributes",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "set",
+              "signature": "public function set(Model $model, string $key, mixed $value, array $attributes): ?string",
+              "doc": "Stores a CNIC as its 13 digits. A value that is not valid is stored unchanged.\nA value that is not a string is stored as a string if it is scalar,\nand as null otherwise.",
+              "params": [
+                {
+                  "name": "$model",
+                  "type": "Model",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$key",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$value",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$attributes",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Laravel/Casts/CnicCast.php"
+        },
+        {
+          "kind": "class",
+          "name": "Casts\\IbanCast",
+          "signature": "final class IbanCast implements CastsAttributes",
+          "doc": "Eloquent cast for a Pakistani IBAN. Stores and reads the IBAN in uppercase without spaces.\n\nA value that is not valid is stored and returned unchanged: validate it\nwith the matching rule before saving.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "get",
+              "signature": "public function get(Model $model, string $key, mixed $value, array $attributes): ?string",
+              "doc": "Reads the stored IBAN back in uppercase without spaces. A value that is not valid is returned unchanged.\nA value that is not a string is returned as a string if it is scalar,\nand as null otherwise.",
+              "params": [
+                {
+                  "name": "$model",
+                  "type": "Model",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$key",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$value",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$attributes",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "set",
+              "signature": "public function set(Model $model, string $key, mixed $value, array $attributes): ?string",
+              "doc": "Stores an IBAN in uppercase without spaces. A value that is not valid is stored unchanged.\nA value that is not a string is stored as a string if it is scalar,\nand as null otherwise.",
+              "params": [
+                {
+                  "name": "$model",
+                  "type": "Model",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$key",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$value",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$attributes",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Laravel/Casts/IbanCast.php"
+        },
+        {
+          "kind": "class",
+          "name": "Casts\\PhoneCast",
+          "signature": "final class PhoneCast implements CastsAttributes",
+          "doc": "Eloquent cast for a Pakistani mobile number. Stores and reads E.164, e.g. `+923001234567`.\n\nA value that is not valid is stored and returned unchanged: validate it\nwith the matching rule before saving.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "get",
+              "signature": "public function get(Model $model, string $key, mixed $value, array $attributes): ?string",
+              "doc": "Reads the stored mobile number back in E.164 (`+923001234567`). A value that is not valid is returned unchanged.\nA value that is not a string is returned as a string if it is scalar,\nand as null otherwise.",
+              "params": [
+                {
+                  "name": "$model",
+                  "type": "Model",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$key",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$value",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$attributes",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "set",
+              "signature": "public function set(Model $model, string $key, mixed $value, array $attributes): ?string",
+              "doc": "Stores a mobile number in E.164 (`+923001234567`). A value that is not valid is stored unchanged.\nA value that is not a string is stored as a string if it is scalar,\nand as null otherwise.",
+              "params": [
+                {
+                  "name": "$model",
+                  "type": "Model",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$key",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$value",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$attributes",
+                  "type": "array",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "?string",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/Laravel/Casts/PhoneCast.php"
+        },
+        {
+          "kind": "class",
+          "name": "PakDataKitServiceProvider",
+          "signature": "final class PakDataKitServiceProvider extends ServiceProvider",
+          "doc": "Registers the `pk_*` validation rules and their messages. Laravel\ndiscovers this provider automatically.",
+          "fields": [
+            {
+              "name": "RULES",
+              "type": null,
+              "default": null,
+              "doc": "Rule name to the PakDataKit check behind it.",
+              "static": true,
+              "readonly": true,
+              "const": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "isCodPhone",
+              "signature": "public static function isCodPhone(string $value): bool",
+              "doc": "Passes when Quality::phoneRiskSignals() finds nothing: a mobile number a courier can call.",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "isAmount",
+              "signature": "public static function isAmount(string $value): bool",
+              "doc": "Passes when Currency::parseAmount() reads one rupee amount (`150,000`, `1.5 lakh`).",
+              "params": [
+                {
+                  "name": "$value",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "boot",
+              "signature": "public function boot(): void",
+              "doc": "Registers the rules in {@link self::RULES} with Laravel's validator,\nloads this package's translated messages (namespace `pakdatakit`) and\nmakes them publishable with the `pakdatakit-lang` tag. An application's\nown `validation.pk_*` line takes precedence over the package's message.",
+              "params": [],
+              "returns": null
+            }
+          ],
+          "source": "php/src/Laravel/PakDataKitServiceProvider.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Amount",
+          "signature": "final class Amount extends PakRule",
+          "doc": "Validates a rupee amount as people type it (`150,000`, `Rs. 1,50,000/-`,\n`1.5 lakh`): Currency::parseAmount() must read it. The same check as the\n`pk_amount` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Amount.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Cnic",
+          "signature": "final class Cnic extends PakRule",
+          "doc": "Validates a CNIC. The same check as the `pk_cnic` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Cnic.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\CodPhone",
+          "signature": "final class CodPhone extends PakRule",
+          "doc": "Validates a mobile number a courier can call: a valid Pakistani mobile\nnumber with no Quality::phoneRiskSignals() flags. The same check as the\n`pk_cod_phone` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/CodPhone.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\ElectricityRef",
+          "signature": "final class ElectricityRef extends PakRule",
+          "doc": "Validates an electricity bill reference number, customer ID or K-Electric account number. The same check as the\n`pk_electricity_ref` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/ElectricityRef.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Iban",
+          "signature": "final class Iban extends PakRule",
+          "doc": "Validates a Pakistani IBAN. The same check as the `pk_iban` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Iban.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Landline",
+          "signature": "final class Landline extends PakRule",
+          "doc": "Validates a Pakistani landline number. The same check as the `pk_landline` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Landline.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Ntn",
+          "signature": "final class Ntn extends PakRule",
+          "doc": "Validates the format of a National Tax Number. The same check as the `pk_ntn` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Ntn.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\PakRule",
+          "signature": "abstract class PakRule implements ValidationRule",
+          "doc": "Base class of the PakDataKit rule objects. Values that are not strings\nfail. As with Laravel's own rules, empty values are skipped unless the\nfield is `required`.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "validate",
+              "signature": "public function validate(string $attribute, mixed $value, Closure $fail): void",
+              "doc": "Runs the check: calls `$fail` with this rule's translated message when\nthe value is not a string or does not pass.",
+              "params": [
+                {
+                  "name": "$attribute",
+                  "type": "string",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$value",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": ""
+                },
+                {
+                  "name": "$fail",
+                  "type": "Closure",
+                  "default": null,
+                  "doc": ""
+                }
+              ],
+              "returns": null
+            }
+          ],
+          "source": "php/src/Laravel/Rules/PakRule.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Passport",
+          "signature": "final class Passport extends PakRule",
+          "doc": "Validates the format of a Pakistani passport number. The same check as the `pk_passport` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Passport.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Phone",
+          "signature": "final class Phone extends PakRule",
+          "doc": "Validates a Pakistani mobile number. The same check as the `pk_phone` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Phone.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\Strn",
+          "signature": "final class Strn extends PakRule",
+          "doc": "Validates the format of a Sales Tax Registration Number. The same check as the `pk_strn` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/Strn.php"
+        },
+        {
+          "kind": "class",
+          "name": "Rules\\VehiclePlate",
+          "signature": "final class VehiclePlate extends PakRule",
+          "doc": "Validates the format of a vehicle registration number. The same check as the `pk_vehicle_plate` rule.",
+          "fields": [],
+          "methods": [],
+          "source": "php/src/Laravel/Rules/VehiclePlate.php"
+        }
+      ]
+    }
+  ]
+}

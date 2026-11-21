@@ -4,7 +4,13 @@ import { RULES, type AdapterOptions, type RuleName } from './rules.js';
 function schema(name: RuleName) {
   const rule = RULES[name];
   return (options: AdapterOptions = {}) =>
-    v.pipe(v.string(), v.check(rule.test, options.message ?? rule.message));
+    v.pipe(
+      v.string(),
+      v.check(
+        (value: string) => rule.test(value, options),
+        options.message ?? rule.message,
+      ),
+    );
 }
 
 /**

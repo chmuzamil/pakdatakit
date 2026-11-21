@@ -763,7 +763,7 @@
 {"fn":"phoneRiskSignals","args":["051-2345678"],"kwargs":{},"expected":["landline"],"throws":false},
 {"fn":"phoneRiskSignals","args":["051 23456789"],"kwargs":{},"expected":["landline"],"throws":false},
 {"fn":"phoneRiskSignals","args":["0800-12345"],"kwargs":{},"expected":["not-mobile"],"throws":false},
-{"fn":"phoneRiskSignals","args":["0800 12345678"],"kwargs":{},"expected":["not-mobile"],"throws":false},
+{"fn":"phoneRiskSignals","args":["0800 12345678"],"kwargs":{},"expected":["invalid"],"throws":false},
 {"fn":"phoneRiskSignals","args":["080012345"],"kwargs":{},"expected":["not-mobile"],"throws":false},
 {"fn":"phoneRiskSignals","args":["0900-12345"],"kwargs":{},"expected":["not-mobile"],"throws":false},
 {"fn":"phoneRiskSignals","args":["0900 123456"],"kwargs":{},"expected":["invalid"],"throws":false},

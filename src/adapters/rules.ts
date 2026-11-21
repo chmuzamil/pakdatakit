@@ -10,7 +10,7 @@ import { validateVehiclePlate } from '../vehicle.js';
 
 /** A string check shared by the form-library adapters. */
 export interface Rule {
-  test: (value: string) => boolean;
+  test: (value: string, options: AdapterOptions) => boolean;
   message: string;
 }
 
@@ -22,7 +22,8 @@ export const RULES = {
   ntn: { test: validateNTN, message: 'Invalid NTN' },
   strn: { test: validateSTRN, message: 'Invalid STRN' },
   landline: {
-    test: validateLandline,
+    test: (value: string, options: AdapterOptions) =>
+      validateLandline(value, { services: options.services === true }),
     message: 'Invalid Pakistani landline number',
   },
   passport: {
@@ -49,4 +50,9 @@ export type RuleName = keyof typeof RULES;
 export interface AdapterOptions {
   /** Error message to show instead of the default. */
   message?: string;
+  /**
+   * `landline()` only: also accept UAN, toll-free and premium-rate numbers
+   * (see `validateLandline`). Ignored by the other checks.
+   */
+  services?: boolean;
 }

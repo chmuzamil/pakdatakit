@@ -46,6 +46,8 @@
       },
       "expected": {
         "tax": 72000,
+        "surcharge": 0,
+        "total": 72000,
         "monthly": 6000,
         "effectiveRate": 4,
         "slab": {

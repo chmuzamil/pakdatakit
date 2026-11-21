@@ -13,7 +13,11 @@
  *    title with another page, or lacks the heading of one of its entries;
  * 4. after `npm run build` (when dist/ exists): a page is not built, an
  *    entry's anchor is not on its built page, or a page is not in the
- *    sitemap, or the landing page does not show the port's version.
+ *    sitemap, or the landing page does not show the port's version;
+ * 5. after the build: any API reference page, TypeScript included, has a
+ *    meta description shorter than MIN_DESCRIPTION characters. For a
+ *    TypeScript page the description comes from the first sentence of the
+ *    symbol's doc comment (site/src/routeData.ts), so lengthen that.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -340,6 +344,9 @@ for (const page of pages) {
 
 // ------------------------------------------------------------ 4. built site --
 
+/** Search engines show about 70-160 characters; shorter ones get replaced. */
+const MIN_DESCRIPTION = 70;
+
 const dist = join(site, 'dist');
 let built = 0;
 if (existsSync(join(dist, 'index.html'))) {
@@ -359,7 +366,7 @@ if (existsSync(join(dist, 'index.html'))) {
     const html = readFileSync(file, 'utf8');
     if (!sitemap.includes(`<loc>${SITE}${page.url}</loc>`))
       problems.push(`${page.url} is not in the sitemap`);
-    if (!/<meta name="description" content="[^"]{50,}"/.test(html))
+    if (!/<meta name="description" content="[^"]+"/.test(html))
       problems.push(`${page.url} has no meta description`);
     if (!page.mod) {
       const v = portVersion(page.port, root);
@@ -416,6 +423,42 @@ if (existsSync(join(dist, 'index.html'))) {
   }
 }
 
+// ------------------------------------------- 5. description length, all --
+
+let described = 0;
+if (existsSync(join(dist, 'api'))) {
+  const walk = (dir) =>
+    readdirSync(dir).flatMap((name) => {
+      const p = join(dir, name);
+      return statSync(p).isDirectory()
+        ? walk(p)
+        : name === 'index.html'
+          ? [p]
+          : [];
+    });
+  for (const file of walk(join(dist, 'api'))) {
+    const html = readFileSync(file, 'utf8');
+    if (/http-equiv="refresh"/i.test(html)) continue; // a redirect stub
+    const content = /<meta name="description" content="([^"]*)"/.exec(
+      html,
+    )?.[1];
+    const text = (content ?? '')
+      .replace(/&amp;/g, '&')
+      .replace(/&#39;|&#x27;/g, "'")
+      .replace(/&quot;/g, '"');
+    described++;
+    if (text.length < MIN_DESCRIPTION)
+      problems.push(
+        `/${relative(dist, file)
+          .replace(/\\/g, '/')
+          .replace(
+            /index\.html$/,
+            '',
+          )}: description is ${text.length} characters (minimum ${MIN_DESCRIPTION}): "${text}"`,
+      );
+  }
+}
+
 if (problems.length) {
   console.error(
     `check-api: ${problems.length} problem(s):\n  ${problems.join('\n  ')}`,
@@ -436,5 +479,5 @@ const entries = Object.keys(PORTS)
   })
   .join(', ');
 console.log(
-  `check-api: every public function and method has a described entry (${entries})${built ? `; ${built} built pages have every anchor and are in the sitemap` : '; dist/ not built, page checks skipped'}`,
+  `check-api: every public function and method has a described entry (${entries})${built ? `; ${built} built pages have every anchor and are in the sitemap; all ${described} API pages have a description of at least ${MIN_DESCRIPTION} characters` : '; dist/ not built, page checks skipped'}`,
 );

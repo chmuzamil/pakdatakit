@@ -7,7 +7,7 @@ function schema(name: RuleName) {
     refine(
       string(),
       `pk-${name}`,
-      (value) => rule.test(value) || (options.message ?? rule.message),
+      (value) => rule.test(value, options) || (options.message ?? rule.message),
     );
 }
 

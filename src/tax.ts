@@ -1,10 +1,16 @@
 import { validateCNIC } from './cnic.js';
 import { stripSeparators, toAsciiDigits } from './internal/normalize.js';
 
-/** Kind of taxpayer an NTN belongs to. */
+/**
+ * Kind of taxpayer an NTN belongs to: `individual` when the NTN is a 13-digit
+ * CNIC, `business` for a company's or association's 7-digit NTN.
+ */
 export type NTNType = 'individual' | 'business';
 
-/** Result of {@link analyzeNTN}. */
+/**
+ * What {@link analyzeNTN} reads from a National Tax Number: the kind of
+ * taxpayer, the digits and the usual display form.
+ */
 export interface NTNInfo {
   /** `individual` when the NTN is a CNIC; `business` for a 7-digit company/AOP NTN. */
   type: NTNType;

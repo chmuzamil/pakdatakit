@@ -1,4 +1,7 @@
-/** Language for number words. */
+/**
+ * Language for numbers and amounts in words: `'en'` for English with lakh and
+ * crore, `'ur'` for Urdu script.
+ */
 export type WordsLanguage = 'en' | 'ur';
 
 /** Options for {@link numberToWords}. */

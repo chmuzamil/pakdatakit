@@ -69,6 +69,12 @@ describe('analyzeNumber', () => {
     expect(getNumberType('0210123456')).toBeNull();
   });
 
+  it("follows PTA's plan for toll-free numbers: 0800 and five digits", () => {
+    expect(getNumberType('0800-78686')).toBe('toll-free');
+    // libphonenumber also accepts eight digits; PTA's plan does not.
+    expect(getNumberType('080012345678')).toBeNull();
+    expect(getNumberType('0800-1234')).toBeNull();
+  });
   it('agrees with libphonenumber on number types', () => {
     const expected: Record<string, string> = {
       FIXED_LINE: 'landline',
@@ -88,7 +94,6 @@ describe('analyzeNumber', () => {
       '021111825888',
       '051111123456',
       '080012345',
-      '080012345678',
       '090012345',
       '0122044444',
       '03001234567',

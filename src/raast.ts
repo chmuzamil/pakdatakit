@@ -494,13 +494,22 @@ export type RaastQrError =
   | 'expired'
   | 'missing-expiry';
 
-/** Something worth telling the payer, but which does not stop payment. */
-export type RaastQrWarning = 'amount-ignored' | 'expires-soon';
+/**
+ * Something worth telling the payer, but which does not stop payment.
+ * `no-iban`: a merchant QR that names no IBAN; it pays through the
+ * merchant's own scheme, so the payee can't be checked from the QR.
+ */
+export type RaastQrWarning = 'amount-ignored' | 'expires-soon' | 'no-iban';
 
 /** Result of {@link validateRaastQr}. */
 export interface RaastQrValidation {
   /** `true` when there are no errors. */
   valid: boolean;
+  /**
+   * `p2p` for a person-to-person QR, `merchant` for a merchant QR, `null`
+   * when the text is not a Raast QR.
+   */
+  kind: 'p2p' | 'merchant' | null;
   errors: RaastQrError[];
   warnings: RaastQrWarning[];
   /** The parsed QR, or `null` if it could not be read. */
@@ -532,14 +541,16 @@ function localDateTime(value: string): Date {
  * screen or to warn about a tampered sticker.
  *
  * Errors: not a Pakistani payment QR, checksum mismatch (damaged or edited),
- * no IBAN or an IBAN that fails its checksum, expired, or a fixed-amount QR
- * without the expiry that banking apps require.
+ * a person-to-person QR with no IBAN, an IBAN that fails its checksum,
+ * expired, or a fixed-amount QR without the expiry that banking apps require.
  * Warnings: an amount in a static QR (apps ignore it, so the payer must type
- * it), or a QR that expires soon (within an hour by default).
+ * it), a QR that expires soon (within an hour by default), or a merchant QR
+ * with no IBAN (`no-iban`): merchant QRs may pay through the merchant's own
+ * scheme, so it is valid, but the payee can't be checked from the QR.
  *
  * @example
  * validateRaastQr(scannedText);
- * // { valid: false, errors: ['expired'], warnings: [], qr: { ... } }
+ * // { valid: false, kind: 'p2p', errors: ['expired'], warnings: [], qr: { ... } }
  *
  * @param payload - Text decoded from the QR code
  * @param options - Time to check against and the "expires soon" window
@@ -551,7 +562,13 @@ export function validateRaastQr(
 ): RaastQrValidation {
   const qr = parseRaastQr(payload);
   if (qr === null) {
-    return { valid: false, errors: ['not-a-raast-qr'], warnings: [], qr: null };
+    return {
+      valid: false,
+      kind: null,
+      errors: ['not-a-raast-qr'],
+      warnings: [],
+      qr: null,
+    };
   }
 
   const errors: RaastQrError[] = [];
@@ -559,8 +576,11 @@ export function validateRaastQr(
   const now = options.now ?? new Date();
 
   if (!qr.crcValid) errors.push('bad-checksum');
-  if (qr.iban === null) errors.push('no-iban');
-  else if (!qr.ibanValid) errors.push('invalid-iban');
+  if (qr.iban === null) {
+    // A merchant QR may route through the merchant's scheme without an IBAN.
+    if (qr.kind === 'merchant') warnings.push('no-iban');
+    else errors.push('no-iban');
+  } else if (!qr.ibanValid) errors.push('invalid-iban');
 
   if (qr.kind === 'p2p') {
     if (qr.dynamic && qr.expiresAt === null) errors.push('missing-expiry');
@@ -575,5 +595,5 @@ export function validateRaastQr(
     }
   }
 
-  return { valid: errors.length === 0, errors, warnings, qr };
+  return { valid: errors.length === 0, kind: qr.kind, errors, warnings, qr };
 }

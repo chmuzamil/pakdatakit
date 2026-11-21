@@ -226,6 +226,56 @@ const cnics = [
 ];
 each('cnic', ['validateCNIC', 'getCNICInfo'], cnics);
 
+// CNICs in free text (findCNICs, maskCNICs). Offsets are UTF-16 code units in
+// TypeScript, so every text here stays in the Basic Multilingual Plane, where
+// they equal the code point offsets the Python and PHP ports return.
+{
+  const texts = [
+    'CNIC: 35202-1234567-1, phone 0300-1234567',
+    'My CNIC is 35202-1234567-1',
+    '3520212345671',
+    'ids 3520212345671 and 61101-7654321-2.',
+    '35202 1234567-1',
+    '35202.1234567 1',
+    '35202-1234567 1 and 35202 1234567-1',
+    '35202' + '\u2013' + '1234567' + '\u2014' + '1',
+    '%%URDU%%-1234567-%%ONE%%',
+    '%%URDU%%1234567%%ONE%%',
+    '1235202-1234567-1',
+    '35202-1234567-12',
+    '05202-1234567-1',
+    '95202-1234567-1',
+    '35202-123456-1',
+    '35202_1234567_1',
+    '35202--1234567-1',
+    'x35202-1234567-1y',
+    '(35202-1234567-1)',
+    'order 4520112345678 shipped',
+    '35202-1234567-1\n42101-7654321-8',
+    '',
+    'no numbers here',
+    '0300-1234567 or 042-35761234',
+    'Account: 1234567890123',
+    '۰۳۵۲۰۲-1234567-1',
+    '\u00a035202-1234567-1\u00a0',
+  ].map((t) =>
+    t
+      .replace('%%URDU%%', '\u06F3\u06F5\u06F2\u06F0\u06F2')
+      .replace('%%ONE%%', '\u0661'),
+  );
+  for (const text of texts) {
+    call('cnic', 'findCNICs', [text]);
+    call('cnic', 'maskCNICs', [text]);
+    call('cnic', 'maskCNICs', [text], { mask: '*' });
+  }
+  call('cnic', 'maskCNICs', ['35202-1234567-1'], { mask: '' });
+  call('cnic', 'maskCNICs', ['35202-1234567-1'], { mask: '##' });
+  for (const value of [null, 42, undefined]) {
+    call('cnic', 'findCNICs', [value]);
+    call('cnic', 'maskCNICs', [value]);
+  }
+}
+
 // Phone, networks, WhatsApp ------------------------------------------------------
 const phones = unique([
   '03001234567',
@@ -751,6 +801,48 @@ each(
   ['normalizeText', 'normalizeRomanUrdu', 'toUrduDigits', 'toEnglishDigits'],
   texts,
 );
+
+// romanUrduKey: every spelling in data/sources/roman-urdu-names.json, plus
+// multi-word names, accents, case, digits and non-Latin text.
+{
+  const { groups } = JSON.parse(
+    readFileSync(
+      join(root, 'data', 'sources', 'roman-urdu-names.json'),
+      'utf8',
+    ),
+  );
+  for (const name of unique(groups.flat()))
+    call('text', 'romanUrduKey', [name]);
+  for (const text of [
+    'Muhammad Rehman',
+    'Chaudhry Muhammad Ali',
+    'MUHAMMAD',
+    'muhammad',
+    'José',
+    'Zoë Khan',
+    'Ali123Raza',
+    "O'Brien",
+    'Abd-ul-Rehman',
+    'Rizwan  Ahmed',
+    '  ',
+    '',
+    'لاہور',
+    'Ali لاہور Khan',
+    'x',
+    'Xavier',
+    'Shah',
+    'Sheikh',
+    'Aa',
+    'yy',
+    'Wwaqas',
+    'Cheema',
+    'Saeed',
+    'Ehsan',
+  ]) {
+    call('text', 'romanUrduKey', [text]);
+  }
+  for (const value of [null, 42]) call('text', 'romanUrduKey', [value]);
+}
 
 // Hijri ---------------------------------------------------------------------
 const gregorianDates = [];
@@ -1636,6 +1728,31 @@ each(
     ' ',
   ]),
 );
+
+// validateLandline with services: UAN, toll-free and premium (PTA's plan).
+{
+  const serviceNumbers = unique([
+    ...landlines,
+    '0800-1234',
+    '0800 123456',
+    '0800-78686',
+    '+92 800 78686',
+    '0900-1234',
+    '0900 12345',
+    '0900-1234567',
+    '111-111-111',
+    '021-111-111-111',
+    '051 111 222 333',
+    '0122 123456',
+  ]);
+  for (const number of serviceNumbers) {
+    call('numbers', 'validateLandline', [number], { services: true });
+    call('numbers', 'validateLandline', [number], { services: false });
+    call('numbers', 'analyzeNumber', [number]);
+  }
+  call('numbers', 'validateLandline', [null], { services: true });
+  call('numbers', 'validateLandline', [42], { services: true });
+}
 
 // Raast ---------------------------------------------------------------------
 const IBAN = 'PK36SCBL0000001123456702';
@@ -3034,6 +3151,33 @@ for (const value of [null, 1, 'x', [], {}]) {
   for (const value of [null, 'x', true]) {
     call('incometax', 'calculateSalaryTax', [value], { taxYear: 2026 });
     call('incometax', 'calculateMonthlySalaryTax', [value], { taxYear: 2026 });
+  }
+}
+
+// Income tax with the section 4AB surcharge (includeSurcharge).
+{
+  const incomes = [
+    0, 600_000, 5_000_000, 9_999_999.99, 10_000_000, 10_000_000.01, 10_000_001,
+    12_000_000, 15_000_000, 22_000_000, 50_000_000, 75_000_000, 123_456_789.12,
+    1e12,
+  ];
+  for (const y of [...lib.getSalaryTaxYears(), 2028]) {
+    for (const income of incomes) {
+      call('incometax', 'calculateSalaryTax', [income], {
+        taxYear: y,
+        includeSurcharge: true,
+      });
+      call('incometax', 'calculateSalaryTax', [income], {
+        taxYear: y,
+        includeSurcharge: false,
+      });
+    }
+    for (const monthly of [833_333.33, 833_333.34, 1_000_000, 2_500_000]) {
+      call('incometax', 'calculateMonthlySalaryTax', [monthly], {
+        taxYear: y,
+        includeSurcharge: true,
+      });
+    }
   }
 }
 

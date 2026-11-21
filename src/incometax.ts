@@ -17,6 +17,22 @@ export interface SalaryTaxSlab {
   rate: number;
 }
 
+/**
+ * The surcharge under section 4AB of the Income Tax Ordinance: `rate`
+ * percent of the tax from the rate table, payable when taxable income
+ * exceeds `over` rupees.
+ */
+export interface SalaryTaxSurcharge {
+  /** Percent of the tax from the rate table. `0` where the law sets none. */
+  rate: number;
+  /** Taxable income must exceed this many rupees (Rs 10 million). */
+  over: number;
+  /** The law that sets it. */
+  law: string;
+  /** Official document. */
+  source: string;
+}
+
 /** The salaried rate table for one tax year (1 July to 30 June). */
 export interface SalaryTaxYear {
   /** The tax year, named after the June it ends in: 2026 is 1 July 2025 to 30 June 2026. */
@@ -30,6 +46,11 @@ export interface SalaryTaxYear {
   /** Official document. */
   source: string;
   slabs: SalaryTaxSlab[];
+  /**
+   * The section 4AB surcharge on salaried individuals for the year, or
+   * `null` for years before it existed (tax years up to 2024).
+   */
+  surcharge: SalaryTaxSurcharge | null;
 }
 
 /** Options for {@link calculateSalaryTax} and {@link calculateMonthlySalaryTax}. */
@@ -38,15 +59,28 @@ export interface SalaryTaxOptions {
   taxYear?: number;
   /** A day in the tax year (`YYYY-MM-DD` or a `Date`). Defaults to today. */
   date?: string | Date;
+  /**
+   * Add the section 4AB surcharge (tax years 2025 and 2026, above Rs 10
+   * million). Default `false` in 2.x, so existing results do not change; it
+   * will default to `true` in 3.0.
+   */
+  includeSurcharge?: boolean;
 }
 
 /** Result of {@link calculateSalaryTax}. */
 export interface SalaryTax {
-  /** Tax for the year, in rupees, rounded half up to the paisa. */
+  /** Tax for the year from the rate table, in rupees, rounded half up to the paisa. */
   tax: number;
-  /** `tax / 12`, rounded half up to the paisa. */
+  /**
+   * The section 4AB surcharge, rounded half up to the paisa. `0` unless
+   * `includeSurcharge` is set and the year and income attract one.
+   */
+  surcharge: number;
+  /** `tax + surcharge`: the year's total. */
+  total: number;
+  /** `total / 12`, rounded half up to the paisa. */
   monthly: number;
-  /** `tax` as a percent of the income, rounded half up to 2 decimals. */
+  /** `total` as a percent of the income, rounded half up to 2 decimals. */
   effectiveRate: number;
   /** The band the income falls in. */
   slab: SalaryTaxSlab;
@@ -85,6 +119,7 @@ function findYear(options: unknown): SalaryTaxYear | null {
 const copyYear = (year: SalaryTaxYear): SalaryTaxYear => ({
   ...year,
   slabs: year.slabs.map((slab) => ({ ...slab })),
+  surcharge: year.surcharge === null ? null : { ...year.surcharge },
 });
 
 /**
@@ -108,7 +143,11 @@ export function getSalaryTaxYears(): number[] {
   return YEARS.map((y) => y.taxYear);
 }
 
-function compute(incomePaisa: number, year: SalaryTaxYear): SalaryTax {
+function compute(
+  incomePaisa: number,
+  year: SalaryTaxYear,
+  includeSurcharge: boolean,
+): SalaryTax {
   const slabs = year.slabs;
   let slab = slabs[0] as SalaryTaxSlab;
   for (const candidate of slabs) {
@@ -120,13 +159,27 @@ function compute(incomePaisa: number, year: SalaryTaxYear): SalaryTax {
     incomePaisa > slab.over * 100
       ? slab.fixed * 100 + divideHalfUp(above * BigInt(rateBp), 10000n)
       : slab.fixed * 100;
+  const surcharge = year.surcharge;
+  const surchargePaisa =
+    includeSurcharge &&
+    surcharge !== null &&
+    surcharge.rate > 0 &&
+    incomePaisa > surcharge.over * 100
+      ? divideHalfUp(
+          BigInt(taxPaisa) * BigInt(Math.round(surcharge.rate * 100)),
+          10000n,
+        )
+      : 0;
+  const totalPaisa = taxPaisa + surchargePaisa;
   return {
     tax: fromPaisa(taxPaisa),
-    monthly: fromPaisa(divideHalfUp(BigInt(taxPaisa), 12n)),
+    surcharge: fromPaisa(surchargePaisa),
+    total: fromPaisa(totalPaisa),
+    monthly: fromPaisa(divideHalfUp(BigInt(totalPaisa), 12n)),
     effectiveRate:
       incomePaisa === 0
         ? 0
-        : divideHalfUp(BigInt(taxPaisa) * 10000n, BigInt(incomePaisa)) / 100,
+        : divideHalfUp(BigInt(totalPaisa) * 10000n, BigInt(incomePaisa)) / 100,
     slab: { ...slab },
     taxYear: year.taxYear,
   };
@@ -136,8 +189,16 @@ function compute(incomePaisa: number, year: SalaryTaxYear): SalaryTax {
  * Income tax on a salaried individual's taxable income for a tax year, from
  * the salaried rate table (see {@link getSalaryTaxSlabs}).
  *
- * The rate table only: the surcharge, tax credits, exemptions, the separate
- * pension rate and withholding adjustments are not applied.
+ * With `includeSurcharge: true` it adds the section 4AB surcharge: a
+ * percentage of the whole tax once taxable income exceeds Rs 10 million (10%
+ * in tax year 2025, 9% for salaried individuals in 2026, none in 2027 or
+ * before 2025). Because it applies to the whole tax, one rupee over Rs 10
+ * million adds it in full. It is off by default in 2.x so that existing
+ * results do not change, and will be on by default in 3.0.
+ *
+ * Tax credits, exemptions, the separate pension rate, super tax and
+ * withholding adjustments are not applied. This is an estimate, not tax
+ * advice.
  *
  * @param annualIncome - Taxable income for the year in rupees, 0 to 1
  *   trillion (at most 2 decimals count)
@@ -146,7 +207,10 @@ function compute(incomePaisa: number, year: SalaryTaxYear): SalaryTax {
  *
  * @example
  * calculateSalaryTax(1_800_000, { taxYear: 2026 });
- * // { tax: 72000, monthly: 6000, effectiveRate: 4, slab: { over: 1200000, … }, taxYear: 2026 }
+ * // { tax: 72000, surcharge: 0, total: 72000, monthly: 6000, effectiveRate: 4,
+ * //   slab: { over: 1200000, … }, taxYear: 2026 }
+ * calculateSalaryTax(12_000_000, { taxYear: 2026, includeSurcharge: true });
+ * // { tax: 3381000, surcharge: 304290, total: 3685290, monthly: 307107.5, … }
  */
 export function calculateSalaryTax(
   annualIncome: number,
@@ -155,7 +219,7 @@ export function calculateSalaryTax(
   const paisa = toUnits(annualIncome, 2);
   if (paisa === null) return null;
   const year = findYear(options);
-  return year ? compute(paisa, year) : null;
+  return year ? compute(paisa, year, options?.includeSurcharge === true) : null;
 }
 
 /**
@@ -172,5 +236,7 @@ export function calculateMonthlySalaryTax(
   const paisa = toUnits(monthlySalary, 2);
   if (paisa === null) return null;
   const year = findYear(options);
-  return year ? compute(paisa * 12, year) : null;
+  return year
+    ? compute(paisa * 12, year, options?.includeSurcharge === true)
+    : null;
 }

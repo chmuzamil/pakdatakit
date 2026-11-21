@@ -30,15 +30,25 @@ interface AreaCodeEntry {
 }
 
 /*
- * Number patterns from Google libphonenumber's PK metadata (v9.0.41). They
- * apply to the national significant number, without the trunk prefix 0.
+ * Number patterns. They apply to the national significant number, without
+ * the trunk prefix 0.
+ *
+ * - Fixed lines and area codes: Google libphonenumber's PK metadata
+ *   (v9.0.41), which matches PTA's numbering plan (ITU, 9 November 2021).
+ * - UAN: an area code, then 111 and six digits (PTA's plan, "National
+ *   Universal Access Number"). Written without the area code, `111-XXX-XXX`
+ *   is how UANs are advertised and dialled within a city.
+ * - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
+ * - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
+ *   9.1.4, "current structure"; the 2021 plan does not list 0900).
+ * - Personal (0122): libphonenumber only; no PTA document lists it.
  */
 const FIXED_LINE =
   /^(?:(?:(?:21|42)[2-9]|58[126])\d{7}|(?:2[25]|4[0146-9]|5[1-35-7]|6[1-8]|7[14]|8[16]|91)[2-9]\d{6,7}|(?:2(?:3[2358]|4[2-4]|9[2-8])|45[3479]|54[2-467]|60[468]|72[236]|8(?:2[2-689]|3[23578]|4[3478]|5[2356])|9(?:2[2-8]|3[27-9]|4[2-6]|6[3569]|9[25-8]))[2-9]\d{5,6})$/;
 const UAN =
   /^((?:2(?:[125]|3[2358]|4[2-4]|9[2-8])|4(?:[0-246-9]|5[3479])|5(?:[1-35-7]|4[2-467])|6(?:0[468]|[1-8])|7(?:[14]|2[236])|8(?:[16]|2[2-689]|3[23578]|4[3478]|5[2356])|9(?:1|22|3[27-9]|4[2-6]|6[3569]|9[2-7])))111(\d{6})$/;
 const UAN_WITHOUT_AREA_CODE = /^111(\d{6})$/;
-const TOLL_FREE = /^800(\d{5}(?:\d{3})?)$/;
+const TOLL_FREE = /^800(\d{5})$/;
 const PREMIUM = /^900(\d{5})$/;
 const PERSONAL = /^122(\d{6})$/;
 
@@ -186,14 +196,46 @@ export function getNumberType(phone: string): NumberType | null {
   return analyzeNumber(phone)?.type ?? null;
 }
 
+/** Options for {@link validateLandline}. */
+export interface LandlineOptions {
+  /**
+   * Also accept the non-geographic service numbers a business may give as
+   * its landline: UAN (`021-111-123-456`, `111-123-456`), toll-free
+   * (`0800-12345`) and premium rate (`0900-12345`). Default `false`.
+   */
+  services?: boolean;
+}
+
+/** The number types {@link validateLandline} accepts with `services: true`. */
+const SERVICE_TYPES: ReadonlySet<NumberType> = new Set([
+  'uan',
+  'toll-free',
+  'premium',
+]);
+
 /**
  * Validates a Pakistani landline (fixed-line) number such as `042-35761234`.
+ * With `{ services: true }` it also accepts UAN, toll-free and premium-rate
+ * numbers; {@link analyzeNumber} tells them apart with its `type` field.
+ *
+ * @example
+ * validateLandline('042-35761234'); // true
+ * validateLandline('021-111-123-456'); // false
+ * validateLandline('021-111-123-456', { services: true }); // true
  *
  * @param phone - Number in local or international format
- * @returns `true` for a valid landline number
+ * @param options - `services: true` to accept UAN, toll-free and premium numbers
+ * @returns `true` for a valid landline number (or service number, with
+ *   `services`). Never throws.
  */
-export function validateLandline(phone: string): boolean {
-  return getNumberType(phone) === 'landline';
+export function validateLandline(
+  phone: string,
+  options: LandlineOptions = {},
+): boolean {
+  if (typeof phone !== 'string') return false;
+  const type = getNumberType(phone);
+  if (type === 'landline') return true;
+  return options.services === true && type !== null && SERVICE_TYPES.has(type);
 }
 
 /**

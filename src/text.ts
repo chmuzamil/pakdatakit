@@ -93,10 +93,16 @@ function matchCase(original: string, replacement: string): string {
 // Slugs, Urdu sorting and bidirectional text
 // ---------------------------------------------------------------------------
 
-/** Which letters {@link slugify} keeps. */
+/**
+ * Which letters {@link slugify} keeps in a URL slug: `any` (Latin and Urdu),
+ * `latin` (a-z only) or `urdu` (Urdu letters only).
+ */
 export type SlugScript = 'any' | 'latin' | 'urdu';
 
-/** Options for {@link slugify}. */
+/**
+ * Options for {@link slugify}: which script's letters to keep in the slug.
+ * Digits are always kept, converted to 0-9.
+ */
 export interface SlugifyOptions {
   /**
    * `any` (default) keeps Latin and Urdu letters, `latin` keeps only `a-z`,
@@ -415,7 +421,10 @@ export function isRTL(text: string): boolean {
   return false;
 }
 
-/** Direction for {@link wrapBidi}. */
+/**
+ * Direction for {@link wrapBidi}: `auto` follows the first strong letter,
+ * `rtl` and `ltr` force right-to-left or left-to-right.
+ */
 export type BidiDirection = 'auto' | 'rtl' | 'ltr';
 
 /**
@@ -441,4 +450,151 @@ export function wrapBidi(
   const open =
     direction === 'rtl' ? '\u2067' : direction === 'ltr' ? '\u2066' : '\u2068';
   return `${open}${text}\u2069`;
+}
+
+/** Two-letter spellings of one sound, and what each becomes in a key. */
+const KEY_DIGRAPHS: Readonly<Record<string, string>> = {
+  kh: 'kh',
+  gh: 'g',
+  sh: 'sh',
+  ch: 'ch',
+  ph: 'f',
+  th: 't',
+  dh: 'd',
+  bh: 'b',
+  jh: 'j',
+  zh: 'z',
+  ck: 'k',
+};
+
+/** Letters written for the same sound as another letter. */
+const KEY_LETTERS: Readonly<Record<string, string>> = {
+  c: 'k',
+  q: 'k',
+  v: 'w',
+  x: 'ks',
+};
+
+const PLAIN_VOWELS = 'aeiou';
+
+/** The sound class of a vowel letter: a (a, e), i (i, y) or u (o, u, w). */
+function vowelClass(letter: string): string {
+  if (letter === 'a' || letter === 'e') return 'a';
+  if (letter === 'i' || letter === 'y') return 'i';
+  return 'u';
+}
+
+/**
+ * The sound class of a word's first vowel sound: ee is i (Zeeshan, Heera);
+ * a word-initial e is i (Ebrahim, Esmail); au, aw, ou and ow are u
+ * (Chaudhry, Choudhry, Chowdhury); ai, ay, ae, ei and ey are e (Saeed,
+ * Faisal, Sheikh); otherwise the class of the first letter.
+ */
+function firstVowelClass(run: string, wordStart: boolean): string {
+  if (run.startsWith('ee')) return 'i';
+  if (wordStart && run.startsWith('e')) return 'i';
+  if (/^[ao][uw]/.test(run)) return 'u';
+  if (/^(a[iye]|e[iy])/.test(run)) return 'e';
+  return vowelClass(run[0] as string);
+}
+
+/** The phonetic key of one word of lowercase ASCII letters. */
+function wordKey(word: string): string {
+  // 1. One letter per sound.
+  let letters = '';
+  for (let i = 0; i < word.length;) {
+    const pair = KEY_DIGRAPHS[word.slice(i, i + 2)];
+    if (pair !== undefined) {
+      letters += pair;
+      i += 2;
+    } else {
+      const letter = word[i] as string;
+      letters += KEY_LETTERS[letter] ?? letter;
+      i += 1;
+    }
+  }
+  // 2. Doubled letters count once (Muhammad, Rehmaan), except ee, which
+  //    is written for a long i (Zeeshan, Heera, Saeed).
+  letters = letters.replace(/([^e])\1+/g, '$1');
+  // 3. Which letters are vowels: a, e, i, o, u; y except at the start; w
+  //    after a vowel and before a consonant or the end (Chowdhury).
+  const vowel: boolean[] = [];
+  for (let i = 0; i < letters.length; i += 1) {
+    const letter = letters[i] as string;
+    vowel.push(
+      PLAIN_VOWELS.includes(letter) ||
+        (letter === 'y' && i > 0) ||
+        (letter === 'w' &&
+          i > 0 &&
+          vowel[i - 1] === true &&
+          !PLAIN_VOWELS.includes(letters[i + 1] ?? '')),
+    );
+  }
+  // 4. A final h after a vowel is silent (Fatimah, Sarah).
+  const last = letters.length - 1;
+  if (last > 0 && letters[last] === 'h' && vowel[last - 1] === true) {
+    letters = letters.slice(0, last);
+    vowel.pop();
+  }
+  // 5. Consonants, the first vowel sound and a final vowel sound.
+  let key = '';
+  let firstVowelDone = false;
+  for (let i = 0; i < letters.length;) {
+    if (!vowel[i]) {
+      key += letters[i];
+      i += 1;
+      continue;
+    }
+    let end = i;
+    while (end < letters.length && vowel[end]) end += 1;
+    const run = letters.slice(i, end);
+    if (!firstVowelDone) {
+      key += firstVowelClass(run, i === 0);
+      firstVowelDone = true;
+    } else if (end === letters.length) {
+      key += run.endsWith('ee')
+        ? 'i'
+        : vowelClass(run[run.length - 1] as string);
+    }
+    i = end;
+  }
+  return key;
+}
+
+/**
+ * A phonetic key for Roman Urdu, so that different spellings of the same
+ * name or word match: `Mubeen` and `Mobeen`, `Muhammad`, `Mohammad` and
+ * `Muhammed`, `Rehman` and `Rahman`, `Chaudhry`, `Chaudhary` and `Chaudhery`.
+ * Compare keys, not the text.
+ *
+ * Each word keeps its consonants, its first vowel sound and a vowel sound at
+ * its end. Letters for one sound are merged (`kh`, `sh`, `ch`; `ph` and `f`;
+ * `q`, `c` and `k`; `v` and `w`; `th` and `t`, `dh` and `d`), doubled letters
+ * count once, `e` counts as `a`, `o` as `u`, and a final `h` after a vowel is
+ * dropped. Accents are removed and anything other than Latin letters splits
+ * words. The key is not meant to be shown: it is an opaque string.
+ *
+ * Different names can share a key (`Hamid` and `Hamad`), so treat a match as
+ * "probably the same", not proof. {@link normalizeRomanUrdu} is a different
+ * tool: it rewrites informal spellings into readable text.
+ *
+ * @example
+ * romanUrduKey('Mubeen') === romanUrduKey('Mobeen'); // true
+ * romanUrduKey('Muhammad Rehman'); // 'muhmd rahmn'
+ * romanUrduKey('Hussain') === romanUrduKey('Hassan'); // false
+ *
+ * @param text - A name or other Roman Urdu text
+ * @returns The key, one part per word separated by spaces; `''` for text
+ *   with no Latin letters or a value that is not a string. Never throws.
+ */
+export function romanUrduKey(text: string): string {
+  if (typeof text !== 'string') return '';
+  return text
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[^a-z]+/)
+    .filter((word) => word !== '')
+    .map(wordKey)
+    .join(' ');
 }

@@ -262,6 +262,17 @@ describe('tax and landline rules', () => {
     ).toBe(3);
   });
 
+  it('accepts UAN, toll-free and premium numbers with services', () => {
+    expect(pkZod.landline().safeParse('021-111-123-456').success).toBe(false);
+    for (const number of ['021-111-123-456', '0800-78686', '0900-12345'])
+      expect(pkZod.landline({ services: true }).safeParse(number).success).toBe(
+        true,
+      );
+    expect(
+      pkZod.landline({ services: true }).safeParse('03001234567').success,
+    ).toBe(false);
+  });
+
   it('exposes the same rules in every adapter', () => {
     expect(Object.keys(pkZod)).toEqual([
       'cnic',

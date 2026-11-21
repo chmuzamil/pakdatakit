@@ -12,7 +12,7 @@ function schema(name: RuleName) {
         value === undefined ||
         value === null ||
         value === '' ||
-        rule.test(value),
+        rule.test(value, options),
     );
 }
 

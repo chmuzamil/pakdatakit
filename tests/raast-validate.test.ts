@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { crc16 } from '../src/internal/emv.js';
 import {
+  createMerchantQr,
   createRaastP2PQr,
   parseRaastQr,
   validateRaastQr,
@@ -132,9 +133,36 @@ describe('validateRaastQr', () => {
   it('rejects text that is not a Raast QR', () => {
     expect(validateRaastQr('https://example.com')).toEqual({
       valid: false,
+      kind: null,
       errors: ['not-a-raast-qr'],
       warnings: [],
       qr: null,
     });
+  });
+});
+
+describe('validateRaastQr kind and merchant QRs without an IBAN', () => {
+  it('returns the kind', () => {
+    expect(validateRaastQr(createRaastP2PQr({ iban: IBAN })).kind).toBe('p2p');
+  });
+
+  it('treats a merchant QR without an IBAN as valid, with a warning', () => {
+    const payload = createMerchantQr({
+      merchantAccount: { fields: { '00': 'A000000736', '01': 'MERCHANT42' } },
+      merchantName: 'Aziz General Store',
+      city: 'Karachi',
+    });
+    expect(validateRaastQr(payload)).toMatchObject({
+      valid: true,
+      kind: 'merchant',
+      errors: [],
+      warnings: ['no-iban'],
+    });
+  });
+
+  it('still rejects a person-to-person QR without an IBAN', () => {
+    const result = validateRaastQr(p2p('0202000506150.00'));
+    expect(result.kind).toBe('p2p');
+    expect(result.errors).toContain('no-iban');
   });
 });

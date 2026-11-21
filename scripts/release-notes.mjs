@@ -28,7 +28,7 @@ function changelogSection() {
 
 const section = changelogSection();
 const notes = [
-  `**${title} ${version}** · [Package](${registryUrl}) · [Docs](https://chmuzamil.github.io/pakdatakit/) · [Playground](https://pakdatakit-playground.vercel.app/)`,
+  `**${title} ${version}** · [Package](${registryUrl}) · [Docs](https://pakdatakit.dev/) · [Playground](https://pakdatakit.dev/playground/)`,
   '',
   section ||
     `See [${changelogPath}](https://github.com/chmuzamil/pakdatakit/blob/main/${changelogPath}).`,

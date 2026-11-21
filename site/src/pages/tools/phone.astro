@@ -1,0 +1,20 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import PhoneTool from '../../components/tools/PhoneTool.tsx';
+---
+
+<ToolPage
+  title="Pakistan phone number checker"
+  description="Check and format a Pakistani mobile or landline number, see its original network, area code and risk signals, and make a WhatsApp link. Runs in your browser."
+  appName="Pakistan phone number checker"
+  path="/tools/phone/"
+  code={[
+    { module: 'phone', ids: ['validate', 'format', 'network'] },
+    { module: 'numbers', ids: ['landline'] },
+    { module: 'whatsapp' },
+    { module: 'quality', ids: ['phone-ok', 'phone-test', 'phone-landline'] },
+  ]}
+  guide="/docs/phone/"
+>
+  <PhoneTool client:load />
+</ToolPage>

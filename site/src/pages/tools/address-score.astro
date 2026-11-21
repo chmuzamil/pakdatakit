@@ -1,0 +1,15 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import AddressScoreTool from '../../components/tools/AddressScoreTool.tsx';
+---
+
+<ToolPage
+  title="Delivery address score for COD orders"
+  description="Score how much a Pakistani delivery address tells a rider, see the missing parts, with Urdu and Roman Urdu landmarks, and check the phone number for risk signals."
+  appName="Delivery address score"
+  path="/tools/address-score/"
+  code={[{ module: 'quality' }]}
+  guide="/docs/quality/"
+>
+  <AddressScoreTool client:load />
+</ToolPage>

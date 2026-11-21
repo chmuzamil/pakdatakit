@@ -1,0 +1,15 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import BillsTool from '../../components/tools/BillsTool.tsx';
+---
+
+<ToolPage
+  title="Electricity and gas bill number checker"
+  description="Check the format of a Pakistani electricity reference number, customer ID, K-Electric account or SNGPL and SSGC gas number, one at a time or from a CSV. Runs in your browser."
+  appName="Bill number checker"
+  path="/tools/bills/"
+  code={[{ module: 'bills' }]}
+  guide="/docs/bills/"
+>
+  <BillsTool client:load />
+</ToolPage>

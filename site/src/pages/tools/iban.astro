@@ -8,6 +8,8 @@ import IbanTool from '../../components/tools/IbanTool.tsx';
   description="Check a Pakistani IBAN's length and check digits (mod-97) and find its bank. Runs in your browser; it does not confirm the account exists."
   appName="Pakistan IBAN checker"
   path="/tools/iban/"
+  code={[{ module: 'iban' }]}
+  guide="/docs/iban/"
 >
   <IbanTool client:load />
 </ToolPage>

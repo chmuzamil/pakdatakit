@@ -215,10 +215,19 @@ export default defineConfig({
         {
           label: 'Tools',
           items: [
+            { label: 'All tools', link: '/tools/' },
             { label: 'CNIC checker', link: '/tools/cnic/' },
+            { label: 'Phone number checker', link: '/tools/phone/' },
             { label: 'IBAN checker', link: '/tools/iban/' },
+            { label: 'Bill number checker', link: '/tools/bills/' },
             { label: 'Salary tax calculator', link: '/tools/salary-tax/' },
             { label: 'Sales tax calculator', link: '/tools/sales-tax/' },
+            {
+              label: 'FBR invoice validator',
+              link: '/tools/fbr-invoice-validator/',
+            },
+            { label: 'Delivery address score', link: '/tools/address-score/' },
+            { label: 'Urdu text tools', link: '/tools/urdu-text/' },
             { label: 'Playground', link: '/playground/' },
           ],
         },

@@ -9,6 +9,8 @@ import SalaryTaxTool from '../../components/tools/SalaryTaxTool.tsx';
   description="Monthly and annual income tax on salary at the Finance Act 2026 rates (tax year 2027), every slab shown and the law cited. Years from 2020 too."
   appName="Pakistan salary tax calculator"
   path="/tools/salary-tax/"
+  code={[{ module: 'incometax' }]}
+  guide="/docs/incometax/"
 >
   <SalaryTaxTool client:load dataChecked={dataVersion} />
 </ToolPage>

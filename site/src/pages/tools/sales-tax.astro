@@ -9,6 +9,8 @@ import SalesTaxTool from '../../components/tools/SalesTaxTool.tsx';
   description="Sales tax on goods (FBR) and services in Punjab, Sindh, KP, Balochistan and Islamabad, on any date since July 2019, with the law cited."
   appName="Pakistan sales tax calculator"
   path="/tools/sales-tax/"
+  code={[{ module: 'salestax' }]}
+  guide="/docs/salestax/"
 >
   <SalesTaxTool client:load dataChecked={dataVersion} />
 </ToolPage>

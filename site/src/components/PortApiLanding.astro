@@ -1,0 +1,91 @@
+---
+/**
+ * Landing page of the Python, Dart, .NET or PHP API reference: the modules
+ * grouped by topic (src/lib/api-modules.json), like /api/typescript/, with
+ * what each exports, stamped with the port's version from its manifest. The
+ * module pages under it are written by scripts/api/render.mjs.
+ */
+import ApiLanding from './ApiLanding.astro';
+import groups from '../lib/api-modules.json';
+import { PORTS, counts, landingDescription, portApi, portVersion } from '../lib/api-ports.mjs';
+import { LANGS, snippet, type Lang } from '../lib/snippets';
+import home from '../../examples/home.json';
+
+interface Props {
+  port: 'python' | 'dart' | 'dotnet' | 'php';
+}
+
+const { port } = Astro.props;
+const p = PORTS[port];
+const api = portApi(port);
+const version = portVersion(port);
+const byId = new Map(api.modules.map((m: { id: string }) => [m.id, m]));
+
+// Fail the build if a module has a page but no card.
+const listed = new Set(groups.groups.flatMap((g) => g.modules.map((m) => m.id)));
+const unlisted = [...byId.keys()].filter((id) => !listed.has(id as string));
+if (unlisted.length) throw new Error(`PortApiLanding: add these modules to src/lib/api-modules.json: ${unlisted.join(', ')}`);
+
+/** What the card shows under the title: the import path, or the main types. */
+function path(mod: { name: string; entries: { name: string; kind: string }[] }): string {
+  if (port === 'python' || port === 'dart') return mod.name;
+  const names = mod.entries.map((e) => e.name);
+  return names.length > 3 ? `${names.slice(-3).join(', ')}…` : names.join(', ');
+}
+
+const cardGroups = groups.groups
+  .map((g) => ({
+    title: g.title,
+    intro: g.intro,
+    cards: g.modules
+      .filter((m) => byId.has(m.id))
+      .map((m) => {
+        const mod = byId.get(m.id);
+        return {
+          href: `/api/${port}/${m.id}/`,
+          title: m.title,
+          path: path(mod),
+          description: m.description,
+          counts: counts(mod.entries),
+        };
+      }),
+  }))
+  .filter((g) => g.cards.length);
+
+const lang = { python: 'py', dart: 'dart', dotnet: 'cs', php: 'php' }[port] as Lang;
+const example = snippet(lang, home.examples.slice(0, 2) as Parameters<typeof snippet>[1]);
+const code = LANGS.find((l) => l.id === lang)!.code;
+const methods = api.modules.reduce(
+  (n: number, m: { entries: { kind: string; methods?: { kind: string }[] }[] }) =>
+    n + m.entries.reduce((k, e) => k + (e.kind === 'function' ? 1 : 0) + (e.methods ?? []).filter((x) => x.kind === 'method').length, 0),
+  0,
+);
+---
+
+<ApiLanding
+  title={`${p.label} API reference`}
+  description={landingDescription(port, api.modules, version)}
+  groups={cardGroups}
+  example={{ code: example, lang: code }}
+>
+  <p class="api-lead">
+    Every public {p.what} in <strong>{p.package} {version}</strong>, generated from the {p.label} source and its doc
+    comments: {methods} functions and methods in {api.modules.length} modules. The module guides show the same calls in all
+    five languages, with results checked against the TypeScript library.
+  </p>
+
+  <p class="api-hint" slot="hint">
+    Looking for a function by name? Press <kbd>/</kbd> or <kbd>Ctrl</kbd>&nbsp;<kbd>K</kbd> to search. New here? Start with the{' '}
+    <a href={`/install/${port}/`}>{p.label} install guide</a> or the <a href="/docs/cnic/">module guides</a>. Other
+    languages: {
+      (['typescript', 'python', 'dart', 'dotnet', 'php'] as const)
+        .filter((l) => l !== port)
+        .map((l, i, all) => (
+          <>
+            <a href={`/api/${l}/`}>{l === 'typescript' ? 'TypeScript' : PORTS[l].label}</a>
+            {i < all.length - 2 ? ', ' : i === all.length - 2 ? ' and ' : '.'}
+          </>
+        ))
+    }
+  </p>
+</ApiLanding>

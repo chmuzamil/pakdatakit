@@ -1,0 +1,9 @@
+name: pakdatakit_api_extract
+description: Extracts the Dart port's public API for the pakdatakit.dev API reference. Dev tool, not published.
+publish_to: none
+
+environment:
+  sdk: ^3.4.0
+dependencies:
+  analyzer: 14.5.0
+  path: 1.9.1

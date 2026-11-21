@@ -18,7 +18,13 @@ use PakDataKit\Phone;
  */
 final class PhoneCast implements CastsAttributes
 {
-    /** @param array<string, mixed> $attributes */
+    /**
+     * Reads the stored mobile number back in E.164 (`+923001234567`). A value that is not valid is returned unchanged.
+     * A value that is not a string is returned as a string if it is scalar,
+     * and as null otherwise.
+     *
+     * @param array<string, mixed> $attributes
+     */
     public function get(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         if (!is_string($value)) {
@@ -27,7 +33,13 @@ final class PhoneCast implements CastsAttributes
         return Phone::format($value) ?? $value;
     }
 
-    /** @param array<string, mixed> $attributes */
+    /**
+     * Stores a mobile number in E.164 (`+923001234567`). A value that is not valid is stored unchanged.
+     * A value that is not a string is stored as a string if it is scalar,
+     * and as null otherwise.
+     *
+     * @param array<string, mixed> $attributes
+     */
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         if (!is_string($value)) {

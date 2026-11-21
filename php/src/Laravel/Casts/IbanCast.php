@@ -18,7 +18,13 @@ use PakDataKit\Iban;
  */
 final class IbanCast implements CastsAttributes
 {
-    /** @param array<string, mixed> $attributes */
+    /**
+     * Reads the stored IBAN back in uppercase without spaces. A value that is not valid is returned unchanged.
+     * A value that is not a string is returned as a string if it is scalar,
+     * and as null otherwise.
+     *
+     * @param array<string, mixed> $attributes
+     */
     public function get(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         if (!is_string($value)) {
@@ -27,7 +33,13 @@ final class IbanCast implements CastsAttributes
         return Iban::validate($value) ? Iban::normalize($value) : $value;
     }
 
-    /** @param array<string, mixed> $attributes */
+    /**
+     * Stores an IBAN in uppercase without spaces. A value that is not valid is stored unchanged.
+     * A value that is not a string is stored as a string if it is scalar,
+     * and as null otherwise.
+     *
+     * @param array<string, mixed> $attributes
+     */
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         if (!is_string($value)) {

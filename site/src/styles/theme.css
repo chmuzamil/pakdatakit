@@ -1007,3 +1007,25 @@ header.header {
   border-bottom: 1px solid var(--sl-color-gray-6);
   overflow-wrap: anywhere;
 }
+
+/* The "API: <language>" link under each language tab (LangTabs.astro). */
+.api-link {
+  margin-top: 0.5rem;
+  font-size: var(--sl-text-sm);
+}
+
+/* Tables in the Python, Dart, .NET and PHP API pages (scripts/api/render.mjs):
+   the focusable wrapper scrolls instead of the table. */
+.api-table {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+.api-table > table {
+  display: table;
+  overflow: visible;
+  margin-top: 0;
+}
+.api-table:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}

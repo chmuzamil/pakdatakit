@@ -12,6 +12,14 @@ export interface Crumb {
   url: string;
 }
 
+/** Names of the API references other than TypeScript's (src/lib/api-ports.mjs). */
+const API_LABELS: Record<string, string> = {
+  python: 'Python',
+  dart: 'Dart',
+  dotnet: '.NET',
+  php: 'PHP',
+};
+
 /** Breadcrumbs for a page path (with slashes), ending with the page itself. */
 export function breadcrumbs(path: string, title: string): Crumb[] {
   const p = path.replace(/^\/|\/$/g, '');
@@ -29,7 +37,12 @@ export function breadcrumbs(path: string, title: string): Crumb[] {
     crumbs.push({ name: 'Playground', url: '/playground/' });
   if (top === 'releases' && parts.length > 1)
     crumbs.push({ name: 'Releases', url: '/releases/' });
-  if (top === 'api' && parts.length > 2) {
+  if (top === 'api' && parts.length > 2 && parts[1] !== 'typescript') {
+    crumbs.push({
+      name: `${API_LABELS[parts[1]] ?? parts[1]} API`,
+      url: `/api/${parts[1]}/`,
+    });
+  } else if (top === 'api' && parts.length > 2) {
     crumbs.push({ name: 'TypeScript API', url: '/api/typescript/' });
     const adapter = parts[2] === 'adapters';
     const depth = adapter ? 4 : 3;

@@ -55,6 +55,10 @@ const expect = [
     (d) => `/api/typescript/adapters/${d}/`,
   ),
   '/api/typescript/',
+  '/api/python/',
+  '/api/dart/',
+  '/api/dotnet/',
+  '/api/php/',
   '/playground/',
 ];
 for (const path of expect)

@@ -19,3 +19,7 @@ public/favicon.ico
 public/apple-touch-icon.png
 public/icon-*.png
 public/manifest.json
+# Build output of the API extractors (scripts/api/)
+scripts/api/dotnet/bin/
+scripts/api/dotnet/obj/
+scripts/api/dart/.dart_tool/

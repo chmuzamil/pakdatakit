@@ -3,9 +3,11 @@
  * Synced language tabs (TypeScript | Python | Dart | C# | PHP) for examples
  * from site/examples/<module>.json. The choice is shared across the site
  * (Starlight's syncKey, saved in localStorage) and can be set with ?lang=.
+ * Each tab links to that language's API reference for the module.
  */
 import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
 import { LANGS, snippet, type Example } from '../lib/snippets';
+import { apiPageFor } from '../lib/api-ports.mjs';
 
 interface Props {
   module: string;
@@ -31,10 +33,17 @@ const examples = ids
 
 <Tabs syncKey="lang">
   {
-    LANGS.map((lang) => (
-      <TabItem label={lang.label}>
-        <Code code={snippet(lang.id, examples)} lang={lang.code} />
-      </TabItem>
-    ))
+    LANGS.map((lang) => {
+      const api = apiPageFor(lang.id, module);
+      return (
+        <TabItem label={lang.label}>
+          <Code code={snippet(lang.id, examples)} lang={lang.code} />
+          <p class="api-link">
+            <a href={api.href}>{api.label}</a>
+          </p>
+        </TabItem>
+      );
+    })
   }
 </Tabs>
+

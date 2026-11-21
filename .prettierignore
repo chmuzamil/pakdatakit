@@ -33,3 +33,8 @@ site/src/content/docs/api/
 site/src/content/docs/releases/
 site/src/content/docs/data.md
 site/api-redirects.json
+# API extracted from the ports' sources (site/scripts/api/, npm run api:extract)
+site/api-data/
+site/scripts/api/dart/
+site/scripts/api/dotnet/bin/
+site/scripts/api/dotnet/obj/

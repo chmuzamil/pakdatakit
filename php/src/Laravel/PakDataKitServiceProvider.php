@@ -41,6 +41,12 @@ final class PakDataKitServiceProvider extends ServiceProvider
         return \PakDataKit\Currency::parseAmount($value) !== null;
     }
 
+    /**
+     * Registers the rules in {@see self::RULES} with Laravel's validator,
+     * loads this package's translated messages (namespace `pakdatakit`) and
+     * makes them publishable with the `pakdatakit-lang` tag. An application's
+     * own `validation.pk_*` line takes precedence over the package's message.
+     */
     public function boot(): void
     {
         $lang = dirname(__DIR__, 2) . '/lang';

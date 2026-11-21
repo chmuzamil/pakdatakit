@@ -22,7 +22,13 @@ public abstract class PakValidationAttribute : ValidationAttribute
         _isValid = isValid;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Checks a value: <c>null</c> and empty strings are valid, other strings
+    /// must pass this attribute's check, and values that are not strings are
+    /// invalid.
+    /// </summary>
+    /// <param name="value">The value to validate.</param>
+    /// <returns><c>true</c> if the value is valid.</returns>
     public override bool IsValid(object? value) => value switch
     {
         null => true,

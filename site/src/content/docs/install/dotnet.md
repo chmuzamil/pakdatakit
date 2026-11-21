@@ -20,3 +20,5 @@ IncomeTax.CalculateSalaryTax(5_000_000, new SalaryTaxOptions { TaxYear = 2027 })
 ```
 
 Packages: [PakDataKit](https://www.nuget.org/packages/PakDataKit), [DataAnnotations](https://www.nuget.org/packages/PakDataKit.DataAnnotations), [FluentValidation](https://www.nuget.org/packages/PakDataKit.FluentValidation). Each release on GitHub has the build-attested `.nupkg` files attached.
+
+API reference: [every .NET class, method and record](/api/dotnet/), including the DataAnnotations and FluentValidation packages, generated from the XML documentation.

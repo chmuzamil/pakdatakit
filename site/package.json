@@ -12,7 +12,9 @@
     "check:quality": "playwright test",
     "check:redirects": "node scripts/api-redirects.mjs --check",
     "check:llms": "node scripts/check-llms.mjs",
-    "check:guides": "node scripts/check-guides.mjs"
+    "check:guides": "node scripts/check-guides.mjs",
+    "check:api": "node scripts/check-api.mjs",
+    "api:extract": "node scripts/api/extract.mjs"
   },
   "dependencies": {
     "@astrojs/react": "7.1.9",

@@ -15,8 +15,11 @@ name: Site
 #
 # Quality gates: accessibility (axe, no serious issues, light and dark,
 # mobile and desktop), no network requests while a tool runs, no CSP
-# violations, internal links, the old API URL redirect map, and llms.txt
-# (every pakdatakit.dev URL in it exists; every guide, tool and module listed).
+# violations, internal links, the old API URL redirect map, llms.txt
+# (every pakdatakit.dev URL in it exists; every guide, tool and module listed)
+# and the Python, Dart, .NET and PHP API reference (check:api: every public
+# function and method has a described entry on a built page; the api-data
+# job: site/api-data/*.json matches what the extractors read from the source).
 #
 # The SSH key can only run /usr/local/bin/pdk-deploy on the server
 # (upload, activate, rollback, status); it has no shell.
@@ -38,6 +41,14 @@ on:
       - 'scripts/generate-llms.mjs'
       - 'scripts/generate-test-vectors.mjs'
       - 'scripts/docs-stub.mjs'
+      # The Python, Dart, .NET and PHP API reference (site/api-data/).
+      - 'python/src/**'
+      - 'python/pyproject.toml'
+      - 'dart/lib/**'
+      - 'dart/pubspec.yaml'
+      - 'dotnet/src/**'
+      - 'dotnet/Directory.Build.props'
+      - 'php/src/**'
   pull_request:
     paths:
       - 'site/**'
@@ -51,6 +62,14 @@ on:
       - 'scripts/generate-llms.mjs'
       - 'scripts/generate-test-vectors.mjs'
       - 'scripts/docs-stub.mjs'
+      # The Python, Dart, .NET and PHP API reference (site/api-data/).
+      - 'python/src/**'
+      - 'python/pyproject.toml'
+      - 'dart/lib/**'
+      - 'dart/pubspec.yaml'
+      - 'dotnet/src/**'
+      - 'dotnet/Directory.Build.props'
+      - 'php/src/**'
   workflow_dispatch:
 
 permissions:
@@ -102,6 +121,9 @@ jobs:
       - name: Old API URLs map to existing pages
         run: npm run check:redirects
 
+      - name: Every public function and method of each port has a described API entry
+        run: npm run check:api
+
       - name: llms.txt links and coverage
         run: npm run check:llms
 
@@ -137,8 +159,66 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  # The Python, Dart, .NET and PHP API reference is rendered at build time
+  # from site/api-data/*.json, which the extractors in site/scripts/api/ read
+  # from each port's source with that language's own tooling. The JSON is
+  # committed so the site builds with Node alone; this job re-extracts it and
+  # fails if the committed files are out of date (fix: npm run api:extract in
+  # site/, and commit the result). Toolchain versions match ci.yml; the doc
+  # tools are pinned in site/scripts/api/ (requirements.txt, dart/pubspec.lock).
+  api-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: 0.12.18
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.11.5
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Python (griffe)
+        run: uv run --no-project --python 3.13 --with-requirements site/scripts/api/requirements.txt python site/scripts/api/extract-python.py
+
+      - name: Dart (analyzer)
+        run: |
+          (cd dart && dart pub get)
+          cd site/scripts/api/dart
+          dart pub get --enforce-lockfile
+          dart run bin/extract.dart
+
+      - name: .NET (reflection and XML documentation)
+        working-directory: site/scripts/api/dotnet
+        run: dotnet run -c Release
+
+      - name: PHP (tokenizer and docblocks)
+        run: php site/scripts/api/extract-php.php
+
+      - name: The committed API data is up to date
+        run: |
+          if ! git diff --exit-code -- site/api-data; then
+            echo "::error::site/api-data is out of date: run npm run api:extract in site/ and commit the result"
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain -- site/api-data)" ]; then
+            git status --porcelain -- site/api-data
+            echo "::error::site/api-data has files that are not committed"
+            exit 1
+          fi
+
   deploy:
-    needs: build
+    needs: [build, api-data]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
@@ -203,7 +283,7 @@ jobs:
             echo "::error::https://pakdatakit.dev/healthz.json does not report $RELEASE (got: ${body:-nothing})"
             exit 1
           fi
-          for path in / /docs/ /playground/ /api/typescript/; do
+          for path in / /docs/ /playground/ /api/typescript/ /api/python/ /api/dart/ /api/dotnet/ /api/php/; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "https://pakdatakit.dev$path")
             echo "$path → $code"
             [ "$code" = 200 ] || { echo "::error::https://pakdatakit.dev$path returned $code"; exit 1; }

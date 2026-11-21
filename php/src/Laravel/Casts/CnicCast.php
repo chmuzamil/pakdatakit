@@ -18,7 +18,13 @@ use PakDataKit\Cnic;
  */
 final class CnicCast implements CastsAttributes
 {
-    /** @param array<string, mixed> $attributes */
+    /**
+     * Reads the stored CNIC back as `35202-1234567-1`. A value that is not valid is returned unchanged.
+     * A value that is not a string is returned as a string if it is scalar,
+     * and as null otherwise.
+     *
+     * @param array<string, mixed> $attributes
+     */
     public function get(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         if (!is_string($value)) {
@@ -27,7 +33,13 @@ final class CnicCast implements CastsAttributes
         return Cnic::getInfo($value)?->formatted ?? $value;
     }
 
-    /** @param array<string, mixed> $attributes */
+    /**
+     * Stores a CNIC as its 13 digits. A value that is not valid is stored unchanged.
+     * A value that is not a string is stored as a string if it is scalar,
+     * and as null otherwise.
+     *
+     * @param array<string, mixed> $attributes
+     */
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         if (!is_string($value)) {

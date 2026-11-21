@@ -44,6 +44,7 @@ const pages = (dir) =>
     : [];
 const expect = [
   ...pages('docs').map((d) => `/docs/${d}/`),
+  ...pages('use-cases').map((d) => `/use-cases/${d}/`),
   ...pages('install').map((d) => `/install/${d}/`),
   ...pages('tools').map((d) => `/tools/${d}/`),
   ...pages('api/typescript')

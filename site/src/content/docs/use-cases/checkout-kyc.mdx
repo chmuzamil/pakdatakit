@@ -1,0 +1,111 @@
+---
+title: Checkout and KYC forms
+description: A walkthrough of a Pakistani checkout or KYC form, with CNIC and mobile fields that format as you type, checks on submit, and a city that matches its province.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import LangTabs from '../../../components/LangTabs.astro';
+import InputWidget from '../../../components/widgets/InputWidget.tsx';
+
+## The problem
+
+A checkout or know-your-customer (KYC) form in Pakistan asks for a CNIC, a mobile number and an address. People type them in every shape: `3520212345671`, `35202-1234567-1`, `+92 300 1234567`, `0300-1234567`. A form that rejects half-typed input annoys people, and one that accepts anything stores numbers you can't use later.
+
+This page shows the four steps that cover it: format while typing, check on submit, store one shape, and read the address.
+
+<InputWidget client:visible />
+
+## 1. Format while the user types
+
+`formatCNICInput()` and `formatPhoneInput()` put the dashes and spaces in as the user types. `checkCNICInput()` and `checkPhoneInput()` tell a half-typed value (`incomplete`) apart from one that can never become valid (`invalid`), so you can show an error only when it is really wrong.
+
+<LangTabs
+  module="use-checkout-kyc"
+  ids={['type-cnic', 'type-cnic-state', 'type-phone', 'type-phone-state']}
+/>
+
+## 2. Check on submit
+
+On the server, check the values again: the browser can be skipped. `validateCNIC()` checks the 13 digits, the separators between the 5-7-1 groups and the first digit (a province code, so a leading 0 or 9 is rejected). `getCNICInfo()` reads what the number itself encodes: the province where it was first registered, and the gender from the last digit.
+
+<LangTabs module="use-checkout-kyc" ids={['cnic', 'cnic-info']} />
+
+## 3. Store one shape
+
+Store the mobile number in E.164 (`+923001234567`), so every record has the same shape and can be used for SMS. `getNetwork()` gives the network the number's prefix was first allocated to.
+
+<LangTabs module="use-checkout-kyc" ids={['phone', 'network']} />
+
+## 4. Read the address
+
+`parseAddress()` splits a free-form address into its parts, and warns when the city and the province written don't match.
+
+<LangTabs module="use-checkout-kyc" ids={['address', 'address-mismatch']} />
+
+## In your framework
+
+<Tabs syncKey="framework">
+<TabItem label="React">
+
+```tsx
+import { PakKycForm } from 'pakdatakit-react';
+
+// CNIC and mobile inputs that format as the user types, province, district
+// and city, with errors after a field loses focus or on submit.
+<PakKycForm onSubmit={(values) => saveCustomer(values)} />;
+```
+
+`onSubmit` is only called when the form is valid. See [Form kits and adapters](/docs/forms/) for Vue, Angular and Flutter.
+
+</TabItem>
+<TabItem label="Laravel">
+
+```php
+$request->validate([
+    'cnic' => ['required', 'pk_cnic'],
+    'mobile' => ['required', 'pk_phone'],
+]);
+```
+
+The rules come with the PHP package; see [PHP install](/install/php/).
+
+</TabItem>
+<TabItem label="NestJS">
+
+```ts
+import { IsCNIC, IsPakPhone } from 'pakdatakit/class-validator';
+
+export class CreateCustomerDto {
+  @IsCNIC()
+  cnic!: string;
+
+  @IsPakPhone({ message: 'Enter a Pakistani mobile number' })
+  mobile!: string;
+}
+```
+
+Checked by NestJS's `ValidationPipe` like any other class-validator rule.
+
+</TabItem>
+</Tabs>
+
+## Pitfalls
+
+- **Marking a half-typed value as wrong.** `35202-12` is `incomplete`, not `invalid`. Show "required" or "too short" on blur or submit, not while the user is still typing.
+- **Reading the CNIC's province as an address.** It is the province where the CNIC was first registered, not necessarily where the holder lives now.
+- **Treating the network as current.** Pakistan has mobile number portability, so a number may have moved to another operator since its prefix was allocated.
+- **Trusting the browser alone.** Run the same checks on the server.
+- **Logging real CNICs.** Keep them out of logs and test data; use made-up numbers such as `35202-1234567-1`.
+
+## What this library does not do
+
+- **It does not verify a CNIC with NADRA.** `validateCNIC()` checks the format only: NADRA does not publish a check-digit algorithm, so the last digit is not verified, and a valid format does not mean the CNIC was issued or belongs to the person typing it. Only NADRA (Verisys) can verify an identity.
+- **It does not confirm who owns a mobile number.** Send a one-time code for that. The network is the one the prefix was first allocated to.
+- **It does not check that an address exists.** `parseAddress()` matches known city, district and province names; the rest is assigned to `street` and `area`.
+- **It stores nothing and calls no service.** Every check runs in your code, offline.
+
+## Related
+
+- Guides: [CNIC](/docs/cnic/), [Phone](/docs/phone/), [Mobile networks](/docs/networks/), [As-you-type input](/docs/input/), [Addresses](/docs/address/), [Form kits and adapters](/docs/forms/)
+- Tool: [CNIC checker](/tools/cnic/)
+- [TypeScript API reference for `pakdatakit/cnic`](/api/typescript/cnic/)

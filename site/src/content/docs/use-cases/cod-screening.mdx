@@ -1,0 +1,115 @@
+---
+title: COD order screening
+description: Screen cash on delivery orders in Pakistan before booking a courier, with phone numbers a rider can't reach, thin addresses, courier city names and return statuses.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import LangTabs from '../../../components/LangTabs.astro';
+import QualityWidget from '../../../components/widgets/QualityWidget.tsx';
+
+## The problem
+
+With cash on delivery (COD), a parcel the rider can't deliver comes back, and you pay the courier both ways. Many of those orders show it at checkout: a placeholder number like `0300-1234567`, a landline that can't receive an SMS, or an address that is only "Gulberg Lahore". Catching them before booking lets you call the customer first.
+
+<QualityWidget client:visible />
+
+## 1. Check the phone number
+
+`phoneRiskSignals()` returns the reasons to double-check a number, or `[]` when there is nothing unusual. It looks only at the number itself.
+
+<LangTabs
+  module="use-cod-screening"
+  ids={['phone-ok', 'phone-placeholder', 'phone-repeated', 'phone-landline']}
+/>
+
+## 2. Score the address
+
+`scoreAddress()` scores from 0 to 100 how much an address tells a rider, and lists the parts not found: city, house number, street, area, postal code and landmark ("near", "opp", "nazd", "qareeb" and their Urdu forms).
+
+<LangTabs module="use-cod-screening" ids={['address-thin', 'address-full']} />
+
+## 3. Decide what to do with the order
+
+What you do with the signals is your decision. The sketch below holds an order for a confirmation call; **the threshold of 60 and the choice of flags are examples, not rules.** Pick yours from your own delivery and return records.
+
+```ts
+import { phoneRiskSignals, scoreAddress } from 'pakdatakit/quality';
+
+// Example only: tune the threshold and flags to your own return data.
+const EXAMPLE_MIN_SCORE = 60;
+
+function screenOrder(phone: string, address: string) {
+  const flags = phoneRiskSignals(phone);
+  const { score, missing } = scoreAddress(address);
+  const hold = flags.length > 0 || score < EXAMPLE_MIN_SCORE;
+  return { hold, flags, score, missing }; // e.g. call the customer before booking
+}
+```
+
+## 4. Match the city to the courier
+
+Customers write `Pindi`, `LHR` or `Lyallpur`. `normalizeCityForCourier()` maps the common short forms and former names to the city's name, so you can match an order against a courier's service list.
+
+<LangTabs module="use-cod-screening" ids={['city']} />
+
+## 5. Read returns from courier statuses
+
+`mapCourierStatus()` maps a courier's own status to one vocabulary (`booked`, `in-transit`, `returning`, `returned` and so on), so returns can be counted the same way for every courier. It is experimental, and only statuses a courier documents publicly are mapped.
+
+<LangTabs module="use-cod-screening" ids={['status']} />
+
+## In your framework
+
+<Tabs syncKey="framework">
+<TabItem label="Laravel">
+
+```php
+// pk_cod_phone passes only when Quality::phoneRiskSignals() returns no flags.
+$request->validate(['phone' => ['required', 'pk_cod_phone']]);
+```
+
+</TabItem>
+<TabItem label="NestJS">
+
+```ts
+import { IsCodPhone } from 'pakdatakit/class-validator';
+
+export class CodOrderDto {
+  @IsCodPhone({ message: 'Enter a mobile number the rider can call' })
+  phone!: string;
+}
+```
+
+</TabItem>
+<TabItem label="React">
+
+```tsx
+import { PakCheckoutForm } from 'pakdatakit-react';
+
+// `hints` shows non-blocking suggestions: how complete the address is,
+// warning signs in the mobile number, and a postal code from another city.
+<PakCheckoutForm hints onSubmit={(values) => saveOrder(values)} />;
+```
+
+</TabItem>
+</Tabs>
+
+## Pitfalls
+
+- **Blocking instead of confirming.** A flag is a reason to call, not proof of a fake order. A real customer may type a landline, or a short address in a small town.
+- **Copying the example threshold.** 60 is an illustration. Measure what predicts returns in your own orders.
+- **Expecting a perfect score.** An unknown postal code scores 5 out of 15, and a post office in a different province from the city lowers the score, with a warning.
+- **Counting every courier's returns.** TCS, M&P, Trax and BlueEx publish no status list, so `mapCourierStatus()` returns `null` for them.
+
+## What this library does not do
+
+- **It does not decide whether an order is fraud.** Both checks are heuristics: an address score says how much the address tells a rider, not whether the address exists, and phone flags come from the number alone.
+- **It has no blacklist and no list of real numbers**, keeps no personal data and makes no network call.
+- **Thresholds are examples, not rules.** The library gives signals; the policy is yours.
+- **It does not book, track or call any courier.** `mapCourierStatus()` reads a status you already have; it does not fetch one.
+
+## Related
+
+- Guides: [COD address and phone checks](/docs/quality/), [Courier (experimental)](/docs/courier/), [Addresses](/docs/address/), [Landlines and special numbers](/docs/numbers/)
+- [Form kits and adapters](/docs/forms/)
+- [TypeScript API reference for `pakdatakit/quality`](/api/typescript/quality/)

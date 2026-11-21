@@ -226,6 +226,10 @@ function siteGuides() {
 
 ${section('docs', ['cnic', 'passport', 'vehicle', 'tax', 'phone', 'networks', 'numbers', 'whatsapp', 'iban', 'raast', 'bills', 'words', 'format', 'amount', 'salestax', 'incometax', 'fbr-invoice', 'postal', 'geo', 'address', 'quality', 'courier', 'text', 'hijri', 'holidays', 'input', 'forms'])}
 
+### Use cases (end-to-end walkthroughs)
+
+${section('use-cases', ['checkout-kyc', 'fbr-digital-invoicing', 'payroll-salary-tax', 'cod-screening', 'raast-collection', 'bill-payment'])}
+
 ### Install
 
 ${section('install', ['typescript', 'python', 'dart', 'flutter', 'dotnet', 'php', 'react', 'vue', 'angular'])}

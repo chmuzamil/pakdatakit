@@ -1,0 +1,215 @@
+{
+  "module": "use-fbr-digital-invoicing",
+  "title": "FBR digital invoicing",
+  "examples": [
+    {
+      "id": "rate",
+      "title": "The standard rate on goods on the invoice date",
+      "fn": "getSalesTaxRate",
+      "args": [],
+      "kwargs": {
+        "kind": "goods",
+        "date": "2026-11-20"
+      },
+      "expected": {
+        "kind": "goods",
+        "authority": "FBR",
+        "province": null,
+        "rate": 18,
+        "from": "2023-02-23",
+        "to": null,
+        "law": "Sales Tax Act 1990, s. 3(1), as amended by the Finance (Supplementary) Act 2023",
+        "source": "https://download1.fbr.gov.pk/Docs/20267171373418951SalesTaxAct1990updatedupto30.06.2026.pdf"
+      }
+    },
+    {
+      "id": "buyer-ntn",
+      "title": "Check the buyer's NTN format",
+      "fn": "validateNTN",
+      "args": ["7654321"],
+      "expected": true
+    },
+    {
+      "id": "line-tax",
+      "title": "Sales tax on one line",
+      "fn": "expectedSalesTax",
+      "args": [
+        {
+          "rate": "18%",
+          "saleType": "Goods at standard rate (default)",
+          "valueSalesExcludingST": 1000
+        }
+      ],
+      "expected": 180
+    },
+    {
+      "id": "build",
+      "title": "Build the invoice",
+      "fn": "buildFbrInvoice",
+      "args": [
+        {
+          "invoiceType": "Sale Invoice",
+          "invoiceDate": "2026-11-20",
+          "sellerNTNCNIC": "1234567",
+          "sellerBusinessName": "Example Traders",
+          "sellerProvince": "Punjab",
+          "sellerAddress": "Lahore",
+          "buyerNTNCNIC": "7654321",
+          "buyerBusinessName": "Sample Store",
+          "buyerProvince": "Sindh",
+          "buyerAddress": "Karachi",
+          "buyerRegistrationType": "Registered",
+          "items": [
+            {
+              "hsCode": "0101.2100",
+              "productDescription": "Sample item",
+              "rate": "18%",
+              "uoM": "Numbers, pieces, units",
+              "quantity": 2,
+              "valueSalesExcludingST": 1000,
+              "saleType": "Goods at standard rate (default)"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "invoice": {
+          "invoiceType": "Sale Invoice",
+          "invoiceDate": "2026-11-20",
+          "sellerNTNCNIC": "1234567",
+          "sellerBusinessName": "Example Traders",
+          "sellerProvince": "Punjab",
+          "sellerAddress": "Lahore",
+          "buyerNTNCNIC": "7654321",
+          "buyerBusinessName": "Sample Store",
+          "buyerProvince": "Sindh",
+          "buyerAddress": "Karachi",
+          "buyerRegistrationType": "Registered",
+          "items": [
+            {
+              "hsCode": "0101.2100",
+              "productDescription": "Sample item",
+              "rate": "18%",
+              "uoM": "Numbers, pieces, units",
+              "quantity": 2,
+              "valueSalesExcludingST": 1000,
+              "saleType": "Goods at standard rate (default)",
+              "totalValues": 0,
+              "fixedNotifiedValueOrRetailPrice": 0,
+              "salesTaxWithheldAtSource": 0,
+              "salesTaxApplicable": 180
+            }
+          ],
+          "invoiceRefNo": ""
+        },
+        "totals": {
+          "quantity": 2,
+          "valueSalesExcludingST": 1000,
+          "salesTaxApplicable": 180,
+          "salesTaxWithheldAtSource": 0,
+          "extraTax": 0,
+          "furtherTax": 0,
+          "fedPayable": 0,
+          "discount": 0
+        }
+      }
+    },
+    {
+      "id": "validate",
+      "title": "Validate it before you post it",
+      "fn": "validateFbrInvoice",
+      "args": [
+        {
+          "invoiceType": "Sale Invoice",
+          "invoiceDate": "2026-11-20",
+          "sellerNTNCNIC": "1234567",
+          "sellerBusinessName": "Example Traders",
+          "sellerProvince": "Punjab",
+          "sellerAddress": "Lahore",
+          "buyerNTNCNIC": "7654321",
+          "buyerBusinessName": "Sample Store",
+          "buyerProvince": "Sindh",
+          "buyerAddress": "Karachi",
+          "buyerRegistrationType": "Registered",
+          "items": [
+            {
+              "hsCode": "0101.2100",
+              "productDescription": "Sample item",
+              "rate": "18%",
+              "uoM": "Numbers, pieces, units",
+              "quantity": 2,
+              "valueSalesExcludingST": 1000,
+              "saleType": "Goods at standard rate (default)",
+              "totalValues": 0,
+              "fixedNotifiedValueOrRetailPrice": 0,
+              "salesTaxApplicable": 180,
+              "salesTaxWithheldAtSource": 0
+            }
+          ],
+          "invoiceRefNo": ""
+        }
+      ],
+      "kwargs": {
+        "today": "2026-11-20"
+      },
+      "expected": {
+        "valid": true,
+        "errors": []
+      }
+    },
+    {
+      "id": "validate-bad",
+      "title": "What FBR would reject",
+      "fn": "validateFbrInvoice",
+      "args": [
+        {
+          "invoiceType": "Sale Invoice",
+          "invoiceDate": "2026-11-25",
+          "sellerNTNCNIC": "1234567",
+          "sellerBusinessName": "Example Traders",
+          "sellerProvince": "Punjab",
+          "sellerAddress": "Lahore",
+          "buyerNTNCNIC": "7654321",
+          "buyerBusinessName": "Sample Store",
+          "buyerProvince": "Sindh",
+          "buyerAddress": "Karachi",
+          "buyerRegistrationType": "Registered",
+          "items": [
+            {
+              "hsCode": "0101.2100",
+              "productDescription": "Sample item",
+              "rate": "18%",
+              "uoM": "Numbers, pieces, units",
+              "quantity": 2,
+              "valueSalesExcludingST": 1000,
+              "saleType": "Goods at standard rate (default)",
+              "totalValues": 0,
+              "fixedNotifiedValueOrRetailPrice": 0,
+              "salesTaxApplicable": 170,
+              "salesTaxWithheldAtSource": 0
+            }
+          ],
+          "invoiceRefNo": ""
+        }
+      ],
+      "kwargs": {
+        "today": "2026-11-20"
+      },
+      "expected": {
+        "valid": false,
+        "errors": [
+          {
+            "code": "0043",
+            "field": "invoiceDate",
+            "message": "Invoice date is later than today"
+          },
+          {
+            "code": "0104",
+            "field": "items[0].salesTaxApplicable",
+            "message": "Sales tax should be 180.00 for this rate"
+          }
+        ]
+      }
+    }
+  ]
+}

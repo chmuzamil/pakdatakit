@@ -1,0 +1,88 @@
+{
+  "module": "use-cod-screening",
+  "title": "COD order screening",
+  "examples": [
+    {
+      "id": "phone-ok",
+      "title": "A mobile number with nothing unusual",
+      "fn": "phoneRiskSignals",
+      "args": ["0333 1234500"],
+      "expected": []
+    },
+    {
+      "id": "phone-placeholder",
+      "title": "A number often typed to skip a form",
+      "fn": "phoneRiskSignals",
+      "args": ["0300 1234567"],
+      "expected": ["sequential-digits", "test-number"]
+    },
+    {
+      "id": "phone-repeated",
+      "title": "Repeated digits",
+      "fn": "phoneRiskSignals",
+      "args": ["0345 1111111"],
+      "expected": ["repeated-digits"]
+    },
+    {
+      "id": "phone-landline",
+      "title": "A landline a rider can't text",
+      "fn": "phoneRiskSignals",
+      "args": ["042-35761234"],
+      "expected": ["landline"]
+    },
+    {
+      "id": "address-thin",
+      "title": "An address that tells a rider little",
+      "fn": "scoreAddress",
+      "args": ["Gulberg Lahore"],
+      "expected": {
+        "score": 30,
+        "missing": ["houseNumber", "street", "area", "postalCode", "landmark"],
+        "parsed": {
+          "raw": "Gulberg Lahore",
+          "street": "Gulberg",
+          "area": null,
+          "city": "Lahore",
+          "district": null,
+          "province": "Punjab",
+          "postalCode": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "address-full",
+      "title": "One that tells a rider a lot",
+      "fn": "scoreAddress",
+      "args": ["House 7, Street 2, near Jamia Masjid, Multan"],
+      "expected": {
+        "score": 85,
+        "missing": ["postalCode"],
+        "parsed": {
+          "raw": "House 7, Street 2, near Jamia Masjid, Multan",
+          "street": "House 7",
+          "area": "Street 2, near Jamia Masjid",
+          "city": "Multan",
+          "district": null,
+          "province": "Punjab",
+          "postalCode": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "id": "city",
+      "title": "Match the city to a courier's list",
+      "fn": "normalizeCityForCourier",
+      "args": ["Pindi"],
+      "expected": "Rawalpindi"
+    },
+    {
+      "id": "status",
+      "title": "Read a return from the courier's status",
+      "fn": "mapCourierStatus",
+      "args": ["PostEx", "Out for Return"],
+      "expected": "returning"
+    }
+  ]
+}

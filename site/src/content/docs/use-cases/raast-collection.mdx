@@ -1,0 +1,117 @@
+---
+title: Collecting payments with Raast QR
+description: Collect payments into your IBAN with a Raast QR per order, with the amount, an expiry and the order number, following the State Bank of Pakistan's QR standard.
+---
+
+import { LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+import LangTabs from '../../../components/LangTabs.astro';
+import RaastWidget from '../../../components/widgets/RaastWidget.tsx';
+
+## The problem
+
+A shop, school or freelancer wants customers to pay into a bank account from any banking app, Easypaisa or JazzCash, without typing the IBAN or the amount. A Raast QR carries the IBAN, and optionally the amount and a short note such as the order number. The library builds that QR text in your own code, for each order.
+
+<RaastWidget client:visible />
+
+<LinkCard
+  title="Need a printable QR? Use raast-qr.com"
+  description="For a QR to print or share, with your bank's name and a download. No code needed."
+  href="https://raast-qr.com/"
+/>
+
+## 1. Check the IBAN you collect into
+
+`validateIBAN()` checks the IBAN's format and checksum, and `getBankFromIBAN()` names its bank. A QR builder throws a `RangeError` for an invalid IBAN, so check it when you save your settings, not when a customer checks out.
+
+<LangTabs module="use-raast-collection" ids={['iban', 'bank']} />
+
+## 2. Build a QR for the order
+
+`createRaastP2PQr()` returns the QR payload text. Without an amount the QR is static and the payer types the amount. With an amount it is dynamic and needs `expiresAt` or `expiresIn`. `particulars` (up to 30 characters) carries a note such as the order number.
+
+<LangTabs module="use-raast-collection" ids={['qr']} />
+
+## 3. Test it before you use it
+
+`parseRaastQr()` reads a payload back: the IBAN, whether its checksum and the QR's CRC are valid, the amount and the expiry. Then scan the QR with your own bank's app before customers do.
+
+<LangTabs module="use-raast-collection" ids={['read']} />
+
+## 4. Draw the QR
+
+Turn the payload into an image with any QR library.
+
+<Tabs syncKey="framework">
+<TabItem label="React">
+
+```tsx
+import { RaastQR } from 'pakdatakit-react';
+
+<RaastQR
+  iban="PK36SCBL0000001123456702"
+  amount={2450}
+  expiresIn="2h"
+  particulars="Order 1042"
+  title="Pay Rs. 2,450 for order 1042 with Raast"
+/>;
+```
+
+</TabItem>
+<TabItem label="Node.js">
+
+```ts
+import QRCode from 'qrcode';
+import { createRaastP2PQr } from 'pakdatakit/raast';
+
+const payload = createRaastP2PQr({
+  iban: 'PK36SCBL0000001123456702',
+  amount: 2450,
+  expiresIn: '2h',
+  particulars: 'Order 1042',
+});
+const svg = await QRCode.toString(payload, { type: 'svg' });
+```
+
+</TabItem>
+<TabItem label="Laravel">
+
+```php
+use PakDataKit\RaastQr;
+
+$payload = RaastQr::createP2P([
+    'iban' => 'PK36SCBL0000001123456702',
+    'amount' => 2450,
+    'expiresIn' => '2h',
+    'particulars' => 'Order 1042',
+]);
+// Render $payload with any QR library for PHP.
+```
+
+</TabItem>
+</Tabs>
+
+## Pitfalls
+
+- **An amount without an expiry.** A QR with an amount needs `expiresAt` or `expiresIn`; without one, the builder throws a `RangeError`.
+- **Using the scheme in SBP's document.** Person-to-person QR codes use scheme `00`: banking apps reject the `30` in SBP's document. The library uses `00` by default.
+- **A long note.** `particulars` is at most 30 characters, and the bank name 25.
+- **Skipping the test scan.** Test-scan with your bank's app before using a QR for payments.
+- **A merchant QR without your bank's template.** SBP leaves the layout of the Raast merchant account template to the scheme and has shared it only with banks. `createMerchantQr()` needs the template sub-fields your bank gives you.
+
+## What this library does not do
+
+- **It does not tell you whether a customer paid.** A QR carries payment details; it is not a payment. Confirm each payment in your bank account.
+- **It does not move money or talk to any bank, Raast or SBP.** It builds and reads QR text, offline.
+- **It does not open a merchant account** or give you a merchant template; that comes from your bank.
+- **It does not draw the QR image.** Use any QR library, or the `RaastQR` component in the React and Flutter kits.
+
+## Source
+
+The State Bank of Pakistan's QR standard (Circular Letter No. 1 of 2022), as described in the [Raast QR guide](/docs/raast/).
+
+## Related
+
+- Guides: [Raast QR](/docs/raast/), [IBAN and banks](/docs/iban/)
+- Tool: [IBAN checker](/tools/iban/), [Raast playground](/playground/raast/)
+- Printable QR codes: [raast-qr.com](https://raast-qr.com/)
+- [TypeScript API reference for `pakdatakit/raast`](/api/typescript/raast/)

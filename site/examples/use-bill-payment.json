@@ -1,0 +1,73 @@
+{
+  "module": "use-bill-payment",
+  "title": "Bill payment",
+  "examples": [
+    {
+      "id": "reference",
+      "title": "An electricity reference number",
+      "fn": "parseElectricityRef",
+      "args": ["12 34567 8901234 U"],
+      "expected": {
+        "type": "reference",
+        "digits": "12345678901234",
+        "formatted": "12 34567 8901234 U",
+        "urbanRural": "U",
+        "disco": null
+      }
+    },
+    {
+      "id": "k-electric",
+      "title": "A K-Electric account number",
+      "fn": "parseElectricityRef",
+      "args": ["0400012345678"],
+      "expected": {
+        "type": "k-electric",
+        "digits": "0400012345678",
+        "formatted": "0400012345678",
+        "urbanRural": null,
+        "disco": "K-Electric"
+      }
+    },
+    {
+      "id": "gas",
+      "title": "An SNGPL consumer number",
+      "fn": "validateGasConsumerNumber",
+      "args": ["12345678901", "SNGPL"],
+      "expected": true
+    },
+    {
+      "id": "amount",
+      "title": "The amount, as typed from the bill",
+      "fn": "parseAmount",
+      "args": ["Rs. 4,350/-"],
+      "expected": {
+        "value": 4350,
+        "raw": "Rs. 4,350/-"
+      }
+    },
+    {
+      "id": "amount-short",
+      "title": "Or in shorthand",
+      "fn": "parseAmount",
+      "args": ["12.5k"],
+      "expected": {
+        "value": 12500,
+        "raw": "12.5k"
+      }
+    },
+    {
+      "id": "echo",
+      "title": "Echo it back before paying",
+      "fn": "formatAmountInput",
+      "args": ["12.5k"],
+      "expected": "Rs. 12,500"
+    },
+    {
+      "id": "words",
+      "title": "On the receipt",
+      "fn": "amountInWords",
+      "args": [12500],
+      "expected": "twelve thousand five hundred rupees"
+    }
+  ]
+}

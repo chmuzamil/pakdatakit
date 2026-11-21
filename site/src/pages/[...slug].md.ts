@@ -34,24 +34,42 @@ export const getStaticPaths = (async () => {
   }));
 }) satisfies GetStaticPaths;
 
-function langTabs(module: string): string {
+function langTabs(module: string, ids?: string): string {
   const file = examples[`../../examples/${module}.json`];
   if (!file) throw new Error(`[...slug].md: no site/examples/${module}.json`);
+  const wanted = ids ? [...ids.matchAll(/'([^']+)'/g)].map((m) => m[1]) : null;
+  const shown = wanted
+    ? wanted.map((id) => {
+        const ex = file.examples.find((e) => e.id === id);
+        if (!ex) throw new Error(`[...slug].md: ${module}.json has no "${id}"`);
+        return ex;
+      })
+    : file.examples;
   return LANGS.map(
     (lang) =>
-      `**${lang.label}**\n\n\`\`\`${lang.code}\n${snippet(lang.id, file.examples)}\n\`\`\``,
+      `**${lang.label}**\n\n\`\`\`${lang.code}\n${snippet(lang.id, shown)}\n\`\`\``,
   ).join('\n\n');
 }
 
 function toMarkdown(body: string): string {
-  return (
+  // Code blocks are set aside first, so their import lines and JSX are kept.
+  const fences: string[] = [];
+  const restore = (text: string) =>
+    text.replace(/\u0000(\d+)\u0000/g, (_, i: string) => fences[Number(i)]);
+  return restore(
     body
       .replace(/\r\n/g, '\n')
+      .replace(/^```[\s\S]*?^```$/gm, (block) => {
+        fences.push(block);
+        return `\u0000${fences.length - 1}\u0000`;
+      })
       // imports and exports of MDX
       .replace(/^(import|export) .*$/gm, '')
-      // language tabs: every language, one code block each
-      .replace(/<LangTabs\s+module="([^"]+)"\s*\/>/g, (_, m: string) =>
-        langTabs(m),
+      // language tabs: every language (or the examples in `ids`), one code
+      // block each
+      .replace(
+        /<LangTabs\s+module="([^"]+)"(?:\s+ids=\{\[([^\]]*)\]\})?\s*\/>/g,
+        (_, m: string, ids?: string) => langTabs(m, ids),
       )
       // link cards: a plain link with the card's description
       .replace(/<LinkCard\s+([\s\S]*?)\/>/g, (_, attrs: string) => {
@@ -78,7 +96,7 @@ function toMarkdown(body: string): string {
             ...text.split('\n'),
           ]
             .map((line) => (line ? `> ${line}` : '>'))
-            .join('\n'),
+            .join('\n') + '\n',
       )
       // site-relative links become absolute
       .replace(
@@ -86,7 +104,7 @@ function toMarkdown(body: string): string {
         (_, href: string) => `](${new URL(href, SITE).href})`,
       )
       .replace(/\n{3,}/g, '\n\n')
-      .trim()
+      .trim(),
   );
 }
 

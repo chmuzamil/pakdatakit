@@ -23,6 +23,8 @@ export function breadcrumbs(path: string, title: string): Crumb[] {
     crumbs.push({ name: 'Module guides', url: '/docs/' });
   if (top === 'use-cases' && parts.length > 1)
     crumbs.push({ name: 'Use cases', url: '/use-cases/' });
+  if (top === 'tools' && parts.length > 1)
+    crumbs.push({ name: 'Tools', url: '/tools/' });
   if (top === 'playground' && parts.length > 1)
     crumbs.push({ name: 'Playground', url: '/playground/' });
   if (top === 'releases' && parts.length > 1)

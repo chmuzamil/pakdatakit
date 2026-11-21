@@ -212,7 +212,7 @@ function siteGuides() {
       .join('\n');
   const toolsDir = join(root, 'site', 'src', 'pages', 'tools');
   const tools = readdirSync(toolsDir)
-    .filter((f) => f.endsWith('.astro'))
+    .filter((f) => f.endsWith('.astro') && f !== 'index.astro')
     .map((f) => {
       const src = readFileSync(join(toolsDir, f), 'utf8');
       const title = /\btitle="([^"]+)"/.exec(src)?.[1];

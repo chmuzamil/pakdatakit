@@ -1,0 +1,15 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import FbrInvoiceTool from '../../components/tools/FbrInvoiceTool.tsx';
+---
+
+<ToolPage
+  title="FBR digital invoice validator"
+  description="Paste FBR Digital Invoicing JSON and check it offline against PRAL's DI API v1.12 rules, with FBR's error codes and a sales tax check on every line. Nothing leaves your device."
+  appName="FBR digital invoice validator"
+  path="/tools/fbr-invoice-validator/"
+  code={[{ module: 'fbr-invoice' }]}
+  guide="/docs/fbr-invoice/"
+>
+  <FbrInvoiceTool client:load />
+</ToolPage>

@@ -1,0 +1,61 @@
+---
+/** /tools/: every tool. Each runs in the browser and uploads nothing. */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { LinkCard } from '@astrojs/starlight/components';
+
+const groups: [string, [string, string, string][]][] = [
+  [
+    'Identity and phone',
+    [
+      ['CNIC format checker', 'cnic', 'Check a CNIC is well formed and read the province and gender it encodes. Not NADRA verification.'],
+      ['Phone number checker', 'phone', 'Validate and format a mobile or landline, see its original network, area code and risk signals, and make a WhatsApp link.'],
+    ],
+  ],
+  [
+    'Banking and bills',
+    [
+      ['IBAN checker', 'iban', "Check a Pakistani IBAN's check digits and find its bank."],
+      ['Bill number checker', 'bills', 'Check electricity reference numbers, customer IDs, K-Electric accounts and SNGPL or SSGC gas numbers, one at a time or from a CSV.'],
+    ],
+  ],
+  [
+    'Tax and FBR',
+    [
+      ['Salary tax calculator', 'salary-tax', 'Income tax on a salary for tax years 2020 to 2027, from the salaried rate table.'],
+      ['Sales tax calculator', 'sales-tax', 'Sales tax on goods and services by province and date, with the law behind each rate.'],
+      ['FBR invoice validator', 'fbr-invoice-validator', "Check Digital Invoicing JSON offline against PRAL's rules, with FBR's error codes and a tax check on every line."],
+    ],
+  ],
+  [
+    'Delivery and text',
+    [
+      ['Delivery address score', 'address-score', 'Score how much an address tells a rider, see what is missing, and check the phone number.'],
+      ['Urdu text tools', 'urdu-text', 'Urdu slugs, Urdu alphabetical sorting, digits, bidi wrapping and Roman Urdu spelling.'],
+    ],
+  ],
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Tools',
+    description:
+      'Free tools for Pakistani data that run in your browser: CNIC, phone, IBAN and bill number checks, salary and sales tax, FBR invoice validation, address scores and Urdu text.',
+  }}
+>
+  <p>
+    Each tool runs in your browser: nothing you type is uploaded, and it works offline once loaded. Each shows the
+    same check in code, in TypeScript, Python, Dart, C# and PHP. To try every module, see the
+    <a href="/playground/">playground</a>.
+  </p>
+  {
+    groups.map(([group, tools]) => (
+      <>
+        <h2 id={group.toLowerCase().replace(/[^a-z]+/g, '-')}>{group}</h2>
+        {tools.map(([title, slug, description]) => (
+          <LinkCard title={title} href={`/tools/${slug}/`} description={description} />
+        ))}
+      </>
+    ))
+  }
+</StarlightPage>

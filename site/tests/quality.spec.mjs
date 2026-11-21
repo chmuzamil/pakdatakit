@@ -45,10 +45,16 @@ const PAGES = [
     'raast-collection',
     'bill-payment',
   ].map((m) => `/use-cases/${m}/`),
+  '/tools/',
   '/tools/cnic/',
   '/tools/iban/',
   '/tools/salary-tax/',
   '/tools/sales-tax/',
+  '/tools/phone/',
+  '/tools/bills/',
+  '/tools/address-score/',
+  '/tools/fbr-invoice-validator/',
+  '/tools/urdu-text/',
   '/playground/',
   '/playground/cnic/',
   '/playground/fbr-invoice/',
@@ -138,6 +144,17 @@ const TOOLS = [
   { path: '/tools/iban/', text: 'PK36SCBL0000001123456702' },
   { path: '/tools/salary-tax/', text: '987654' },
   { path: '/tools/sales-tax/', text: '45678' },
+  { path: '/tools/phone/', text: '03451234500' },
+  { path: '/tools/bills/', text: '12345678901234U' },
+  {
+    path: '/tools/address-score/',
+    text: 'House 9 Street 3 near Masjid Lahore',
+  },
+  {
+    path: '/tools/fbr-invoice-validator/',
+    text: '{"invoiceType":"Sale Invoice"}',
+  },
+  { path: '/tools/urdu-text/', text: 'Lahore 2026' },
   { path: '/playground/cnic/', text: '61101-7654321-3' },
 ];
 
@@ -147,7 +164,10 @@ for (const tool of TOOLS) {
     await page.waitForLoadState('networkidle');
     const requests = [];
     page.on('request', (req) => requests.push(req));
-    const input = page.locator('main input').first();
+    // The tool's first text field (not a radio, checkbox or date).
+    const input = page
+      .locator('main :is(input:not([type]), input[type="text"], textarea)')
+      .first();
     await input.fill('');
     await input.pressSequentially(tool.text, { delay: 20 });
     await page.waitForTimeout(1500);
@@ -190,14 +210,25 @@ for (const tool of TOOLS) {
   });
 }
 
-test('personal-data tools keep input out of the URL until "Copy share link"', async ({
-  page,
-}) => {
-  await page.goto('/tools/cnic/');
-  await page.locator('main input').first().fill('35202-1234567-1');
-  await page.waitForTimeout(300);
-  expect(page.url()).not.toContain('35202');
-});
+for (const [path, text] of [
+  ['/tools/cnic/', '35202-1234567-1'],
+  ['/tools/phone/', '03451234500'],
+  ['/tools/bills/', '12345678901234U'],
+  ['/tools/address-score/', 'House 9 Street 3 Lahore'],
+  ['/tools/urdu-text/', 'Lahore 2026'],
+]) {
+  test(`${path} keeps input out of the URL until "Copy share link"`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+    await page
+      .locator('main :is(input:not([type]), input[type="text"], textarea)')
+      .first()
+      .fill(text);
+    await page.waitForTimeout(300);
+    expect(decodeURIComponent(page.url())).not.toContain(text.slice(0, 5));
+  });
+}
 
 test('?lang=python selects Python in every code tab', async ({ page }) => {
   await page.goto('/docs/cnic/?lang=python');

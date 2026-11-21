@@ -2,6 +2,7 @@
 /** Layout for a /tools/ page: Starlight chrome plus WebApplication structured data. */
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { SITE } from '../../site.config.mjs';
+import LangTabs from './LangTabs.astro';
 
 interface Props {
   title: string;
@@ -9,9 +10,16 @@ interface Props {
   /** Short name for structured data, e.g. "CNIC format checker". */
   appName: string;
   path: string;
+  /**
+   * The code behind the tool, in five languages: examples from
+   * site/examples/<module>.json (all of them, or the ids given).
+   */
+  code: { module: string; ids?: string[] }[];
+  /** The guide for the module, e.g. "/docs/phone/". */
+  guide: string;
 }
 
-const { title, description, appName, path } = Astro.props;
+const { title, description, appName, path, code, guide } = Astro.props;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
@@ -29,4 +37,12 @@ const jsonLd = {
 <StarlightPage frontmatter={{ title, description, tableOfContents: false }}>
   <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
   <slot />
+  <details class="pdk-card pdk-code">
+    <summary>Code: do this in your app</summary>
+    <p>
+      The same checks with PakDataKit, in TypeScript, Python, Dart, C# and PHP.
+      More in the <a href={guide}>guide</a>.
+    </p>
+    {code.map(({ module, ids }) => <LangTabs module={module} ids={ids} />)}
+  </details>
 </StarlightPage>

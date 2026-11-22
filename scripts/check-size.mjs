@@ -60,6 +60,16 @@ const DATASETS = {
     key: 'households',
     kind: 'number',
   },
+  'withholding rates': {
+    file: 'withholding-rates.json',
+    key: 'cardRef',
+    kind: 'string',
+  },
+  'fbr sale types': {
+    file: 'fbr-sale-types.json',
+    key: 'scenarioIds',
+    kind: 'strings',
+  },
 };
 
 const LITERAL = {
@@ -206,6 +216,12 @@ const CASES = [
     code: "import { getTehsilPopulation } from 'pakdatakit/population'; console.log(getTehsilPopulation('Murree'));",
     limit: 20 * 1024,
     allowed: ['census population'],
+  },
+  {
+    name: "calculateWithholding from 'pakdatakit/withholding'",
+    code: "import { calculateWithholding } from 'pakdatakit/withholding'; console.log(calculateWithholding({ section: '236K', amount: 6e7, atl: false, taxYear: 2027 }));",
+    limit: 16384,
+    allowed: ['withholding rates', 'income tax slabs'],
   },
   {
     // Every rule of the adapter; zod itself is the app's own dependency.

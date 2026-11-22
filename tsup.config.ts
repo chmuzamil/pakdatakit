@@ -28,6 +28,7 @@ export const modules = [
   'text',
   'vehicle',
   'whatsapp',
+  'withholding',
   'words',
   'zakat',
 ];

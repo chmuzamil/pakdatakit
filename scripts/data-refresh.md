@@ -210,13 +210,34 @@ province, Islamabad and the national totals).
 4. Run `npm run build && node scripts/generate-test-vectors.mjs`, then
    `npm test`, `npm run check:manifest` and every port's vector tests.
 
+## Withholding tax rates (after each budget) <!-- dataset: withholding-rates -->
+
+Sources: FBR's rate card page,
+https://fbr.gov.pk/withholding-taxes-rate-card/174298/174301 (the new tax
+year's card, PDF and xlsx), and FBR's consolidated Income Tax Ordinance and
+Finance Act for that year.
+
+1. When the new card is out (usually August), add a record for every case
+   in `data/withholding-rates.json` for the new tax year: rates for ATL,
+   non-ATL (with the Tenth Schedule rule: double, fixed, value bands or
+   none) and late filers if any, the card's references and URL. Never
+   change a past year.
+2. Check each row against the Ordinance as amended by that year's Finance
+   Act. Where they differ, use the statute and say why in
+   `statuteOverride`; note new or removed cases in
+   `data/notes/220-withholding.md`.
+3. Have the tax adviser review the new year's table before release.
+4. Update the `withholding-rates` entry in `data/manifest.json`, then run
+   `npm run build && node scripts/generate-test-vectors.mjs`, `npm test`,
+   `npm run check:manifest` and every port's vector tests.
+
 ## Urdu alphabetical order
 
 - [ ] Has CLDR changed `common/collation/ur.xml` in a new release
       (https://github.com/unicode-org/cldr/commits/main/common/collation/ur.xml)?
       If so, update `compareUrdu` in `src/text.ts` and every port.
 
-## Bill, courier and FBR invoice formats
+## Bill, courier and FBR invoice formats <!-- dataset: fbr-sale-types -->
 
 No datasets, but each follows an official document that can change.
 
@@ -236,6 +257,12 @@ No datasets, but each follows an official document that can change.
       compare the fields and error codes, update `src/fbr-invoice.ts`,
       `FBR_DI_SPEC_VERSION` and DATA.md.
 
+
+FBR sale types (`data/fbr-sale-types.json`): check
+https://www.fbr.gov.pk/di-technical-assistance/173967/173970 for a newer
+"Technical Specification for DI API". If there is one, update the sale
+types from its scenarios table, `FBR_DI_SPEC_VERSION` in
+`src/fbr-invoice.ts`, and the `fbr-sale-types` manifest entry.
 ## Also
 
 - [ ] Raast QR: any change in the QR format that banking apps generate

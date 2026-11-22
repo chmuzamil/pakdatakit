@@ -102,6 +102,23 @@
     "notes": "The census reference period began on 1 March 2023. PBS's census tables are undated."
   },
   {
+    "id": "fbr-sale-types",
+    "file": "fbr-sale-types.json",
+    "title": "FBR Digital Invoicing sale types",
+    "issuer": "Federal Board of Revenue (FBR), Pakistan Revenue Automation (PRAL)",
+    "sourceUrl": "https://download1.fbr.gov.pk/Docs/20257301172130815TechnicalDocumentationforDIAPIV1.12.pdf",
+    "sourceReference": "Technical Specification for DI API, version 1.12, section 9 'Scenarios for Sandbox Testing', column 'Sale Type'",
+    "sourceDate": "2025-07-24",
+    "retrievedAt": "2026-11-23",
+    "effectiveFrom": "2025-07-24",
+    "effectiveTo": null,
+    "coverage": "The 24 sale types named in the specification's 28 sandbox scenarios",
+    "recordCount": 24,
+    "nextExpectedUpdate": "2027-02-23",
+    "updateCadence": "When PRAL publishes a new version of the DI technical specification; checked quarterly",
+    "notes": "Spec version 1.12 (issued 7 April 2025, last updated 24 July 2025), the latest linked from fbr.gov.pk/di-technical-assistance on 2026-11-23. FBR's full and current lists (sale types, provinces, units, HS code units) come only from its token-protected reference APIs, which are authoritative; they are not shipped."
+  },
+  {
     "id": "holidays",
     "file": "holidays.json",
     "title": "Public holidays",
@@ -246,6 +263,28 @@
     "nextExpectedUpdate": "2027-02-16",
     "updateCadence": "Quarterly, with the district data",
     "notes": "PBS's census tables are undated. Each tehsil keeps its census district and its current district."
+  },
+  {
+    "id": "withholding-rates",
+    "file": "withholding-rates.json",
+    "title": "Withholding tax rates (ATL and non-ATL)",
+    "issuer": "Federal Board of Revenue (FBR)",
+    "sourceUrl": "https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf",
+    "sourceReference": "Withholding Income Tax Rate Card, tax year 2027, updated up to 30 June 2026 as per Finance Act 2026; checked against the Income Tax Ordinance 2001 as amended by Finance Act 2026. Each tax year has its own card.",
+    "sourceDate": "2026-08-11",
+    "retrievedAt": "2026-11-23",
+    "effectiveFrom": "2024-07-01",
+    "effectiveTo": "2027-06-30",
+    "coverage": "Tax years 2025-2027: sections 149, 150, 151, 153, 154B (2027), 231AB, 236C and 236K",
+    "recordCount": 96,
+    "nextExpectedUpdate": "2027-08-15",
+    "updateCadence": "After the Finance Act each July, when FBR publishes the next tax year's rate card",
+    "notes": "FBR's cards print no publication date; sourceDate is the PDF's creation date. One record per section, case and tax year; past years are never changed. Two TY2027 card values differ from the statute and the statute is used (see DATA.md).",
+    "series": {
+      "from": "from",
+      "to": "to",
+      "groupBy": ["section", "subType"]
+    }
   },
   {
     "id": "zakat-nisab",

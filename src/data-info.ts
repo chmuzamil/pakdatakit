@@ -55,9 +55,11 @@ export interface DataSource {
 
 const MANIFEST = manifestData as (DataInfo & { series?: unknown })[];
 
+/** A copy of an entry without `series` (the CI check's configuration). */
 function copy(entry: DataInfo & { series?: unknown }): DataInfo {
-  const { series: _series, ...info } = entry;
-  return { ...info };
+  const info: DataInfo & { series?: unknown } = { ...entry };
+  delete info.series;
+  return info;
 }
 
 /**

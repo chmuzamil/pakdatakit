@@ -189,6 +189,9 @@ export {
   type FbrInvoiceValidationOptions,
   type FbrInvoiceType,
   type FbrRegistrationType,
+  type FbrInvoiceReference,
+  type FbrSaleType,
+  getSaleTypes,
 } from './fbr-invoice.js';
 export {
   getSalaryTaxSlabs,
@@ -226,3 +229,11 @@ export {
   type DistrictPopulation,
   type TehsilPopulation,
 } from './population.js';
+export {
+  calculateWithholding,
+  getWithholdingRates,
+  type Withholding,
+  type WithholdingInput,
+  type WithholdingRate,
+  type WithholdingSlab,
+} from './withholding.js';

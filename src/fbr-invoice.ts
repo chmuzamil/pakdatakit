@@ -8,8 +8,10 @@
  * DATA.md. Nothing here talks to FBR: there is no HTTP client and no token
  * handling. Values that only FBR's reference APIs can confirm (provinces, HS
  * codes, units, rates, sale types, SRO numbers) are checked for presence,
- * not against FBR's lists.
+ * not against FBR's lists, unless the app passes the lists it synced from
+ * those APIs (`validateFbrInvoice(invoice, { reference })`).
  */
+import saleTypesData from '../data/fbr-sale-types.json';
 import { divideHalfUp, fromPaisa, toUnits } from './internal/money.js';
 import { normalizeKey } from './internal/normalize.js';
 import { calculateSalesTax } from './salestax.js';
@@ -136,10 +138,69 @@ export interface FbrInvoiceValidation {
   errors: FbrInvoiceError[];
 }
 
+/**
+ * Reference lists from FBR's own APIs (PRAL's `/pdi/v1/provinces`,
+ * `/pdi/v1/uom`, `/pdi/v2/HS_UOM`, sale types from `/pdi/v2/SaleTypeToRate`
+ * …), which an app syncs with its token. FBR's APIs are authoritative; this
+ * library ships no copy of these lists.
+ */
+export interface FbrInvoiceReference {
+  /** Province names as FBR lists them, e.g. `['PUNJAB', 'SINDH', …]`. */
+  provinces?: string[];
+  /** Sale type descriptions as FBR lists them. */
+  saleTypes?: string[];
+  /** Unit of measure descriptions as FBR lists them. */
+  uoms?: string[];
+  /**
+   * The units allowed for each HS code, as FBR's HS_UOM API returns them:
+   * `{ '0101.2100': ['Numbers, pieces, units'] }`.
+   */
+  hsUom?: Record<string, string[]>;
+}
+
 /** Options for {@link validateFbrInvoice}. */
 export interface FbrInvoiceValidationOptions {
   /** Today as `YYYY-MM-DD`, to reject invoices dated later (error 0043). Not checked when left out. */
   today?: string;
+  /**
+   * Lists synced from FBR's reference APIs. Each list given is checked:
+   * provinces (0073, 0074), sale types (0013), units (0099) and, with
+   * `hsUom`, that the HS code is listed and the unit is allowed for it
+   * (0099). Lists left out are not checked.
+   */
+  reference?: FbrInvoiceReference;
+}
+
+/** A sale type as PRAL's specification names it, with its sandbox scenarios. */
+export interface FbrSaleType {
+  saleType: string;
+  /** The specification's sandbox scenarios (SN001-SN028) that use it. */
+  scenarioIds: string[];
+}
+
+/**
+ * The sale types named in PRAL's DI specification (v1.12, section 9,
+ * "Scenarios for Sandbox Testing"), with the scenarios that use each. FBR's
+ * full, current list comes from its reference API; this is a convenience
+ * for building forms and tests, and `validateFbrInvoice` does not reject a
+ * sale type that is not in it.
+ *
+ * @example
+ * getSaleTypes()[0]; // { saleType: 'Goods at Standard Rate (default)', scenarioIds: ['SN001', 'SN002', 'SN026'] }
+ */
+export function getSaleTypes(): FbrSaleType[] {
+  return (saleTypesData as FbrSaleType[]).map((t) => ({
+    saleType: t.saleType,
+    scenarioIds: [...t.scenarioIds],
+  }));
+}
+
+/** A reference list as a set of normalized keys, or `null` if not given as a list of strings. */
+function keySet(list: unknown): Set<string> | null {
+  if (!Array.isArray(list)) return null;
+  return new Set(
+    list.filter((v): v is string => typeof v === 'string').map(normalizeKey),
+  );
 }
 
 const INVOICE_TYPES = new Set(['Sale Invoice', 'Debit Note']);
@@ -311,7 +372,10 @@ function validDate(text: string): boolean {
  *
  * Not checked, because they need FBR's data: registration status, whether a
  * province, HS code, unit, rate, sale type or SRO is in FBR's lists or fits
- * the others, and the original invoice of a debit note.
+ * the others, and the original invoice of a debit note. Pass the lists your
+ * app syncs from FBR's reference APIs as `options.reference` to check
+ * provinces, sale types, units and HS code/unit pairs against them; FBR's
+ * APIs are authoritative.
  *
  * @returns `{ valid, errors }`. Never throws.
  */
@@ -424,6 +488,23 @@ export function validateFbrInvoice(
   ) {
     if (!isText(inv.scenarioId) || !SCENARIO.test(inv.scenarioId)) {
       add(null, 'scenarioId', 'Scenario ID must be SN001 to SN028');
+    }
+  }
+
+  // Reference lists synced from FBR's APIs (options.reference), if given.
+  const reference = isObject(options?.reference)
+    ? (options.reference as FbrInvoiceReference)
+    : {};
+  const provinces = keySet(reference.provinces);
+  if (provinces) {
+    for (const [field, code, who] of [
+      ['sellerProvince', '0073', 'Seller'],
+      ['buyerProvince', '0074', 'Buyer'],
+    ] as const) {
+      const value = inv[field];
+      if (filled(value) && !provinces.has(normalizeKey(value as string))) {
+        add(code, field, `${who} province is not in FBR's province list`);
+      }
     }
   }
 
@@ -563,6 +644,46 @@ export function validateFbrInvoice(
       }
     }
   });
+
+  const saleTypes = keySet(reference.saleTypes);
+  const uoms = keySet(reference.uoms);
+  const hsUom = isObject(reference.hsUom)
+    ? new Map(
+        Object.entries(reference.hsUom).map(([hs, units]) => [
+          normalizeKey(hs),
+          keySet(units) ?? new Set<string>(),
+        ]),
+      )
+    : null;
+  if (saleTypes || uoms || hsUom) {
+    (inv.items as unknown[]).forEach((raw, index) => {
+      if (!isObject(raw)) return;
+      const at = (key: string) => `items[${index}].${key}`;
+      if (
+        saleTypes &&
+        filled(raw.saleType) &&
+        !saleTypes.has(normalizeKey(raw.saleType as string))
+      ) {
+        add('0013', at('saleType'), "Sale type is not in FBR's sale type list");
+      }
+      const unit = filled(raw.uoM) ? normalizeKey(raw.uoM as string) : null;
+      if (uoms && unit !== null && !uoms.has(unit)) {
+        add('0099', at('uoM'), "Unit of measure is not in FBR's unit list");
+      }
+      if (hsUom && filled(raw.hsCode)) {
+        const allowed = hsUom.get(normalizeKey(raw.hsCode as string));
+        if (!allowed) {
+          add(null, at('hsCode'), "HS code is not in FBR's HS code list");
+        } else if (unit !== null && !allowed.has(unit)) {
+          add(
+            '0099',
+            at('uoM'),
+            'Unit of measure is not allowed for this HS code',
+          );
+        }
+      }
+    });
+  }
 
   return { valid: errors.length === 0, errors };
 }

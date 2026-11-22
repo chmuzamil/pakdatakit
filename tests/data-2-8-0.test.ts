@@ -1,0 +1,242 @@
+import { describe, expect, it } from 'vitest';
+import {
+  calculateWithholding,
+  findCNICs,
+  getDataInfo,
+  getDistrictPopulation,
+  getSaleTypes,
+  getTehsilPopulation,
+  getWithholdingRates,
+  getZakatNisab,
+  listDataInfo,
+  maskCNICs,
+  zakatDeduction,
+} from '../src/index.js';
+import manifest from '../data/manifest.json';
+
+describe('data manifest', () => {
+  it('has an entry for every dataset, with a source and dates', () => {
+    expect(listDataInfo().map((d) => d.id)).toEqual(
+      manifest.map((m) => m.id).sort(),
+    );
+    const slabs = getDataInfo('income-tax-slabs');
+    expect(slabs?.issuer).toContain('FBR');
+    expect(slabs?.sourceUrl).toMatch(/^https:\/\//);
+    expect(getDataInfo('nope')).toBeNull();
+    expect(getDataInfo(null as unknown as string)).toBeNull();
+  });
+});
+
+describe('zakat', () => {
+  it('reads the notified nisab by year, label and date', () => {
+    expect(getZakatNisab({ zakatYear: 1447 })?.nisab).toBe(503529);
+    expect(getZakatNisab({ zakatYear: '1446-47' })?.zakatYear).toBe(1447);
+    expect(getZakatNisab({ zakatYear: 1433 })?.nisab).toBe(51086);
+    expect(getZakatNisab({ date: '2025-06-01' })?.nisab).toBe(179689);
+    // 1 Ramazan 1447 was "likely" 19 or 20 February 2026.
+    expect(getZakatNisab({ date: '2026-02-19' })).toBeNull();
+    expect(getZakatNisab({ date: '2026-02-20' })?.zakatYear).toBe(1447);
+    expect(getZakatNisab({ zakatYear: 1432 })).toBeNull();
+  });
+
+  it('deducts 2.5% of the whole balance at or above the nisab', () => {
+    expect(zakatDeduction({ balance: 600000, zakatYear: 1447 })).toMatchObject({
+      deductible: true,
+      zakat: 15000,
+      source: { id: 'zakat-nisab' },
+    });
+    expect(
+      zakatDeduction({ balance: 503529, zakatYear: 1447 })?.deductible,
+    ).toBe(true);
+    expect(
+      zakatDeduction({ balance: 503528.99, zakatYear: 1447 })?.reason,
+    ).toBe('below-nisab');
+    expect(
+      zakatDeduction({ balance: 600000, zakatYear: 1447, exempt: true }),
+    ).toMatchObject({ deductible: false, reason: 'exempt', zakat: 0 });
+    expect(zakatDeduction({ balance: -1, zakatYear: 1447 })).toBeNull();
+  });
+});
+
+describe('withholding', () => {
+  it('uses each section’s own non-ATL rule', () => {
+    // 236K TY2027: 1.25% for ATL; non-ATL by value band.
+    expect(
+      calculateWithholding({
+        section: '236K',
+        amount: 60e6,
+        atl: true,
+        taxYear: 2027,
+      })?.tax,
+    ).toBe(750000);
+    expect(
+      calculateWithholding({
+        section: '236K',
+        amount: 60e6,
+        atl: false,
+        taxYear: 2027,
+      }),
+    ).toMatchObject({ rate: 14.5, tax: 8700000, nonAtlRule: 'slabs' });
+    // 236C TY2026: a fixed 11.5% for non-ATL, late filers by band.
+    expect(
+      calculateWithholding({
+        section: '236C',
+        amount: 60e6,
+        atl: false,
+        taxYear: 2026,
+      })?.rate,
+    ).toBe(11.5);
+    expect(
+      calculateWithholding({
+        section: '236C',
+        amount: 60e6,
+        atl: true,
+        lateFiler: true,
+        taxYear: 2026,
+      })?.rate,
+    ).toBe(8.5);
+    // 151 TY2025: a fixed 35% for non-ATL, not double.
+    expect(
+      calculateWithholding({
+        section: '151',
+        subType: 'other',
+        amount: 100,
+        atl: false,
+        taxYear: 2025,
+      })?.rate,
+    ).toBe(35);
+    expect(
+      calculateWithholding({
+        section: '151',
+        subType: 'other',
+        amount: 100,
+        atl: false,
+        taxYear: 2027,
+      })?.rate,
+    ).toBe(30);
+  });
+
+  it('applies the 231AB threshold of Rs 50,000 a day to non-ATL only', () => {
+    expect(
+      calculateWithholding({
+        section: '231AB',
+        amount: 50000,
+        atl: false,
+        taxYear: 2027,
+      })?.tax,
+    ).toBe(0);
+    expect(
+      calculateWithholding({
+        section: '231AB',
+        amount: 80000,
+        atl: false,
+        taxYear: 2027,
+      })?.tax,
+    ).toBe(640);
+    expect(
+      calculateWithholding({
+        section: '231AB',
+        amount: 80000,
+        atl: false,
+        taxYear: 2025,
+      })?.tax,
+    ).toBe(480);
+    expect(
+      calculateWithholding({
+        section: '231AB',
+        amount: 80000,
+        atl: true,
+        taxYear: 2027,
+      })?.tax,
+    ).toBe(0);
+  });
+
+  it('follows the statute where the card differs', () => {
+    const r = calculateWithholding({
+      section: '153',
+      subType: 'exporter-services',
+      amount: 100000,
+      atl: true,
+      taxYear: 2027,
+    });
+    expect(r?.rate).toBe(1.25);
+    expect(r?.statuteOverride).toContain('Finance Act 2026');
+    expect(
+      getWithholdingRates(2027, '150').some(
+        (x) => x.subType === 'mutual-fund-mostly-debt',
+      ),
+    ).toBe(false);
+    expect(
+      getWithholdingRates(2025, '150').some(
+        (x) => x.subType === 'mutual-fund-mostly-debt',
+      ),
+    ).toBe(true);
+  });
+
+  it('has 154B only from tax year 2027, and 149 as the salaried table', () => {
+    expect(
+      calculateWithholding({
+        section: '154B',
+        amount: 1000,
+        atl: true,
+        taxYear: 2026,
+      }),
+    ).toBeNull();
+    expect(
+      calculateWithholding({
+        section: '149',
+        amount: 2_400_000,
+        atl: false,
+        taxYear: 2027,
+      })?.tax,
+    ).toBe(156000);
+  });
+});
+
+describe('population', () => {
+  it('returns census figures, and null for districts created later', () => {
+    expect(getDistrictPopulation('lahore')).toMatchObject({
+      population: 13004135,
+      census: 2023,
+      boundaryChanged: false,
+    });
+    expect(getDistrictPopulation('Murree')).toMatchObject({
+      population: null,
+      censusDistrict: 'Rawalpindi',
+    });
+    expect(getDistrictPopulation('Rawalpindi')?.boundaryChanged).toBe(true);
+    expect(getDistrictPopulation('Astore')?.population).toBeNull();
+    expect(getTehsilPopulation('Murree')?.population).toBe(252526);
+    expect(getDistrictPopulation('Nowhere')).toBeNull();
+  });
+});
+
+describe('FBR sale types', () => {
+  it('lists the specification’s sale types', () => {
+    expect(getSaleTypes()).toHaveLength(24);
+    expect(getSaleTypes()[0]?.saleType).toBe(
+      'Goods at Standard Rate (default)',
+    );
+  });
+});
+
+describe('findCNICs acrossLines (#88)', () => {
+  it('joins across one line break, never across a blank line', () => {
+    expect(findCNICs('35202\n1234567\n1', { acrossLines: true })).toHaveLength(
+      1,
+    );
+    expect(findCNICs('35202\n1234567\n1')).toHaveLength(0);
+    expect(
+      findCNICs('35202\n\n1234567\n\n1', { acrossLines: true }),
+    ).toHaveLength(0);
+    expect(maskCNICs('35202\n1234567\n1', { acrossLines: true }).text).toBe(
+      'XXXXX\nXXXXXXX\nX',
+    );
+    expect(
+      maskCNICs('Us ka CNIC\n35202\n1234567\n1\nhai', {
+        replacement: '[CNIC removed]',
+        acrossLines: true,
+      }).text,
+    ).toBe('Us ka CNIC\n[CNIC removed]\nhai');
+  });
+});

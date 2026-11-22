@@ -2999,6 +2999,44 @@ for (const value of [null, 1, 'x', [], {}]) {
   call('fbr-invoice', 'validateFbrInvoice', [value]);
 }
 
+// 2.8.0 (#91): reference lists synced from FBR's APIs, and the spec's sale types.
+call('fbr-invoice', 'getSaleTypes', []);
+{
+  const item = fbrBase.items[0];
+  const references = [
+    {},
+    { provinces: ['PUNJAB', 'SINDH'] },
+    { provinces: ['SINDH'] },
+    { provinces: [] },
+    { saleTypes: [item.saleType.toUpperCase()] },
+    { saleTypes: ['Exempt Goods'] },
+    { uoms: [` ${item.uoM} `] },
+    { uoms: ['KG'] },
+    { hsUom: { [item.hsCode]: [item.uoM] } },
+    { hsUom: { [item.hsCode]: ['KG'] } },
+    { hsUom: { 9999.9999: ['KG'] } },
+    { hsUom: { [item.hsCode]: 'not a list' } },
+    {
+      provinces: ['punjab', 'sindh'],
+      saleTypes: [item.saleType],
+      uoms: [item.uoM],
+      hsUom: { [item.hsCode]: [item.uoM] },
+    },
+    { provinces: 'PUNJAB', saleTypes: [1, 2], uoms: null },
+  ];
+  for (const reference of references) {
+    call('fbr-invoice', 'validateFbrInvoice', [fbrBase], { reference });
+    call(
+      'fbr-invoice',
+      'validateFbrInvoice',
+      [fbrWith((i) => (i.items[0].uoM = ''))],
+      { reference },
+    );
+  }
+  for (const reference of [null, 'x', 42])
+    call('fbr-invoice', 'validateFbrInvoice', [fbrBase], { reference });
+}
+
 // Urdu text: slugs, sorting, direction ----------------------------------------
 {
   const slugInputs = unique([
@@ -3401,6 +3439,71 @@ vectors.set('data-version', [
   }
   for (const args of [['nowhere'], ['Murree', 'Lahore'], [null], [42, 'x']])
     call('population', 'getTehsilPopulation', args);
+}
+
+// Withholding tax (2.8.0, #92): every case of every year, ATL and not, at
+// slab and threshold edges.
+{
+  const wht = readData('withholding-rates.json');
+  const amounts = [
+    0, 1, 0.01, 49999.99, 50000, 50000.01, 80000, 123456.78, 1000000, 50000000,
+    50000000.01, 100000000, 100000000.01, 250000000,
+  ];
+  for (const row of wht) {
+    for (const atl of [true, false]) {
+      for (const amount of amounts) {
+        call('withholding', 'calculateWithholding', [
+          {
+            section: row.section,
+            subType: row.subType,
+            amount,
+            atl,
+            taxYear: row.taxYear,
+          },
+        ]);
+      }
+      call('withholding', 'calculateWithholding', [
+        {
+          section: row.section,
+          subType: row.subType,
+          amount: 75000000,
+          atl,
+          lateFiler: true,
+          taxYear: row.taxYear,
+        },
+      ]);
+    }
+    call('withholding', 'calculateWithholding', [
+      {
+        section: row.section,
+        subType: row.subType,
+        amount: 1000,
+        atl: true,
+        date: row.from,
+      },
+    ]);
+  }
+  for (const year of [2024, 2025, 2026, 2027, 2028]) {
+    call('withholding', 'getWithholdingRates', [year]);
+    for (const section of ['153', '236K', '154b', 'x'])
+      call('withholding', 'getWithholdingRates', [year, section]);
+  }
+  for (const input of [
+    { section: '236k', amount: 6e7, atl: false, taxYear: 2027 },
+    { section: ' 231AB ', amount: 80000, atl: false, taxYear: 2027 },
+    { section: '151', amount: 1000, atl: true, taxYear: 2027 },
+    { section: '151', subType: 'nope', amount: 1000, atl: true, taxYear: 2027 },
+    { section: '236K', amount: 6e7, atl: 'no', taxYear: 2027 },
+    { section: '236K', amount: -1, atl: true, taxYear: 2027 },
+    { section: '236K', amount: NUM('NaN'), atl: true, taxYear: 2027 },
+    { section: '236K', amount: 6e7, atl: true, taxYear: 2027.5 },
+    { section: '236K', amount: 6e7, atl: true },
+    { section: '236K', amount: 6e7, atl: true, date: 'not a date' },
+    { section: '236K', amount: 6e7, atl: true, date: D('2026-07-01') },
+    { section: 236, amount: 6e7, atl: true, taxYear: 2027 },
+    null,
+  ])
+    call('withholding', 'calculateWithholding', [input]);
 }
 
 const outDir = join(root, 'test-vectors');

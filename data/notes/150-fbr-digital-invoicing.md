@@ -1,3 +1,4 @@
+<!-- datasets: fbr-sale-types -->
 ## FBR Digital Invoicing
 
 No dataset: `buildFbrInvoice` and `validateFbrInvoice` follow these
@@ -38,3 +39,18 @@ Where the documents disagree or are silent, the code does this:
   (registration, provinces, HS codes, units, rates, sale types, SRO lists,
   the original invoice of a debit note). There are no string length limits
   in the specification, so none are checked.
+
+**Reference data (2.8.0).** `fbr-sale-types.json` lists the 24 sale types
+named in the specification's sandbox scenarios (section 9), with the
+scenarios that use each (`getSaleTypes()`). The specification shows only
+sample rows of FBR's other reference lists (2 provinces, 2 units, 3
+transaction types), and the full lists come from PRAL's reference APIs
+(`/pdi/v1/provinces`, `/pdi/v1/uom`, `/pdi/v2/HS_UOM`,
+`/pdi/v2/SaleTypeToRate` …), which need the taxpayer's token. FBR publishes
+no other HS code-to-unit list for sales tax: the only official PCT-to-unit
+list found is a customs order (Customs General Order 5 of 2022, Annex-I,
+7,575 codes, no descriptions), which is not shipped as Digital Invoicing
+reference data. So `validateFbrInvoice(invoice, { reference })` checks
+provinces, sale types, units and HS code/unit pairs against the lists an
+app syncs from FBR's APIs, which are authoritative; without them those
+values are checked for presence only.

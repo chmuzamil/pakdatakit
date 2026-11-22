@@ -290,6 +290,16 @@
         "default": "./dist/whatsapp.cjs"
       }
     },
+    "./withholding": {
+      "import": {
+        "types": "./dist/withholding.d.ts",
+        "default": "./dist/withholding.js"
+      },
+      "require": {
+        "types": "./dist/withholding.d.cts",
+        "default": "./dist/withholding.cjs"
+      }
+    },
     "./words": {
       "import": {
         "types": "./dist/words.d.ts",

@@ -34,11 +34,14 @@ final class ReleaseChangesTest extends TestCase
         self::assertFalse(Numbers::validateLandline(42, services: true));
     }
 
-    public function testTollFreeIsEightHundredAndFiveDigits(): void
+    public function testTollFreeIsEightHundredAndFiveOrSixDigits(): void
     {
         self::assertSame('toll-free', Numbers::getNumberType('0800-78686'));
+        // Six digits: PTA's National Numbering Plan 2008 (2.7.1).
+        self::assertSame('toll-free', Numbers::getNumberType('0800005000'));
         self::assertNull(Numbers::getNumberType('0800-12345678'));
-        self::assertNull(Numbers::getNumberType('0800 123456'));
+        self::assertSame('toll-free', Numbers::getNumberType('0800 123456'));
+        self::assertNull(Numbers::getNumberType('0800-1234'));
     }
 
     // ---------------------------------------------------------------- Raast

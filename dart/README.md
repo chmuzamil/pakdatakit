@@ -149,16 +149,22 @@ In Dart:
 - **Landlines:** `validateLandline(phone, services: true)` also accepts UAN
   (`021-111-123-456`, `111-123-456`), toll-free (`0800-12345`) and premium
   rate (`0900-12345`) numbers; `analyzeNumber` tells them apart. Toll-free
-  numbers are `0800` and exactly five digits, as in PTA's numbering plan.
+  numbers are `0800` and five or six digits (`0800-005000`), as in PTA's
+  numbering plans.
 - **CNICs in free text:** `findCNICs(text)` returns a `CNICMatch` for each
   CNIC in a message or document (`raw`, `digits`, `formatted`, and `start`
   and `end`, UTF-16 offsets, so `text.substring(start, end) == raw`).
   `maskCNICs(text, mask: 'X')` returns a `MaskedText` (`text`, with each
-  CNIC's digits masked and its separators kept, and `count`). A match is 13
-  digits starting with 1-8, together or in 5-7-1 groups (the separators may
-  differ), with ASCII, Urdu or Arabic-Indic digits, not touching another
-  digit. Any other 13-digit number of that shape matches too. They never
-  throw.
+  CNIC's digits masked and its separators kept, and `count`);
+  `maskCNICs(text, replacement: '[CNIC removed]')` replaces each whole CNIC
+  instead. A match is a run of exactly 13 digits starting with 1-8, together
+  or in any grouping joined by single spaces, hyphens or dashes, dots or
+  slashes (`352 0212 3456 71`, `35202/1234567/1`), or a CNIC in 5-7-1 groups
+  inside a longer run (`0300-1234567 35202-1234567-1`), with ASCII, Urdu or
+  Arabic-Indic digits, not touching another digit. A longer run is never cut
+  into a CNIC otherwise. This catches CNICs as people type them, but any
+  other 13 digits starting with 1-8 match too, however they are grouped;
+  `validateCNIC` stays strict. They never throw.
 - **Amount input:** `parseAmount(input)` reads a rupee amount as people type
   it (`'Rs. 1,50,000/-'`, `'2.25cr'`, `'1.5 lakh'`, `'۱۵۰۰۰۰'`, `'5k'`) and
   returns a `ParsedAmount` (`value`, a `double` in rupees rounded half up to

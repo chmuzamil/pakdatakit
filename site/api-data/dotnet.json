@@ -508,7 +508,7 @@
               "kind": "method",
               "name": "FindAll",
               "signature": "public static IReadOnlyList<CnicMatch> FindAll(string? text)",
-              "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is 13 digits whose first digit is a province code (1-8),\nwritten together or in 5-7-1 groups with a hyphen, dash, dot or space\nbetween the groups (the two separators may differ). Digits may be\nASCII, Urdu or Arabic-Indic, even mixed. A match never starts or ends\nnext to another digit, so a longer number is not cut into a CNIC.\n\nThis is looser than {@link Cnic.Validate}, which needs the same\nseparator twice: text is written carelessly. It is a pattern match, so\nany other 13-digit number that starts with 1-8 (an account or order\nnumber, say) also matches.\n\n```csharp\nCnic.FindAll(\"CNIC: 35202-1234567-1, phone 0300-1234567\");\n// [CnicMatch { Raw = \"35202-1234567-1\", Digits = \"3520212345671\",\n//   Formatted = \"35202-1234567-1\", Start = 6, End = 21 }]\n```",
+              "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is either:\n\n- a run of exactly 13 digits whose first digit is a province code (1-8), together or in any grouping joined by single separators: a space, a hyphen or Unicode dash, a dot or a slash (`3520212345671`, `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`); or\n- a CNIC in 5-7-1 groups inside a longer run of such groups (`0300-1234567 35202-1234567-1`).\n\nDigits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never\nstarts or ends next to another digit, and a run of more than 13 digits\nis never cut into a CNIC except at 5-7-1 groups.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8,\nhowever they are grouped (an account, order or tracking number, or two\nshorter numbers written together), are found. {@link Cnic.Validate}\nstays strict.\n\n```csharp\nCnic.FindAll(\"CNIC: 35202-1234567-1, phone 0300-1234567\");\n// [CnicMatch { Raw = \"35202-1234567-1\", Digits = \"3520212345671\",\n//   Formatted = \"35202-1234567-1\", Start = 6, End = 21 }]\nCnic.FindAll(\"id 352 0212 3456 71\")[0].Digits;  // \"3520212345671\"\n```",
               "params": [
                 {
                   "name": "text",
@@ -525,8 +525,8 @@
             {
               "kind": "method",
               "name": "Mask",
-              "signature": "public static MaskedText Mask(string? text, string? mask = \"X\")",
-              "doc": "Masks every CNIC in free text, as found by {@link Cnic.FindAll}: each\ndigit becomes `mask` and the separators stay, so\n`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`. The rest of the\ntext is unchanged.\n\nLike {@link Cnic.FindAll}, it also masks any other 13-digit number\nthat starts with 1-8.\n\n```csharp\nCnic.Mask(\"My CNIC is 35202-1234567-1\");  // Text = \"My CNIC is XXXXX-XXXXXXX-X\", Count = 1\nCnic.Mask(\"35202 1234567 1\", \"*\");        // Text = \"***** ******* *\", Count = 1\n```",
+              "signature": "public static MaskedText Mask(\n    string? text,\n    string? mask = \"X\",\n    string? replacement = null)",
+              "doc": "Masks every CNIC in free text, as found by {@link Cnic.FindAll}: each\ndigit becomes `mask` and the separators stay, so\n`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`. The rest of the\ntext is unchanged. With `replacement`, each whole CNIC\nis replaced by that text instead.\n\nLike {@link Cnic.FindAll}, it also masks any other 13 digits that start\nwith 1-8, however they are grouped.\n\n```csharp\nCnic.Mask(\"My CNIC is 35202-1234567-1\");  // Text = \"My CNIC is XXXXX-XXXXXXX-X\", Count = 1\nCnic.Mask(\"35202 1234567 1\", \"*\");        // Text = \"***** ******* *\", Count = 1\nCnic.Mask(\"CNIC 352 0212 3456 71\", replacement: \"[CNIC removed]\");\n// Text = \"CNIC [CNIC removed]\", Count = 1\n```",
               "params": [
                 {
                   "name": "text",
@@ -539,11 +539,41 @@
                   "type": "string?",
                   "default": "\"X\"",
                   "doc": "The string that replaces each digit. `null` means `\"X\"`."
+                },
+                {
+                  "name": "replacement",
+                  "type": "string?",
+                  "default": "null",
+                  "doc": "The string that replaces each whole CNIC, separators included, e.g. `\"[CNIC removed]\"`. Takes precedence over `mask`; `null` means no replacement."
                 }
               ],
               "returns": {
                 "type": "MaskedText",
-                "doc": "The masked text and the number of CNICs masked; `(\"\", 0)` for `null` text. Never throws."
+                "doc": "The masked text (or replaced, with `replacement`) and the number of CNICs masked; `(\"\", 0)` for `null` text. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Mask",
+              "signature": "public static MaskedText Mask(string? text, string? mask)",
+              "doc": "Masks every CNIC in free text: the same as\n{@link Cnic.Mask} with no replacement. Kept\nso that code compiled against 2.7.0 and earlier still binds.",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Any text."
+                },
+                {
+                  "name": "mask",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "The string that replaces each digit. `null` means `\"X\"`."
+                }
+              ],
+              "returns": {
+                "type": "MaskedText",
+                "doc": "The masked text and the number of CNICs masked."
               }
             }
           ]

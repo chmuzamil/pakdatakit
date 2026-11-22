@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.7.1
+
+Patch release, from real data: CNICs in more of the ways people write them,
+and six-digit toll-free numbers. Every port gives the same results on the
+shared test vectors.
+
+### Changed
+
+- **`findCNICs()` and `maskCNICs()` find CNICs in any grouping.** A match is
+  now any run of exactly 13 digits starting with 1-8, together or grouped
+  any way with single separators: a space, a hyphen or dash, a dot, or (new)
+  a slash (`352 0212 3456 71`, `35202/1234567/1`). Everything 2.7.0 found is
+  still found, including a 5-7-1 CNIC inside a longer run of groups
+  (`0300-1234567 35202-1234567-1`), and a longer run is otherwise never cut
+  into a CNIC. This catches more real CNICs and also matches more numbers
+  that are not CNICs (any 13 digits starting with 1-8, however grouped);
+  `validateCNIC()` stays strict.
+- **Toll-free numbers: `0800` and five or six digits.** PTA's 2021 plan
+  gives five; PTA's National Numbering Plan 2008 gives six (sections 8.1 and
+  8.1.4), and six-digit numbers are in use (Soneri Bank publishes
+  `0800005000`). The 8-digit form stays rejected: no PTA document lists it.
+  DATA.md corrects 2.7.0's note, which called the six-digit form a proposal.
+
+### Added
+
+- **`maskCNICs(text, { replacement })`** replaces each whole CNIC,
+  separators included, with a string such as `'[CNIC removed]'`.
+
 ## 2.7.0
 
 Minor release: new features and one accuracy fix behind an option. Every

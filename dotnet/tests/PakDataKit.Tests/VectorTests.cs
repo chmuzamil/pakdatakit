@@ -480,7 +480,7 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["calculateSalaryTax"] = ["taxYear", "date", "includeSurcharge"],
         ["calculateMonthlySalaryTax"] = ["taxYear", "date", "includeSurcharge"],
         ["validateLandline"] = ["services"],
-        ["maskCNICs"] = ["mask"],
+        ["maskCNICs"] = ["mask", "replacement"],
     };
 
     private static readonly Dictionary<string, Call> Functions = new()
@@ -489,7 +489,8 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["getCNICInfo"] = One(Cnic.GetInfo),
         // TypeScript reads a text that is not a string as no text; .NET takes null.
         ["findCNICs"] = (a, _) => Cnic.FindAll(Loose(a[0])),
-        ["maskCNICs"] = (a, k) => Cnic.Mask(Loose(a[0]), k.GetValueOrDefault("mask") as string),
+        ["maskCNICs"] = (a, k) => Cnic.Mask(
+            Loose(a[0]), k.GetValueOrDefault("mask") as string, k.GetValueOrDefault("replacement") as string),
         ["validatePhone"] = One(v => Phone.Validate(v)),
         ["formatPhone"] = One(Phone.Format),
         ["analyzePhone"] = One(Phone.Analyze),

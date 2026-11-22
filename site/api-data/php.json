@@ -416,7 +416,7 @@
               "name": "text",
               "type": "string",
               "default": null,
-              "doc": "The text with every CNIC's digits masked; separators are kept.",
+              "doc": "The text with every CNIC masked (or replaced, with `replacement`).",
               "static": false,
               "readonly": true
             },
@@ -479,7 +479,7 @@
               "kind": "method",
               "name": "findAll",
               "signature": "public static function findAll(mixed $text): array",
-              "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is 13 digits whose first digit is a province code (1-8),\nwritten together or in 5-7-1 groups with a hyphen, dash, dot or space\nbetween the groups (the two separators may differ). Digits may be\nASCII, Urdu or Arabic-Indic, even mixed. A match never starts or ends\nnext to another digit, so a longer number is not cut into a CNIC.\n\nThis is looser than validate(), which needs the same separator twice:\ntext is written carelessly. It is a pattern match, so any other\n13-digit number that starts with 1-8 (an account or order number, say)\nalso matches.\n\nOffsets are in code points, so `mb_substr($text, $m->start, $m->end -\n$m->start)` is `$m->raw`. Invalid UTF-8 bytes are first replaced as\n`mb_scrub()` does.\n\n```php\nCnic::findAll('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CnicMatch(raw: '35202-1234567-1', digits: '3520212345671',\n//   formatted: '35202-1234567-1', start: 6, end: 21)]\n```",
+              "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is either:\n\n- a run of exactly 13 digits whose first digit is a province code\n  (1-8), together or in any grouping joined by single separators: a\n  space, a hyphen or Unicode dash, a dot or a slash (`3520212345671`,\n  `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`); or\n- a CNIC in 5-7-1 groups inside a longer run of such groups\n  (`0300-1234567 35202-1234567-1`).\n\nDigits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never\nstarts or ends next to another digit, and a run of more than 13 digits\nis never cut into a CNIC except at 5-7-1 groups.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8,\nhowever they are grouped (an account, order or tracking number, or two\nshorter numbers written together), are found. validate() stays strict.\n\nOffsets are in code points, so `mb_substr($text, $m->start, $m->end -\n$m->start)` is `$m->raw`. Invalid UTF-8 bytes are first replaced as\n`mb_scrub()` does.\n\n```php\nCnic::findAll('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CnicMatch(raw: '35202-1234567-1', digits: '3520212345671',\n//   formatted: '35202-1234567-1', start: 6, end: 21)]\nCnic::findAll('id 352 0212 3456 71')[0]->digits; // '3520212345671'\n```",
               "params": [
                 {
                   "name": "$text",
@@ -496,8 +496,8 @@
             {
               "kind": "method",
               "name": "mask",
-              "signature": "public static function mask(mixed $text, mixed $mask = 'X'): MaskedText",
-              "doc": "Masks every CNIC in free text, as found by findAll(): each digit\nbecomes the mask and the separators stay, so `35202-1234567-1`\nbecomes `XXXXX-XXXXXXX-X`. The rest of the text is unchanged (invalid\nUTF-8 bytes are replaced as `mb_scrub()` does).\n\nLike findAll(), it also masks any other 13-digit number that starts\nwith 1-8.\n\n```php\nCnic::mask('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nCnic::mask('35202 1234567 1', '*');\n// MaskedText(text: '***** ******* *', count: 1)\n```",
+              "signature": "public static function mask(\n    mixed $text,\n    mixed $mask = 'X',\n    mixed $replacement = null,\n): MaskedText",
+              "doc": "Masks every CNIC in free text, as found by findAll(): each digit\nbecomes the mask and the separators stay, so `35202-1234567-1`\nbecomes `XXXXX-XXXXXXX-X`. The rest of the text is unchanged (invalid\nUTF-8 bytes are replaced as `mb_scrub()` does).\n\nWith `$replacement`, each whole CNIC is replaced by that text instead.\n\nLike findAll(), it also masks any other 13 digits that start with 1-8,\nhowever they are grouped.\n\n```php\nCnic::mask('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nCnic::mask('35202 1234567 1', '*');\n// MaskedText(text: '***** ******* *', count: 1)\nCnic::mask('CNIC 352 0212 3456 71', replacement: '[CNIC removed]');\n// MaskedText(text: 'CNIC [CNIC removed]', count: 1)\n```",
               "params": [
                 {
                   "name": "$text",
@@ -509,7 +509,13 @@
                   "name": "$mask",
                   "type": "mixed",
                   "default": "'X'",
-                  "doc": "The string that replaces each digit; anything that is not a string means `'X'`"
+                  "doc": "The string that replaces each digit, keeping the separators; anything that is not a string means `'X'`"
+                },
+                {
+                  "name": "$replacement",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "The string that replaces each whole CNIC, separators included, e.g. `'[CNIC removed]'`. Takes precedence over `$mask`; anything that is not a string is ignored."
                 }
               ],
               "returns": {
@@ -753,7 +759,7 @@
             {
               "name": "PACKAGE_VERSION",
               "type": null,
-              "default": "'2.7.0'",
+              "default": "'2.7.1'",
               "doc": "Version of this package.",
               "static": true,
               "readonly": true,

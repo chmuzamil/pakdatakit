@@ -42,7 +42,9 @@ interface AreaCodeEntry {
  * - UAN: an area code, then 111 and six digits (PTA's plan, "National
  *   Universal Access Number"). Written without the area code, `111-XXX-XXX`
  *   is how UANs are advertised and dialled within a city.
- * - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
+ * - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number"),
+ *   or six digits (PTA's National Numbering Plan 2008, 8.1 and 8.1.4; in use,
+ *   e.g. 0800-005000).
  * - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
  *   9.1.4, "current structure"; the 2021 plan does not list 0900).
  * - 0122 numbers: seen in use, no PTA source, not supported since 2.7.0 (see DATA.md).
@@ -52,7 +54,7 @@ const FIXED_LINE =
 const UAN =
   /^((?:2(?:[125]|3[2358]|4[2-4]|9[2-8])|4(?:[0-246-9]|5[3479])|5(?:[1-35-7]|4[2-467])|6(?:0[468]|[1-8])|7(?:[14]|2[236])|8(?:[16]|2[2-689]|3[23578]|4[3478]|5[2356])|9(?:1|22|3[27-9]|4[2-6]|6[3569]|9[2-7])))111(\d{6})$/;
 const UAN_WITHOUT_AREA_CODE = /^111(\d{6})$/;
-const TOLL_FREE = /^800(\d{5})$/;
+const TOLL_FREE = /^800(\d{5,6})$/;
 const PREMIUM = /^900(\d{5})$/;
 
 const areaCodes = /* @__PURE__ */ lazy(() => areaCodesData as AreaCodeEntry[]);

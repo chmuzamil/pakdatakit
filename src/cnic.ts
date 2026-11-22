@@ -79,28 +79,65 @@ export function getCNICInfo(cnic: string): CNICInfo | null {
 
 /** One digit: ASCII, Urdu (U+06F0-06F9) or Arabic-Indic (U+0660-0669). */
 const ANY_DIGIT = /[0-9\u06F0-\u06F9\u0660-\u0669]/.source;
-/** A CNIC separator: a hyphen or dash, a dot, or a space. */
-const CNIC_SEPARATOR = /[-\u2010\u2011\u2012\u2013\u2014. ]/.source;
+/** A province digit (1-8) in any of the three scripts. */
+const PROVINCE_DIGIT = /[1-8\u06F1-\u06F8\u0661-\u0668]/.source;
+/**
+ * A separator between digit groups: a space, a hyphen or Unicode dash
+ * (U+2010-2014), a dot or a slash.
+ */
+const CNIC_SEPARATOR = /[-\u2010\u2011\u2012\u2013\u2014./ ]/.source;
 
 /**
- * A CNIC in running text: a province digit (1-8), then 4, 7 and 1 more digits
- * with an optional separator between the groups (the two may differ), not
- * touching another digit on either side.
+ * A run of digit groups joined by single separators (`352 0212 3456 71`,
+ * `35202/1234567/1`), as long as it goes. Two separators in a row, or any
+ * other character, end it.
  */
-const CNIC_IN_TEXT = new RegExp(
+const DIGIT_RUN = new RegExp(
+  `${ANY_DIGIT}(?:${CNIC_SEPARATOR}?${ANY_DIGIT})*`,
+  'g',
+);
+
+/**
+ * A CNIC in 5-7-1 groups (as in 2.7.0) inside a longer run, such as
+ * `0300-1234567 35202-1234567-1`: a province digit, then 4, 7 and 1 digits
+ * with an optional separator between the groups, not next to another digit.
+ */
+const CNIC_571 = new RegExp(
   `(?<!${ANY_DIGIT})` +
-    /[1-8\u06F1-\u06F8\u0661-\u0668]/.source +
+    PROVINCE_DIGIT +
     `${ANY_DIGIT}{4}${CNIC_SEPARATOR}?${ANY_DIGIT}{7}${CNIC_SEPARATOR}?${ANY_DIGIT}` +
     `(?!${ANY_DIGIT})`,
   'g',
 );
+
+const ONE_DIGIT = new RegExp(ANY_DIGIT, 'g');
+const FIRST_IS_PROVINCE = new RegExp(`^${PROVINCE_DIGIT}`);
+
+/** Where CNICs are in a text: `[start, end]` pairs, in order. */
+function cnicSpans(text: string): [number, number][] {
+  const spans: [number, number][] = [];
+  for (const run of text.matchAll(DIGIT_RUN)) {
+    const raw = run[0];
+    const start = run.index;
+    const digits = raw.match(ONE_DIGIT)?.length ?? 0;
+    if (digits === 13 && FIRST_IS_PROVINCE.test(raw)) {
+      // Exactly 13 digits in any grouping: the whole run.
+      spans.push([start, start + raw.length]);
+    } else if (digits > 13) {
+      // A longer run: only a CNIC written in 5-7-1 groups inside it.
+      for (const m of raw.matchAll(CNIC_571))
+        spans.push([start + m.index, start + m.index + m[0].length]);
+    }
+  }
+  return spans;
+}
 
 /**
  * A CNIC that {@link findCNICs} found in free text: as written, its digits,
  * its formatted form and where it is in the text.
  */
 export interface CNICMatch {
-  /** The text as written, e.g. `35202 1234567-1` or with Urdu digits. */
+  /** The text as written, e.g. `35202 1234567-1`, `352 0212 3456 71` or with Urdu digits. */
   raw: string;
   /** The 13 digits, in ASCII. */
   digits: string;
@@ -116,21 +153,29 @@ export interface CNICMatch {
  * Finds CNIC numbers in free text, such as a chat message, a note or an
  * uploaded document, for example to mask them before logging.
  *
- * A match is 13 digits whose first digit is a province code (1-8), written
- * together or in 5-7-1 groups with a hyphen, dash, dot or space between the
- * groups (the two separators may differ). Digits may be ASCII, Urdu or
- * Arabic-Indic, even mixed. A match never starts or ends next to another
- * digit, so a longer number is not cut into a CNIC.
+ * A match is either:
  *
- * This is looser than {@link validateCNIC}, which needs the same separator
- * twice: text is written carelessly. It is a pattern match, so any other
- * 13-digit number that starts with 1-8 (an account or order number, say) also
- * matches.
+ * - a run of exactly 13 digits whose first digit is a province code (1-8),
+ *   together or in any grouping joined by single separators: a space, a
+ *   hyphen or Unicode dash, a dot or a slash (`3520212345671`,
+ *   `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`); or
+ * - a CNIC in 5-7-1 groups inside a longer run of such groups
+ *   (`0300-1234567 35202-1234567-1`).
+ *
+ * Digits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never
+ * starts or ends next to another digit, and a run of more than 13 digits is
+ * never cut into a CNIC except at 5-7-1 groups.
+ *
+ * Accepting any grouping catches CNICs as people really type them, but
+ * matches more that is not a CNIC: any 13 digits starting with 1-8, however
+ * they are grouped (an account, order or tracking number, or two shorter
+ * numbers written together), are found. {@link validateCNIC} stays strict.
  *
  * @example
  * findCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');
  * // [{ raw: '35202-1234567-1', digits: '3520212345671',
  * //    formatted: '35202-1234567-1', start: 6, end: 21 }]
+ * findCNICs('id 352 0212 3456 71')[0]?.digits; // '3520212345671'
  *
  * @param text - Any text
  * @returns The matches in order, or `[]` (also for a value that is not a
@@ -138,24 +183,28 @@ export interface CNICMatch {
  */
 export function findCNICs(text: string): CNICMatch[] {
   if (typeof text !== 'string') return [];
-  return [...text.matchAll(CNIC_IN_TEXT)].map((match) => {
-    const raw = match[0];
+  return cnicSpans(text).map(([start, end]) => {
+    const raw = text.slice(start, end);
     const digits = toAsciiDigits(raw).replace(/\D/g, '');
-    const start = match.index;
     return {
       raw,
       digits,
       formatted: `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits[12]}`,
       start,
-      end: start + raw.length,
+      end,
     };
   });
 }
 
 /** Options for {@link maskCNICs}. */
 export interface MaskCNICsOptions {
-  /** What each digit is replaced with. Default `'X'`. */
+  /** What each digit is replaced with, keeping the separators. Default `'X'`. */
   mask?: string;
+  /**
+   * Replace each whole CNIC, separators included, with this text instead,
+   * e.g. `'[CNIC removed]'`. Takes precedence over `mask`.
+   */
+  replacement?: string;
 }
 
 /**
@@ -163,7 +212,7 @@ export interface MaskCNICsOptions {
  * and how many CNICs it masked.
  */
 export interface MaskedText {
-  /** The text with every CNIC's digits masked; separators are kept. */
+  /** The text with every CNIC masked (or replaced, with `replacement`). */
   text: string;
   /** How many CNICs were masked. */
   count: number;
@@ -174,17 +223,22 @@ export interface MaskedText {
  * becomes the mask and the separators stay, so `35202-1234567-1` becomes
  * `XXXXX-XXXXXXX-X`. The rest of the text is unchanged.
  *
- * Like {@link findCNICs}, it also masks any other 13-digit number that
- * starts with 1-8.
+ * With `replacement`, each whole CNIC is replaced by that text instead.
+ *
+ * Like {@link findCNICs}, it also masks any other 13 digits that start with
+ * 1-8, however they are grouped.
  *
  * @example
  * maskCNICs('My CNIC is 35202-1234567-1');
  * // { text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1 }
  * maskCNICs('35202 1234567 1', { mask: '*' });
  * // { text: '***** ******* *', count: 1 }
+ * maskCNICs('CNIC 352 0212 3456 71', { replacement: '[CNIC removed]' });
+ * // { text: 'CNIC [CNIC removed]', count: 1 }
  *
  * @param text - Any text
- * @param options - `mask`: the string that replaces each digit
+ * @param options - `mask`: the string that replaces each digit;
+ *   `replacement`: the string that replaces each whole CNIC
  * @returns The masked text and the number of CNICs masked. A value that is
  *   not a string gives `{ text: '', count: 0 }`. Never throws.
  */
@@ -194,11 +248,17 @@ export function maskCNICs(
 ): MaskedText {
   if (typeof text !== 'string') return { text: '', count: 0 };
   const mask = typeof options.mask === 'string' ? options.mask : 'X';
-  const digit = new RegExp(ANY_DIGIT, 'g');
-  let count = 0;
-  const masked = text.replace(CNIC_IN_TEXT, (raw) => {
-    count += 1;
-    return raw.replace(digit, () => mask);
-  });
-  return { text: masked, count };
+  const replacement =
+    typeof options.replacement === 'string' ? options.replacement : null;
+  const spans = cnicSpans(text);
+  let out = '';
+  let at = 0;
+  for (const [start, end] of spans) {
+    const raw = text.slice(start, end);
+    out +=
+      text.slice(at, start) +
+      (replacement ?? raw.replace(ONE_DIGIT, () => mask));
+    at = end;
+  }
+  return { text: out + text.slice(at), count: spans.length };
 }

@@ -26,7 +26,7 @@ void main() {
       expect(validateLandline('', services: true), isFalse);
     });
 
-    test('toll-free is 0800 and exactly five digits', () {
+    test('toll-free is 0800 and five or six digits', () {
       expect(getNumberType('0800-12345'), NumberType.tollFree);
       expect(getNumberType('0800 12345678'), isNull);
       expect(validateLandline('0800 12345678', services: true), isFalse);

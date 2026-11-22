@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.7.1
+
+Patch release, from real data. Every port gives the same results on the
+shared test vectors.
+
+### Changed
+
+- `Cnic::findAll()` and `Cnic::mask()` find CNICs in any grouping: any run of exactly 13 digits starting
+  with 1-8, joined by single separators (space, hyphen or dash, dot, or the
+  new slash), such as `352 0212 3456 71` or `35202/1234567/1`. Everything
+  2.7.0 found is still found, including a 5-7-1 CNIC inside a longer run; a
+  longer run is otherwise never cut. This also matches more numbers that are
+  not CNICs (any 13 digits starting with 1-8, however grouped).
+- Toll-free numbers: `0800` and five or six digits (PTA's National Numbering
+  Plan 2008 gives six; Soneri Bank uses `0800005000`). Eight digits stay
+  rejected.
+
+### Added
+
+- `Cnic::mask($text, replacement: '[CNIC removed]')` replaces each whole CNIC with a string.
+
 ## 2.7.0
 
 Minor release: new features and one accuracy fix behind an option. Every

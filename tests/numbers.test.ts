@@ -70,8 +70,10 @@ describe('analyzeNumber', () => {
     expect(getNumberType('0210123456')).toBeNull();
   });
 
-  it("follows PTA's plan for toll-free numbers: 0800 and five digits", () => {
+  it("follows PTA's documents for toll-free numbers: 0800 and 5 or 6 digits", () => {
     expect(getNumberType('0800-78686')).toBe('toll-free');
+    // Six digits: PTA's National Numbering Plan 2008 (Soneri Bank uses one).
+    expect(getNumberType('0800005000')).toBe('toll-free');
     // libphonenumber also accepts eight digits; PTA's plan does not.
     expect(getNumberType('080012345678')).toBeNull();
     expect(getNumberType('0800-1234')).toBeNull();

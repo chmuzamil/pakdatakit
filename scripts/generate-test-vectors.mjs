@@ -276,6 +276,49 @@ each('cnic', ['validateCNIC', 'getCNICInfo'], cnics);
   }
 }
 
+// 2.7.1: CNICs in any grouping of exactly 13 digits, slash separators, and
+// maskCNICs' replacement option. BMP-only text, as above.
+{
+  const texts = [
+    '352 0212 3456 71',
+    '35202/1234567/1',
+    '3520/2123/4567/1',
+    '3 5 2 0 2 1 2 3 4 5 6 7 1',
+    '35-20-21-23-45-67-1',
+    '352.0212.3456.71',
+    '35202%%EN%%1234567%%EN%%1',
+    'ID: 352 0212 3456 71, ok',
+    '0300-1234567 35202-1234567-1',
+    '0300 1234567 35202 1234567 1',
+    '12 35202 1234567 1',
+    '4111 1111 1111 1111',
+    '0300 1234567 1',
+    '052 0212 3456 71',
+    '35202 - 1234567 - 1',
+    '35202 / 1234567 / 1',
+    '352 0212 3456 712',
+    '1 352 0212 3456 71',
+    '352 0212 3456 71 9',
+    '%%URDU%% 0212 3456 71',
+    '35202/1234567/1/2',
+    'a/35202/1234567/1/b',
+    'two: 352 0212 3456 71 and 61101/7654321/2.',
+  ].map((t) =>
+    t.replaceAll('%%EN%%', '\u2013').replace('%%URDU%%', '\u06F3\u06F5\u06F2'),
+  );
+  for (const text of texts) {
+    call('cnic', 'findCNICs', [text]);
+    call('cnic', 'maskCNICs', [text]);
+    call('cnic', 'maskCNICs', [text], { replacement: '[CNIC removed]' });
+  }
+  call('cnic', 'maskCNICs', ['CNIC 352 0212 3456 71'], {
+    mask: '*',
+    replacement: '',
+  });
+  call('cnic', 'maskCNICs', ['CNIC 352 0212 3456 71'], { replacement: 42 });
+  call('cnic', 'maskCNICs', ['no ids here'], { replacement: '[x]' });
+}
+
 // Phone, networks, WhatsApp ------------------------------------------------------
 const phones = unique([
   '03001234567',
@@ -1744,6 +1787,10 @@ each(
     '021-111-111-111',
     '051 111 222 333',
     '0122 123456',
+    '0800005000',
+    '0800-005000',
+    '+92 800 005000',
+    '0800 1234567',
   ]);
   for (const number of serviceNumbers) {
     call('numbers', 'validateLandline', [number], { services: true });

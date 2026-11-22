@@ -169,6 +169,47 @@ passed (June), and again when FBR publishes the consolidated Ordinance
       say so in the CHANGELOG.
 - [ ] Update the table and notes (surcharge, pension rate) in DATA.md.
 
+## Zakat nisab (each February) <!-- dataset: zakat-nisab -->
+
+Sources: the SBP BPRD circular letters index for the year,
+https://www.sbp.org.pk/bprd/<YYYY>/index.htm (if it blocks downloads, the
+same path on https://archive.sbp.org.pk/), and the Ministry notification
+attached to the "Deduction of Zakat at Source ... (Asset Code No. 101)"
+circular letter.
+
+1. A week or two before 1 Ramazan, find that circular letter and its annex
+   (the Ministry notification). Read the nisab in figures and in words and
+   check that they agree.
+2. Add a new record to `data/zakat-nisab.json` for the new Zakat year (the
+   Hijri year of 1 Ramazan): `label` as the notification writes it, the
+   two likely Gregorian dates, the notification and circular numbers, dates
+   and URLs. Add `bankHolidayDate` if SBP's bank holiday circular names a
+   Gregorian date. Never change a past year.
+3. Update the `zakat-nisab` entry in `data/manifest.json` (`recordCount`,
+   `coverage`, `sourceUrl`, `sourceReference`, `sourceDate`,
+   `retrievedAt`, `nextExpectedUpdate`) and the table in
+   `data/notes/200-zakat-nisab.md`.
+4. Run `npm run build && node scripts/generate-test-vectors.mjs`, then
+   `npm test`, `npm run check:manifest` and every port's vector tests.
+
+## Census population (yearly) <!-- dataset: district-population --><!-- dataset: tehsil-population -->
+
+Sources: PBS's detailed census results in Excel,
+https://www.pbs.gov.pk/result-excel/ (Table 1 and Table 20 for each
+province, Islamabad and the national totals).
+
+1. Check whether PBS has republished or corrected the tables (compare the
+   files' Last-Modified dates and provincial totals with
+   `data/notes/210-population.md`).
+2. When a district is created, add it to `data/districts.json` and to
+   `data/district-population.json` with `null` figures, `censusDistrict`
+   set to the census district its area came from, and a note; set
+   `boundaryChanged: true` on the district that lost area. Do not estimate.
+3. Update both `*-population` entries in `data/manifest.json`
+   (`recordCount`, `retrievedAt`, `nextExpectedUpdate`).
+4. Run `npm run build && node scripts/generate-test-vectors.mjs`, then
+   `npm test`, `npm run check:manifest` and every port's vector tests.
+
 ## Urdu alphabetical order
 
 - [ ] Has CLDR changed `common/collation/ur.xml` in a new release

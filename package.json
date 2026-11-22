@@ -200,6 +200,16 @@
         "default": "./dist/phone.cjs"
       }
     },
+    "./population": {
+      "import": {
+        "types": "./dist/population.d.ts",
+        "default": "./dist/population.js"
+      },
+      "require": {
+        "types": "./dist/population.d.cts",
+        "default": "./dist/population.cjs"
+      }
+    },
     "./postal": {
       "import": {
         "types": "./dist/postal.d.ts",
@@ -288,6 +298,16 @@
       "require": {
         "types": "./dist/words.d.cts",
         "default": "./dist/words.cjs"
+      }
+    },
+    "./zakat": {
+      "import": {
+        "types": "./dist/zakat.d.ts",
+        "default": "./dist/zakat.js"
+      },
+      "require": {
+        "types": "./dist/zakat.d.cts",
+        "default": "./dist/zakat.cjs"
       }
     },
     "./class-validator": {

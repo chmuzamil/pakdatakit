@@ -209,3 +209,20 @@ export {
   type DataInfo,
   type DataSource,
 } from './data-info.js';
+export {
+  getZakatNisab,
+  getZakatYears,
+  zakatDeduction,
+  type ZakatNisab,
+  type ZakatDocument,
+  type ZakatYearQuery,
+  type ZakatDeduction,
+  type ZakatDeductionInput,
+} from './zakat.js';
+export {
+  getDistrictPopulation,
+  getTehsilPopulation,
+  type CensusCounts,
+  type DistrictPopulation,
+  type TehsilPopulation,
+} from './population.js';

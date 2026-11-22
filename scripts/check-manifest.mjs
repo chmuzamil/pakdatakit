@@ -144,6 +144,18 @@ for (const [file, entry] of byFile) {
       fail(`${entry.id}: a series needs an array of records`);
       continue;
     }
+    // A numbered series (e.g. Zakat years): consecutive, no repeats, no gaps.
+    if (entry.series.sequence) {
+      const key = entry.series.sequence;
+      const values = records.map((r) => r[key]).sort((a, b) => a - b);
+      values.forEach((v, i) => {
+        if (!Number.isInteger(v))
+          fail(`${entry.id}: ${key} ${v} is not an integer`);
+        else if (i > 0 && v !== values[i - 1] + 1)
+          fail(`${entry.id}: ${key} jumps from ${values[i - 1]} to ${v}`);
+      });
+      continue;
+    }
     const { from, to, groupBy = [] } = entry.series;
     const groups = new Map();
     for (const record of records) {

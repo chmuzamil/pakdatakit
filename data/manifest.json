@@ -51,6 +51,23 @@
     "notes": "The post code directory is dated February 2021, with no day."
   },
   {
+    "id": "district-population",
+    "file": "district-population.json",
+    "title": "District population (Census 2023)",
+    "sourceReference": "7th Population and Housing Census 2023, Table 1 'Area, population by sex, sex ratio, population density, urban proportion, household size and annual growth rate' and Table 20 'Type of housing unit by region', by district",
+    "coverage": "All 177 current districts; figures for the 133 that existed at the census in the four provinces and Islamabad",
+    "recordCount": 177,
+    "notes": "sourceDate is the publication date of PBS's detailed results (Excel) page. Districts created after the census have null figures; Gilgit-Baltistan and Azad Jammu and Kashmir were not enumerated. 14 districts that lost area after the census keep census-boundary figures (boundaryChanged).",
+    "issuer": "Pakistan Bureau of Statistics (PBS)",
+    "sourceUrl": "https://www.pbs.gov.pk/result-excel/",
+    "sourceDate": "2025-08-25",
+    "retrievedAt": "2026-11-23",
+    "effectiveFrom": "2023-03-01",
+    "effectiveTo": null,
+    "nextExpectedUpdate": "2027-11-23",
+    "updateCadence": "Fixed census results; checked yearly for PBS corrections, and districts are relinked when one is created"
+  },
+  {
     "id": "districts",
     "file": "districts.json",
     "title": "Districts",
@@ -197,6 +214,23 @@
     }
   },
   {
+    "id": "tehsil-population",
+    "file": "tehsil-population.json",
+    "title": "Tehsil population (Census 2023)",
+    "sourceReference": "7th Population and Housing Census 2023, Tables 1 and 20, by tehsil, taluka and sub-division",
+    "coverage": "All 591 tehsil-level units of the census, with their census and current district",
+    "recordCount": 591,
+    "notes": "sourceDate is the publication date of PBS's detailed results (Excel) page. Each district's tehsils add up exactly to its census figures.",
+    "issuer": "Pakistan Bureau of Statistics (PBS)",
+    "sourceUrl": "https://www.pbs.gov.pk/result-excel/",
+    "sourceDate": "2025-08-25",
+    "retrievedAt": "2026-11-23",
+    "effectiveFrom": "2023-03-01",
+    "effectiveTo": null,
+    "nextExpectedUpdate": "2027-11-23",
+    "updateCadence": "Fixed census results; checked yearly for PBS corrections, and districts are relinked when one is created"
+  },
+  {
     "id": "tehsils",
     "file": "tehsils.json",
     "title": "Tehsils",
@@ -212,5 +246,25 @@
     "nextExpectedUpdate": "2027-02-16",
     "updateCadence": "Quarterly, with the district data",
     "notes": "PBS's census tables are undated. Each tehsil keeps its census district and its current district."
+  },
+  {
+    "id": "zakat-nisab",
+    "file": "zakat-nisab.json",
+    "title": "Zakat nisab for deduction at source",
+    "issuer": "Ministry of Poverty Alleviation & Social Safety (Administrator-General Zakat); State Bank of Pakistan (SBP)",
+    "sourceUrl": "https://www.sbp.org.pk/bprd/2026/CL3-Notification.pdf",
+    "sourceReference": "Notification No. CE-1001(36)/NISAB/1446-47/2026-48, conveyed by SBP BPRD Circular Letter No. 03 of 2026; each year has its own notification and circular",
+    "sourceDate": "2026-02-16",
+    "retrievedAt": "2026-11-23",
+    "effectiveFrom": "2012-07-20",
+    "effectiveTo": null,
+    "coverage": "Zakat years 1433-1447 AH (1432-33 to 1446-47 in the notifications; 2012-2026)",
+    "recordCount": 15,
+    "nextExpectedUpdate": "2027-02-15",
+    "updateCadence": "Each year shortly before 1 Ramazan, when the Ministry notifies the next nisab and SBP circulates it",
+    "notes": "One record per Zakat year with its own notification, SBP circular and dates; past years are never changed. The notifications give two likely Gregorian dates for 1 Ramazan, not the confirmed day. SBP's www site blocks automated downloads; the same files were read from archive.sbp.org.pk.",
+    "series": {
+      "sequence": "zakatYear"
+    }
   }
 ]

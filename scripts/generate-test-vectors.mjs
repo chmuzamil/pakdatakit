@@ -3320,6 +3320,89 @@ vectors.set('data-version', [
   call('data-info', 'listDataInfo', []);
 }
 
+// Zakat (2.8.0, #93): nisab by year, label or date; deduction at source.
+{
+  const zakat = readData('zakat-nisab.json');
+  for (const year of zakat) {
+    call('zakat', 'getZakatNisab', [{ zakatYear: year.zakatYear }]);
+    call('zakat', 'getZakatNisab', [{ zakatYear: String(year.zakatYear) }]);
+    call('zakat', 'getZakatNisab', [{ zakatYear: year.label }]);
+    const [first, second] = year.expectedValuationDates;
+    for (const date of [first, second]) {
+      call('zakat', 'getZakatNisab', [{ date: D(date) }]);
+      call('zakat', 'getZakatNisab', [{ date }]);
+    }
+    for (const balance of [
+      0,
+      year.nisab - 1,
+      year.nisab - 0.01,
+      year.nisab,
+      year.nisab + 0.01,
+      1234567.89,
+      1e12,
+    ]) {
+      call('zakat', 'zakatDeduction', [{ balance, zakatYear: year.zakatYear }]);
+    }
+    call('zakat', 'zakatDeduction', [
+      { balance: year.nisab * 2, zakatYear: year.zakatYear, exempt: true },
+    ]);
+    call('zakat', 'zakatDeduction', [
+      { balance: year.nisab * 3, date: second },
+    ]);
+  }
+  for (const date of [
+    '2011-01-01',
+    '2012-07-19',
+    '2025-06-01',
+    '2026-11-23',
+    '2027-02-06',
+    '2027-02-07',
+    '2030-01-01',
+    'not a date',
+  ])
+    call('zakat', 'getZakatNisab', [{ date }]);
+  for (const query of [
+    { zakatYear: 1432 },
+    { zakatYear: 1448 },
+    { zakatYear: '1447-48' },
+    { zakatYear: 1447.5 },
+    { zakatYear: '' },
+    {},
+    null,
+    42,
+  ])
+    call('zakat', 'getZakatNisab', [query]);
+  for (const input of [
+    { balance: -1, zakatYear: 1447 },
+    { balance: NUM('NaN'), zakatYear: 1447 },
+    { balance: 1e13, zakatYear: 1447 },
+    { balance: '600000', zakatYear: 1447 },
+    { balance: 600000 },
+    { balance: 600000, zakatYear: 1447, exempt: 'yes' },
+    { balance: 600000.005, zakatYear: 1447 },
+    null,
+  ])
+    call('zakat', 'zakatDeduction', [input]);
+  call('zakat', 'getZakatYears', []);
+}
+
+// Census 2023 population (2.8.0, #95): every district and tehsil.
+{
+  for (const { district } of districts) {
+    call('population', 'getDistrictPopulation', [district]);
+  }
+  for (const value of ['lahore', '  LAHORE  ', 'Nowhere', '', null, 42])
+    call('population', 'getDistrictPopulation', [value]);
+  const tehsilPop = readData('tehsil-population.json');
+  for (const t of tehsilPop) {
+    call('population', 'getTehsilPopulation', [t.tehsil]);
+    call('population', 'getTehsilPopulation', [t.tehsil, t.inCensusDistrict]);
+    call('population', 'getTehsilPopulation', [t.tehsil, t.currentDistrict]);
+  }
+  for (const args of [['nowhere'], ['Murree', 'Lahore'], [null], [42, 'x']])
+    call('population', 'getTehsilPopulation', args);
+}
+
 const outDir = join(root, 'test-vectors');
 mkdirSync(outDir, { recursive: true });
 let total = 0;

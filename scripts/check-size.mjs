@@ -50,9 +50,24 @@ const DATASETS = {
     key: 'slabs',
     kind: 'objects',
   },
+  'zakat nisab': {
+    file: 'zakat-nisab.json',
+    key: 'valuationDateHijri',
+    kind: 'string',
+  },
+  'census population': {
+    file: 'tehsil-population.json',
+    key: 'households',
+    kind: 'number',
+  },
 };
 
-const LITERAL = { string: '"', strings: '\\[\\s*"', objects: '\\[\\s*\\{' };
+const LITERAL = {
+  string: '"',
+  strings: '\\[\\s*"',
+  objects: '\\[\\s*\\{',
+  number: '\\d',
+};
 const MARKERS = Object.fromEntries(
   Object.entries(DATASETS).map(([dataset, { key, kind }]) => [
     dataset,
@@ -76,6 +91,7 @@ const fits = {
     Array.isArray(v) &&
     v.length > 0 &&
     v.every((x) => x !== null && typeof x === 'object' && !Array.isArray(x)),
+  number: (v) => typeof v === 'number' && Number.isFinite(v),
 };
 for (const [dataset, { file, key, kind }] of Object.entries(DATASETS)) {
   const records = JSON.parse(readFileSync(join(root, 'data', file), 'utf8'));
@@ -172,6 +188,24 @@ const CASES = [
     code: "import { validateFbrInvoice } from 'pakdatakit/fbr-invoice'; console.log(validateFbrInvoice({}));",
     limit: 8 * 1024,
     allowed: ['sales tax rates'],
+  },
+  {
+    name: "zakatDeduction from 'pakdatakit/zakat'",
+    code: "import { zakatDeduction } from 'pakdatakit/zakat'; console.log(zakatDeduction({ balance: 600000, zakatYear: 1447 }));",
+    limit: 4 * 1024,
+    allowed: ['zakat nisab'],
+  },
+  {
+    name: "getDistrictPopulation from 'pakdatakit/population'",
+    code: "import { getDistrictPopulation } from 'pakdatakit/population'; console.log(getDistrictPopulation('Lahore'));",
+    limit: 8 * 1024,
+    allowed: ['census population'],
+  },
+  {
+    name: "getTehsilPopulation from 'pakdatakit/population'",
+    code: "import { getTehsilPopulation } from 'pakdatakit/population'; console.log(getTehsilPopulation('Murree'));",
+    limit: 20 * 1024,
+    allowed: ['census population'],
   },
   {
     // Every rule of the adapter; zod itself is the app's own dependency.

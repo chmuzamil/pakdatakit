@@ -19,6 +19,7 @@ export const modules = [
   'numbers',
   'passport',
   'phone',
+  'population',
   'postal',
   'quality',
   'raast',
@@ -28,6 +29,7 @@ export const modules = [
   'vehicle',
   'whatsapp',
   'words',
+  'zakat',
 ];
 
 /** Form-library adapters; each is exposed as a subpath (e.g. `pakdatakit/zod`). */

@@ -1,9 +1,13 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { formatAmountInput, parseAmount } from 'pakdatakit/format';
 
+/**
+ * A result as a test runner prints it: "✓ valid" or "✗ invalid" in
+ * monospace, green or red. The mark is decorative; the label is read out.
+ */
 export function Badge({
   valid,
-  labels = ['Valid', 'Invalid'],
+  labels = ['valid', 'invalid'],
 }: {
   valid: boolean;
   labels?: [string, string];
@@ -13,6 +17,7 @@ export function Badge({
       key={String(valid)}
       className={`pdk-badge pdk-pop ${valid ? 'valid' : 'invalid'}`}
     >
+      <span aria-hidden="true">{valid ? '✓ ' : '✗ '}</span>
       {valid ? labels[0] : labels[1]}
     </span>
   );
@@ -100,8 +105,7 @@ export function PrivacyNote({ children }: { children?: ReactNode }) {
         <path d="M8 11V7a4 4 0 0 1 8 0v4" />
       </svg>
       <span>
-        Runs on your device: nothing you type is uploaded or stored, and it
-        works offline.
+        Runs on your device. Nothing you type is uploaded or stored.
         {children ? <> {children}</> : null}
       </span>
     </p>
@@ -209,8 +213,8 @@ export function ShareButton({
       ) : null}
       {personal ? (
         <p className="pdk-note" id={`${id}-note`}>
-          The link contains what you typed (after the #, which browsers never
-          send to a server). Share it only with people who may see it.
+          The link holds what you typed, after the # (never sent to a server).
+          Share it only with people who may see it.
         </p>
       ) : null}
     </div>

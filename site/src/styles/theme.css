@@ -1,10 +1,26 @@
-/* PakDataKit: design direction 1, deep green and restrained.
-   Self-hosted fonts only; Urdu (Noto Naskh Arabic) is used only for lang="ur". */
+/* PakDataKit: warm paper and ink, deep green accent. Headings in Source
+   Serif 4, body in Inter, code and data in JetBrains Mono. Self-hosted fonts
+   only; Urdu (Noto Naskh Arabic) is used only for lang="ur".
+   Rules: pills only on selectable things (.pdk-pill); glass only on the
+   header and the home demo panel (.pdk-glass), with a solid fallback; one
+   radius; no hover lift or scale; status output as test-runner lines. */
 @import '@fontsource-variable/inter/wght.css';
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/600.css';
 @import '@fontsource/noto-naskh-arabic/arabic-400.css';
 @import '@fontsource/noto-naskh-arabic/arabic-600.css';
+
+/* Headings: an ASCII-plus-punctuation subset of Source Serif 4 SemiBold (Adobe, SIL OFL 1.1;
+   see public/fonts/OFL.txt). Renamed "PDK Serif" because the OFL reserves
+   the name "Source" for unmodified fonts. Preloaded in Head.astro so
+   headings do not reflow when it arrives. */
+@font-face {
+  font-family: 'PDK Serif';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url('/fonts/pdk-serif-600.woff2') format('woff2');
+}
 
 :root {
   --sl-font:
@@ -12,30 +28,37 @@
   --sl-font-mono:
     'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
   --pdk-font-ur: 'Noto Naskh Arabic', 'Inter Variable', serif;
-  /* One radius scale for cards, controls and small chips. */
-  --pdk-radius-sm: 0.375rem;
-  --pdk-radius: 0.5rem;
-  --pdk-radius-card: 0.75rem;
+  --pdk-font-head: 'PDK Serif', Georgia, 'Times New Roman', serif;
+  /* One radius for controls and panels; pills are fully round. */
+  --pdk-radius-sm: 6px;
+  --pdk-radius: 6px;
+  --pdk-radius-card: 6px;
+  --pdk-radius-pill: 999px;
   accent-color: var(--sl-color-accent);
   scrollbar-color: var(--sl-color-gray-5) transparent;
 }
 
-/* Dark (Starlight's default). */
+/* Dark (Starlight's default): warm near-black, green accent. */
 :root {
-  --sl-color-accent-low: #0f2e22;
-  --sl-color-accent: #34a36b;
-  --sl-color-accent-high: #a7e8c3;
-  --sl-color-white: #f2f6f3;
-  --sl-color-gray-1: #dfe7e2;
-  --sl-color-gray-2: #b8c5bd;
-  --sl-color-gray-3: #85978c;
-  --sl-color-gray-4: #556a5e;
-  --sl-color-gray-5: #34463b;
-  --sl-color-gray-6: #1c2a22;
-  --sl-color-black: #0c1611;
-  --pdk-valid: #4ade80;
+  --sl-color-accent-low: #14291d;
+  --sl-color-accent: #5cc98f;
+  --sl-color-accent-high: #b4ecc9;
+  --sl-color-white: #ecf0eb;
+  --sl-color-gray-1: #dce3dc;
+  --sl-color-gray-2: #b3bfb6;
+  --sl-color-gray-3: #8c9a90;
+  --sl-color-gray-4: #5b685f;
+  --sl-color-gray-5: #2f3a33;
+  --sl-color-gray-6: #1c2520;
+  --sl-color-black: #0e1511;
+  --pdk-valid: #6ee7a0;
   --pdk-invalid: #fca5a5;
-  --pdk-surface: #122019;
+  --pdk-surface: #131c17;
+  --pdk-glass: rgba(19, 28, 23, 0.72);
+  --pdk-glass-edge: rgba(236, 240, 235, 0.14);
+  /* A muted primary button in dark mode. */
+  --pdk-primary-bg: #1f3d2c;
+  --pdk-primary-fg: #ecf0eb;
 }
 
 :root[data-theme='light'] {
@@ -47,13 +70,17 @@
   --sl-color-gray-2: #34493e;
   --sl-color-gray-3: #55695e;
   --sl-color-gray-4: #8b9b91;
-  --sl-color-gray-5: #c8d3cc;
-  --sl-color-gray-6: #e9efeb;
-  --sl-color-gray-7: #f4f7f5;
-  --sl-color-black: #fbfcfa;
+  --sl-color-gray-5: #d6d6cc;
+  --sl-color-gray-6: #ebeae2;
+  --sl-color-gray-7: #f4f3ec;
+  --sl-color-black: #fbfaf6;
   --pdk-valid: #166534;
   --pdk-invalid: #991b1b;
-  --pdk-surface: #f1f6f2;
+  --pdk-surface: #f4f3ec;
+  --pdk-glass: rgba(251, 250, 246, 0.78);
+  --pdk-glass-edge: rgba(20, 35, 27, 0.14);
+  --pdk-primary-bg: #0b6b41;
+  --pdk-primary-fg: #ffffff;
 }
 
 :lang(ur) {
@@ -123,18 +150,14 @@
   color: var(--sl-color-accent);
 }
 .pdk-badge {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 0.1rem 0.6rem;
+  font-family: var(--sl-font-mono);
   font-size: var(--sl-text-sm);
   font-weight: 600;
 }
 .pdk-badge.valid {
-  background: color-mix(in srgb, var(--pdk-valid) 18%, transparent);
   color: var(--pdk-valid);
 }
 .pdk-badge.invalid {
-  background: color-mix(in srgb, var(--pdk-invalid) 18%, transparent);
   color: var(--pdk-invalid);
 }
 .pdk-rows {
@@ -378,6 +401,9 @@ h1#_top {
 .pdk-button:hover {
   background: var(--sl-color-accent-low);
 }
+.pdk-button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--sl-color-accent) 28%, transparent);
+}
 .pdk-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -392,12 +418,7 @@ h1#_top {
 
 @media (prefers-reduced-motion: no-preference) {
   .pdk-button {
-    transition:
-      background-color 0.15s,
-      transform 0.15s;
-  }
-  .pdk-button:active:not(:disabled) {
-    transform: translateY(1px);
+    transition: background-color 0.15s;
   }
   .pdk-input,
   .pdk-select {
@@ -437,11 +458,6 @@ h1#_top {
 @keyframes pdk-pop {
   from {
     opacity: 0;
-    transform: scale(0.6);
-  }
-  to {
-    opacity: 1;
-    transform: none;
   }
 }
 @keyframes pdk-flash {
@@ -473,462 +489,12 @@ header.header {
   view-transition-name: pdk-header;
 }
 
-/* ---- Home: hero (src/components/Hero.astro) ---- */
-.pdk-hero {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 2.5rem;
-  align-items: center;
-  padding-block: 1.5rem 2.5rem;
-}
-/* A faint green glow and grid behind the hero, fading out at the edges. */
-.pdk-hero::before {
-  content: '';
-  position: absolute;
-  inset: -4rem -1rem -2rem;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      34rem 20rem at 70% 40%,
-      color-mix(in srgb, var(--sl-color-accent) 16%, transparent),
-      transparent 70%
-    ),
-    linear-gradient(var(--sl-color-gray-6) 1px, transparent 1px) 0 0 / 32px 32px,
-    linear-gradient(90deg, var(--sl-color-gray-6) 1px, transparent 1px) 0 0 /
-      32px 32px;
-  -webkit-mask-image: radial-gradient(
-    ellipse 70% 80% at 60% 40%,
-    #000 20%,
-    transparent 75%
-  );
-  mask-image: radial-gradient(
-    ellipse 70% 80% at 60% 40%,
-    #000 20%,
-    transparent 75%
-  );
-}
-.pdk-hero-copy {
-  display: grid;
-  gap: 1.25rem;
-  justify-items: start;
-  text-align: start;
-}
-.pdk-hero h1 {
-  margin: 0;
-  font-size: clamp(2.25rem, 1.15rem + 4.4vw, 3.75rem);
-  font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.025em;
-  color: var(--sl-color-white);
-  text-wrap: balance;
-}
-.pdk-hero-accent {
-  display: block;
-  color: var(--sl-color-accent);
-}
-.pdk-hero-intro {
-  margin: 0;
-  max-width: 38rem;
-  font-size: clamp(1.0625rem, 0.95rem + 0.45vw, 1.25rem);
-  line-height: 1.55;
-  color: var(--sl-color-gray-2);
-  text-wrap: pretty;
-}
-.pdk-hero-langs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.pdk-hero-langs a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2rem;
-  padding: 0 0.8rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--pdk-surface) 70%, transparent);
-  color: var(--sl-color-gray-2);
-  font-size: var(--sl-text-sm);
-  font-weight: 500;
-  text-decoration: none;
-  transition:
-    border-color 0.15s,
-    color 0.15s;
-}
-.pdk-hero-langs a:hover {
-  border-color: var(--sl-color-accent);
-  color: var(--sl-color-white);
-}
-.pdk-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.25rem;
-}
-.pdk-hero-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-sizing: border-box;
-  height: 3rem;
-  padding: 0 1.4rem;
-  border: 1.5px solid var(--sl-color-accent);
-  border-radius: 0.6rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition:
-    background-color 0.15s,
-    color 0.15s,
-    transform 0.15s;
-}
-.pdk-hero-button.primary {
-  background: var(--sl-color-accent);
-  color: var(--sl-color-text-invert);
-}
-.pdk-hero-button.primary:hover {
-  background: color-mix(
-    in srgb,
-    var(--sl-color-accent) 85%,
-    var(--sl-color-white)
-  );
-}
-.pdk-hero-button.outline {
-  background: transparent;
-  color: var(--sl-color-accent-high);
-}
-:root[data-theme='light'] .pdk-hero-button.outline {
-  color: var(--sl-color-accent);
-}
-.pdk-hero-button.outline:hover {
-  background: var(--sl-color-accent-low);
-}
-:is(.pdk-hero-button, .pdk-hero-langs a):focus-visible {
-  outline: 2px solid var(--sl-color-accent);
-  outline-offset: 2px;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .pdk-hero-button:active {
-    transform: translateY(1px);
-  }
-}
-.pdk-hero-proof {
-  margin: 0;
-  font-size: var(--sl-text-sm);
-  color: var(--sl-color-gray-3);
-}
-@media (pointer: coarse) {
-  .pdk-hero-langs a {
-    min-height: 2.75rem;
-  }
-}
-@media (min-width: 50rem) {
-  .pdk-hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    gap: 3rem;
-    padding-block: clamp(2rem, 1rem + 6vmin, 5rem);
-  }
-}
-
-/* ---- Home: live demo (src/components/widgets/HeroDemo.tsx) ---- */
-.pdk-demo {
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: var(--pdk-radius-card, 0.75rem);
-  background: var(--pdk-surface);
-  box-shadow: 0 24px 48px -28px
-    color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
-  overflow: hidden;
-}
-.pdk-demo-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--sl-color-gray-5);
-}
-.pdk-demo-tabs button {
-  min-height: 2.75rem;
-  padding: 0 1.1rem;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--sl-color-gray-3);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.pdk-demo-tabs button[aria-selected='true'] {
-  border-bottom-color: var(--sl-color-accent);
-  color: var(--sl-color-white);
-}
-.pdk-demo-tabs button:focus-visible,
-.pdk-demo-langs button:focus-visible,
-.pdk-demo-copy:focus-visible,
-.pdk-demo pre:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
-  outline-offset: -2px;
-}
-.pdk-demo-body {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
-}
-.pdk-demo-result {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 1.75rem;
-  margin: 0;
-  font-weight: 500;
-  color: var(--sl-color-white);
-}
-.pdk-demo-code {
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.5rem;
-  background: var(--sl-color-black);
-  overflow: hidden;
-}
-.pdk-demo-code-bar {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-  padding: 0.35rem 0.5rem 0;
-  border-bottom: 2px solid var(--sl-color-gray-5);
-}
-/* Language tabs, drawn like Starlight's synced code tabs in the docs. */
-.pdk-demo-langs {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  margin-bottom: -2px;
-}
-.pdk-demo-langs button {
-  min-height: 2.25rem;
-  padding: 0 0.7rem;
-  border: 0;
-  background: transparent;
-  color: var(--sl-color-gray-3);
-  font: inherit;
-  font-size: var(--sl-text-sm);
-  line-height: var(--sl-line-height-headings);
-  white-space: nowrap;
-  cursor: pointer;
-}
-.pdk-demo-langs button:hover {
-  color: var(--sl-color-white);
-}
-.pdk-demo-langs button[aria-selected='true'] {
-  box-shadow: 0 2px 0 var(--sl-color-text-accent);
-  color: var(--sl-color-white);
-  font-weight: 600;
-}
-.pdk-demo-copy {
-  flex: none;
-  align-self: center;
-  min-height: 2rem;
-  margin-bottom: 0.3rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.375rem;
-  background: transparent;
-  color: var(--sl-color-gray-2);
-  font: inherit;
-  font-size: var(--sl-text-sm);
-  padding: 0 0.6rem;
-  cursor: pointer;
-}
-.pdk-demo-copy:hover {
-  border-color: var(--sl-color-accent);
-  color: var(--sl-color-white);
-}
-@media (pointer: coarse) {
-  .pdk-demo-langs button,
-  .pdk-demo-copy {
-    min-height: 2.75rem;
-  }
-}
-@media (max-width: 24rem) {
-  .pdk-demo-langs button {
-    padding: 0 0.4rem;
-  }
-  .pdk-demo-code-bar {
-    gap: 0.25rem;
-    padding-inline: 0.25rem;
-  }
-}
-/* The whole example is always visible: long lines wrap, nothing scrolls. */
-.pdk-demo pre {
-  margin: 0;
-  padding: 0.75rem 0.9rem;
-  overflow: visible;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  font-family: var(--sl-font-mono);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--sl-color-gray-1);
-  background: none;
-  border: 0;
-}
-/* A wrapped line hangs under its first characters, so it reads as one line. */
-.pdk-demo-line {
-  display: block;
-  padding-inline-start: 3ch;
-  text-indent: -3ch;
-}
-.pdk-demo-str {
-  white-space: nowrap;
-}
-.pdk-demo-note {
-  margin: 0;
-  font-size: var(--sl-text-xs);
-  color: var(--sl-color-gray-3);
-}
-
-/* ---- Home: install switcher (src/components/InstallSwitcher.astro) ---- */
-.pdk-install {
-  display: block;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: var(--pdk-radius-card, 0.75rem);
-  background: var(--pdk-surface);
-  overflow: hidden;
-}
-.pdk-install-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--sl-color-gray-5);
-}
-.pdk-install-tabs button {
-  min-height: 2.75rem;
-  padding: 0 1rem;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--sl-color-gray-3);
-  font-family: var(--sl-font-mono);
-  font-size: var(--sl-text-sm);
-  cursor: pointer;
-}
-.pdk-install-tabs button[aria-selected='true'] {
-  border-bottom-color: var(--sl-color-accent);
-  color: var(--sl-color-white);
-}
-.pdk-install-tabs button:focus-visible,
-.pdk-install-copy:focus-visible {
-  outline: 2px solid var(--sl-color-accent);
-  outline-offset: -2px;
-}
-.pdk-install-panel {
-  padding: 1rem;
-}
-.pdk-install-line {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.5rem 0.5rem 0.9rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.5rem;
-  background: var(--sl-color-black);
-}
-.pdk-install-line code {
-  flex: 1;
-  min-width: 0;
-  /* Wrap rather than clip next to the Copy button on narrow screens. */
-  white-space: normal;
-  overflow-wrap: anywhere;
-  background: none;
-  border: 0;
-  padding: 0;
-  font-size: var(--sl-text-sm);
-  color: var(--sl-color-white);
-}
-.pdk-install-prompt {
-  color: var(--sl-color-gray-3);
-  user-select: none;
-}
-.pdk-install-copy {
-  flex: none;
-  min-height: 2.25rem;
-  padding: 0 0.85rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.375rem;
-  background: transparent;
-  color: var(--sl-color-gray-2);
-  font: inherit;
-  font-size: var(--sl-text-sm);
-  cursor: pointer;
-}
-.pdk-install-copy:hover {
-  border-color: var(--sl-color-accent);
-  color: var(--sl-color-white);
-}
-.pdk-install-panel p {
-  margin: 0.6rem 0 0;
-  font-size: var(--sl-text-sm);
-  color: var(--sl-color-gray-3);
-}
-.pdk-install-panel a {
-  color: var(--sl-color-text-accent);
-}
-.pdk-install-panel a:hover {
-  color: var(--sl-color-white);
-}
-@media (pointer: coarse) {
-  .pdk-install-copy {
-    min-height: 2.75rem;
-  }
-}
-@media (max-width: 30rem) {
-  .pdk-install-tabs button {
-    padding: 0 0.6rem;
-  }
-  .pdk-install-panel {
-    padding: 0.75rem;
-  }
-}
-
 /* Heading anchor links: only on hover or keyboard focus, never on touch. */
 @media (hover: none) {
   .sl-markdown-content .sl-anchor-link:not(:focus-visible) {
     opacity: 0;
     pointer-events: none;
   }
-}
-
-/* ---- Home: add-on packages (src/components/Addons.astro) ---- */
-.pdk-addons {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
-  gap: 0.25rem 1.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.pdk-addons li {
-  display: grid;
-  gap: 0.15rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--sl-color-gray-6);
-}
-.pdk-addon-name {
-  justify-self: start;
-  color: var(--sl-color-text-accent);
-  text-underline-offset: 0.2em;
-}
-.pdk-addon-name code {
-  white-space: nowrap;
-  font-size: var(--sl-text-sm);
-  background: none;
-  border: 0;
-  padding: 0;
-  color: inherit;
-}
-.pdk-addon-purpose {
-  font-size: var(--sl-text-sm);
-  color: var(--sl-color-gray-2);
 }
 
 /* Tools: batch (CSV) panel, code toggle, button rows, score meter. */
@@ -1028,4 +594,807 @@ header.header {
 .api-table:focus-visible {
   outline: 2px solid var(--sl-color-accent);
   outline-offset: 2px;
+}
+
+/* ==== 2026-11 design pass: shared pieces ==== */
+
+/* Headings in Source Serif 4 (one weight, 600); numerals line up. */
+:is(h1, h2, h3, .sl-markdown-content :is(h1, h2, h3)),
+h1#_top {
+  font-family: var(--pdk-font-head);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: lining-nums;
+}
+/* Tabular numerals in tables and results. */
+table,
+.pdk-rows dd,
+.pdk-status,
+.pdk-num {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* A reference-manual measure for running text. */
+.sl-markdown-content > p,
+.sl-markdown-content > ul,
+.sl-markdown-content > ol {
+  max-width: 70ch;
+}
+
+/* Pills: the one style for selectable and filterable things. */
+.pdk-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--pdk-radius-pill);
+  background: transparent;
+  color: var(--sl-color-gray-1);
+  font: 500 0.8125rem/1 var(--sl-font);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pdk-pill:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+.pdk-pill:active {
+  background: var(--sl-color-accent-low);
+}
+.pdk-pill:is(
+  [aria-selected='true'],
+  [aria-pressed='true'],
+  [aria-current='true']
+) {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-accent);
+  color: var(--sl-color-black);
+}
+:root[data-theme='light']
+  .pdk-pill:is(
+    [aria-selected='true'],
+    [aria-pressed='true'],
+    [aria-current='true']
+  ) {
+  color: #ffffff;
+}
+.pdk-pill:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+@media (pointer: coarse) {
+  .pdk-pill {
+    min-height: 2.75rem;
+  }
+}
+.pdk-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Starlight's synced code tabs (LangTabs, the forms guide) as pills. */
+starlight-tabs .tablist-wrapper {
+  border: 0;
+}
+starlight-tabs [role='tablist'] {
+  gap: 0.375rem;
+  border: 0;
+  flex-wrap: wrap;
+}
+starlight-tabs [role='tablist'] li {
+  border: 0;
+}
+starlight-tabs [role='tablist'] a[role='tab'] {
+  min-height: 2rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--pdk-radius-pill);
+  margin: 0;
+  color: var(--sl-color-gray-1);
+  font: 500 0.8125rem/2rem var(--sl-font);
+}
+starlight-tabs [role='tablist'] a[role='tab']:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+starlight-tabs [role='tablist'] a[role='tab'][aria-selected='true'] {
+  border-color: var(--sl-color-accent);
+  background: var(--sl-color-accent);
+  color: var(--sl-color-black);
+  font-weight: 600;
+}
+:root[data-theme='light']
+  starlight-tabs
+  [role='tablist']
+  a[role='tab'][aria-selected='true'] {
+  color: #ffffff;
+}
+starlight-tabs [role='tablist'] a[role='tab']:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+starlight-tabs [role='tabpanel'] {
+  margin-top: 0.6rem;
+}
+
+/* Glass: the header and the home demo panel only. Solid where the browser
+   can't blur or the visitor asks for less transparency. */
+.pdk-glass {
+  background: var(--pdk-surface);
+  border: 1px solid var(--sl-color-gray-5);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .pdk-glass {
+    background: var(--pdk-glass);
+    border-color: var(--pdk-glass-edge);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .pdk-glass {
+    background: var(--pdk-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Status output, like a test runner: "✓ valid · Punjab · male". */
+.pdk-status {
+  font-family: var(--sl-font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.pdk-status.valid {
+  color: var(--pdk-valid);
+}
+.pdk-status.invalid {
+  color: var(--pdk-invalid);
+}
+
+/* Section labels: "01 · ANATOMY". */
+.pdk-label {
+  display: block;
+  margin: 0 0 0.25rem;
+  font: 600 0.75rem/1.4 var(--sl-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-accent);
+}
+:root[data-theme='light'] .pdk-label {
+  color: var(--sl-color-accent);
+}
+
+/* ==== Home (src/components/Hero.astro, components/home/*) ==== */
+.pdk-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+  padding-block: 1.5rem 1rem;
+}
+.pdk-hero-copy {
+  display: grid;
+  gap: 1.1rem;
+  justify-items: start;
+  min-width: 0;
+}
+.pdk-hero h1 {
+  margin: 0;
+  max-width: 22ch;
+  font-size: clamp(1.875rem, 1.2rem + 2.4vw, 2.5rem);
+  line-height: 1.15;
+  color: var(--sl-color-white);
+  text-wrap: balance;
+}
+.pdk-hero-intro {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--sl-color-gray-2);
+}
+.pdk-hero-docs {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  color: var(--sl-color-text-accent);
+  text-underline-offset: 0.2em;
+}
+.pdk-hero-docs:hover {
+  color: var(--sl-color-white);
+}
+.pdk-hero-demo {
+  min-width: 0;
+}
+@media (min-width: 50rem) {
+  .pdk-hero {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 3rem;
+    padding-block: 2.5rem 1.5rem;
+  }
+}
+
+/* Install switcher: language pills, then the command and Copy. */
+.pdk-install {
+  display: grid;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 34rem;
+}
+.pdk-install-line {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--pdk-radius);
+  background: var(--pdk-surface);
+  overflow: hidden;
+}
+.pdk-install-line code {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.8rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-white);
+}
+.pdk-install-copy {
+  flex: none;
+  min-width: 4.5rem;
+  border: 0;
+  border-inline-start: 1px solid var(--sl-color-gray-5);
+  background: var(--pdk-primary-bg);
+  color: var(--pdk-primary-fg);
+  font: 600 var(--sl-text-sm) var(--sl-font);
+  cursor: pointer;
+}
+.pdk-install-copy:hover {
+  background: color-mix(
+    in srgb,
+    var(--pdk-primary-bg) 85%,
+    var(--sl-color-white)
+  );
+}
+.pdk-install-copy:active {
+  background: color-mix(
+    in srgb,
+    var(--pdk-primary-bg) 70%,
+    var(--sl-color-white)
+  );
+}
+.pdk-install-copy:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: -3px;
+}
+.pdk-install-guide {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+.pdk-install-guide:hover {
+  color: var(--sl-color-text-accent);
+}
+
+/* Live demo: a glass panel with a faint accent glow. */
+.pdk-demo {
+  border-radius: var(--pdk-radius);
+  box-shadow: 0 20px 48px -32px
+    color-mix(in srgb, var(--sl-color-accent) 70%, transparent);
+}
+.pdk-demo-tabs {
+  padding: 0.75rem 0.9rem 0;
+}
+.pdk-demo-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem 0.9rem;
+}
+.pdk-demo-result {
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--sl-color-gray-2);
+}
+.pdk-demo-code {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--pdk-radius);
+  background: var(--sl-color-black);
+  overflow: hidden;
+}
+.pdk-demo-code-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+.pdk-demo-langs {
+  flex: 1;
+  min-width: 0;
+  gap: 0.25rem;
+}
+.pdk-demo-langs .pdk-pill {
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  font-size: 0.75rem;
+}
+.pdk-demo-copy {
+  flex: none;
+  min-height: 1.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--pdk-radius);
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  font: 500 0.75rem var(--sl-font);
+  padding: 0 0.6rem;
+  cursor: pointer;
+}
+.pdk-demo-copy:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+.pdk-demo-copy:active {
+  background: var(--sl-color-accent-low);
+}
+.pdk-demo-copy:focus-visible,
+.pdk-demo pre:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: -2px;
+}
+@media (pointer: coarse) {
+  .pdk-demo-langs .pdk-pill,
+  .pdk-demo-copy {
+    min-height: 2.75rem;
+  }
+}
+/* The whole example is always visible: long lines wrap, nothing scrolls. */
+.pdk-demo pre {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-1);
+  background: none;
+  border: 0;
+}
+.pdk-demo-line {
+  display: block;
+  padding-inline-start: 3ch;
+  text-indent: -3ch;
+}
+.pdk-demo-str {
+  white-space: nowrap;
+}
+.pdk-demo-note {
+  margin: 0;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+
+/* Home sections: rules and whitespace, no cards. */
+.pdk-home-section {
+  padding-block: 2.25rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+}
+.pdk-home-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.625rem;
+  line-height: 1.25;
+  color: var(--sl-color-white);
+}
+.pdk-home-prose {
+  max-width: 70ch;
+  margin: 0 0 1rem;
+  color: var(--sl-color-gray-2);
+}
+.pdk-home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 1rem 0 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.pdk-home-links a {
+  color: var(--sl-color-text-accent);
+}
+.pdk-home-links code {
+  font-size: 0.8125rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+
+/* 01 Anatomy. Segment colours pass AA on both backgrounds. */
+.pdk-anatomy {
+  display: grid;
+  gap: 2rem;
+}
+@media (min-width: 50rem) {
+  .pdk-anatomy {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+}
+.pdk-anat {
+  margin: 0;
+  min-width: 0;
+}
+.pdk-anat figcaption {
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  color: var(--sl-color-gray-2);
+}
+.pdk-anat figcaption code {
+  margin-inline-start: 0.4rem;
+  font-weight: 400;
+}
+.pdk-anat-value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.4rem;
+  font: 600 clamp(1.35rem, 0.9rem + 1.8vw, 1.875rem) / 1.3 var(--sl-font-mono);
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+}
+.pdk-seg {
+  padding-bottom: 0.3rem;
+  border-bottom: 3px solid currentColor;
+  min-width: 0;
+  color: var(--seg);
+}
+.s1 {
+  --seg: #0b6b41;
+}
+.s2 {
+  --seg: #8a5a00;
+}
+.s3 {
+  --seg: #2f5b9a;
+}
+.s4 {
+  --seg: #7a2e74;
+}
+:root:not([data-theme='light']) .s1 {
+  --seg: #6ee7a0;
+}
+:root:not([data-theme='light']) .s2 {
+  --seg: #f2c46b;
+}
+:root:not([data-theme='light']) .s3 {
+  --seg: #9cc3ff;
+}
+:root:not([data-theme='light']) .s4 {
+  --seg: #e7a6e0;
+}
+.pdk-anat-parts {
+  display: grid;
+  gap: 0.35rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+.pdk-anat-parts li {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, max-content) 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin: 0;
+}
+.pdk-anat-parts code {
+  justify-self: start;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-weight: 600;
+  color: var(--seg);
+}
+
+/* 02 Parity: language | call | result. */
+.pdk-parity {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--sl-text-sm);
+}
+.pdk-parity :is(th, td) {
+  padding: 0.55rem 1rem 0.55rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  background: none;
+  text-align: start;
+  vertical-align: baseline;
+}
+.pdk-parity thead th {
+  font: 600 0.75rem var(--sl-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+.pdk-parity tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--sl-color-white);
+}
+.pdk-parity code {
+  background: none;
+  border: 0;
+  padding: 0;
+  white-space: nowrap;
+  color: var(--sl-color-gray-1);
+}
+.pdk-parity .pdk-parity-out {
+  color: var(--pdk-valid);
+}
+@media (max-width: 40rem) {
+  .pdk-parity thead {
+    display: none;
+  }
+  .pdk-parity,
+  .pdk-parity tbody,
+  .pdk-parity tr,
+  .pdk-parity :is(th, td) {
+    display: block;
+  }
+  .pdk-parity tr {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+  }
+  .pdk-parity :is(th, td) {
+    padding: 0.1rem 0;
+    border: 0;
+  }
+  .pdk-parity code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* 03 Provenance. */
+.pdk-prov {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--sl-text-sm);
+}
+.pdk-prov :is(th, td) {
+  padding: 0.55rem 1.25rem 0.55rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  background: none;
+  text-align: start;
+  vertical-align: baseline;
+}
+.pdk-prov th {
+  font: 600 0.75rem var(--sl-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+.pdk-prov .n {
+  text-align: end;
+  font-family: var(--sl-font-mono);
+  white-space: nowrap;
+}
+
+/* 04 Modules: a typographic list, no cards. */
+.pdk-module-pills {
+  margin-bottom: 1.25rem;
+}
+.pdk-module {
+  display: grid;
+  gap: 0.5rem 2rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--sl-color-gray-6);
+  scroll-margin-top: calc(var(--sl-nav-height, 3.5rem) + 1rem);
+}
+.pdk-module h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--sl-color-white);
+}
+.pdk-module dl {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 0.35rem 1.25rem;
+  margin: 0;
+  font-size: var(--sl-text-sm);
+}
+.pdk-module dt,
+.pdk-module dd {
+  margin: 0;
+}
+.pdk-module dt code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: inherit;
+}
+.pdk-module dt a {
+  color: var(--sl-color-text-accent);
+}
+.pdk-module dd {
+  color: var(--sl-color-gray-2);
+}
+@media (min-width: 50rem) {
+  .pdk-module {
+    grid-template-columns: 11rem minmax(0, 1fr);
+  }
+}
+@media (max-width: 30rem) {
+  .pdk-module dl {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+  .pdk-module dd {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* 05 Production. */
+.pdk-production {
+  display: grid;
+  gap: 1rem 3rem;
+}
+@media (min-width: 50rem) {
+  .pdk-production {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.pdk-production-lede {
+  margin: 0;
+  max-width: 36ch;
+  font: 600 1.25rem/1.45 var(--pdk-font-head);
+  color: var(--sl-color-white);
+}
+.pdk-production ul {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+.pdk-production li {
+  margin: 0 0 0.3rem;
+}
+.pdk-production code {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--sl-color-white);
+}
+
+/* Site footer (src/components/Footer.astro). */
+.pdk-footer {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+@media (min-width: 50rem) {
+  .pdk-footer {
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  }
+}
+.pdk-footer-id {
+  display: grid;
+  gap: 0.2rem;
+  align-content: start;
+}
+.pdk-footer-id strong {
+  color: var(--sl-color-white);
+}
+.pdk-footer h2 {
+  margin: 0 0 0.5rem;
+  font: 600 0.75rem var(--sl-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+}
+.pdk-footer ul {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pdk-footer a {
+  color: var(--sl-color-text-accent);
+}
+.pdk-footer a:hover {
+  color: var(--sl-color-white);
+}
+
+/* Links in the home sections take the accent (they sit outside Starlight's
+   content styles). */
+.pdk-home-section a:not(.pdk-pill) {
+  color: var(--sl-color-text-accent);
+  text-underline-offset: 0.18em;
+}
+.pdk-home-section a:not(.pdk-pill):hover {
+  color: var(--sl-color-white);
+}
+/* Module names line up across groups on wide screens. */
+@media (min-width: 50rem) {
+  .pdk-module dl {
+    grid-template-columns: 12.5rem minmax(0, 1fr);
+  }
+}
+/* The demo's five language pills and Copy fit one line at 360 px. */
+@media (max-width: 26rem) {
+  .pdk-demo-langs {
+    gap: 0.2rem;
+  }
+  .pdk-demo-langs .pdk-pill {
+    padding: 0 0.45rem;
+  }
+  .pdk-demo-code-bar {
+    gap: 0.3rem;
+    padding-inline: 0.35rem;
+  }
+  .pdk-demo-copy {
+    padding: 0 0.45rem;
+  }
+}
+
+/* Starlight link cards as a rule-separated list (docs, tools, use cases and
+   playground indexes): no box, no shadow, no hover lift. */
+.sl-link-card {
+  border: 0;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: 0.75rem 0;
+}
+.sl-link-card:hover {
+  background: none;
+  border-color: var(--sl-color-gray-5);
+}
+.sl-link-card:hover .title {
+  color: var(--sl-color-text-accent);
+}
+.sl-link-card .icon {
+  color: var(--sl-color-gray-3);
+}
+.card-grid {
+  gap: 0 2rem;
+}
+
+/* Monospace stays at 400 (the one JetBrains Mono file most pages load);
+   emphasis comes from colour and size, not a second weight. */
+:is(
+  .pdk-label,
+  .pdk-status,
+  .pdk-badge,
+  .pdk-anat-value,
+  .pdk-anat-parts code,
+  .pdk-parity thead th,
+  .pdk-parity-out,
+  .pdk-prov th,
+  .pdk-footer h2,
+  .pdk-demo-result
+) {
+  font-weight: 400;
 }

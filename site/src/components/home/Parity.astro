@@ -1,0 +1,61 @@
+---
+/**
+ * Home, section 02: one shared test vector, called in each language with its
+ * result. Generated at build time from test-vectors/docs-examples.json (the
+ * vectors every port replays in CI) through the docs' snippet renderer, so
+ * the calls and results are the real ones; the count comes from
+ * test-vectors/README.md.
+ */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { LANGS, call, resultComment, type Example } from '../../lib/snippets';
+import { GITHUB } from '../../../site.config.mjs';
+
+const root = join(process.cwd(), '..');
+const vectors = JSON.parse(readFileSync(join(root, 'test-vectors', 'docs-examples.json'), 'utf8')) as {
+  fn: string;
+  args: unknown[];
+  expected: unknown;
+}[];
+const v = vectors.find((x) => x.fn === 'formatAmountInput' && x.args[0] === '1.5 lakh');
+if (!v) throw new Error('Parity.astro: the formatAmountInput("1.5 lakh") vector is missing');
+const example: Example = { id: 'parity', title: '', fn: v.fn, args: v.args, expected: v.expected };
+const rows = LANGS.map((l) => ({
+  label: l.label,
+  call: call(l.id, example),
+  result: resultComment(l.id, v.expected, true, v.fn).replace(/^(\/\/|#)\s*→\s*/, ''),
+}));
+
+const readme = readFileSync(join(root, 'test-vectors', 'README.md'), 'utf8');
+const count = /([\d,]+) vectors in (\d+) files/.exec(readme);
+---
+
+<section class="pdk-home-section not-content" aria-labelledby="parity">
+  <span class="pdk-label">02 · Parity</span>
+  <h2 id="parity">One test vector, five languages</h2>
+  <p class="pdk-home-prose">
+    Every port replays the same {count ? count[1] : ''} shared test vectors in CI, and a port that gives a different
+    answer fails the build. Here is one of them:
+  </p>
+  <table class="pdk-parity">
+    <thead>
+      <tr><th scope="col">Language</th><th scope="col">Call</th><th scope="col">Result</th></tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((r) => (
+          <tr>
+            <th scope="row">{r.label}</th>
+            <td><code>{r.call}</code></td>
+            <td><code class="pdk-parity-out">{r.result}</code></td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <p class="pdk-home-links">
+    <a href={`${GITHUB}/blob/main/test-vectors/README.md`}>test-vectors/README.md</a>
+    <a href={`${GITHUB}/actions/workflows/ci.yml`}>CI status</a>
+    {count && <span class="pdk-num">{count[1]} vectors · {count[2]} files</span>}
+  </p>
+</section>

@@ -1,0 +1,63 @@
+---
+/**
+ * Home, section 01: what a CNIC and an IBAN encode, segment by segment. The
+ * coloured digits are decorative (aria-hidden); the list under each number
+ * is the text equivalent, and each label links to its guide. Only what the
+ * library reads is decoded: the CNIC's middle digits have no official table.
+ */
+const NUMBERS = [
+  {
+    id: 'cnic',
+    name: 'CNIC',
+    value: '35202-1234567-1',
+    parts: [
+      { text: '3', label: 'Province', href: '/docs/cnic/#getcnicinfo', note: '3 is Punjab' },
+      { text: '5202', label: 'Locality', note: '4 digits; NADRA publishes no table, so not decoded' },
+      { text: '1234567', label: 'Serial', note: '7 digits, not decoded' },
+      { text: '1', label: 'Gender', href: '/docs/cnic/#getcnicinfo', note: 'odd male, even female' },
+    ],
+  },
+  {
+    id: 'iban',
+    name: 'IBAN',
+    value: 'PK36SCBL0000001123456702',
+    parts: [
+      { text: 'PK', label: 'Country', href: '/docs/iban/', note: 'Pakistan, 24 characters' },
+      { text: '36', label: 'Check digits', href: '/docs/iban/#validateiban', note: 'ISO 13616, mod 97' },
+      { text: 'SCBL', label: 'Bank code', href: '/docs/iban/#getbankfromiban', note: 'SCBL is Standard Chartered' },
+      { text: '0000001123456702', label: 'Account', note: '16 characters' },
+    ],
+  },
+];
+---
+
+<section class="pdk-home-section not-content" aria-labelledby="anatomy">
+  <span class="pdk-label">01 · Anatomy</span>
+  <h2 id="anatomy">What the numbers say</h2>
+  <div class="pdk-anatomy">
+    {
+      NUMBERS.map((n) => (
+        <figure class="pdk-anat" aria-labelledby={`anat-${n.id}`}>
+          <figcaption id={`anat-${n.id}`}>
+            {n.name} <code>{n.value}</code>
+          </figcaption>
+          <div class="pdk-anat-value" aria-hidden="true">
+            {n.parts.map((p, i) => (
+              <span class={`pdk-seg s${i + 1}`}>{p.text}</span>
+            ))}
+          </div>
+          <ol class="pdk-anat-parts">
+            {n.parts.map((p, i) => (
+              <li class={`s${i + 1}`}>
+                <code>{p.text}</code>
+                <span>
+                  {p.href ? <a href={p.href}>{p.label}</a> : p.label}: {p.note}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </figure>
+      ))
+    }
+  </div>
+</section>

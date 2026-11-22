@@ -60,11 +60,7 @@ export function TabBar<T extends string>({
   }
 
   return (
-    <div
-      role="tablist"
-      aria-label={label}
-      className="flex flex-wrap gap-1 rounded-xl border border-border bg-surface-raised p-1"
-    >
+    <div role="tablist" aria-label={label} className="pdk-pills">
       {tabs.map(({ id, label: tabLabel }, index) => {
         const selected = active === id;
         return (
@@ -81,11 +77,7 @@ export function TabBar<T extends string>({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(id)}
             onKeyDown={(event) => handleKeyDown(event, index)}
-            className={`min-h-11 flex-1 rounded-lg px-4 text-sm font-medium whitespace-nowrap transition-colors lg:min-h-10 ${
-              selected
-                ? 'bg-surface-overlay text-text-heading shadow-sm ring-1 ring-border-strong/50'
-                : 'text-text-muted hover:bg-surface-overlay/50 hover:text-text-heading'
-            }`}
+            className="pdk-pill"
           >
             {tabLabel}
           </button>

@@ -1,0 +1,32 @@
+---
+/**
+ * Home, section 05: where pakdatakit runs in production, and what for. Only
+ * what the project itself uses (see chmuzamil/jaanch, PRs #5 to #14).
+ */
+const USES = [
+  ['findCNICs', 'masks CNICs in reports, replies and disputes before they are stored'],
+  ['validateLandline', 'checks landline, UAN and toll-free numbers'],
+  ['calculateSalaryTax', 'salary tax, with the section 4AB surcharge'],
+  ['getBankFromIBAN, getNetwork', 'the bank and network shown on lookups'],
+];
+---
+
+<section class="pdk-home-section not-content" aria-labelledby="production">
+  <span class="pdk-label">05 · In production</span>
+  <h2 id="production">Used in production</h2>
+  <div class="pdk-production">
+    <p class="pdk-production-lede">
+      <a href="https://jaanch.pk/">Jaanch</a> runs its CNIC masking, landline checks and salary-tax figures on pakdatakit,
+      with none of its own logic for them.
+    </p>
+    <ul>
+      {
+        USES.map(([fn, what]) => (
+          <li>
+            <code>{fn}</code>: {what}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

@@ -1,4 +1,5 @@
 import slabsData from '../data/income-tax-slabs.json';
+import type { DataSource } from './data-info.js';
 import { isoDate } from './internal/date.js';
 import { divideHalfUp, fromPaisa, toUnits } from './internal/money.js';
 
@@ -85,6 +86,8 @@ export interface SalaryTax {
   /** The band the income falls in. */
   slab: SalaryTaxSlab;
   taxYear: number;
+  /** The rate table used: its tax year's dates, law and official source. */
+  source: DataSource;
 }
 
 const YEARS = slabsData as SalaryTaxYear[];
@@ -182,6 +185,13 @@ function compute(
         : divideHalfUp(BigInt(totalPaisa) * 10000n, BigInt(incomePaisa)) / 100,
     slab: { ...slab },
     taxYear: year.taxYear,
+    source: {
+      id: 'income-tax-slabs',
+      effectiveFrom: year.from,
+      effectiveTo: year.to,
+      sourceReference: year.law,
+      sourceUrl: year.source,
+    },
   };
 }
 
@@ -208,7 +218,8 @@ function compute(
  * @example
  * calculateSalaryTax(1_800_000, { taxYear: 2026 });
  * // { tax: 72000, surcharge: 0, total: 72000, monthly: 6000, effectiveRate: 4,
- * //   slab: { over: 1200000, … }, taxYear: 2026 }
+ * //   slab: { over: 1200000, … }, taxYear: 2026,
+ * //   source: { id: 'income-tax-slabs', effectiveFrom: '2025-07-01', … } }
  * calculateSalaryTax(12_000_000, { taxYear: 2026, includeSurcharge: true });
  * // { tax: 3381000, surcharge: 304290, total: 3685290, monthly: 307107.5, … }
  */

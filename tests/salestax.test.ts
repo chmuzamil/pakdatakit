@@ -117,7 +117,18 @@ describe('calculateSalesTax', () => {
   it('looks up the rate from a province, kind and date', () => {
     expect(
       calculateSalesTax(1000, { province: 'Punjab', date: '2026-11-18' }),
-    ).toEqual({ net: 1000, tax: 160, gross: 1160, rate: 16 });
+    ).toEqual({
+      net: 1000,
+      tax: 160,
+      gross: 1160,
+      rate: 16,
+      source: expect.objectContaining({
+        id: 'sales-tax-rates',
+        effectiveFrom: '2019-07-01',
+        effectiveTo: null,
+      }),
+    });
+    expect(calculateSalesTax(1000, { rate: 16 })).not.toHaveProperty('source');
     expect(
       calculateSalesTax(1000, { kind: 'goods', date: '2022-01-01' })?.tax,
     ).toBe(170);
@@ -127,7 +138,13 @@ describe('calculateSalesTax', () => {
         date: '2026-11-18',
         inclusive: true,
       }),
-    ).toEqual({ net: 1000, tax: 150, gross: 1150, rate: 15 });
+    ).toMatchObject({
+      net: 1000,
+      tax: 150,
+      gross: 1150,
+      rate: 15,
+      source: { id: 'sales-tax-rates', effectiveFrom: '2024-07-01' },
+    });
   });
 
   it('returns null instead of throwing', () => {

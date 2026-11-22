@@ -6,6 +6,7 @@ export const modules = [
   'bills',
   'cnic',
   'courier',
+  'data-info',
   'fbr-invoice',
   'format',
   'geo',

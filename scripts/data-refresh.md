@@ -10,7 +10,7 @@ pbs.gov.pk, cabinet.gov.pk, provincial government and gazette sites). News
 reports and Wikipedia can point to a change, but cite the official document.
 Record each change, with its URL and retrieval date, in [DATA.md](https://github.com/chmuzamil/pakdatakit/blob/main/DATA.md).
 
-## Banks (SBP)
+## Banks (SBP) <!-- dataset: banks -->
 
 Sources:
 
@@ -32,7 +32,7 @@ Checklist:
 - [ ] Mergers and closures: `MERGED_INTO` or `CLOSED`.
 - [ ] Type changes: `BANK_TYPES`.
 
-## Mobile prefixes (PTA)
+## Mobile prefixes (PTA) <!-- dataset: networks -->
 
 Sources:
 
@@ -49,7 +49,7 @@ Checklist:
 - [ ] Mergers that change an operator's name or label (for example Telenor
       and PTML).
 
-## Public holidays (Cabinet Division)
+## Public holidays (Cabinet Division) <!-- dataset: holidays -->
 
 Sources:
 
@@ -73,7 +73,7 @@ Checklist:
       `src/holidays.ts`.
 - [ ] Any one-off holiday the government declared.
 
-## Postal directory (Pakistan Post)
+## Postal directory (Pakistan Post) <!-- dataset: postal-codes --><!-- dataset: post-offices --><!-- dataset: cities -->
 
 Sources:
 
@@ -90,7 +90,7 @@ Checklist:
       `office,postCode,accountOffice,province`) and review the diff.
 - [ ] Check five random codes from the new file against the search table.
 
-## Landline area codes
+## Landline area codes <!-- dataset: area-codes -->
 
 Sources:
 
@@ -103,7 +103,7 @@ Checklist:
       names so `getAreaCode` finds them.
 - [ ] A new district (below) may need its name added to an existing code.
 
-## Districts, divisions and tehsils
+## Districts, divisions and tehsils <!-- dataset: districts --><!-- dataset: divisions --><!-- dataset: tehsils -->
 
 Sources:
 
@@ -124,7 +124,7 @@ Checklist:
 - [ ] Districts still marked unverified in DATA.md: has a notification
       appeared?
 
-## Sales tax rates
+## Sales tax rates <!-- dataset: sales-tax-rates -->
 
 Rates change mostly in the budget, with effect from 1 July, so check the July
 issue most carefully. Standard rates only.
@@ -153,7 +153,7 @@ Checklist:
 - [ ] Rates still marked uncertain in DATA.md (Balochistan 2025-26 onwards,
       ICT after June 2025): is the official document out now?
 
-## Income tax slabs (after each budget)
+## Income tax slabs (after each budget) <!-- dataset: income-tax-slabs -->
 
 The Finance Act changes the salaried table from 1 July. After the budget is
 passed (June), and again when FBR publishes the consolidated Ordinance

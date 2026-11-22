@@ -6,6 +6,7 @@ export {
   type CNICInfo,
   type CNICMatch,
   type MaskCNICsOptions,
+  type FindCNICsOptions,
   type MaskedText,
 } from './cnic.js';
 export {
@@ -202,3 +203,9 @@ export {
   type SalaryTaxYear,
 } from './incometax.js';
 export { dataVersion } from './data-version.js';
+export {
+  getDataInfo,
+  listDataInfo,
+  type DataInfo,
+  type DataSource,
+} from './data-info.js';

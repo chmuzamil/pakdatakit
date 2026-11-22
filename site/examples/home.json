@@ -6,21 +6,27 @@
       "id": "cnic",
       "title": "Validate a CNIC",
       "fn": "validateCNIC",
-      "args": ["35202-1234567-1"],
+      "args": [
+        "35202-1234567-1"
+      ],
       "expected": true
     },
     {
       "id": "bank",
       "title": "Bank from an IBAN",
       "fn": "getBankFromIBAN",
-      "args": ["PK36SCBL0000001123456702"],
+      "args": [
+        "PK36SCBL0000001123456702"
+      ],
       "expected": "Standard Chartered Bank (Pakistan) Limited"
     },
     {
       "id": "salary",
       "title": "Tax on a salary",
       "fn": "calculateSalaryTax",
-      "args": [5000000],
+      "args": [
+        5000000
+      ],
       "kwargs": {
         "taxYear": 2027
       },
@@ -36,7 +42,14 @@
           "fixed": 541000,
           "rate": 29
         },
-        "taxYear": 2027
+        "taxYear": 2027,
+        "source": {
+          "id": "income-tax-slabs",
+          "effectiveFrom": "2026-07-01",
+          "effectiveTo": "2027-06-30",
+          "sourceReference": "Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2), as substituted by the Finance Act 2026",
+          "sourceUrl": "https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf"
+        }
       }
     }
   ]

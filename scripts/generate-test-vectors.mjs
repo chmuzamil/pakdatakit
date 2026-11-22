@@ -337,6 +337,17 @@ each('cnic', ['validateCNIC', 'getCNICInfo'], cnics);
     call('cnic', 'findCNICs', [text]);
     call('cnic', 'maskCNICs', [text], { replacement: '[CNIC removed]' });
   }
+  // 2.8.0 (#88): acrossLines joins groups across single line breaks only.
+  for (const text of [...cases.lineBreaks, ...cases.acrossLines]) {
+    call('cnic', 'findCNICs', [text], { acrossLines: true });
+    call('cnic', 'findCNICs', [text], { acrossLines: false });
+    call('cnic', 'maskCNICs', [text], { acrossLines: true });
+    call('cnic', 'maskCNICs', [text], {
+      replacement: '[CNIC removed]',
+      acrossLines: true,
+    });
+  }
+  for (const text of cases.acrossLines) call('cnic', 'findCNICs', [text]);
 }
 
 // Phone, networks, WhatsApp ------------------------------------------------------
@@ -3299,6 +3310,15 @@ vectors.set('data-version', [
 // ---------------------------------------------------------------------------
 // Write
 // ---------------------------------------------------------------------------
+
+// Data dating (2.8.0, #90): the manifest entry of every dataset.
+{
+  const manifest = readData('manifest.json');
+  for (const entry of manifest) call('data-info', 'getDataInfo', [entry.id]);
+  for (const value of ['', 'unknown', 'BANKS', null, 42])
+    call('data-info', 'getDataInfo', [value]);
+  call('data-info', 'listDataInfo', []);
+}
 
 const outDir = join(root, 'test-vectors');
 mkdirSync(outDir, { recursive: true });

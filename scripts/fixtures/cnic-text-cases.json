@@ -1,5 +1,5 @@
 {
-  "description": "Test cases for findCNICs and maskCNICs (2.7.2). 'jaanch': every input in Jaanch's web/lib/redact.test.ts (commit e3b65b5), which maskCNICs must mask at least as much as; 'spacing': the separator forms of Jaanch's PR #13 and more; 'lineBreaks': digits are never joined across a line break; 'ordinary': a fixed sample of everyday text (phones, amounts, orders, tracking, dates, cards, tables, lists, file names) for the false-positive check.",
+  "description": "Test cases for findCNICs and maskCNICs (2.7.2). 'jaanch': every input in Jaanch's web/lib/redact.test.ts (commit e3b65b5), which maskCNICs must mask at least as much as; 'spacing': the separator forms of Jaanch's PR #13 and more; 'lineBreaks': digits are never joined across a line break by default, and are with acrossLines (2.8.0); 'acrossLines': Jaanch's multi-line cases (web/lib/redact.test.ts) and blank lines, which never join; 'ordinary': a fixed sample of everyday text (phones, amounts, orders, tracking, dates, cards, tables, lists, file names) for the false-positive check.",
   "jaanch": [
     "Us ka CNIC 35202-1234567-1 hai, call karein",
     "Us ka CNIC 3520212345671 hai, call karein",
@@ -8,10 +8,10 @@
     "Us ka CNIC 35202/1234567/1 hai, call karein",
     "Us ka CNIC 35202-12345671 hai, call karein",
     "Us ka CNIC 352 0212 3456 71 hai, call karein",
-    "Us ka CNIC \u06f3\u06f5\u06f2\u06f0\u06f2-\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7-\u06f1 hai, call karein",
-    "Us ka CNIC \u06f3\u06f5\u06f2\u06f0\u06f2\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7\u06f1 hai, call karein",
-    "Us ka CNIC \u0663\u0665\u0662\u0660\u0662-\u0661\u0662\u0663\u0664\u0665\u0666\u0667-\u0661 hai, call karein",
-    "Us ka CNIC \u06f3\u06f5\u06f2\u06f0\u06f2 \u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7 \u06f1 hai, call karein",
+    "Us ka CNIC ۳۵۲۰۲-۱۲۳۴۵۶۷-۱ hai, call karein",
+    "Us ka CNIC ۳۵۲۰۲۱۲۳۴۵۶۷۱ hai, call karein",
+    "Us ka CNIC ٣٥٢٠٢-١٢٣٤٥٦٧-١ hai, call karein",
+    "Us ka CNIC ۳۵۲۰۲ ۱۲۳۴۵۶۷ ۱ hai, call karein",
     "Number 0300 1234567 35202-1234567-1 aur amount 25,000",
     "Pehla 35202-1234567-1, doosra 42201-7654321-2.",
     "0300 1234567",
@@ -23,9 +23,9 @@
     "05202-1234567-1",
     "35202-1234567",
     "352021234567123",
-    "\u06f0\u06f3\u06f0\u06f0\u06f1\u06f2\u06f3\u06f4\u06f5\u06f6\u06f7",
+    "۰۳۰۰۱۲۳۴۵۶۷",
     "CNIC 35202-1234567-1",
-    "aur \u06f4\u06f2\u06f2\u06f0\u06f1\u06f7\u06f6\u06f5\u06f4\u06f3\u06f2\u06f1\u06f2 bhi"
+    "aur ۴۲۲۰۱۷۶۵۴۳۲۱۲ bhi"
   ],
   "spacing": [
     "35202  1234567  1",
@@ -36,9 +36,9 @@
     "35202 . 1234567 . 1",
     "35202 / 1234567 / 1",
     "35202\t1234567\t1",
-    "35202 \u2013 1234567 \u2013 1",
+    "35202 – 1234567 – 1",
     "352  0212  3456  71",
-    "35202\u00a01234567\u00a01",
+    "35202 1234567 1",
     "35202 -- 1234567 -- 1",
     "35202 -/ 1234567",
     "35202,1234567,1",
@@ -55,6 +55,18 @@
     "CNIC:\n35202-1234567-1",
     "35202-1234567-1\n42201-7654321-2",
     "35202\r\n1234567\r\n1"
+  ],
+  "acrossLines": [
+    "Us ka CNIC\n35202\n1234567\n1\nhai",
+    "35202-\r\n1234567-\r\n1",
+    "line one\n0300 1234567\nline three",
+    "35202\n\n1234567\n\n1",
+    "35202\r\n\r\n1234567\r\n\r\n1",
+    "35202\n  \n1234567\n \t\n1",
+    "35202-1234567-1\n\n42201-7654321-2",
+    "35202 -\n1234567\n- 1",
+    "35202\n-1234567\r-1",
+    "Amounts:\n1200\n35000\n4500\n1234"
   ],
   "ordinary": [
     "Call 0341 1347266",

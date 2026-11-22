@@ -573,18 +573,26 @@ def test_cnics_in_text_any_grouping() -> None:
         found = pdk.find_cnics(f"id {raw}.")
         assert [(m.raw, m.digits, m.start) for m in found] == [(raw, "3520212345671", 3)]
     assert pdk.find_cnics("a/35202/1234567/1/b")[0].raw == "35202/1234567/1"
-    # Two separators in a row end a run.
-    assert pdk.find_cnics("352 0212  3456 71") == []
+    # Any run of spaces joins groups (2.7.2).
+    assert pdk.find_cnics("352 0212  3456 71")[0].raw == "352 0212  3456 71"
     assert pdk.find_cnics("952 0212 3456 71") == []
-    # A CNIC in 5-7-1 groups inside a longer run.
+    # Whole groups inside a longer run, the search going on after a match.
     found = pdk.find_cnics("0300-1234567 35202-1234567-1")
     assert [(m.raw, m.start, m.end) for m in found] == [("35202-1234567-1", 13, 28)]
-    # A longer run is never cut into a CNIC except at 5-7-1 groups.
+    # An unbroken run of digits is never split.
     assert pdk.find_cnics("352 0212 3456 712") == []
     assert pdk.find_cnics("123520212345671") == []
+    assert pdk.find_cnics("4111 1111 1111 1111") == []
+    assert pdk.find_cnics("352021234567123") == []
+    # Whole groups inside a longer run still match (2.7.2).
+    assert pdk.find_cnics("1 352 0212 3456 71")[0].raw == "352 0212 3456 71"
+    # Here the first two groups, as in Jaanch's redaction.
+    assert pdk.find_cnics(chr(0x06F1) + "35202-1234567-1")[0].digits == "1352021234567"
+    assert len(pdk.find_cnics("x35202-1234567-1y")) == 1
     assert pdk.find_cnics("0300 1234 5678 912") == []
     assert pdk.find_cnics("35202/1234567/1/2")[0].raw == "35202/1234567/1"
-    assert pdk.find_cnics("1 35202-1234567-1")[0].raw == "35202-1234567-1"
+    # Since 2.7.2 the first three groups (1 + 5 + 7 digits) match here.
+    assert pdk.find_cnics("1 35202-1234567-1")[0].raw == "1 35202-1234567"
 
 
 def test_mask_cnics_replacement() -> None:
@@ -647,3 +655,31 @@ def test_salary_tax_surcharge() -> None:
     slabs = pdk.get_salary_tax_slabs(2026)
     assert slabs is not None and isinstance(slabs.surcharge, pdk.SalaryTaxSurcharge) and slabs.surcharge.rate == 9
     assert pdk.get_salary_tax_slabs(2024).surcharge is None  # type: ignore[union-attr]
+
+
+def test_cnics_in_text_spaces_marks_underscores() -> None:
+    tab = chr(9)
+    for raw in [
+        "35202  1234567  1",
+        "35202 -1234567- 1",
+        "35202_1234567_1",
+        "35202 - 1234567 - 1",
+        f"35202{tab}1234567{tab}1",
+        "35202 _ 1234567 _ 1",
+        "35202" + chr(0x00A0) + "1234567" + chr(0x202F) + "1",
+    ]:
+        assert pdk.mask_cnics(f"id {raw} ok", replacement="[CNIC]") == pdk.MaskedText("id [CNIC] ok", 1)
+        assert pdk.find_cnics(f"id {raw} ok")[0].raw == raw
+    # One mark between groups, not two; a comma never joins.
+    assert pdk.find_cnics("35202 -- 1234567 -- 1") == []
+    assert pdk.find_cnics("35202,1234567,1") == []
+    # A line break never joins groups.
+    lf, cr = chr(10), chr(13)
+    for text in [
+        f"35202{lf}1234567{lf}1",
+        f"35202 {lf} 1234567 {lf} 1",
+        f"35202{cr}{lf}1234567{cr}{lf}1",
+        f"35202{cr}1234567{cr}1",
+    ]:
+        assert pdk.find_cnics(text) == []
+    assert len(pdk.find_cnics(f"35202-1234567-1{lf}42201-7654321-2")) == 2

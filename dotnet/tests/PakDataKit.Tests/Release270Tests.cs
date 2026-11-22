@@ -48,7 +48,9 @@ public sealed class CnicTextTests
     {
         Assert.Empty(Cnic.FindAll("1235202-1234567-1"));
         Assert.Empty(Cnic.FindAll("35202-1234567-12"));
-        Assert.Empty(Cnic.FindAll($"{Urdu("1")}35202-1234567-1"));
+        // Since 2.7.2, whole groups adding up to 13 match: here the first two
+        // groups. No unbroken run is split.
+        Assert.Equal("1352021234567", Cnic.FindAll($"{Urdu("1")}35202-1234567-1")[0].Digits);
         Assert.Single(Cnic.FindAll("x35202-1234567-1y"));
     }
 
@@ -124,13 +126,18 @@ public sealed class CnicTextTests
 
     [Theory]
     [InlineData("352 0212 3456 712")]
-    [InlineData("1 352 0212 3456 71")]
     [InlineData("4111 1111 1111 1111")]
-    [InlineData("35202 - 1234567 - 1")]
-    public void NeverCutsALongerRunOrOneWithDoubledSeparators(string text)
+    [InlineData("352021234567123")]
+    public void NeverSplitsAnUnbrokenRunOfDigits(string text)
     {
         Assert.Empty(Cnic.FindAll(text));
         Assert.Equal(new MaskedText(text, 0), Cnic.Mask(text));
+    }
+
+    [Fact]
+    public void WholeGroupsInsideALongerRunStillMatch()
+    {
+        Assert.Equal("352 0212 3456 71", Cnic.FindAll("1 352 0212 3456 71")[0].Raw);
     }
 
     [Fact]
@@ -148,6 +155,44 @@ public sealed class CnicTextTests
         Assert.Equal("", Cnic.Mask("352 0212 3456 71", "*", "").Text);
         Assert.Equal("XXX XXXX XXXX XX", Cnic.Mask("352 0212 3456 71", replacement: null).Text);
         Assert.Equal("*** **** **** **", Cnic.Mask("352 0212 3456 71", "*").Text);
+    }
+}
+
+/// <summary>Mirrors the 2.7.2 block of tests/cnic-text.test.ts.</summary>
+public sealed class Cnic272Tests
+{
+    [Theory]
+    [InlineData("35202  1234567  1")]
+    [InlineData("35202 -1234567- 1")]
+    [InlineData("35202_1234567_1")]
+    [InlineData("35202 - 1234567 - 1")]
+    [InlineData("35202\t1234567\t1")]
+    [InlineData("35202 _ 1234567 _ 1")]
+    public void MasksSpacedMarksUnderscoresAndTabs(string raw)
+    {
+        Assert.Equal(new MaskedText("id [CNIC] ok", 1), Cnic.Mask($"id {raw} ok", replacement: "[CNIC]"));
+    }
+
+    [Fact]
+    public void AllowsOneMarkBetweenGroupsNotTwo()
+    {
+        Assert.Empty(Cnic.FindAll("35202 -- 1234567 -- 1"));
+        Assert.Empty(Cnic.FindAll("35202,1234567,1"));
+    }
+
+    [Theory]
+    [InlineData("35202\n1234567\n1")]
+    [InlineData("35202 \n 1234567 \n 1")]
+    [InlineData("35202\r\n1234567\r\n1")]
+    public void NeverJoinsDigitsAcrossALineBreak(string text)
+    {
+        Assert.Empty(Cnic.FindAll(text));
+    }
+
+    [Fact]
+    public void FindsCnicsOnSeparateLines()
+    {
+        Assert.Equal(2, Cnic.FindAll("35202-1234567-1\n42201-7654321-2").Count);
     }
 }
 

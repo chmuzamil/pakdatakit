@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.7.2
+
+Patch release: `findCNICs()` and `maskCNICs()` now mask everything Jaanch's
+own CNIC redaction masks, except across line breaks. Every port gives the
+same results on the shared test vectors, which now include all of Jaanch's
+redaction test cases.
+
+### Changed
+
+- **More separators between digit groups.** Groups may be joined by any run
+  of spaces or tabs, or by one mark (a hyphen or Unicode dash, a dot, a
+  slash, or now an underscore) with any spaces around it: `35202  1234567  1`,
+  `35202 -1234567- 1`, `35202_1234567_1`, `35202 - 1234567 - 1`. A line
+  break never joins groups.
+- **A match is consecutive whole groups adding up to exactly 13 digits**,
+  starting with 1-8, anywhere in a run of groups; this replaces 2.7.1's
+  "whole run of 13, or 5-7-1 inside a longer run". A group is never split,
+  so 13 digits inside a longer unbroken number never match.
+- **More false positives.** On a sample of everyday text, 2.7.2 matches
+  nothing new in phone numbers, amounts, order and tracking numbers, dates
+  and bank details, but does match more in text where numbers are spaced
+  out: table columns, price lists separated by `-`, file names with
+  underscores, and a number followed by `/` and a short one. Jaanch's own
+  redaction already matched the tables and file names; the spaced dashes
+  and slashes are new. `validateCNIC()` stays strict.
+
 ## 2.7.1
 
 Patch release, from real data: CNICs in more of the ways people write them,

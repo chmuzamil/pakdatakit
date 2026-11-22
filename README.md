@@ -256,7 +256,7 @@ maskCNICs('CNIC 352 0212 3456 71', { replacement: '[CNIC removed]' });
 // { text: 'CNIC [CNIC removed]', count: 1 }
 ```
 
-A match is a run of exactly 13 digits starting with a province code (1-8), together or in any grouping joined by single separators (space, hyphen or dash, dot, slash: `352 0212 3456 71`, `35202/1234567/1`), or a 5-7-1 CNIC inside a longer run; in ASCII, Urdu or Arabic-Indic digits, never next to another digit, and never cut out of a longer run otherwise. It is a pattern match, and a loose one: any 13 digits starting with 1-8, however grouped, also match. `validateCNIC` stays strict. Offsets are UTF-16 code units in TypeScript, Dart and C#, and code points in Python and PHP.
+Digits are read in groups; groups may be joined by any run of spaces or tabs, or by one mark (hyphen or dash, dot, slash, underscore) with spaces around it, but never by a line break. A match is consecutive whole groups adding up to exactly 13 digits and starting with a province code (1-8): `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`, and the CNIC in `0300-1234567 35202-1234567-1`. A group is never split. It is a pattern match, and a loose one: any 13 digits starting with 1-8 grouped this way also match (order numbers, table columns, price lists, file names). `validateCNIC` stays strict. Offsets are UTF-16 code units in TypeScript, Dart and C#, and code points in Python and PHP.
 
 ---
 

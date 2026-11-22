@@ -283,21 +283,26 @@ FluentValidation 11 and 12.
   mobile numbers, and `0122` numbers are not recognised (no PTA document
   lists them). `Numbers.Analyze` tells them apart.
 - **CNICs in free text.** `Cnic.FindAll(text)` returns a `CnicMatch` (`Raw`,
-  `Digits`, `Formatted`, `Start`, `End`) for each run of exactly 13 digits
-  that starts with a province digit (1-8), together or in any grouping
-  joined by single separators (a space, hyphen or dash, dot or slash:
-  `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`), and for a CNIC
-  in 5-7-1 groups inside a longer run (`0300-1234567 35202-1234567-1`).
-  Digits may be ASCII, Urdu or Arabic-Indic; a match never touches another
-  digit, and a longer run is never cut except at 5-7-1 groups. `Start` and
+  `Digits`, `Formatted`, `Start`, `End`) for each CNIC. Digits are read in
+  groups (unbroken runs of digits), and groups may be joined by any run of
+  spaces or tabs, or by one mark (a hyphen or dash, dot, slash or
+  underscore) with any spaces around it: `35202-1234567-1`,
+  `352 0212 3456 71`, `35202/1234567/1`, `35202_1234567_1`,
+  `35202 - 1234567 - 1`. A line break never joins groups. A match is
+  consecutive whole groups that add up to exactly 13 digits, starting with
+  a province digit (1-8), and the search goes on after each match, so
+  `0300-1234567 35202-1234567-1` finds the CNIC. A group is never split, so
+  13 digits inside a longer unbroken number never match. Digits may be
+  ASCII, Urdu or Arabic-Indic. `Start` and
   `End` are `string` indexes (UTF-16 code units), so
   `text[match.Start..match.End]` is `Raw`. `Cnic.Mask(text, mask)` replaces
   each digit with `mask` (default `"X"`) and keeps the separators;
   `Cnic.Mask(text, replacement: "[CNIC removed]")` replaces each whole
   match instead. Both return a `MaskedText` (`Text`, `Count`). Both are
-  looser than `Cnic.Validate`: any 13 digits that start with 1-8, however
-  they are grouped (an account, order or tracking number, or two shorter
-  numbers written together), match.
+  looser than `Cnic.Validate`: any 13 digits that start with 1-8, split
+  into groups this way (an account, order or tracking number, table
+  columns, a price list such as `8260 - 8048 - 2804 - 0`, a file name such
+  as `IMG_20261123_12345`, or two shorter numbers written together), match.
 - **Raast QR kind.** `RaastQr.Validate` returns the `Kind` (`P2p`,
   `Merchant`, or `null` when the text is not a Raast QR). A merchant QR with
   no IBAN is valid with the warning `RaastQrWarning.NoIban`, since it may pay

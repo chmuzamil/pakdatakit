@@ -319,6 +319,26 @@ each('cnic', ['validateCNIC', 'getCNICInfo'], cnics);
   call('cnic', 'maskCNICs', ['no ids here'], { replacement: '[x]' });
 }
 
+// 2.7.2: Jaanch's redaction cases, spacing forms, line breaks and ordinary
+// text, from scripts/fixtures/cnic-text-cases.json (see its description).
+{
+  const cases = JSON.parse(
+    readFileSync(
+      join(root, 'scripts', 'fixtures', 'cnic-text-cases.json'),
+      'utf8',
+    ),
+  );
+  for (const text of [
+    ...cases.jaanch,
+    ...cases.spacing,
+    ...cases.lineBreaks,
+    ...cases.ordinary,
+  ]) {
+    call('cnic', 'findCNICs', [text]);
+    call('cnic', 'maskCNICs', [text], { replacement: '[CNIC removed]' });
+  }
+}
+
 // Phone, networks, WhatsApp ------------------------------------------------------
 const phones = unique([
   '03001234567',

@@ -65,7 +65,7 @@ void main() {
     });
 
     test('does not cut a CNIC out of a longer number', () {
-      expect(findCNICs('135202-1234567-1'), isEmpty);
+      expect(findCNICs('1235202-1234567-1'), isEmpty);
       expect(findCNICs('35202-1234567-12'), isEmpty);
       expect(findCNICs('05202-1234567-1'), isEmpty);
       expect(findCNICs('95202-1234567-1'), isEmpty);

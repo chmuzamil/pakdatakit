@@ -122,8 +122,95 @@ const bidi: Partial<Record<Lang, Render>> = {
     `Text.WrapBidi(${[lit('cs', a[0]), ...(a.length > 1 ? [`BidiDirection.${pascal(String(a[1]))}`] : [])].join(', ')})`,
 };
 
+/**
+ * A function whose only TypeScript argument is an options object (2.8.0:
+ * Zakat, withholding): keyword arguments in Python, named arguments in Dart
+ * and PHP, and an input record in .NET.
+ */
+const objectArg = (names: {
+  ts: string;
+  py: string;
+  php: string;
+  cs: (o: Record<string, unknown>) => string;
+}): Partial<Record<Lang, Render>> => {
+  const entries = (a: unknown[]) =>
+    Object.entries((a[0] ?? {}) as Record<string, unknown>);
+  const named = (
+    a: unknown[],
+    lang: Lang,
+    sep: string,
+    key = (k: string) => k,
+  ) =>
+    entries(a)
+      .map(([k, v]) => `${key(k)}${sep}${lit(lang, v, k)}`)
+      .join(', ');
+  return {
+    ts: (a) => `${names.ts}({ ${named(a, 'ts', ': ')} })`,
+    py: (a) => `${names.py}(${named(a, 'py', '=', pyName)})`,
+    dart: (a) => `${names.ts}(${named(a, 'dart', ': ')})`,
+    cs: (a) => names.cs((a[0] ?? {}) as Record<string, unknown>),
+    php: (a) => `${names.php}(${named(a, 'php', ': ')})`,
+  };
+};
+
+/** A .NET init-only record from an object, e.g. `new WithholdingInput { Section = "236K" }`. */
+const csRecord = (
+  type: string,
+  o: Record<string, unknown>,
+  skip: string[] = [],
+) =>
+  `new ${type} { ${Object.entries(o)
+    .filter(([k]) => !skip.includes(k))
+    .map(([k, v]) => `${pascal(k)} = ${lit('cs', v, k)}`)
+    .join(', ')} }`;
+
 /** Names of every function used in the examples, per port. */
 export const API: Record<string, Api> = {
+  // data sources, zakat, withholding, population (2.8.0)
+  getDataInfo: { cs: 'PakData.GetDataInfo', php: 'PakData::getDataInfo' },
+  getZakatNisab: {
+    cs: 'Zakat.GetNisab',
+    php: 'Zakat::getNisab',
+    render: objectArg({
+      ts: 'getZakatNisab',
+      py: 'get_zakat_nisab',
+      php: 'Zakat::getNisab',
+      cs: (o) => `Zakat.GetNisab(${csRecord('ZakatYearQuery', o)})`,
+    }),
+  },
+  zakatDeduction: {
+    cs: 'Zakat.CalculateDeduction',
+    php: 'Zakat::deduction',
+    render: objectArg({
+      ts: 'zakatDeduction',
+      py: 'zakat_deduction',
+      php: 'Zakat::deduction',
+      cs: (o) =>
+        `Zakat.CalculateDeduction(${[
+          lit('cs', o.balance),
+          csRecord('ZakatYearQuery', o, ['balance', 'exempt']),
+          ...(o.exempt !== undefined ? [`exempt: ${lit('cs', o.exempt)}`] : []),
+        ].join(', ')})`,
+    }),
+  },
+  calculateWithholding: {
+    cs: 'Withholding.Calculate',
+    php: 'Withholding::calculate',
+    render: objectArg({
+      ts: 'calculateWithholding',
+      py: 'calculate_withholding',
+      php: 'Withholding::calculate',
+      cs: (o) => `Withholding.Calculate(${csRecord('WithholdingInput', o)})`,
+    }),
+  },
+  getDistrictPopulation: {
+    cs: 'Population.GetDistrict',
+    php: 'Population::getDistrict',
+  },
+  getTehsilPopulation: {
+    cs: 'Population.GetTehsil',
+    php: 'Population::getTehsil',
+  },
   // cnic
   validateCNIC: { cs: 'Cnic.Validate', php: 'Cnic::validate' },
   getCNICInfo: { cs: 'Cnic.GetInfo', php: 'Cnic::getInfo' },

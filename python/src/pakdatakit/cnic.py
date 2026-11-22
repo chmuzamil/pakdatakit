@@ -80,16 +80,27 @@ _MARK = "[\\-" + chr(0x2010) + "-" + chr(0x2014) + "./_]"
 # ``35202_1234567_1``, ``35202 - 1234567 - 1``). A line break never joins
 # them.
 _JOIN = f"(?:{_SPACE}+|{_SPACE}*{_MARK}{_SPACE}*)"
+# One line break: CRLF, LF or CR.
+_LINE_BREAK = "(?:\r\n|\r|\n)"
+# With ``across_lines``: what ``_JOIN`` allows, or the same with one line
+# break counting as a space (``35202\n1234567\n1``, ``35202-\r\n1234567``).
+# Only one line break per gap, so a blank line never joins groups.
+_JOIN_LINES = (
+    f"(?:{_SPACE}*{_LINE_BREAK}{_SPACE}*(?:{_MARK}{_SPACE}*)?"
+    f"|{_SPACE}*{_MARK}{_SPACE}*{_LINE_BREAK}{_SPACE}*|{_JOIN})"
+)
 
 # One digit group: an unbroken run of digits.
 _GROUP = re.compile(f"{_ANY_DIGIT}+")
 # Digit groups joined as above, as long as the run goes.
 _DIGIT_RUN = re.compile(f"{_ANY_DIGIT}+(?:{_JOIN}{_ANY_DIGIT}+)*")
+# The same, joining across single line breaks (``across_lines``).
+_DIGIT_RUN_LINES = re.compile(f"{_ANY_DIGIT}+(?:{_JOIN_LINES}{_ANY_DIGIT}+)*")
 _DIGIT = re.compile(_ANY_DIGIT)
 _FIRST_IS_PROVINCE = re.compile(_PROVINCE_DIGIT)
 
 
-def _cnic_spans(text: str) -> List[Tuple[int, int]]:
+def _cnic_spans(text: str, across_lines: bool = False) -> List[Tuple[int, int]]:
     """Where CNICs are in a text: ``(start, end)`` pairs, in order. In each
     run of digit groups, consecutive whole groups that add up to exactly 13
     digits, starting with a province digit, are a CNIC; the search goes on
@@ -97,7 +108,7 @@ def _cnic_spans(text: str) -> List[Tuple[int, int]]:
     number are never matched.
     """
     spans: List[Tuple[int, int]] = []
-    for run in _DIGIT_RUN.finditer(text):
+    for run in (_DIGIT_RUN_LINES if across_lines else _DIGIT_RUN).finditer(text):
         offset = run.start()
         groups = [(offset + g.start(), offset + g.end()) for g in _GROUP.finditer(run.group(0))]
         i = 0
@@ -143,7 +154,7 @@ class MaskedText:
     count: int
 
 
-def find_cnics(text: Any) -> List[CNICMatch]:
+def find_cnics(text: Any, *, across_lines: Any = False) -> List[CNICMatch]:
     """Finds CNIC numbers in free text, such as a chat message, a note or an
     uploaded document, for example to mask them before logging.
 
@@ -160,6 +171,12 @@ def find_cnics(text: Any) -> List[CNICMatch]:
     never match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. This
     matches everything Jaanch's own CNIC redaction does, except across line
     breaks.
+
+    With ``across_lines=True``, a single line break (``\\r\\n``, ``\\r`` or
+    ``\\n``, with any spaces around it) also joins groups, as if it were a
+    space, so a CNIC written over several lines is found; a blank line (two
+    or more line breaks) never joins them. This can also join numbers on
+    consecutive lines, such as a list of amounts. Only ``True`` turns it on.
 
     Accepting any grouping catches CNICs as people really type them, but
     matches more that is not a CNIC: any 13 digits starting with 1-8 split
@@ -179,11 +196,13 @@ def find_cnics(text: Any) -> List[CNICMatch]:
     [CNICMatch(raw='35202-1234567-1', digits='3520212345671', formatted='35202-1234567-1', start=6, end=21)]
     >>> find_cnics("id 352 0212 3456 71")[0].digits
     '3520212345671'
+    >>> find_cnics("CNIC\\n35202\\n1234567\\n1", across_lines=True)[0].formatted
+    '35202-1234567-1'
     """
     if not isinstance(text, str):
         return []
     matches = []
-    for start, end in _cnic_spans(text):
+    for start, end in _cnic_spans(text, across_lines is True):
         raw = text[start:end]
         digits = re.sub("[^0-9]", "", to_ascii_digits(raw))
         matches.append(
@@ -198,7 +217,9 @@ def find_cnics(text: Any) -> List[CNICMatch]:
     return matches
 
 
-def mask_cnics(text: Any, *, mask: Any = "X", replacement: Any = None) -> MaskedText:
+def mask_cnics(
+    text: Any, *, mask: Any = "X", replacement: Any = None, across_lines: Any = False
+) -> MaskedText:
     """Masks every CNIC in free text, as found by :func:`find_cnics`: each
     digit becomes ``mask`` and the separators stay, so ``35202-1234567-1``
     becomes ``XXXXX-XXXXXXX-X``. The rest of the text is unchanged.
@@ -210,6 +231,10 @@ def mask_cnics(text: Any, *, mask: Any = "X", replacement: Any = None) -> Masked
     Like :func:`find_cnics`, it also masks any other 13 digits that start
     with 1-8, however they are grouped. ``mask`` is the string that replaces
     each digit (default ``"X"``; a value that is not a string means ``"X"``).
+
+    With ``across_lines=True``, CNICs written across single line breaks are
+    found too, as in :func:`find_cnics`. With ``mask`` the line breaks stay;
+    with ``replacement`` they are replaced with the rest of the CNIC.
 
     Returns the masked text and the number of CNICs masked. A value that is
     not a string gives ``MaskedText(text="", count=0)``. Never raises.
@@ -225,7 +250,7 @@ def mask_cnics(text: Any, *, mask: Any = "X", replacement: Any = None) -> Masked
         return MaskedText(text="", count=0)
     digit_mask = mask if isinstance(mask, str) else "X"
     whole = replacement if isinstance(replacement, str) else None
-    spans = _cnic_spans(text)
+    spans = _cnic_spans(text, across_lines is True)
     parts = []
     at = 0
     for start, end in spans:

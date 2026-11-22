@@ -70,6 +70,8 @@ public sealed class FuzzTests
         "PK" + new string('0', 50_000) + "!",
         new string('A', 50_000) + "-" + new string('1', 50_000) + "/",
         "35202" + new string('-', 50_000) + "1234567-1!",
+        string.Concat(Enumerable.Repeat("35202 \r\n ", 20_000)) + "!",
+        "35202" + string.Concat(Enumerable.Repeat(" \n", 20_000)) + "1234567\n1!",
         string.Concat(Enumerable.Repeat("kia ", 20_000)) + "\ud800",
     ];
 
@@ -107,6 +109,7 @@ public sealed class FuzzTests
             "Bills.ValidateElectricityRef", "Courier.MapStatus", "Courier.NormalizeCity",
             "Text.Slugify", "Text.CompareUrdu", "Text.IsRtl", "Text.WrapBidi", "IncomeTax.GetTaxYear",
             "Cnic.FindAll", "Cnic.Mask", "Text.RomanUrduKey",
+            "PakData.GetDataInfo", "Population.GetDistrict", "Population.GetTehsil",
         })
         {
             Assert.Contains(expected, names);
@@ -203,6 +206,10 @@ public sealed class FuzzTests
             var masked = Cnic.Mask(input, "*");
             Assert.Equal(found.Count, masked.Count);
             Assert.Equal(input?.Length ?? 0, masked.Text.Length);
+            var foundAcross = Cnic.FindAll(input, acrossLines: true);
+            var maskedAcross = Cnic.Mask(input, acrossLines: true, mask: "*");
+            Assert.Equal(foundAcross.Count, maskedAcross.Count);
+            Assert.Equal(input?.Length ?? 0, maskedAcross.Text.Length);
             Assert.False(Numbers.ValidateLandline(input, services: true));
             var key = Text.RomanUrduKey(input);
             Assert.Matches("^(?:[a-z]+(?: [a-z]+)*)?$", key);

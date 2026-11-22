@@ -3,8 +3,9 @@
 CNIC, phone, networks, WhatsApp, IBAN, postal codes, geography, address
 parsing, Roman Urdu, Urdu slugs and sorting, Hijri dates, holidays, currency
 formatting, amounts in words, tax numbers, sales tax, income tax on salary,
-FBR digital invoices, landlines, Raast QR codes, and passport and vehicle
-registration number formats, and electricity and gas bill numbers.
+FBR digital invoices, withholding tax, Zakat deduction, census population,
+landlines, Raast QR codes, and passport and vehicle registration number
+formats, electricity and gas bill numbers, and the sources of every dataset.
 
 A Python port of the ``pakdatakit`` npm package: it ships the same datasets and
 is tested against shared test vectors, so both give identical results.
@@ -21,6 +22,7 @@ from .bills import (
 )
 from .cnic import CNICInfo, CNICMatch, MaskedText, find_cnics, get_cnic_info, mask_cnics, validate_cnic
 from .courier import Courier, CourierStatus, map_courier_status, normalize_city_for_courier
+from .data_info import DataInfo, DataSource, get_data_info, list_data_info
 from .data_version import DATA_VERSION, data_version
 from .fbr_invoice import (
     FBR_DI_SPEC_VERSION,
@@ -30,12 +32,15 @@ from .fbr_invoice import (
     FbrInvoiceInput,
     FbrInvoiceItem,
     FbrInvoiceItemInput,
+    FbrInvoiceReference,
     FbrInvoiceTotals,
     FbrInvoiceType,
     FbrInvoiceValidation,
     FbrRegistrationType,
+    FbrSaleType,
     build_fbr_invoice,
     expected_sales_tax,
+    get_sale_types,
     validate_fbr_invoice,
 )
 from .format import ParsedAmount, format_amount_input, format_lakh, format_pkr, parse_amount
@@ -89,6 +94,13 @@ from .numbers import (
 )
 from .passport import validate_passport
 from .phone import PhoneAnalysis, analyze_phone, format_phone, validate_phone
+from .population import (
+    CensusCounts,
+    DistrictPopulation,
+    TehsilPopulation,
+    get_district_population,
+    get_tehsil_population,
+)
 from .postal import (
     PostOffice,
     get_city_by_postal_code,
@@ -141,7 +153,24 @@ from .text import (
 )
 from .vehicle import VehiclePlate, parse_vehicle_plate, validate_vehicle_plate
 from .whatsapp import create_whatsapp_link
+from .withholding import (
+    Withholding,
+    WithholdingNonAtlRule,
+    WithholdingRate,
+    WithholdingSlab,
+    WithholdingThreshold,
+    calculate_withholding,
+    get_withholding_rates,
+)
 from .words import amount_in_words, number_to_words
+from .zakat import (
+    ZakatDeduction,
+    ZakatDocument,
+    ZakatNisab,
+    get_zakat_nisab,
+    get_zakat_years,
+    zakat_deduction,
+)
 
 __version__ = "2.7.2"
 
@@ -149,6 +178,11 @@ __all__ = [
     "__version__",
     "DATA_VERSION",
     "data_version",
+    # data sources
+    "DataInfo",
+    "DataSource",
+    "get_data_info",
+    "list_data_info",
     # cnic
     "CNICInfo",
     "validate_cnic",
@@ -189,6 +223,12 @@ __all__ = [
     "get_division_of_district",
     "get_tehsils",
     "get_tehsil_district",
+    # population (census 2023)
+    "CensusCounts",
+    "DistrictPopulation",
+    "TehsilPopulation",
+    "get_district_population",
+    "get_tehsil_population",
     # address
     "ParsedAddress",
     "parse_address",
@@ -254,6 +294,21 @@ __all__ = [
     "get_tax_year",
     "calculate_salary_tax",
     "calculate_monthly_salary_tax",
+    # withholding tax
+    "WithholdingNonAtlRule",
+    "WithholdingSlab",
+    "WithholdingThreshold",
+    "WithholdingRate",
+    "Withholding",
+    "get_withholding_rates",
+    "calculate_withholding",
+    # zakat
+    "ZakatDocument",
+    "ZakatNisab",
+    "ZakatDeduction",
+    "get_zakat_nisab",
+    "get_zakat_years",
+    "zakat_deduction",
     # FBR digital invoicing
     "FBR_DI_SPEC_VERSION",
     "FbrInvoiceType",
@@ -266,6 +321,9 @@ __all__ = [
     "FbrInvoiceBuild",
     "FbrInvoiceError",
     "FbrInvoiceValidation",
+    "FbrInvoiceReference",
+    "FbrSaleType",
+    "get_sale_types",
     "expected_sales_tax",
     "build_fbr_invoice",
     "validate_fbr_invoice",

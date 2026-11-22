@@ -40,6 +40,40 @@ public sealed record FbrInvoiceError(string? Code, string Field, string Message)
 /// <param name="Errors">Every problem found, in the order the npm package reports them.</param>
 public sealed record FbrInvoiceValidation(bool Valid, IReadOnlyList<FbrInvoiceError> Errors);
 
+/// <summary>
+/// Reference lists from FBR's own APIs (PRAL's <c>/pdi/v1/provinces</c>,
+/// <c>/pdi/v1/uom</c>, <c>/pdi/v2/HS_UOM</c>, sale types from
+/// <c>/pdi/v2/SaleTypeToRate</c> …), which an app syncs with its token, for
+/// <see cref="FbrInvoice.Validate(JsonNode?, string?, FbrInvoiceReference?)"/>.
+/// FBR's APIs are authoritative; this library ships no copy of these lists.
+/// Each list given is checked; a list left <c>null</c> is not. Names are
+/// compared in any case, with spaces collapsed.
+/// </summary>
+public sealed record FbrInvoiceReference
+{
+    /// <summary>Province names as FBR lists them, e.g. <c>["PUNJAB", "SINDH", …]</c> (errors 0073, 0074).</summary>
+    public IReadOnlyList<string>? Provinces { get; init; }
+
+    /// <summary>Sale type descriptions as FBR lists them (error 0013).</summary>
+    public IReadOnlyList<string>? SaleTypes { get; init; }
+
+    /// <summary>Unit of measure descriptions as FBR lists them (error 0099).</summary>
+    public IReadOnlyList<string>? Uoms { get; init; }
+
+    /// <summary>
+    /// The units allowed for each HS code, as FBR's HS_UOM API returns them:
+    /// <c>{ ["0101.2100"] = ["Numbers, pieces, units"] }</c>. An HS code that
+    /// is not listed is an error without a code; a unit not allowed for its
+    /// HS code is error 0099. A <c>null</c> list allows no unit.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>?>? HsUom { get; init; }
+}
+
+/// <summary>A sale type as PRAL's specification names it, with its sandbox scenarios. See <see cref="FbrInvoice.GetSaleTypes"/>.</summary>
+/// <param name="SaleType">The sale type, e.g. <c>Goods at Standard Rate (default)</c>.</param>
+/// <param name="ScenarioIds">The specification's sandbox scenarios (SN001-SN028) that use it.</param>
+public sealed record FbrSaleType(string SaleType, IReadOnlyList<string> ScenarioIds);
+
 /// <summary>Column totals of an invoice, in rupees (quantity in units). Not sent to FBR.</summary>
 public sealed record FbrInvoiceTotals(
     double Quantity,
@@ -77,7 +111,8 @@ public sealed class FbrInvoiceBuild
 /// PRAL's "Error Message Guide (Sales)"; see DATA.md. Nothing here talks to
 /// FBR: there is no HTTP client and no token handling. Values that only FBR's
 /// reference APIs can confirm (provinces, HS codes, units, rates, sale types,
-/// SRO numbers) are checked for presence, not against FBR's lists.
+/// SRO numbers) are checked for presence, not against FBR's lists, unless the
+/// app passes the lists it synced from those APIs (<see cref="FbrInvoiceReference"/>).
 /// <para>
 /// The invoice is JSON (<see cref="JsonNode"/>), with the specification's
 /// camelCase keys, because that is what is posted to FBR and what arrives
@@ -127,6 +162,24 @@ public static class FbrInvoice
     ];
 
     private static readonly string[] OptionalNumbers = ["extraTax", "furtherTax", "fedPayable", "discount"];
+
+    /// <summary>
+    /// The sale types named in PRAL's DI specification (v1.12, section 9,
+    /// "Scenarios for Sandbox Testing"), with the scenarios that use each.
+    /// </summary>
+    /// <remarks>
+    /// FBR's full, current list comes from its reference API; this is a
+    /// convenience for building forms and tests, and
+    /// <see cref="Validate(JsonNode?, string?)"/> does not reject a sale type
+    /// that is not in it.
+    /// <code>
+    /// FbrInvoice.GetSaleTypes()[0];
+    /// // FbrSaleType { SaleType = "Goods at Standard Rate (default)", ScenarioIds = ["SN001", "SN002", "SN026"] }
+    /// </code>
+    /// </remarks>
+    /// <returns>The sale types, in the specification's order.</returns>
+    public static IReadOnlyList<FbrSaleType> GetSaleTypes() =>
+        Data.FbrSaleTypes.Select(t => t with { ScenarioIds = t.ScenarioIds.ToArray() }).ToArray();
 
     /// <summary>
     /// The sales tax FBR expects on a line, in rupees, or <c>null</c> when the
@@ -221,7 +274,26 @@ public static class FbrInvoice
     /// <param name="invoice">The invoice JSON; any JSON is accepted.</param>
     /// <param name="today">Today as <c>YYYY-MM-DD</c>, to reject invoices dated later (0043). Not checked when <c>null</c> or invalid.</param>
     /// <returns><c>Valid</c> and the errors. Never throws.</returns>
-    public static FbrInvoiceValidation Validate(JsonNode? invoice, string? today = null)
+    public static FbrInvoiceValidation Validate(JsonNode? invoice, string? today = null) =>
+        Validate(invoice, today, null);
+
+    /// <summary>
+    /// Checks an FBR digital invoice as <see cref="Validate(JsonNode?, string?)"/>
+    /// does, and also against the reference lists an app syncs from FBR's APIs.
+    /// </summary>
+    /// <remarks>
+    /// Each list given in <paramref name="reference"/> is checked: provinces
+    /// (0073, 0074), sale types (0013), units (0099) and, with
+    /// <see cref="FbrInvoiceReference.HsUom"/>, that the HS code is listed and
+    /// the unit is allowed for it (0099). Lists left out are not checked.
+    /// FBR's APIs are authoritative. Province errors follow the invoice-level
+    /// errors; sale type, unit and HS code errors follow all the item errors.
+    /// </remarks>
+    /// <param name="invoice">The invoice JSON; any JSON is accepted.</param>
+    /// <param name="today">Today as <c>YYYY-MM-DD</c>, to reject invoices dated later (0043). Not checked when <c>null</c> or invalid.</param>
+    /// <param name="reference">Lists synced from FBR's reference APIs; <c>null</c> checks none.</param>
+    /// <returns><c>Valid</c> and the errors. Never throws.</returns>
+    public static FbrInvoiceValidation Validate(JsonNode? invoice, string? today, FbrInvoiceReference? reference)
     {
         var errors = new List<FbrInvoiceError>();
         void Add(string? code, string field, string message) => errors.Add(new FbrInvoiceError(code, field, message));
@@ -302,6 +374,21 @@ public static class FbrInvoice
             Add(null, "scenarioId", "Scenario ID must be SN001 to SN028");
         }
 
+        // Reference lists synced from FBR's APIs, if given.
+        if (KeySet(reference?.Provinces) is { } provinces)
+        {
+            foreach (var (field, code, who) in new[]
+                     {
+                         ("sellerProvince", "0073", "Seller"),
+                         ("buyerProvince", "0074", "Buyer"),
+                     })
+            {
+                var value = Text(Get(inv, field));
+                if (Filled(value) && !provinces.Contains(Normalize.Key(value!)))
+                    Add(code, field, $"{who} province is not in FBR's province list");
+            }
+        }
+
         // Items
         if (AsArray(Get(inv, "items")) is not { Count: > 0 } items)
         {
@@ -318,6 +405,41 @@ public static class FbrInvoice
             ValidateItem(item, index, Add);
         }
 
+        var saleTypes = KeySet(reference?.SaleTypes);
+        var uoms = KeySet(reference?.Uoms);
+        Dictionary<string, HashSet<string>>? hsUom = null;
+        if (reference?.HsUom is { } pairs)
+        {
+            hsUom = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            foreach (var (hs, units) in pairs)
+            {
+                if (hs is not null) hsUom[Normalize.Key(hs)] = KeySet(units) ?? new HashSet<string>(StringComparer.Ordinal);
+            }
+        }
+        if (saleTypes is not null || uoms is not null || hsUom is not null)
+        {
+            for (var index = 0; index < items.Count; index++)
+            {
+                if (AsObject(Unwrap(items[index])) is not { } item) continue;
+                string At(string key) => $"items[{index}].{key}";
+                var saleType = Text(Get(item, "saleType"));
+                if (saleTypes is not null && Filled(saleType) && !saleTypes.Contains(Normalize.Key(saleType!)))
+                    Add("0013", At("saleType"), "Sale type is not in FBR's sale type list");
+                var uom = Text(Get(item, "uoM"));
+                var unit = Filled(uom) ? Normalize.Key(uom!) : null;
+                if (uoms is not null && unit is not null && !uoms.Contains(unit))
+                    Add("0099", At("uoM"), "Unit of measure is not in FBR's unit list");
+                var hsCode = Text(Get(item, "hsCode"));
+                if (hsUom is not null && Filled(hsCode))
+                {
+                    if (!hsUom.TryGetValue(Normalize.Key(hsCode!), out var allowed))
+                        Add(null, At("hsCode"), "HS code is not in FBR's HS code list");
+                    else if (unit is not null && !allowed.Contains(unit))
+                        Add("0099", At("uoM"), "Unit of measure is not allowed for this HS code");
+                }
+            }
+        }
+
         return new FbrInvoiceValidation(errors.Count == 0, errors);
     }
 
@@ -331,6 +453,24 @@ public static class FbrInvoice
     /// <returns><c>Valid</c> and the errors. Never throws.</returns>
     public static FbrInvoiceValidation Validate(JsonElement invoice, string? today = null) =>
         Validate(FromElement(invoice), today);
+
+    /// <summary>
+    /// Checks an FBR digital invoice given as a <see cref="JsonElement"/>
+    /// against the rules and the reference lists; see
+    /// <see cref="Validate(JsonNode?, string?, FbrInvoiceReference?)"/>.
+    /// </summary>
+    /// <param name="invoice">The invoice JSON.</param>
+    /// <param name="today">Today as <c>YYYY-MM-DD</c>, to reject invoices dated later (0043).</param>
+    /// <param name="reference">Lists synced from FBR's reference APIs; <c>null</c> checks none.</param>
+    /// <returns><c>Valid</c> and the errors. Never throws.</returns>
+    public static FbrInvoiceValidation Validate(JsonElement invoice, string? today, FbrInvoiceReference? reference) =>
+        Validate(FromElement(invoice), today, reference);
+
+    /// <summary>A reference list as a set of normalized keys (null entries skipped), or <c>null</c> if not given.</summary>
+    private static HashSet<string>? KeySet(IReadOnlyList<string>? list) =>
+        list is null
+            ? null
+            : new HashSet<string>(list.Where(v => v is not null).Select(Normalize.Key), StringComparer.Ordinal);
 
     private static void ValidateItem(JsonObject item, int index, Action<string?, string, string> add)
     {

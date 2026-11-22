@@ -121,8 +121,13 @@ package; call `->toArray()` for an array.
 | `getSalaryTaxSlabs`, `getSalaryTaxYears`, `getTaxYear` | `IncomeTax::getSalarySlabs`, `IncomeTax::getSalaryYears`, `IncomeTax::getTaxYear` |
 | `buildFbrInvoice`, `validateFbrInvoice`                | `FbrInvoice::build`, `FbrInvoice::validate`                                       |
 | `expectedSalesTax`, `FBR_DI_SPEC_VERSION`              | `FbrInvoice::expectedSalesTax`, `FbrInvoice::SPEC_VERSION`                        |
+| `getSaleTypes`                                         | `FbrInvoice::getSaleTypes`                                                        |
+| `calculateWithholding`, `getWithholdingRates`          | `Withholding::calculate`, `Withholding::getRates`                                 |
+| `getZakatNisab`, `getZakatYears`, `zakatDeduction`     | `Zakat::getNisab`, `Zakat::getYears`, `Zakat::deduction`                          |
+| `getDistrictPopulation`, `getTehsilPopulation`         | `Population::getDistrict`, `Population::getTehsil`                                |
 | `mapCourierStatus`, `normalizeCityForCourier`          | `Courier::mapStatus`, `Courier::normalizeCity`                                    |
 | `dataVersion`                                          | `PakData::version()`                                                              |
+| `getDataInfo`, `listDataInfo`                          | `PakData::getDataInfo`, `PakData::listDataInfo`                                   |
 
 `Cnic::findAll()` finds CNICs in free text (a chat message, a note) and
 `Cnic::mask()` masks their digits, for example before logging. Digits are
@@ -130,7 +135,9 @@ read in groups, and groups may be joined by spaces or tabs, or by one mark (a
 hyphen or dash, a dot, a slash or an underscore) with any spaces around it:
 `35202-1234567-1`, `35202  1234567  1`, `35202 - 1234567 - 1`,
 `35202_1234567_1`, `352 0212 3456 71`, `35202/1234567/1`. A line break never
-joins groups. A match is consecutive whole groups adding up to exactly 13
+joins groups, unless you pass `acrossLines: true`: then a single line break
+(with spaces around it) joins them like a space, and a blank line still never
+does. A match is consecutive whole groups adding up to exactly 13
 digits, starting with a province digit (1-8), so
 `0300-1234567 35202-1234567-1` finds the CNIC; a group is never split, so 13
 digits inside a longer unbroken number never match. Digits may be ASCII, Urdu

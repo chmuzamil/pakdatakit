@@ -27,6 +27,59 @@ internal static class Data
 
     internal sealed record ObservedHoliday(IReadOnlyList<string> Dates, string Source);
 
+    internal sealed record ZakatRow(
+        int ZakatYear,
+        string Label,
+        long Nisab,
+        string ValuationDateHijri,
+        IReadOnlyList<string> ExpectedValuationDates,
+        string? BankHolidayDate,
+        ZakatDocument Notification,
+        ZakatDocument SbpCircular);
+
+    /// <summary>A rate for one kind of person: a rate, value bands, or the salaried rate table.</summary>
+    internal sealed record WithholdingSpec(double? Rate, IReadOnlyList<WithholdingSlab>? Slabs, bool SalarySlabs);
+
+    internal sealed record WithholdingRow(
+        int TaxYear,
+        string From,
+        string To,
+        string Section,
+        string SubType,
+        string Description,
+        WithholdingSpec Atl,
+        WithholdingNonAtlRule NonAtlRule,
+        WithholdingSpec NonAtl,
+        WithholdingSpec? LateFiler,
+        WithholdingThreshold? Threshold,
+        string CardRef,
+        string LawRef,
+        string Card,
+        string? StatuteOverride,
+        string? Note);
+
+    internal sealed record DistrictPopulationRow(
+        string District,
+        string Province,
+        long? Population,
+        long? Households,
+        long? Urban,
+        long? Rural,
+        string? InCensusDistrict,
+        bool BoundaryChanged,
+        string? Note);
+
+    internal sealed record TehsilPopulationRow(
+        string Tehsil,
+        string InCensusDistrict,
+        string? CurrentDistrict,
+        string Province,
+        long Population,
+        long Households,
+        long Urban,
+        long Rural,
+        string? Note);
+
     private static readonly Lazy<IReadOnlyList<NetworkEntry>> NetworksLazy = new(() =>
         Array("networks.json", e => new NetworkEntry(Str(e, "prefix")!, Str(e, "network")!)));
 
@@ -99,6 +152,58 @@ internal static class Data
             return years;
         });
 
+    private static readonly Lazy<IReadOnlyList<DataInfo>> ManifestLazy = new(() =>
+        Array("manifest.json", e => new DataInfo(
+            Str(e, "id")!, Str(e, "file")!, Str(e, "title")!, Str(e, "issuer")!, Str(e, "sourceUrl")!,
+            Str(e, "sourceReference")!, Str(e, "sourceDate"), Str(e, "retrievedAt")!, Str(e, "effectiveFrom")!,
+            Str(e, "effectiveTo"), Str(e, "coverage")!, e.GetProperty("recordCount").GetInt32(),
+            Str(e, "nextExpectedUpdate")!, Str(e, "updateCadence")!, Str(e, "notes")!)));
+
+    private static readonly Lazy<IReadOnlyList<ZakatRow>> ZakatNisabLazy = new(() =>
+        Array("zakat-nisab.json", e => new ZakatRow(
+            e.GetProperty("zakatYear").GetInt32(), Str(e, "label")!, e.GetProperty("nisab").GetInt64(),
+            Str(e, "valuationDateHijri")!, Strings(e.GetProperty("expectedValuationDates")),
+            Str(e, "bankHolidayDate"), Document(e.GetProperty("notification")),
+            Document(e.GetProperty("sbpCircular")))));
+
+    private static readonly Lazy<IReadOnlyList<WithholdingRow>> WithholdingRatesLazy = new(() =>
+        Array("withholding-rates.json", e =>
+        {
+            var nonAtl = e.GetProperty("nonAtl");
+            return new WithholdingRow(
+                e.GetProperty("taxYear").GetInt32(), Str(e, "from")!, Str(e, "to")!, Str(e, "section")!,
+                Str(e, "subType")!, Str(e, "description")!, Spec(e.GetProperty("atl")),
+                Str(nonAtl, "rule") switch
+                {
+                    "double" => WithholdingNonAtlRule.Double,
+                    "fixed" => WithholdingNonAtlRule.Fixed,
+                    "slabs" => WithholdingNonAtlRule.Slabs,
+                    "not-applicable" => WithholdingNonAtlRule.NotApplicable,
+                    var other => throw new InvalidOperationException("Unknown nonAtl rule " + other),
+                },
+                Spec(nonAtl),
+                e.TryGetProperty("lateFiler", out var late) && late.ValueKind == JsonValueKind.Object ? Spec(late) : null,
+                e.TryGetProperty("threshold", out var t) && t.ValueKind == JsonValueKind.Object
+                    ? new WithholdingThreshold(t.GetProperty("amount").GetInt64(), Str(t, "per")!)
+                    : null,
+                Str(e, "cardRef")!, Str(e, "lawRef")!, Str(e, "card")!, Str(e, "statuteOverride"), Str(e, "note"));
+        }));
+
+    private static readonly Lazy<IReadOnlyList<DistrictPopulationRow>> DistrictPopulationLazy = new(() =>
+        Array("district-population.json", e => new DistrictPopulationRow(
+            Str(e, "district")!, Str(e, "province")!, Long(e, "population"), Long(e, "households"),
+            Long(e, "urban"), Long(e, "rural"), Str(e, "inCensusDistrict"),
+            e.TryGetProperty("boundaryChanged", out var b) && b.ValueKind == JsonValueKind.True, Str(e, "note"))));
+
+    private static readonly Lazy<IReadOnlyList<TehsilPopulationRow>> TehsilPopulationLazy = new(() =>
+        Array("tehsil-population.json", e => new TehsilPopulationRow(
+            Str(e, "tehsil")!, Str(e, "inCensusDistrict")!, Str(e, "currentDistrict"), Str(e, "province")!,
+            e.GetProperty("population").GetInt64(), e.GetProperty("households").GetInt64(),
+            e.GetProperty("urban").GetInt64(), e.GetProperty("rural").GetInt64(), Str(e, "note"))));
+
+    private static readonly Lazy<IReadOnlyList<FbrSaleType>> FbrSaleTypesLazy = new(() =>
+        Array("fbr-sale-types.json", e => new FbrSaleType(Str(e, "saleType")!, Strings(e.GetProperty("scenarioIds")))));
+
     private static readonly Lazy<string> VersionLazy = new(() =>
         Js.Rx("'([0-9]{4}-[0-9]{2}-[0-9]{2})'").Match(Read("data-version.ts")) is { Success: true } match
             ? match.Groups[1].Value
@@ -131,6 +236,19 @@ internal static class Data
 
     internal static string Version => VersionLazy.Value;
 
+    /// <summary><c>manifest.json</c> in file order, without <c>series</c>.</summary>
+    internal static IReadOnlyList<DataInfo> Manifest => ManifestLazy.Value;
+
+    internal static IReadOnlyList<ZakatRow> ZakatNisab => ZakatNisabLazy.Value;
+
+    internal static IReadOnlyList<WithholdingRow> WithholdingRates => WithholdingRatesLazy.Value;
+
+    internal static IReadOnlyList<DistrictPopulationRow> DistrictPopulation => DistrictPopulationLazy.Value;
+
+    internal static IReadOnlyList<TehsilPopulationRow> TehsilPopulation => TehsilPopulationLazy.Value;
+
+    internal static IReadOnlyList<FbrSaleType> FbrSaleTypes => FbrSaleTypesLazy.Value;
+
     private static string Read(string name)
     {
         using var stream = typeof(Data).Assembly.GetManifestResourceStream("PakDataKit.Data." + name)
@@ -149,6 +267,24 @@ internal static class Data
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()
             : null;
+
+    private static long? Long(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number
+            ? value.GetInt64()
+            : null;
+
+    private static ZakatDocument Document(JsonElement e) =>
+        new(Str(e, "number")!, Str(e, "date")!, Str(e, "url")!);
+
+    private static WithholdingSpec Spec(JsonElement e) => new(
+        e.TryGetProperty("rate", out var rate) && rate.ValueKind == JsonValueKind.Number ? rate.GetDouble() : null,
+        e.TryGetProperty("slabs", out var slabs) && slabs.ValueKind == JsonValueKind.Array
+            ? slabs.EnumerateArray().Select(x => new WithholdingSlab(
+                x.GetProperty("over").GetInt64(),
+                x.GetProperty("upTo").ValueKind == JsonValueKind.Number ? x.GetProperty("upTo").GetInt64() : null,
+                x.GetProperty("rate").GetDouble())).ToArray()
+            : null,
+        Str(e, "salarySlabs") is not null);
 
     private static IReadOnlyList<string> Strings(JsonElement array) =>
         array.EnumerateArray().Select(v => v.GetString()!).ToArray();

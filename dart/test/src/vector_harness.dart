@@ -211,6 +211,54 @@ String textOr(Object? value, Object? fallback) {
   return value;
 }
 
+/// A JSON object argument (an options object such as `{ zakatYear: 1447 }`).
+Map<String, Object?> object(Object? value) {
+  if (value is! Map<String, Object?>) {
+    throw Unrepresentable('$value is not an object');
+  }
+  return value;
+}
+
+/// The `reference` option of `validateFbrInvoice` as an
+/// [FbrInvoiceReference], and whether it is exactly what TypeScript reads.
+/// TypeScript ignores a list that is not an array, skips values that are not
+/// strings, and treats units for an HS code that are not an array as none;
+/// the Dart types cannot hold those, so the closest reference is returned
+/// with `exact` false.
+(FbrInvoiceReference?, bool) fbrReference(Object? value) {
+  if (value == null) return (null, true);
+  if (value is! Map<String, Object?>) return (null, false);
+  var exact = true;
+  List<String>? strings(Object? list) {
+    if (list == null) return null;
+    if (list is! List) {
+      exact = false;
+      return null;
+    }
+    final out = list.whereType<String>().toList();
+    if (out.length != list.length) exact = false;
+    return out;
+  }
+
+  Map<String, List<String>>? hsUom;
+  final rawHsUom = value['hsUom'];
+  if (rawHsUom is Map<String, Object?>) {
+    hsUom = {
+      for (final e in rawHsUom.entries) e.key: strings(e.value) ?? const [],
+    };
+    if (rawHsUom.values.any((v) => v is! List)) exact = false;
+  } else if (rawHsUom != null) {
+    exact = false;
+  }
+  final reference = FbrInvoiceReference(
+    provinces: strings(value['provinces']),
+    saleTypes: strings(value['saleTypes']),
+    uoms: strings(value['uoms']),
+    hsUom: hsUom,
+  );
+  return (reference, exact);
+}
+
 typedef Call = Object? Function(List<Object?> a, Map<String, Object?> k);
 
 Call one(Object? Function(String) fn) => (a, k) => fn(str(a[0]));
@@ -274,14 +322,15 @@ const Map<String, Set<String>> allowedKwargs = {
     'dueDate',
     'amountAfterDueDate',
   },
-  'validateFbrInvoice': {'today'},
+  'validateFbrInvoice': {'today', 'reference'},
   'getSalesTaxRate': {'kind', 'province', 'date'},
   'calculateSalesTax': {'rate', 'province', 'kind', 'date', 'inclusive'},
   'slugify': {'script'},
   'calculateSalaryTax': {'taxYear', 'date', 'includeSurcharge'},
   'calculateMonthlySalaryTax': {'taxYear', 'date', 'includeSurcharge'},
   'validateLandline': {'services'},
-  'maskCNICs': {'mask', 'replacement'},
+  'findCNICs': {'acrossLines'},
+  'maskCNICs': {'mask', 'replacement', 'acrossLines'},
   // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
   'formatAddress': {
     'raw',
@@ -298,13 +347,17 @@ const Map<String, Set<String>> allowedKwargs = {
 final Map<String, Call> functions = {
   'validateCNIC': one(validateCNIC),
   'getCNICInfo': one(getCNICInfo),
-  'findCNICs': (a, k) => findCNICs(textOr(a[0], const <Object?>[])),
+  'findCNICs': (a, k) => findCNICs(
+        textOr(a[0], const <Object?>[]),
+        acrossLines: optBool(k['acrossLines']) ?? false,
+      ),
   'maskCNICs': (a, k) => maskCNICs(
         textOr(a[0], const {'text': '', 'count': 0}),
         mask: optStr(k['mask']) ?? 'X',
         // A non-string replacement is ignored, as in TypeScript.
         replacement:
             k['replacement'] is String ? k['replacement']! as String : null,
+        acrossLines: optBool(k['acrossLines']) ?? false,
       ),
   'validatePhone': one(validatePhone),
   'formatPhone': one(formatPhone),
@@ -497,8 +550,20 @@ final Map<String, Call> functions = {
   'normalizeCityForCourier': one(normalizeCityForCourier),
   // The invoice is untrusted JSON, so any value is passed through.
   'buildFbrInvoice': (a, k) => buildFbrInvoice(a[0]),
-  'validateFbrInvoice': (a, k) =>
-      validateFbrInvoice(a[0], today: optStr(k['today'])),
+  'validateFbrInvoice': (a, k) {
+    final (reference, exact) = fbrReference(k['reference']);
+    final result = validateFbrInvoice(
+      a[0],
+      today: optStr(k['today']),
+      reference: reference,
+    );
+    if (!exact) {
+      throw Unrepresentable.withFallback(
+          '${k['reference']} is not an FbrInvoiceReference', result);
+    }
+    return result;
+  },
+  'getSaleTypes': (a, k) => getSaleTypes(),
   'expectedSalesTax': (a, k) => expectedSalesTax(a[0]),
   'getSalaryTaxSlabs': (a, k) =>
       a.isEmpty ? getSalaryTaxSlabs() : getSalaryTaxSlabs(optInteger(a[0])),
@@ -517,6 +582,50 @@ final Map<String, Call> functions = {
         date: k['date'],
         includeSurcharge: optBool(k['includeSurcharge']) ?? false,
       ),
+  'getDataInfo': one(getDataInfo),
+  'listDataInfo': (a, k) => listDataInfo(),
+  // The query object's keys are the named parameters.
+  'getZakatNisab': (a, k) {
+    final q = object(a[0]);
+    return getZakatNisab(zakatYear: q['zakatYear'], date: q['date']);
+  },
+  'getZakatYears': (a, k) => getZakatYears(),
+  'zakatDeduction': (a, k) {
+    final q = object(a[0]);
+    ZakatDeduction? call(bool exempt) => zakatDeduction(
+          balance: number(q['balance']),
+          zakatYear: q['zakatYear'],
+          date: q['date'],
+          exempt: exempt,
+        );
+    final exempt = q['exempt'];
+    if (exempt != null && exempt is! bool) {
+      // TypeScript deducts unless `exempt` is exactly true.
+      throw Unrepresentable.withFallback('$exempt is not a bool', call(false));
+    }
+    return call(exempt == true);
+  },
+  'calculateWithholding': (a, k) {
+    final q = object(a[0]);
+    final atl = q['atl'];
+    if (atl is! bool) throw Unrepresentable('$atl is not a bool');
+    return calculateWithholding(
+      section: str(q['section']),
+      subType: optStr(q['subType']),
+      amount: number(q['amount']),
+      atl: atl,
+      lateFiler: optBool(q['lateFiler']) ?? false,
+      taxYear: optInteger(q['taxYear']),
+      date: q['date'],
+    );
+  },
+  'getWithholdingRates': (a, k) => a.length > 1
+      ? getWithholdingRates(integer(a[0]), optStr(a[1]))
+      : getWithholdingRates(integer(a[0])),
+  'getDistrictPopulation': one(getDistrictPopulation),
+  'getTehsilPopulation': (a, k) => a.length > 1
+      ? getTehsilPopulation(str(a[0]), optStr(a[1]))
+      : getTehsilPopulation(str(a[0])),
 };
 
 const Map<String, Object> constants = {

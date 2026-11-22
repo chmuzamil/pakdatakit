@@ -1,5 +1,39 @@
 # Changelog
 
+## 2.8.0
+
+Feature release. Every port gives the same results on the shared test
+vectors. New datasets are embedded like the others and read only when first
+used.
+
+### Added
+
+- **Dated sources (#90).** `PakData.GetDataInfo(id)` and
+  `PakData.ListDataInfo()` return each dataset's manifest entry (`DataInfo`:
+  issuer, source, reference and dates, coverage, record count, next expected
+  update). `SalaryTax.Source` and, when the rate was looked up,
+  `SalesTaxAmounts.Source` give the `DataSource` a result was calculated
+  from. Both are init-only properties, so the records' constructors are
+  unchanged (record equality now includes them).
+- **Withholding tax, ATL and non-ATL (#92).** `Withholding.Calculate(new
+  WithholdingInput { … })` and `Withholding.GetRates(taxYear, section)` for
+  sections 149, 150, 151, 153, 154B, 231AB, 236C and 236K, tax years 2025 to
+  2027.
+- **Zakat (#93).** `Zakat.GetNisab()` (by year, `"1446-47"` label or date
+  via `ZakatYearQuery`), `Zakat.GetYears()` and `Zakat.CalculateDeduction()`,
+  Zakat years 1433 to 1447 AH.
+- **Population (#95).** `Population.GetDistrict()` and
+  `Population.GetTehsil()` from the 2023 census.
+- **FBR Digital Invoicing reference lists (#91).** New overloads
+  `FbrInvoice.Validate(invoice, today, reference)` (for `JsonNode` and
+  `JsonElement`) check provinces, sale types, units and HS code/unit pairs
+  against an `FbrInvoiceReference`; `FbrInvoice.GetSaleTypes()` lists the
+  sale types named in PRAL's specification v1.12.
+- **CNICs across lines (#88).** New overloads `Cnic.FindAll(text,
+  acrossLines)` and `Cnic.Mask(text, acrossLines, mask, replacement)`: a
+  single line break joins digit groups like a space; a blank line never
+  does. The existing signatures are kept, so compiled code still binds.
+
 ## 2.7.2
 
 Patch release. Every port gives the same results on the shared test

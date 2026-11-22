@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import datetime as _dt
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, List, Literal, Optional
 
 from ._data import load
+from .data_info import DataSource
 from ._internal.date import iso_date as _iso_date
 from ._internal.js import is_number
 from ._internal.money import divide_half_up, from_paisa, to_units
@@ -58,6 +59,9 @@ class SalesTaxAmounts:
     gross: float
     #: Percent used.
     rate: float
+    #: The rate's period, law and official source, when the rate was looked
+    #: up from a province or kind. ``None`` when you passed the ``rate`` yourself.
+    source: Optional[DataSource] = None
 
 
 _PROVINCES = {
@@ -188,7 +192,7 @@ def split_inclusive(gross: Any, rate: Any) -> Optional[SalesTaxAmounts]:
     for an invalid amount or rate. Never raises.
 
     >>> split_inclusive(1180, 18)
-    SalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)
+    SalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0, source=None)
     """
     gross_paisa = to_units(gross, 2)
     bp = _basis_points(rate)
@@ -214,14 +218,21 @@ def calculate_sales_tax(
     ``date``) to use the standard rate from :func:`get_sales_tax_rate`. The
     tax is rounded half up to the paisa. ``amount`` is 0 to 1 trillion rupees.
 
+    When the rate was looked up, ``source`` gives its period, law and
+    official document (a :class:`DataSource`); with your own ``rate`` it is
+    ``None``.
+
     Returns ``None`` if the amount, rate or province is invalid or no rate
     applies. Never raises.
 
     >>> calculate_sales_tax(1000, rate=18)
-    SalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)
+    SalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0, source=None)
     >>> calculate_sales_tax(1000, province="Punjab", date="2026-11-18").tax
     160.0
+    >>> calculate_sales_tax(1000, province="Punjab", date="2026-11-18").source.effective_from
+    '2019-07-01'
     """
+    source: Optional[DataSource] = None
     if rate is None:
         if kind is None:
             kind = "services" if province is not None else None
@@ -231,12 +242,20 @@ def calculate_sales_tax(
         if found is None:
             return None
         rate = found.rate
+        source = DataSource(
+            id="sales-tax-rates",
+            effective_from=found.from_,
+            effective_to=found.to,
+            source_reference=found.law,
+            source_url=found.source,
+        )
+    result: Optional[SalesTaxAmounts]
     if inclusive is True:
-        return split_inclusive(amount, rate)
-
-    net_paisa = to_units(amount, 2)
-    bp = _basis_points(rate)
-    if net_paisa is None or bp is None:
-        return None
-    tax_paisa = divide_half_up(net_paisa * bp, 10000)
-    return _amounts(net_paisa, tax_paisa, bp)
+        result = split_inclusive(amount, rate)
+    else:
+        net_paisa = to_units(amount, 2)
+        bp = _basis_points(rate)
+        if net_paisa is None or bp is None:
+            return None
+        result = _amounts(net_paisa, divide_half_up(net_paisa * bp, 10000), bp)
+    return replace(result, source=source) if result is not None and source is not None else result

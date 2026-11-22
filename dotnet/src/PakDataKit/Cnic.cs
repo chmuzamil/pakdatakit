@@ -20,7 +20,7 @@ public enum CnicGender
 /// <param name="Gender">Gender from the last digit: odd is male, even is female.</param>
 public sealed record CnicInfo(string Digits, string Formatted, string Province, CnicGender Gender);
 
-/// <summary>A CNIC found by <see cref="Cnic.FindAll"/>.</summary>
+/// <summary>A CNIC found by <see cref="Cnic.FindAll(string?)"/>.</summary>
 /// <param name="Raw">The text as written, e.g. <c>35202 1234567-1</c> or with Urdu digits.</param>
 /// <param name="Digits">The 13 digits, in ASCII.</param>
 /// <param name="Formatted">The CNIC in <c>#####-#######-#</c> form.</param>
@@ -66,11 +66,26 @@ public static class Cnic
     /// </summary>
     private const string Join = $"(?:{Space}+|{Space}*{Mark}{Space}*)";
 
+    /// <summary>One line break: CRLF, LF or CR.</summary>
+    private const string LineBreak = @"(?:\r\n|\r|\n)";
+
+    /// <summary>
+    /// With <c>acrossLines</c>: what <see cref="Join"/> allows, or the same
+    /// with one line break counting as a space (<c>35202\n1234567\n1</c>,
+    /// <c>35202-\r\n1234567</c>). Only one line break per gap, so a blank
+    /// line never joins groups.
+    /// </summary>
+    private const string JoinLines =
+        $"(?:{Space}*{LineBreak}{Space}*(?:{Mark}{Space}*)?|{Space}*{Mark}{Space}*{LineBreak}{Space}*|{Join})";
+
     /// <summary>One digit group: an unbroken run of digits.</summary>
     private static readonly SafeRegex Group = Js.Rx($"{AnyDigit}+");
 
     /// <summary>Digit groups joined as above, as long as the run goes.</summary>
     private static readonly SafeRegex DigitRun = Js.Rx($"{AnyDigit}+(?:{Join}{AnyDigit}+)*");
+
+    /// <summary>The same, joining across single line breaks (<c>acrossLines</c>).</summary>
+    private static readonly SafeRegex DigitRunLines = Js.Rx($"{AnyDigit}+(?:{JoinLines}{AnyDigit}+)*");
 
     private static readonly SafeRegex FirstIsProvince = Js.Rx($"^{ProvinceDigit}");
 
@@ -124,10 +139,10 @@ public static class Cnic
     /// after it. A group is never split, so 13 digits inside a longer unbroken
     /// number are never matched.
     /// </summary>
-    private static List<(int Start, int End)> Spans(string text)
+    private static List<(int Start, int End)> Spans(string text, bool acrossLines)
     {
         var spans = new List<(int Start, int End)>();
-        foreach (var run in DigitRun.Matches(text))
+        foreach (var run in (acrossLines ? DigitRunLines : DigitRun).Matches(text))
         {
             var groups = Group.Matches(run.Value)
                 .Select(g => (Start: run.Index + g.Index, End: run.Index + g.Index + g.Length, g.Value))
@@ -189,10 +204,29 @@ public static class Cnic
     /// </remarks>
     /// <param name="text">Any text.</param>
     /// <returns>The matches in order, or an empty list (also for <c>null</c>). Never throws.</returns>
-    public static IReadOnlyList<CnicMatch> FindAll(string? text)
+    public static IReadOnlyList<CnicMatch> FindAll(string? text) => FindAll(text, acrossLines: false);
+
+    /// <summary>
+    /// Finds CNIC numbers in free text, as <see cref="FindAll(string?)"/>
+    /// does, optionally also joining digit groups across a single line break.
+    /// </summary>
+    /// <remarks>
+    /// With <paramref name="acrossLines"/>, a single line break (<c>\r\n</c>,
+    /// <c>\r</c> or <c>\n</c>, with any spaces around it) also joins groups,
+    /// like a space, so a CNIC written over several lines is found; a blank
+    /// line (two or more line breaks) never joins them. This can also join
+    /// numbers on consecutive lines, such as a list of amounts.
+    /// <code>
+    /// Cnic.FindAll("CNIC\n35202\n1234567\n1", acrossLines: true)[0].Formatted;  // "35202-1234567-1"
+    /// </code>
+    /// </remarks>
+    /// <param name="text">Any text.</param>
+    /// <param name="acrossLines">Also join digit groups across single line breaks.</param>
+    /// <returns>The matches in order, or an empty list (also for <c>null</c>). Never throws.</returns>
+    public static IReadOnlyList<CnicMatch> FindAll(string? text, bool acrossLines)
     {
         if (text is null) return [];
-        return Spans(text).Select(span =>
+        return Spans(text, acrossLines).Select(span =>
         {
             var raw = text[span.Start..span.End];
             var digits = NonDigit.Replace(Normalize.ToAsciiDigits(raw), "");
@@ -202,14 +236,14 @@ public static class Cnic
     }
 
     /// <summary>
-    /// Masks every CNIC in free text, as found by <see cref="FindAll"/>: each
+    /// Masks every CNIC in free text, as found by <see cref="FindAll(string?)"/>: each
     /// digit becomes <paramref name="mask"/> and the separators stay, so
     /// <c>35202-1234567-1</c> becomes <c>XXXXX-XXXXXXX-X</c>. The rest of the
     /// text is unchanged. With <paramref name="replacement"/>, each whole CNIC
     /// is replaced by that text instead.
     /// </summary>
     /// <remarks>
-    /// Like <see cref="FindAll"/>, it also masks any other 13 digits that start
+    /// Like <see cref="FindAll(string?)"/>, it also masks any other 13 digits that start
     /// with 1-8, however they are grouped.
     /// <code>
     /// Cnic.Mask("My CNIC is 35202-1234567-1");  // Text = "My CNIC is XXXXX-XXXXXXX-X", Count = 1
@@ -229,11 +263,40 @@ public static class Cnic
     /// The masked text (or replaced, with <paramref name="replacement"/>) and
     /// the number of CNICs masked; <c>("", 0)</c> for <c>null</c> text. Never throws.
     /// </returns>
-    public static MaskedText Mask(string? text, string? mask = "X", string? replacement = null)
+    public static MaskedText Mask(string? text, string? mask = "X", string? replacement = null) =>
+        Mask(text, acrossLines: false, mask, replacement);
+
+    /// <summary>
+    /// Masks every CNIC in free text, as
+    /// <see cref="Mask(string?, string?, string?)"/> does, optionally also
+    /// finding CNICs written across single line breaks, as
+    /// <see cref="FindAll(string?, bool)"/> does.
+    /// </summary>
+    /// <remarks>
+    /// With <paramref name="mask"/> the line breaks inside a CNIC stay; with
+    /// <paramref name="replacement"/> they are replaced with the rest of the CNIC.
+    /// <code>
+    /// Cnic.Mask("35202\n1234567\n1", acrossLines: true);  // Text = "XXXXX\nXXXXXXX\nX", Count = 1
+    /// Cnic.Mask("35202\n1234567\n1", acrossLines: true, replacement: "[CNIC removed]");
+    /// // Text = "[CNIC removed]", Count = 1
+    /// </code>
+    /// </remarks>
+    /// <param name="text">Any text.</param>
+    /// <param name="acrossLines">Also join digit groups across single line breaks.</param>
+    /// <param name="mask">The string that replaces each digit. <c>null</c> means <c>"X"</c>.</param>
+    /// <param name="replacement">
+    /// The string that replaces each whole CNIC, separators included. Takes
+    /// precedence over <paramref name="mask"/>; <c>null</c> means no replacement.
+    /// </param>
+    /// <returns>
+    /// The masked text and the number of CNICs masked; <c>("", 0)</c> for
+    /// <c>null</c> text. Never throws.
+    /// </returns>
+    public static MaskedText Mask(string? text, bool acrossLines, string? mask = "X", string? replacement = null)
     {
         if (text is null) return new MaskedText("", 0);
         var digitMask = mask ?? "X";
-        var spans = Spans(text);
+        var spans = Spans(text, acrossLines);
         var sb = new System.Text.StringBuilder(text.Length);
         var at = 0;
         foreach (var (start, end) in spans)

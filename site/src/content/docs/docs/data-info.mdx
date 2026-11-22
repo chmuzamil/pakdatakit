@@ -1,0 +1,51 @@
+---
+title: Data sources in code
+description: Where each bundled dataset comes from, in code - issuer, official source and reference, issue and retrieval dates, the period it applies to, record count and next expected update.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+
+`import { getDataInfo, listDataInfo } from 'pakdatakit/data-info'`
+
+Every dataset has an entry in `data/manifest.json`, which CI checks against the data. Results calculated from dated data also carry a `source` (calculateSalaryTax, calculateSalesTax, calculateWithholding, zakatDeduction and others), so you can show or log which law, notification or table a figure came from.
+
+## Examples
+
+<LangTabs module="data-info" />
+
+## Reference
+
+### getDataInfo()
+
+```ts
+function getDataInfo(id: string): DataInfo | null;
+// { id, file, title, issuer, sourceUrl, sourceReference, sourceDate,
+//   retrievedAt, effectiveFrom, effectiveTo, coverage, recordCount,
+//   nextExpectedUpdate, updateCadence, notes }
+```
+
+**Returns** one dataset's entry. Dates are `YYYY-MM-DD`; a source that gives only a year or month keeps that (`2008`, `2021-02`), and an undated source has `sourceDate: null`.
+
+### listDataInfo()
+
+```ts
+function listDataInfo(): DataInfo[];
+```
+
+**Returns** every dataset's entry, in id order.
+
+### The `source` on results
+
+```ts
+interface DataSource {
+  id: string; // the dataset
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  sourceReference: string; // the law, SRO, circular or notification
+  sourceUrl: string;
+}
+```
+
+**Related:** [all data sources](/data/).
+
+**API:** [TypeScript](/api/typescript/data-info/) and the other languages from the [API index](/api/).

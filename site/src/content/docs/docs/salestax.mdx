@@ -44,10 +44,10 @@ function calculateSalesTax(
     date?: string | Date;
     inclusive?: boolean;
   },
-): SalesTaxAmounts | null; // { net, tax, gross, rate }
+): SalesTaxAmounts | null; // { net, tax, gross, rate, source? }
 ```
 
-**Returns** the net amount, tax and gross amount in whole paisa. With `inclusive: true`, `amount` already includes tax and is split.
+**Returns** the net amount, tax and gross amount in whole paisa. With `inclusive: true`, `amount` already includes tax and is split. When the rate was looked up from a province or kind, `source` gives its period, law and document ([data sources in code](/docs/data-info/)).
 
 ### splitInclusive()
 

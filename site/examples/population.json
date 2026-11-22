@@ -1,0 +1,81 @@
+{
+  "module": "population",
+  "title": "Population",
+  "examples": [
+    {
+      "id": "district",
+      "title": "Lahore in the 2023 census",
+      "fn": "getDistrictPopulation",
+      "args": ["Lahore"],
+      "expected": {
+        "district": "Lahore",
+        "province": "Punjab",
+        "population": 13004135,
+        "households": 2010225,
+        "urban": 13004135,
+        "rural": 0,
+        "census": 2023,
+        "censusDistrict": "Lahore",
+        "boundaryChanged": false,
+        "note": null,
+        "source": {
+          "id": "district-population",
+          "effectiveFrom": "2023-03-01",
+          "effectiveTo": null,
+          "sourceReference": "7th Population and Housing Census 2023, Table 1 (population, urban and rural) and Table 20 (households)",
+          "sourceUrl": "https://www.pbs.gov.pk/result-excel/"
+        }
+      }
+    },
+    {
+      "id": "new",
+      "title": "A district created after the census",
+      "fn": "getDistrictPopulation",
+      "args": ["Murree"],
+      "expected": {
+        "district": "Murree",
+        "province": "Punjab",
+        "population": null,
+        "households": null,
+        "urban": null,
+        "rural": null,
+        "census": 2023,
+        "censusDistrict": "Rawalpindi",
+        "boundaryChanged": false,
+        "note": "Created after the 2023 census; not in the census tables. At the census its area was part of Rawalpindi district.",
+        "source": {
+          "id": "district-population",
+          "effectiveFrom": "2023-03-01",
+          "effectiveTo": null,
+          "sourceReference": "7th Population and Housing Census 2023, Table 1 (population, urban and rural) and Table 20 (households)",
+          "sourceUrl": "https://www.pbs.gov.pk/result-excel/"
+        }
+      }
+    },
+    {
+      "id": "tehsil",
+      "title": "A tehsil",
+      "fn": "getTehsilPopulation",
+      "args": ["Murree"],
+      "expected": {
+        "tehsil": "Murree",
+        "censusDistrict": "Rawalpindi",
+        "currentDistrict": "Murree",
+        "province": "Punjab",
+        "population": 252526,
+        "households": 45280,
+        "urban": 25186,
+        "rural": 227340,
+        "census": 2023,
+        "note": null,
+        "source": {
+          "id": "tehsil-population",
+          "effectiveFrom": "2023-03-01",
+          "effectiveTo": null,
+          "sourceReference": "7th Population and Housing Census 2023, Table 1 (population, urban and rural) and Table 20 (households)",
+          "sourceUrl": "https://www.pbs.gov.pk/result-excel/"
+        }
+      }
+    }
+  ]
+}

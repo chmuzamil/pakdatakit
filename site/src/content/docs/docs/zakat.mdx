@@ -1,0 +1,58 @@
+---
+title: Zakat deduction at source
+description: The nisab for compulsory Zakat deduction from savings accounts in Pakistan, Zakat years 1433-1447 AH, each from its Ministry notification and SBP circular, and the deduction on a balance.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+
+`import { getZakatNisab, zakatDeduction, getZakatYears } from 'pakdatakit/zakat'`
+
+On 1 Ramazan, banks deduct Zakat at source from savings, profit and loss sharing and similar accounts (asset code 101) under the Zakat and Ushr Ordinance 1980. Nothing is deducted from a balance below that year's nisab, or when the holder has filed the exemption declaration (Form CZ-50). Each year's nisab comes from the Ministry of Poverty Alleviation & Social Safety's notification and the SBP circular letter that sends it to banks.
+
+This covers deduction at source only. Current accounts and foreign currency accounts are not deducted, and it is not a religious ruling on the Zakat a person owes.
+
+## Examples
+
+<LangTabs module="zakat" />
+
+## Reference
+
+### getZakatNisab()
+
+```ts
+function getZakatNisab(
+  query: { zakatYear: number | string } | { date: string | Date },
+): ZakatNisab | null;
+// { zakatYear, label, nisab, valuationDateHijri, expectedValuationDates,
+//   bankHolidayDate, notification, sbpCircular, source }
+```
+
+**Returns** the year's nisab with its notification and SBP circular (number, date, URL). `zakatYear` is the Hijri year of 1 Ramazan (`1447` is February 2026). The notification's own label, such as `'1446-47'`, works too.
+
+**Caveats.** A notification gives only the two likely days of 1 Ramazan, because the day depends on the moon sighting. For a date on the first of those two days, the year is unknown and the result is `null`. Years before 1433 AH and after the last notified year are `null`.
+
+### zakatDeduction()
+
+```ts
+function zakatDeduction(input: {
+  balance: number;
+  zakatYear?: number | string;
+  date?: string | Date;
+  exempt?: boolean;
+}): ZakatDeduction | null;
+// { zakatYear, nisab, balance, deductible, reason, rate, zakat, source }
+```
+
+**Returns** 2.5% of the whole balance, rounded half up to the paisa, when the balance is at or above the nisab. `reason` is `'below-nisab'` or `'exempt'` when nothing is deducted.
+
+**Caveats.** A balance exactly equal to the nisab is deducted, as the notifications say ("Rs. 503,529/- or above" in 2026). The Ordinance's own wording ("does not exceed") would not deduct it.
+
+### getZakatYears()
+
+```ts
+function getZakatYears(): number[]; // [1433, …, 1447]
+```
+
+**Sources:** [every notification and circular](/data/#zakat-nisab-zakat-nisabjson).
+
+**API:** [TypeScript](/api/typescript/zakat/) and the other languages from the [API index](/api/).

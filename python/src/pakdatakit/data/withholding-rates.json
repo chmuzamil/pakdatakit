@@ -280,7 +280,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 15.0
+      "rate": 15
     },
     "cardRef": "TY2025 PDF (scanned) p.3; docx T1 R20",
     "lawRef": "Division-I, Part-III of First Schedule Read with R.1 of 10th Schedule",
@@ -389,7 +389,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 3.0
+      "rate": 3
     },
     "cardRef": "TY2025 PDF (scanned) p.7; docx T1 R48",
     "lawRef": "Division III of Part III of the First Schedule Read with R.1 of 10th Schedule",
@@ -461,7 +461,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 11.0
+      "rate": 11
     },
     "cardRef": "TY2025 PDF (scanned) p.8; docx T1 R52",
     "lawRef": "Division III of Part III of the First Schedule Read with R.1 of 10th Schedule",
@@ -533,7 +533,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 3.0
+      "rate": 3
     },
     "cardRef": "TY2025 PDF (scanned) p.8; docx T1 R56",
     "lawRef": "Division III of Part III of the First Schedule Read with R.1 of 10th Schedule",
@@ -569,7 +569,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 15.0
+      "rate": 15
     },
     "cardRef": "TY2025 PDF (scanned) p.8; docx T1 R58",
     "lawRef": "Division III of Part III of the First Schedule Read with R.1 of 10th Schedule",
@@ -866,7 +866,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 25.0
+      "rate": 25
     },
     "cardRef": "TY2026 PDF p.3; xlsx row No.32",
     "lawRef": "Division-IB, Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -902,7 +902,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 15.0
+      "rate": 15
     },
     "cardRef": "TY2026 PDF p.2; xlsx row No.21",
     "lawRef": "Division-I, Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1030,7 +1030,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 3.0
+      "rate": 3
     },
     "cardRef": "TY2026 PDF p.5; xlsx row No.54",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1102,7 +1102,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 11.0
+      "rate": 11
     },
     "cardRef": "TY2026 PDF p.6; xlsx row No.58",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1174,7 +1174,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 3.0
+      "rate": 3
     },
     "cardRef": "TY2026 PDF p.6; xlsx row No.62",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1210,7 +1210,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 15.0
+      "rate": 15
     },
     "cardRef": "TY2026 PDF p.6; xlsx row No.64",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1474,7 +1474,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 25.0
+      "rate": 25
     },
     "cardRef": "TY2027 PDF p.4; xlsx row No.33",
     "lawRef": "Division-IB, Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1510,7 +1510,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 15.0
+      "rate": 15
     },
     "cardRef": "TY2027 PDF p.3; xlsx row No.22",
     "lawRef": "Division-I, Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1638,7 +1638,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 3.0
+      "rate": 3
     },
     "cardRef": "TY2027 PDF p.7; xlsx row No.59",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1710,7 +1710,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 11.0
+      "rate": 11
     },
     "cardRef": "TY2027 PDF p.7; xlsx row No.63",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1818,7 +1818,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 3.0
+      "rate": 3
     },
     "cardRef": "TY2027 PDF p.8; xlsx row No.67",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",
@@ -1854,7 +1854,7 @@
     },
     "nonAtl": {
       "rule": "double",
-      "rate": 15.0
+      "rate": 15
     },
     "cardRef": "TY2027 PDF p.8; xlsx row No.71",
     "lawRef": "Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule",

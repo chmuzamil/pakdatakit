@@ -1,5 +1,47 @@
 # Changelog
 
+## 2.8.0
+
+Minor release: new datasets and dated sources. Every port gives the same
+results on the shared test vectors. The new datasets load on first use.
+
+### Added
+
+- **CNICs across line breaks.** `Cnic::findAll($text, acrossLines: true)` and
+  `Cnic::mask($text, acrossLines: true)` also join digit groups across a
+  single line break (`\r\n`, `\r` or `\n`, with spaces around it), so
+  `"35202\n1234567\n1"` is found; a blank line never joins groups. With a
+  mask the line breaks stay. Off by default (#88).
+- **Data manifest.** `PakData::getDataInfo($id)` returns a `DataInfo` (issuer,
+  source URL and reference, dates, coverage, record count, next expected
+  update) for each bundled dataset; `PakData::listDataInfo()` lists them in
+  id order.
+- **Dated sources in results.** `SalaryTax` has `source` (a `DataSource`: the
+  rate table's dates, law and document), and `SalesTaxAmounts` has `source`
+  when `SalesTax::calculate()` looked the rate up (null, and left out of
+  `toArray()`, when you pass `rate`).
+- **Zakat** (`Zakat`): `getNisab(zakatYear: 1447)` (also `'1447'` or the
+  notification's `'1446-47'`) or `getNisab(date: ...)` returns a
+  `ZakatNisab` for Zakat years 1433-1447; `getYears()`;
+  `deduction($balance, zakatYear: ..., exempt: ...)` returns a
+  `ZakatDeduction` (2.5% at or above the nisab) (#93).
+- **Withholding tax** (`Withholding`): `calculate($section, $amount, atl: ...,
+  subType: ..., taxYear: ..., date: ..., lateFiler: ...)` returns a
+  `WithholdingTax` for persons on and not on the Active Taxpayers List
+  (231AB, 236C, 236K, 151, 150, 153, 154B, 149) from FBR's rate cards for
+  tax years 2025-2027; `getRates($taxYear, $section)` lists the cases as
+  `WithholdingRate` (#92).
+- **Census 2023 population** (`Population`): `getDistrict($district)` returns a
+  `DistrictPopulation` and `getTehsil($tehsil, $district)` a
+  `TehsilPopulation` (population, households, urban, rural, census
+  district) (#95).
+- **FBR Digital Invoicing.** `FbrInvoice::getSaleTypes()` lists the
+  specification's sale types as `FbrSaleType`. `FbrInvoice::validate()`
+  takes `['reference' => ['provinces' => [...], 'saleTypes' => [...],
+  'uoms' => [...], 'hsUom' => [...]]]`, lists synced from FBR's reference
+  APIs, and checks provinces (0073, 0074), sale types (0013), units (0099)
+  and HS code/unit pairs against them (#91).
+
 ## 2.7.2
 
 Patch release. Every port gives the same results on the shared test

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, List, Optional
 
 from ._data import load
+from .data_info import DataSource
 from ._internal.date import iso_date
 from ._internal.js import is_integer, js_round
 from ._internal.money import divide_half_up, from_paisa, to_units
@@ -94,6 +95,8 @@ class SalaryTax:
     #: The band the income falls in.
     slab: SalaryTaxSlab
     tax_year: int
+    #: The rate table used: its tax year's dates, law and official source.
+    source: DataSource
 
 
 def _slab(raw: Any) -> SalaryTaxSlab:
@@ -203,6 +206,13 @@ def _compute(income_paisa: int, raw: Any, include_surcharge: bool) -> SalaryTax:
         effective_rate=0 if income_paisa == 0 else divide_half_up(total_paisa * 10000, income_paisa) / 100,
         slab=_slab(slab),
         tax_year=raw["taxYear"],
+        source=DataSource(
+            id="income-tax-slabs",
+            effective_from=raw["from"],
+            effective_to=raw["to"],
+            source_reference=raw["law"],
+            source_url=raw["source"],
+        ),
     )
 
 
@@ -230,8 +240,9 @@ def calculate_salary_tax(
 
     Tax credits, exemptions, the separate pension rate, super tax and
     withholding adjustments are not applied. This is an estimate, not tax
-    advice. Returns ``None`` for an invalid amount or a tax year that is not
-    covered. Never raises.
+    advice. ``source`` gives the rate table's dates, law and official
+    document (a :class:`DataSource`). Returns ``None`` for an invalid amount
+    or a tax year that is not covered. Never raises.
 
     >>> calculate_salary_tax(1_800_000, tax_year=2026).tax
     72000.0

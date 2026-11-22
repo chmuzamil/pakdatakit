@@ -27,9 +27,7 @@
       "id": "calculate",
       "title": "Sales tax on Rs. 1,000 of goods",
       "fn": "calculateSalesTax",
-      "args": [
-        1000
-      ],
+      "args": [1000],
       "kwargs": {
         "kind": "goods",
         "date": "2026-11-18"
@@ -52,9 +50,7 @@
       "id": "inclusive",
       "title": "Split a tax-inclusive amount",
       "fn": "calculateSalesTax",
-      "args": [
-        1150
-      ],
+      "args": [1150],
       "kwargs": {
         "province": "Sindh",
         "kind": "services",
@@ -79,10 +75,7 @@
       "id": "split",
       "title": "Split at a given rate",
       "fn": "splitInclusive",
-      "args": [
-        1180,
-        18
-      ],
+      "args": [1180, 18],
       "expected": {
         "net": 1000,
         "tax": 180,

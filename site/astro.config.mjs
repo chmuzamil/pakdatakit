@@ -184,11 +184,14 @@ export default defineConfig({
               ['Income tax on salary', 'incometax'],
               ['NTN and STRN', 'tax'],
               ['FBR digital invoices', 'fbr-invoice'],
+              ['Withholding tax', 'withholding'],
+              ['Zakat deduction', 'zakat'],
             ]),
             guides('Geography and postal', [
               ['Postal codes', 'postal'],
               ['Provinces and districts', 'geo'],
               ['Addresses', 'address'],
+              ['Population (Census 2023)', 'population'],
             ]),
             guides('Delivery and COD', [
               ['COD address and phone checks', 'quality'],
@@ -203,6 +206,7 @@ export default defineConfig({
               ['As-you-type input', 'input'],
               ['Form kits and adapters', 'forms'],
             ]),
+            guides('Data', [['Data sources in code', 'data-info']]),
           ],
         },
         {

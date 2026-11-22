@@ -9,7 +9,7 @@ port replays them and fails on any difference.
 
 <!-- vectors:count -->
 
-41,062 vectors in 31 files:
+41,072 vectors in 31 files:
 
 - `address.json`: 870
 - `bills.json`: 354
@@ -17,7 +17,7 @@ port replays them and fails on any difference.
 - `courier.json`: 1,670
 - `data-info.json`: 23
 - `data-version.json`: 1
-- `docs-examples.json`: 147
+- `docs-examples.json`: 157
 - `fbr-invoice.json`: 190
 - `format.json`: 1,040
 - `geo.json`: 4,583

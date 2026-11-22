@@ -32,9 +32,13 @@ public sealed class IncomeTaxTests
     [Fact]
     public void AppliesTheSlabForTheYear()
     {
+        var tax = IncomeTax.CalculateSalaryTax(1_800_000, Year(2026));
         Assert.Equal(
             new SalaryTax(72000, 0, 72000, 6000, 4, new SalaryTaxSlab(1200000, 2200000, 6000, 11), 2026),
-            IncomeTax.CalculateSalaryTax(1_800_000, Year(2026)));
+            tax! with { Source = null });
+        Assert.Equal("income-tax-slabs", tax.Source?.Id);
+        Assert.Equal("2025-07-01", tax.Source?.EffectiveFrom);
+        Assert.Equal("2026-06-30", tax.Source?.EffectiveTo);
         Assert.Equal(120000, IncomeTax.CalculateSalaryTax(1_800_000, Year(2025))?.Tax);
         Assert.Equal(1774000, IncomeTax.CalculateSalaryTax(8_000_000, Year(2027))?.Tax);
         Assert.Equal(282500, IncomeTax.CalculateSalaryTax(3_000_000, Year(2020))?.Tax);

@@ -3,4 +3,5 @@
 /// Same as the `pakdatakit/incometax` entry point of the npm package.
 library;
 
+export 'src/data_info.dart' show DataSource;
 export 'src/incometax.dart';

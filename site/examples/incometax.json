@@ -6,9 +6,7 @@
       "id": "annual",
       "title": "Tax on Rs. 5,000,000 a year (tax year 2027)",
       "fn": "calculateSalaryTax",
-      "args": [
-        5000000
-      ],
+      "args": [5000000],
       "kwargs": {
         "taxYear": 2027
       },
@@ -38,9 +36,7 @@
       "id": "monthly",
       "title": "Tax on Rs. 150,000 a month (tax year 2027)",
       "fn": "calculateMonthlySalaryTax",
-      "args": [
-        150000
-      ],
+      "args": [150000],
       "kwargs": {
         "taxYear": 2027
       },
@@ -70,18 +66,14 @@
       "id": "year",
       "title": "Tax year of a date",
       "fn": "getTaxYear",
-      "args": [
-        "2026-11-18"
-      ],
+      "args": ["2026-11-18"],
       "expected": 2027
     },
     {
       "id": "surcharge",
       "title": "With the surcharge (tax year 2026, Rs. 12 million)",
       "fn": "calculateSalaryTax",
-      "args": [
-        12000000
-      ],
+      "args": [12000000],
       "kwargs": {
         "taxYear": 2026,
         "includeSurcharge": true

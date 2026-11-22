@@ -1,4 +1,5 @@
 import 'data/income_tax_slabs.g.dart';
+import 'data_info.dart';
 import 'internal/date.dart';
 import 'internal/equality.dart';
 import 'internal/money.dart';
@@ -174,6 +175,7 @@ class SalaryTax {
     required this.effectiveRate,
     required this.slab,
     required this.taxYear,
+    this.source,
   }) : total = total ?? tax + surcharge;
 
   /// Tax for the year from the rate table, in rupees, rounded half up to the
@@ -199,6 +201,11 @@ class SalaryTax {
   /// The tax year used.
   final int taxYear;
 
+  /// The rate table used: its tax year's dates, law and official source
+  /// (dataset `income-tax-slabs`). Always set by [calculateSalaryTax] and
+  /// [calculateMonthlySalaryTax].
+  final DataSource? source;
+
   /// JSON form, with the same keys as the npm package.
   Map<String, Object?> toJson() => {
         'tax': tax,
@@ -208,6 +215,7 @@ class SalaryTax {
         'effectiveRate': effectiveRate,
         'slab': slab.toJson(),
         'taxYear': taxYear,
+        if (source != null) 'source': source!.toJson(),
       };
 
   @override
@@ -219,11 +227,12 @@ class SalaryTax {
       other.monthly == monthly &&
       other.effectiveRate == effectiveRate &&
       other.slab == slab &&
-      other.taxYear == taxYear;
+      other.taxYear == taxYear &&
+      other.source == source;
 
   @override
-  int get hashCode =>
-      Object.hash(tax, surcharge, total, monthly, effectiveRate, slab, taxYear);
+  int get hashCode => Object.hash(
+      tax, surcharge, total, monthly, effectiveRate, slab, taxYear, source);
 
   @override
   String toString() => 'SalaryTax${toJson()}';
@@ -349,6 +358,13 @@ SalaryTax _compute(
             100,
     slab: slab,
     taxYear: year.taxYear,
+    source: DataSource(
+      id: 'income-tax-slabs',
+      effectiveFrom: year.from,
+      effectiveTo: year.to,
+      sourceReference: year.law,
+      sourceUrl: year.source,
+    ),
   );
 }
 
@@ -380,7 +396,8 @@ SalaryTax _compute(
 /// // SalaryTax{tax: 72000.0, surcharge: 0.0, total: 72000.0,
 /// //   monthly: 6000.0, effectiveRate: 4.0,
 /// //   slab: {over: 1200000, upTo: 2200000, fixed: 6000, rate: 11.0},
-/// //   taxYear: 2026}
+/// //   taxYear: 2026, source: {id: income-tax-slabs,
+/// //   effectiveFrom: 2025-07-01, ...}}
 /// calculateSalaryTax(12000000, taxYear: 2026, includeSurcharge: true);
 /// // SalaryTax{tax: 3381000.0, surcharge: 304290.0, total: 3685290.0,
 /// //   monthly: 307107.5, ...}

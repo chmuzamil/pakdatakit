@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.8.0
+
+Feature release. Every port gives the same results on the shared test
+vectors.
+
+### Added
+
+- `findCNICs()` and `maskCNICs()` take `acrossLines: true` to join digit
+  groups across a single line break (`\r\n`, `\r` or `\n`, with spaces
+  around it); a blank line never joins them (#88).
+- `getDataInfo()` and `listDataInfo()` (`package:pakdatakit/data_info.dart`):
+  each bundled dataset's issuer, official source, dates, coverage, record
+  count and next expected update. `DataSource` names the record a result
+  came from.
+- `source` on `SalaryTax` (`calculateSalaryTax()`,
+  `calculateMonthlySalaryTax()`) and on `SalesTaxAmounts` from
+  `calculateSalesTax()` when the rate was looked up.
+- Zakat deduction at source (`package:pakdatakit/zakat.dart`):
+  `getZakatNisab()`, `getZakatYears()` and `zakatDeduction()`, Zakat years
+  1433-1447 (#93).
+- Withholding tax (`package:pakdatakit/withholding.dart`):
+  `calculateWithholding()` and `getWithholdingRates()` for sections 231AB,
+  236C, 236K, 151, 150, 153, 154B and 149, ATL and non-ATL, tax years
+  2025-2027 (#92).
+- 2023 census population (`package:pakdatakit/population.dart`):
+  `getDistrictPopulation()` and `getTehsilPopulation()` (#95).
+- FBR Digital Invoicing: `getSaleTypes()`, and
+  `validateFbrInvoice(invoice, reference: FbrInvoiceReference(...))` checks
+  provinces (0073, 0074), sale types (0013), units (0099) and HS code/unit
+  pairs against lists synced from FBR's APIs (#91).
+
 ## 2.7.2
 
 Patch release. Every port gives the same results on the shared test

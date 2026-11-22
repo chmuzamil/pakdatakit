@@ -20,8 +20,10 @@ use PakDataKit\IncomeTax;
 use PakDataKit\Input;
 use PakDataKit\Networks;
 use PakDataKit\Numbers;
+use PakDataKit\PakData;
 use PakDataKit\Passport;
 use PakDataKit\Phone;
+use PakDataKit\Population;
 use PakDataKit\Postal;
 use PakDataKit\Quality;
 use PakDataKit\RaastQr;
@@ -30,7 +32,9 @@ use PakDataKit\Tax;
 use PakDataKit\Text;
 use PakDataKit\VehiclePlate;
 use PakDataKit\WhatsApp;
+use PakDataKit\Withholding;
 use PakDataKit\Words;
+use PakDataKit\Zakat;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -47,8 +51,9 @@ final class FuzzTest extends TestCase
 {
     private const CLASSES = [
         Address::class, Bills::class, Cnic::class, Courier::class, Geo::class, Holidays::class, Iban::class, Input::class,
-        Networks::class, Numbers::class, Passport::class, Phone::class, Postal::class, Quality::class, RaastQr::class,
-        Tax::class, Text::class, VehiclePlate::class, WhatsApp::class,
+        Networks::class, Numbers::class, PakData::class, Passport::class, Phone::class, Population::class, Postal::class,
+        Quality::class, RaastQr::class, Tax::class, Text::class, VehiclePlate::class, WhatsApp::class, Withholding::class,
+        Zakat::class,
     ];
 
     /** @return list<string|null> Inputs that can never be valid for any validator or parser. */
@@ -151,6 +156,8 @@ final class FuzzTest extends TestCase
             'Holidays::tryGetHolidaysOn', 'Quality::scoreAddress', 'Quality::phoneRiskSignals',
             'Bills::parseElectricityRef', 'Bills::validateElectricityRef', 'Courier::normalizeCity',
             'Cnic::findAll', 'Cnic::mask', 'Text::romanUrduKey', 'Text::slugify',
+            'PakData::getDataInfo', 'Population::getDistrict', 'Population::getTehsil', 'Zakat::getNisab',
+            'Zakat::deduction', 'Withholding::getRates',
         ] as $expected) {
             self::assertContains($expected, $names);
         }
@@ -519,7 +526,14 @@ final class FuzzTest extends TestCase
         self::assertSame([2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027], IncomeTax::getSalaryYears());
         self::assertSame(
             ['tax' => 72000.0, 'surcharge' => 0.0, 'total' => 72000.0, 'monthly' => 6000.0, 'effectiveRate' => 4.0,
-                'slab' => ['over' => 1200000, 'upTo' => 2200000, 'fixed' => 6000, 'rate' => 11], 'taxYear' => 2026],
+                'slab' => ['over' => 1200000, 'upTo' => 2200000, 'fixed' => 6000, 'rate' => 11], 'taxYear' => 2026,
+                'source' => [
+                    'id' => 'income-tax-slabs',
+                    'effectiveFrom' => '2025-07-01',
+                    'effectiveTo' => '2026-06-30',
+                    'sourceReference' => 'Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2), as substituted by the Finance Act 2025',
+                    'sourceUrl' => 'https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf',
+                ]],
             IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026])?->toArray(),
         );
         self::assertSame(6000.0, IncomeTax::calculateMonthlySalary(150_000, ['taxYear' => 2026])?->monthly);

@@ -43,8 +43,11 @@ export interface TehsilPopulation extends CensusCounts {
   tehsil: string;
   /** The district at the census. */
   censusDistrict: string;
-  /** The district today. */
-  currentDistrict: string;
+  /**
+   * The district today, or `null` where the census unit has no single
+   * current district in the district list.
+   */
+  currentDistrict: string | null;
   province: string;
   note: string | null;
 }
@@ -69,7 +72,7 @@ interface DistrictRow {
 interface TehsilRow {
   tehsil: string;
   inCensusDistrict: string;
-  currentDistrict: string;
+  currentDistrict: string | null;
   province: string;
   population: number;
   households: number;
@@ -168,7 +171,7 @@ export function getTehsilPopulation(
     rows = rows.filter(
       (r) =>
         normalizeKey(r.inCensusDistrict) === d ||
-        normalizeKey(r.currentDistrict) === d,
+        (r.currentDistrict !== null && normalizeKey(r.currentDistrict) === d),
     );
   }
   if (rows.length !== 1) return null;

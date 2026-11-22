@@ -441,6 +441,70 @@ public sealed class VectorTests(ITestOutputHelper output)
         };
     }
 
+    /// <summary>
+    /// TypeScript's reference lists: anything that is not an array is no list
+    /// (not checked) and entries that are not strings are skipped.
+    /// </summary>
+    private static IReadOnlyList<string>? ReferenceList(object? value) =>
+        value is List<object?> list ? list.OfType<string>().ToArray() : null;
+
+    private static FbrInvoiceReference? Reference(object? value)
+    {
+        if (value is not Dictionary<string, object?> map) return null;
+        return new FbrInvoiceReference
+        {
+            Provinces = ReferenceList(map.GetValueOrDefault("provinces")),
+            SaleTypes = ReferenceList(map.GetValueOrDefault("saleTypes")),
+            Uoms = ReferenceList(map.GetValueOrDefault("uoms")),
+            HsUom = map.GetValueOrDefault("hsUom") is Dictionary<string, object?> pairs
+                ? pairs.ToDictionary(p => p.Key, p => ReferenceList(p.Value), StringComparer.Ordinal)
+                : null,
+        };
+    }
+
+    /// <summary>
+    /// A Zakat year query: <c>zakatYear</c> (a number or text) takes
+    /// precedence over <c>date</c> (text or a date), as in TypeScript.
+    /// </summary>
+    private static ZakatYearQuery? ZakatQuery(object? value)
+    {
+        if (value is not Dictionary<string, object?> q) return null;
+        if (q.TryGetValue("zakatYear", out var year))
+        {
+            return year switch
+            {
+                string text => new ZakatYearQuery { Label = text },
+                _ => new ZakatYearQuery { ZakatYear = Integer(year) },
+            };
+        }
+        if (q.TryGetValue("date", out var date))
+        {
+            return date switch
+            {
+                DateTime dt => new ZakatYearQuery { OnDate = DateOnly.FromDateTime(dt) },
+                _ => new ZakatYearQuery { Date = Str(date) },
+            };
+        }
+        return new ZakatYearQuery();
+    }
+
+    private static WithholdingInput? WithholdingFrom(object? value)
+    {
+        if (value is not Dictionary<string, object?> w) return null;
+        var date = w.GetValueOrDefault("date");
+        return new WithholdingInput
+        {
+            Section = Str(w.GetValueOrDefault("section")),
+            SubType = OptStr(w.GetValueOrDefault("subType")),
+            Amount = Number(w.GetValueOrDefault("amount")),
+            Atl = w.GetValueOrDefault("atl") as bool? ?? throw new Unrepresentable("atl is not a bool"),
+            LateFiler = w.GetValueOrDefault("lateFiler") is true,
+            TaxYear = w.GetValueOrDefault("taxYear") is { } year ? Integer(year) : null,
+            Date = date is DateTime ? null : OptStr(date),
+            OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,
+        };
+    }
+
     private delegate object? Call(List<object?> a, Dictionary<string, object?> k);
 
     private static Call One(Func<string, object?> fn) => (a, _) => fn(Str(a[0]));
@@ -475,12 +539,13 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["formatAddress"] = ["raw", "street", "area", "city", "district", "province", "postalCode", "warnings"],
         ["getSalesTaxRate"] = ["kind", "province", "date"],
         ["calculateSalesTax"] = ["rate", "province", "kind", "date", "inclusive"],
-        ["validateFbrInvoice"] = ["today"],
+        ["validateFbrInvoice"] = ["today", "reference"],
         ["slugify"] = ["script"],
         ["calculateSalaryTax"] = ["taxYear", "date", "includeSurcharge"],
         ["calculateMonthlySalaryTax"] = ["taxYear", "date", "includeSurcharge"],
         ["validateLandline"] = ["services"],
-        ["maskCNICs"] = ["mask", "replacement"],
+        ["maskCNICs"] = ["mask", "replacement", "acrossLines"],
+        ["findCNICs"] = ["acrossLines"],
     };
 
     private static readonly Dictionary<string, Call> Functions = new()
@@ -488,9 +553,15 @@ public sealed class VectorTests(ITestOutputHelper output)
         ["validateCNIC"] = One(v => Cnic.Validate(v)),
         ["getCNICInfo"] = One(Cnic.GetInfo),
         // TypeScript reads a text that is not a string as no text; .NET takes null.
-        ["findCNICs"] = (a, _) => Cnic.FindAll(Loose(a[0])),
-        ["maskCNICs"] = (a, k) => Cnic.Mask(
-            Loose(a[0]), k.GetValueOrDefault("mask") as string, k.GetValueOrDefault("replacement") as string),
+        ["findCNICs"] = (a, k) => k.ContainsKey("acrossLines")
+            ? Cnic.FindAll(Loose(a[0]), k["acrossLines"] is true)
+            : Cnic.FindAll(Loose(a[0])),
+        ["maskCNICs"] = (a, k) => k.ContainsKey("acrossLines")
+            ? Cnic.Mask(
+                Loose(a[0]), k["acrossLines"] is true, k.GetValueOrDefault("mask") as string ?? "X",
+                k.GetValueOrDefault("replacement") as string)
+            : Cnic.Mask(
+                Loose(a[0]), k.GetValueOrDefault("mask") as string, k.GetValueOrDefault("replacement") as string),
         ["validatePhone"] = One(v => Phone.Validate(v)),
         ["formatPhone"] = One(Phone.Format),
         ["analyzePhone"] = One(Phone.Analyze),
@@ -683,8 +754,26 @@ public sealed class VectorTests(ITestOutputHelper output)
         },
         ["normalizeCityForCourier"] = One(Courier.NormalizeCity),
         ["buildFbrInvoice"] = (a, _) => FbrInvoice.Build(ToNode(a[0])),
-        ["validateFbrInvoice"] = (a, k) => FbrInvoice.Validate(ToNode(a[0]), OptStr(k.GetValueOrDefault("today"))),
+        ["validateFbrInvoice"] = (a, k) => k.ContainsKey("reference")
+            ? FbrInvoice.Validate(ToNode(a[0]), OptStr(k.GetValueOrDefault("today")), Reference(k["reference"]))
+            : FbrInvoice.Validate(ToNode(a[0]), OptStr(k.GetValueOrDefault("today"))),
         ["expectedSalesTax"] = (a, _) => FbrInvoice.ExpectedSalesTax(ToNode(a[0])),
+        ["getSaleTypes"] = (_, _) => FbrInvoice.GetSaleTypes(),
+        // TypeScript reads an id that is not a string (or none) as unknown; .NET takes null.
+        ["getDataInfo"] = (a, _) => PakData.GetDataInfo(a.Count > 0 ? Loose(a[0]) : null),
+        ["listDataInfo"] = (_, _) => PakData.ListDataInfo(),
+        ["getZakatNisab"] = (a, _) => Zakat.GetNisab(ZakatQuery(a[0])),
+        ["getZakatYears"] = (_, _) => Zakat.GetYears(),
+        ["zakatDeduction"] = (a, _) => a[0] is Dictionary<string, object?> z
+            ? Zakat.CalculateDeduction(
+                Number(z.GetValueOrDefault("balance")), ZakatQuery(z), z.GetValueOrDefault("exempt") is true)
+            : null,
+        ["calculateWithholding"] = (a, _) => Withholding.Calculate(WithholdingFrom(a[0])),
+        ["getWithholdingRates"] = (a, _) =>
+            a.Count > 1 && a[1] is not null ? Withholding.GetRates(Integer(a[0]), Str(a[1])) : Withholding.GetRates(Integer(a[0])),
+        ["getDistrictPopulation"] = (a, _) => Population.GetDistrict(Loose(a[0])),
+        ["getTehsilPopulation"] = (a, _) =>
+            Population.GetTehsil(Loose(a[0]), a.Count > 1 ? Loose(a[1]) : null),
     };
 
     private static string FindVectorsDir()

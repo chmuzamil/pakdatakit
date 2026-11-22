@@ -6,14 +6,15 @@ name: Split PHP package
 # repository stays the source of truth (see RELEASING.md).
 #
 # Needs a secret named PHP_SPLIT_TOKEN that can push to the mirror. Without it
-# the workflow does nothing.
+# the workflow does nothing. After the split it creates the GitHub release for
+# the tag, like the other release workflows.
 
 on:
   push:
     tags: ['php-v[0-9]+.[0-9]+.[0-9]+*']
 
 permissions:
-  contents: read
+  contents: write # create the GitHub release
 
 concurrency:
   group: split-php
@@ -65,3 +66,16 @@ jobs:
           tag: ${{ steps.version.outputs.tag }}
           user_name: github-actions[bot]
           user_email: 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Create GitHub release
+        if: steps.token.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#php-v}"
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs php/CHANGELOG.md "$version" "pakdatakit for PHP" "https://packagist.org/packages/chmuzamil/pakdatakit#v$version" > release-notes.md
+          gh release create "${GITHUB_REF_NAME}" --title "pakdatakit for PHP $version" --notes-file release-notes.md --verify-tag --latest=false

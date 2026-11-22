@@ -2798,7 +2798,7 @@
             },
             {
               "name": "Personal",
-              "doc": "Personal number (`0122`)."
+              "doc": "Personal number (`0122`). Never returned since 2.7.0: 0122 numbers\nhave no PTA source (see DATA.md). Kept so existing code compiles;\nremoved in 3.0."
             }
           ],
           "fields": [],
@@ -2862,14 +2862,14 @@
           "kind": "class",
           "name": "Numbers",
           "signature": "public static class Numbers",
-          "doc": "Landline, UAN, toll-free, premium and personal numbers.",
+          "doc": "Landline, UAN, toll-free and premium numbers.",
           "fields": [],
           "methods": [
             {
               "kind": "method",
               "name": "Analyze",
               "signature": "public static NumberInfo? Analyze(string? phone)",
-              "doc": "Identifies and formats any Pakistani telephone number: mobile, landline,\nUAN (`111`), toll-free (`0800`), premium-rate (`0900`) and\npersonal (`0122`) numbers.",
+              "doc": "Identifies and formats any Pakistani telephone number: mobile, landline,\nUAN (`111`), toll-free (`0800`) and premium-rate (`0900`)\nnumbers. 0122 numbers are not recognised: no PTA document lists them.",
               "params": [
                 {
                   "name": "phone",

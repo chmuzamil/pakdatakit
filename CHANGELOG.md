@@ -39,6 +39,11 @@ new).
 
 ### Changed
 
+- **`0122` numbers are no longer recognised.** They are seen in use, but no
+  PTA document lists them (they came from libphonenumber), so
+  `analyzeNumber()` now returns `null` for them. The `personal` number type
+  stays so existing code compiles, is never returned, and will be removed in
+  3.0.
 - **Toll-free numbers follow PTA's numbering plan**: `0800` and five digits.
   The 8-digit form after `0800`, taken from libphonenumber, is no longer
   accepted, because PTA's plan does not list it. UAN and premium-rate

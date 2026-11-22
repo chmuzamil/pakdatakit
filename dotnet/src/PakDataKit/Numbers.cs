@@ -21,7 +21,12 @@ public enum NumberType
     /// <summary>Premium-rate number (<c>0900</c>).</summary>
     Premium,
 
-    /// <summary>Personal number (<c>0122</c>).</summary>
+    /// <summary>
+    /// Personal number (<c>0122</c>). Never returned since 2.7.0: 0122 numbers
+    /// have no PTA source (see DATA.md). Kept so existing code compiles;
+    /// removed in 3.0.
+    /// </summary>
+    [Obsolete("Never returned since 2.7.0; removed in 3.0.")]
     Personal,
 }
 
@@ -34,7 +39,7 @@ public enum NumberType
 public sealed record NumberInfo(
     NumberType Type, string Formatted, string? E164, string? AreaCode, IReadOnlyList<string> Cities);
 
-/// <summary>Landline, UAN, toll-free, premium and personal numbers.</summary>
+/// <summary>Landline, UAN, toll-free and premium numbers.</summary>
 public static class Numbers
 {
     // Number patterns. They apply to the national significant number, without
@@ -48,7 +53,7 @@ public static class Numbers
     // - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
     // - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
     //   9.1.4, "current structure"; the 2021 plan does not list 0900).
-    // - Personal (0122): libphonenumber only; no PTA document lists it.
+    // - 0122 numbers: seen in use, no PTA source, not supported since 2.7.0 (see DATA.md).
     private static readonly SafeRegex FixedLine = Js.Rx(
         "^(?:(?:(?:21|42)[2-9]|58[126])[0-9]{7}|(?:2[25]|4[0146-9]|5[1-35-7]|6[1-8]|7[14]|8[16]|91)[2-9][0-9]{6,7}|(?:2(?:3[2358]|4[2-4]|9[2-8])|45[3479]|54[2-467]|60[468]|72[236]|8(?:2[2-689]|3[23578]|4[3478]|5[2356])|9(?:2[2-8]|3[27-9]|4[2-6]|6[3569]|9[25-8]))[2-9][0-9]{5,6})\\z");
 
@@ -58,7 +63,6 @@ public static class Numbers
     private static readonly SafeRegex UanWithoutAreaCode = Js.Rx("^111([0-9]{6})\\z");
     private static readonly SafeRegex TollFree = Js.Rx("^800([0-9]{5})\\z");
     private static readonly SafeRegex Premium = Js.Rx("^900([0-9]{5})\\z");
-    private static readonly SafeRegex Personal = Js.Rx("^122([0-9]{6})\\z");
     private static readonly SafeRegex National = Js.Rx("^[0-9]{8,12}\\z");
     private static readonly SafeRegex Groups = Js.Rx("[0-9]{1,3}");
 
@@ -71,8 +75,8 @@ public static class Numbers
 
     /// <summary>
     /// Identifies and formats any Pakistani telephone number: mobile, landline,
-    /// UAN (<c>111</c>), toll-free (<c>0800</c>), premium-rate (<c>0900</c>) and
-    /// personal (<c>0122</c>) numbers.
+    /// UAN (<c>111</c>), toll-free (<c>0800</c>) and premium-rate (<c>0900</c>)
+    /// numbers. 0122 numbers are not recognised: no PTA document lists them.
     /// </summary>
     /// <param name="phone">Number in any common format.</param>
     /// <returns>The details, or <c>null</c> if the number is invalid.</returns>
@@ -101,8 +105,6 @@ public static class Numbers
         if (match.Success) return Service(NumberType.TollFree, "800", match.Groups[1].Value);
         match = Premium.Match(national);
         if (match.Success) return Service(NumberType.Premium, "900", match.Groups[1].Value);
-        match = Personal.Match(national);
-        if (match.Success) return Service(NumberType.Personal, "122", match.Groups[1].Value);
 
         match = Uan.Match(national);
         if (match.Success)

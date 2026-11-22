@@ -44,7 +44,7 @@ analyzeNumber("${escapeForCode(input)}");
   return (
     <PlaygroundShell
       title="Landline & Service Numbers"
-      description="Identify mobile, landline, UAN, toll-free, premium-rate and personal numbers, with area code and city."
+      description="Identify mobile, landline, UAN, toll-free and premium-rate numbers, with the area code and city for landlines and UANs."
       input={
         <Card
           title="Input"

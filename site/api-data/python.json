@@ -2244,7 +2244,7 @@
       "name": "pakdatakit.numbers",
       "import": "from pakdatakit.numbers import ...",
       "source": "python/src/pakdatakit/numbers.py",
-      "doc": "Landline, UAN, toll-free, premium and personal numbers.",
+      "doc": "Landline, UAN, toll-free and premium numbers.",
       "entries": [
         {
           "kind": "class",
@@ -2256,7 +2256,7 @@
               "name": "type",
               "type": "str",
               "default": null,
-              "doc": "`mobile`, `landline`, `uan`, `toll-free`, `premium` or `personal`."
+              "doc": "`mobile`, `landline`, `uan`, `toll-free` or `premium` (`personal` is never returned since 2.7.0: 0122 numbers have no PTA source)."
             },
             {
               "name": "formatted",
@@ -2289,7 +2289,7 @@
           "kind": "function",
           "name": "analyze_number",
           "signature": "def analyze_number(phone: str) -> Optional[NumberInfo]",
-          "doc": "Identifies and formats any Pakistani telephone number.\n\nHandles mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate\n(`0900`) and personal (`0122`) numbers. Returns `None` if invalid.",
+          "doc": "Identifies and formats any Pakistani telephone number.\n\nHandles mobile, landline, UAN (`111`), toll-free (`0800`) and\npremium-rate (`0900`) numbers. 0122 numbers are not recognised: no PTA\ndocument lists them (see DATA.md). Returns `None` if invalid.",
           "params": [
             {
               "name": "phone",

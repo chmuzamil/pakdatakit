@@ -3634,7 +3634,7 @@
       "name": "package:pakdatakit/numbers.dart",
       "import": "import 'package:pakdatakit/numbers.dart';",
       "source": "dart/lib/src/numbers.dart",
-      "doc": "Landline, UAN, toll-free, premium and personal numbers.\n\nSame as the `pakdatakit/numbers` entry point of the npm package.",
+      "doc": "Landline, UAN, toll-free and premium numbers.\n\nSame as the `pakdatakit/numbers` entry point of the npm package.",
       "entries": [
         {
           "kind": "enum",
@@ -3674,7 +3674,7 @@
             },
             {
               "name": "personal",
-              "doc": "Personal number (`0122`)."
+              "doc": "Personal number (`0122`). Never returned since 2.7.0: 0122 numbers have\nno PTA source (see DATA.md). Kept so existing code compiles; removed in\n3.0."
             }
           ],
           "methods": [
@@ -3798,7 +3798,7 @@
           "kind": "function",
           "name": "analyzeNumber",
           "signature": "NumberInfo? analyzeNumber(String phone)",
-          "doc": "Identifies and formats any Pakistani telephone number: mobile, landline,\nUAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal\n(`0122`).\n\n```dart\nanalyzeNumber('021-111-825-888');\n// type: uan, formatted: 021-111-825-888, e164: +9221111825888,\n// areaCode: 021, cities: [Karachi]\n```\n\nReturns `null` if it is not a valid Pakistani number.",
+          "doc": "Identifies and formats any Pakistani telephone number: mobile, landline,\nUAN (`111`), toll-free (`0800`) or premium-rate (`0900`). 0122 numbers are\nnot recognised: no PTA document lists them (see DATA.md).\n\n```dart\nanalyzeNumber('021-111-825-888');\n// type: uan, formatted: 021-111-825-888, e164: +9221111825888,\n// areaCode: 021, cities: [Karachi]\n```\n\nReturns `null` if it is not a valid Pakistani number.",
           "params": [
             {
               "name": "phone",

@@ -279,7 +279,8 @@ FluentValidation 11 and 12.
   fixed-line numbers only; with `services: true` it also accepts UAN
   (`021-111-123-456`, `111-123-456`), toll-free (`0800` and five digits, as
   in PTA's numbering plan) and premium-rate (`0900`) numbers, but not
-  personal (`0122`) or mobile numbers. `Numbers.Analyze` tells them apart.
+  mobile numbers, and `0122` numbers are not recognised (no PTA document
+  lists them). `Numbers.Analyze` tells them apart.
 - **CNICs in free text.** `Cnic.FindAll(text)` returns a `CnicMatch` (`Raw`,
   `Digits`, `Formatted`, `Start`, `End`) for each 13-digit number that starts
   with a province digit (1-8), together or in 5-7-1 groups with a hyphen,

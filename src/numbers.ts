@@ -7,7 +7,11 @@ import {
   toAsciiDigits,
 } from './internal/normalize.js';
 
-/** Kind of Pakistani telephone number. */
+/**
+ * Kind of Pakistani telephone number. `'personal'` is never returned since
+ * 2.7.0 (0122 numbers have no PTA source; see DATA.md); it stays in the type
+ * so existing code compiles, and will be removed in 3.0.
+ */
 export type NumberType =
   'mobile' | 'landline' | 'uan' | 'toll-free' | 'premium' | 'personal';
 
@@ -41,7 +45,7 @@ interface AreaCodeEntry {
  * - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
  * - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
  *   9.1.4, "current structure"; the 2021 plan does not list 0900).
- * - Personal (0122): libphonenumber only; no PTA document lists it.
+ * - 0122 numbers: seen in use, no PTA source, not supported since 2.7.0 (see DATA.md).
  */
 const FIXED_LINE =
   /^(?:(?:(?:21|42)[2-9]|58[126])\d{7}|(?:2[25]|4[0146-9]|5[1-35-7]|6[1-8]|7[14]|8[16]|91)[2-9]\d{6,7}|(?:2(?:3[2358]|4[2-4]|9[2-8])|45[3479]|54[2-467]|60[468]|72[236]|8(?:2[2-689]|3[23578]|4[3478]|5[2356])|9(?:2[2-8]|3[27-9]|4[2-6]|6[3569]|9[25-8]))[2-9]\d{5,6})$/;
@@ -50,7 +54,6 @@ const UAN =
 const UAN_WITHOUT_AREA_CODE = /^111(\d{6})$/;
 const TOLL_FREE = /^800(\d{5})$/;
 const PREMIUM = /^900(\d{5})$/;
-const PERSONAL = /^122(\d{6})$/;
 
 const areaCodes = /* @__PURE__ */ lazy(() => areaCodesData as AreaCodeEntry[]);
 
@@ -93,7 +96,8 @@ function groupDigits(digits: string, size = 3): string {
 
 /**
  * Identifies and formats any Pakistani telephone number: mobile, landline,
- * UAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal (`0122`).
+ * UAN (`111`), toll-free (`0800`) or premium-rate (`0900`). 0122 numbers are
+ * not recognised: no PTA document lists them (see DATA.md).
  *
  * @example
  * analyzeNumber('021-111-825-888');
@@ -154,9 +158,6 @@ export function analyzeNumber(phone: string): NumberInfo | null {
 
   const premium = PREMIUM.exec(national);
   if (premium) return service('premium', '900', premium[1] as string);
-
-  const personal = PERSONAL.exec(national);
-  if (personal) return service('personal', '122', personal[1] as string);
 
   const uan = UAN.exec(national);
   if (uan) {

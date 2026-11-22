@@ -44,14 +44,15 @@ describe('analyzeNumber', () => {
     });
   });
 
-  it('identifies toll-free, premium and personal numbers', () => {
+  it('identifies toll-free and premium numbers, but not 0122', () => {
     expect(analyzeNumber('0800-12345')).toMatchObject({
       type: 'toll-free',
       formatted: '0800-12345',
       e164: '+9280012345',
     });
     expect(analyzeNumber('0900 12345')?.type).toBe('premium');
-    expect(analyzeNumber('0122 044444')?.type).toBe('personal');
+    // 0122 has no PTA source, so it is not recognised since 2.7.0.
+    expect(analyzeNumber('0122 044444')).toBeNull();
   });
 
   it('identifies mobiles', () => {
@@ -81,7 +82,6 @@ describe('analyzeNumber', () => {
       MOBILE: 'mobile',
       TOLL_FREE: 'toll-free',
       PREMIUM_RATE: 'premium',
-      PERSONAL_NUMBER: 'personal',
       UAN: 'uan',
     };
     const samples = [
@@ -95,7 +95,6 @@ describe('analyzeNumber', () => {
       '051111123456',
       '080012345',
       '090012345',
-      '0122044444',
       '03001234567',
       '03451234567',
     ];

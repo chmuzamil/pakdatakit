@@ -91,7 +91,8 @@ Both return `[]` or `MaskedText("", 0)` for a value that is not a string.
 `validate_landline(phone)` accepts fixed-line numbers only; with
 `services=True` it also accepts UAN (`021-111-123-456`, `111-123-456`),
 toll-free (`0800-12345`, `800` and exactly five digits) and premium-rate
-(`0900-12345`) numbers, but not personal (`0122`) or mobile numbers.
+(`0900-12345`) numbers, but not mobile numbers. `0122` numbers are not recognised:
+no PTA document lists them.
 
 `validate_raast_qr` returns `RaastQrValidation(valid, kind, errors, warnings,
 qr)`, where `kind` is `p2p`, `merchant` or `None` (not a Raast QR). A merchant

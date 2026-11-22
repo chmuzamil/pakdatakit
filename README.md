@@ -519,7 +519,7 @@ getNetwork('03451234567');
 
 ### analyzeNumber() / getNumberType() / validateLandline() / getAreaCode()
 
-Identifies any Pakistani number: mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal (`0122`). Service numbers follow PTA's numbering plan: a UAN is an area code, `111` and six digits (`111-123-456` without the area code also works); toll-free is `0800` and five digits; premium is `0900` and five digits. Landline patterns come from Google's libphonenumber, with area codes from PTA's plan.
+Identifies any Pakistani number: mobile, landline, UAN (`111`), toll-free (`0800`) or premium-rate (`0900`). `0122` numbers are not recognised: they are seen in use but no PTA document lists them. Service numbers follow PTA's numbering plan: a UAN is an area code, `111` and six digits (`111-123-456` without the area code also works); toll-free is `0800` and five digits; premium is `0900` and five digits. Landline patterns come from Google's libphonenumber, with area codes from PTA's plan.
 
 ```ts
 analyzeNumber('021-111-825-888');

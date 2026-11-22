@@ -32,7 +32,7 @@
     "label": "Landlines and UAN numbers",
     "group": "Phone and messaging",
     "component": "NumbersPlayground",
-    "description": "Identify mobile, landline, UAN, toll-free, premium-rate and personal numbers, with area code and city."
+    "description": "Identify mobile, landline, UAN, toll-free and premium-rate numbers, with the area code and city for landlines and UANs."
   },
   {
     "slug": "whatsapp",

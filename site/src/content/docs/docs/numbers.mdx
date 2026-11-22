@@ -8,7 +8,7 @@ import NumbersWidget from '../../../components/widgets/NumbersWidget.tsx';
 
 `import { analyzeNumber, getNumberType, validateLandline, getAreaCode } from 'pakdatakit/numbers'`
 
-Identifies and formats any Pakistani telephone number: mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) or personal (`0122`). For landlines and UANs it also gives the area code and the cities it serves.
+Identifies and formats any Pakistani telephone number: mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`). For landlines and UANs it also gives the area code and the cities it serves.
 
 <NumbersWidget client:visible />
 
@@ -24,7 +24,7 @@ Identifies and formats any Pakistani telephone number: mobile, landline, UAN (`1
 function analyzeNumber(phone: string): NumberInfo | null;
 
 type NumberType =
-  'mobile' | 'landline' | 'uan' | 'toll-free' | 'premium' | 'personal';
+  'mobile' | 'landline' | 'uan' | 'toll-free' | 'premium' | 'personal'; // 'personal' is never returned since 2.7.0
 
 interface NumberInfo {
   type: NumberType;
@@ -44,7 +44,7 @@ interface NumberInfo {
 - `e164` is `null` for a UAN dialled without an area code (`111-123-456`).
 - `cities` is filled only when the area code is known.
 - Service numbers follow PTA's numbering plan (sent to the ITU on 9 November 2021): a UAN is an area code, `111` and six digits; a toll-free number is `0800` and five digits. Premium-rate numbers are `0900` and five digits, the "current structure" in PTA's National Numbering Plan 2008, as the 2021 plan does not list 0900. Before 2.7.0 an 8-digit toll-free form was also accepted; PTA's plan has no such form.
-- Fixed-line patterns come from Google libphonenumber's PK metadata (v9.0.41), which matches the plan. Personal numbers (`0122`) come from libphonenumber only: no PTA document lists them.
+- Fixed-line patterns come from Google libphonenumber's PK metadata (v9.0.41), which matches the plan. `0122` numbers are seen in use but no PTA document lists them, so since 2.7.0 they are not recognised (`null`); libphonenumber calls them personal numbers.
 
 **Related:** [`getNumberType()`](#getnumbertype), [`analyzePhone()`](/docs/phone/#analyzephone) for mobile numbers only.
 
@@ -71,7 +71,7 @@ function validateLandline(
 
 **Parameters.** `phone`: a number in local or international format, such as `042-35761234`. `options.services`: also accept the service numbers a business may give as its landline: UAN (`021-111-123-456` or `111-123-456`), toll-free (`0800-12345`) and premium rate (`0900-12345`). Default `false`.
 
-**Returns** `true` for a valid landline (fixed-line) number, or with `services`, a UAN, toll-free or premium number too. Mobile and personal (`0122`) numbers return `false`. Use [`analyzeNumber()`](#analyzenumber) for the `type`. It never throws.
+**Returns** `true` for a valid landline (fixed-line) number, or with `services`, a UAN, toll-free or premium number too. Mobile numbers and `0122` numbers return `false`. Use [`analyzeNumber()`](#analyzenumber) for the `type`. It never throws.
 
 **Caveats.** The form adapters take the same option: `pk.landline({ services: true })`, `IsPakLandline({ services: true })`, `[PakLandline(Services = true)]` in .NET and `pk_landline:services` in Laravel.
 

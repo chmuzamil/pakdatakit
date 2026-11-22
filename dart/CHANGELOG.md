@@ -23,6 +23,10 @@ new).
 
 ### Changed
 
+- `0122` numbers are no longer recognised: they are seen in use, but no PTA
+  document lists them. `analyzeNumber()` now returns `null` for them;
+  `NumberType.personal` is deprecated, never returned, and will be removed in
+  3.0.
 - Toll-free numbers follow PTA's numbering plan: `0800` and five digits; the
   8-digit form is no longer accepted.
 - A merchant Raast QR without an IBAN is valid with the warning `no-iban`; a

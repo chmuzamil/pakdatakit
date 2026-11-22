@@ -47,8 +47,8 @@
 {"fn":"analyzeNumber","args":["0900 123456"],"kwargs":{},"expected":null,"throws":false},
 {"fn":"getNumberType","args":["0900 123456"],"kwargs":{},"expected":null,"throws":false},
 {"fn":"validateLandline","args":["0900 123456"],"kwargs":{},"expected":false,"throws":false},
-{"fn":"analyzeNumber","args":["0122-123456"],"kwargs":{},"expected":{"type":"personal","formatted":"0122-123456","e164":"+92122123456","areaCode":null,"cities":[]},"throws":false},
-{"fn":"getNumberType","args":["0122-123456"],"kwargs":{},"expected":"personal","throws":false},
+{"fn":"analyzeNumber","args":["0122-123456"],"kwargs":{},"expected":null,"throws":false},
+{"fn":"getNumberType","args":["0122-123456"],"kwargs":{},"expected":null,"throws":false},
 {"fn":"validateLandline","args":["0122-123456"],"kwargs":{},"expected":false,"throws":false},
 {"fn":"analyzeNumber","args":["111-825-888"],"kwargs":{},"expected":{"type":"uan","formatted":"111-825-888","e164":null,"areaCode":null,"cities":[]},"throws":false},
 {"fn":"getNumberType","args":["111-825-888"],"kwargs":{},"expected":"uan","throws":false},
@@ -1429,7 +1429,7 @@
 {"fn":"analyzeNumber","args":["0900 123456"],"kwargs":{},"expected":null,"throws":false},
 {"fn":"validateLandline","args":["0122-123456"],"kwargs":{"services":true},"expected":false,"throws":false},
 {"fn":"validateLandline","args":["0122-123456"],"kwargs":{"services":false},"expected":false,"throws":false},
-{"fn":"analyzeNumber","args":["0122-123456"],"kwargs":{},"expected":{"type":"personal","formatted":"0122-123456","e164":"+92122123456","areaCode":null,"cities":[]},"throws":false},
+{"fn":"analyzeNumber","args":["0122-123456"],"kwargs":{},"expected":null,"throws":false},
 {"fn":"validateLandline","args":["111-825-888"],"kwargs":{"services":true},"expected":true,"throws":false},
 {"fn":"validateLandline","args":["111-825-888"],"kwargs":{"services":false},"expected":false,"throws":false},
 {"fn":"analyzeNumber","args":["111-825-888"],"kwargs":{},"expected":{"type":"uan","formatted":"111-825-888","e164":null,"areaCode":null,"cities":[]},"throws":false},
@@ -2533,7 +2533,7 @@
 {"fn":"analyzeNumber","args":["051 111 222 333"],"kwargs":{},"expected":{"type":"uan","formatted":"051-111-222-333","e164":"+9251111222333","areaCode":"051","cities":["Islamabad","Rawalpindi"]},"throws":false},
 {"fn":"validateLandline","args":["0122 123456"],"kwargs":{"services":true},"expected":false,"throws":false},
 {"fn":"validateLandline","args":["0122 123456"],"kwargs":{"services":false},"expected":false,"throws":false},
-{"fn":"analyzeNumber","args":["0122 123456"],"kwargs":{},"expected":{"type":"personal","formatted":"0122-123456","e164":"+92122123456","areaCode":null,"cities":[]},"throws":false},
+{"fn":"analyzeNumber","args":["0122 123456"],"kwargs":{},"expected":null,"throws":false},
 {"fn":"validateLandline","args":[null],"kwargs":{"services":true},"expected":false,"throws":false},
 {"fn":"validateLandline","args":[42],"kwargs":{"services":true},"expected":false,"throws":false}
 ]

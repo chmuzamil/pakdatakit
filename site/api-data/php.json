@@ -2416,7 +2416,7 @@
               "name": "type",
               "type": "string",
               "default": null,
-              "doc": "`mobile`, `landline`, `uan`, `toll-free`, `premium` or `personal`.",
+              "doc": "`mobile`, `landline`, `uan`, `toll-free` or `premium` (`personal` is never returned since 2.7.0).",
               "static": false,
               "readonly": true
             },
@@ -2460,14 +2460,14 @@
           "kind": "class",
           "name": "Numbers",
           "signature": "final class Numbers",
-          "doc": "Landline, UAN, toll-free, premium and personal numbers.",
+          "doc": "Landline, UAN, toll-free and premium numbers.",
           "fields": [],
           "methods": [
             {
               "kind": "method",
               "name": "analyze",
               "signature": "public static function analyze(?string $phone): ?NumberInfo",
-              "doc": "Identifies and formats any Pakistani telephone number: mobile,\nlandline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) and\npersonal (`0122`) numbers. Returns null if the number is invalid.",
+              "doc": "Identifies and formats any Pakistani telephone number: mobile,\nlandline, UAN (`111`), toll-free (`0800`) and premium-rate (`0900`)\nnumbers. 0122 numbers are not recognised: no PTA document lists them\n(see DATA.md). Returns null if the number is invalid.",
               "params": [
                 {
                   "name": "$phone",

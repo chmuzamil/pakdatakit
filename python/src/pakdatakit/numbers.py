@@ -1,4 +1,4 @@
-"""Landline, UAN, toll-free, premium and personal numbers."""
+"""Landline, UAN, toll-free and premium numbers."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ __all__ = ["NumberInfo", "analyze_number", "get_number_type", "validate_landline
 # - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
 # - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
 #   9.1.4, "current structure"; the 2021 plan does not list 0900).
-# - Personal (0122): libphonenumber only; no PTA document lists it.
+# - 0122 numbers: seen in use, no PTA source, not supported since 2.7.0 (see DATA.md).
 _FIXED_LINE = re.compile(
     r"(?:(?:(?:21|42)[2-9]|58[126])[0-9]{7}|(?:2[25]|4[0146-9]|5[1-35-7]|6[1-8]|7[14]|8[16]|91)[2-9][0-9]{6,7}|(?:2(?:3[2358]|4[2-4]|9[2-8])|45[3479]|54[2-467]|60[468]|72[236]|8(?:2[2-689]|3[23578]|4[3478]|5[2356])|9(?:2[2-8]|3[27-9]|4[2-6]|6[3569]|9[25-8]))[2-9][0-9]{5,6})\Z"
 )
@@ -33,7 +33,6 @@ _UAN = re.compile(
 _UAN_WITHOUT_AREA_CODE = re.compile(r"111([0-9]{6})\Z")
 _TOLL_FREE = re.compile(r"800([0-9]{5})\Z")
 _PREMIUM = re.compile(r"900([0-9]{5})\Z")
-_PERSONAL = re.compile(r"122([0-9]{6})\Z")
 _NATIONAL = re.compile(r"[0-9]{8,12}\Z")
 
 _area_code_map: Optional[Dict[str, List[str]]] = None
@@ -43,7 +42,8 @@ _area_code_map: Optional[Dict[str, List[str]]] = None
 class NumberInfo:
     """Result of :func:`analyze_number`."""
 
-    #: ``mobile``, ``landline``, ``uan``, ``toll-free``, ``premium`` or ``personal``.
+    #: ``mobile``, ``landline``, ``uan``, ``toll-free`` or ``premium`` (``personal``
+    #: is never returned since 2.7.0: 0122 numbers have no PTA source).
     type: str
     #: National format with trunk prefix and separators, e.g. ``021-111-825-888``.
     formatted: str
@@ -98,8 +98,9 @@ def _group_digits(digits: str, size: int = 3) -> str:
 def analyze_number(phone: str) -> Optional[NumberInfo]:
     """Identifies and formats any Pakistani telephone number.
 
-    Handles mobile, landline, UAN (``111``), toll-free (``0800``), premium-rate
-    (``0900``) and personal (``0122``) numbers. Returns ``None`` if invalid.
+    Handles mobile, landline, UAN (``111``), toll-free (``0800``) and
+    premium-rate (``0900``) numbers. 0122 numbers are not recognised: no PTA
+    document lists them (see DATA.md). Returns ``None`` if invalid.
     """
     mobile = normalize_phone_digits(phone)
     if mobile is not None:
@@ -137,9 +138,6 @@ def analyze_number(phone: str) -> Optional[NumberInfo]:
     match = _PREMIUM.match(national)
     if match:
         return service("premium", "900", match.group(1))
-    match = _PERSONAL.match(national)
-    if match:
-        return service("personal", "122", match.group(1))
 
     match = _UAN.match(national)
     if match:

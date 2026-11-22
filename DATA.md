@@ -147,9 +147,12 @@ plan with the same districts.
     https://www.pta.gov.pk/assets/media/nnp_08_final.pdf, retrieved
     2026-11-22) gives this as the "current structure". The 6-digit form in
     the same paper was a proposal.
-  - **Personal (`0122`)**: from libphonenumber only; no PTA document lists
-    it. It is recognised by `analyzeNumber` as before, but
-    `validateLandline(…, { services: true })` does not accept it.
+  - **Personal (`0122`)**: seen in use, no PTA source, not supported
+    (decided 2026-11-22). libphonenumber lists `0122` as personal numbers,
+    but neither PTA's 2021 plan nor its 2008 paper does, so since 2.7.0
+    `analyzeNumber` returns `null` for them and `validateLandline` rejects
+    them with or without `services`. The `personal` number type is kept so
+    existing code compiles, is never returned, and will be removed in 3.0.
   - The 2008 paper's own text gives `0800` and `111` other lengths (six and
     seven digits) as proposals; the 2021 plan, which is newer and was sent
     to the ITU, is followed.

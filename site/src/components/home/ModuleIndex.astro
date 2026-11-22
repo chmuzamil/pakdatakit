@@ -1,0 +1,117 @@
+---
+/**
+ * Home, section 04: the modules as a typographic list grouped by problem:
+ * the group, then function names (monospace links to their guide) with one
+ * line on what each solves. The pills jump to a group.
+ */
+const GROUPS = [
+  {
+    id: 'identity',
+    name: 'Identity',
+    items: [
+      ['validateCNIC', '/docs/cnic/#validatecnic', "Checks a CNIC's format and province digit."],
+      ['maskCNICs', '/docs/cnic/#maskcnics', 'Finds and masks CNICs in free text.'],
+      ['validatePassport', '/docs/passport/', 'Checks the two-letter, seven-digit format.'],
+      ['parseVehiclePlate', '/docs/vehicle/', 'Reads plates like LEA-1234-19.'],
+      ['validateNTN', '/docs/tax/', 'Checks NTN and STRN formats.'],
+    ],
+  },
+  {
+    id: 'phone',
+    name: 'Phone',
+    items: [
+      ['validatePhone', '/docs/phone/', 'Checks a mobile number; formats it as E.164.'],
+      ['getNetwork', '/docs/networks/', 'Names the network a prefix was allocated to.'],
+      ['analyzeNumber', '/docs/numbers/', 'Tells landline, UAN, toll-free and premium apart.'],
+      ['createWhatsAppLink', '/docs/whatsapp/', 'Builds a wa.me link.'],
+    ],
+  },
+  {
+    id: 'banking',
+    name: 'Banking',
+    items: [
+      ['validateIBAN', '/docs/iban/', 'Checks the length and check digits; names the bank.'],
+      ['createRaastP2PQr', '/docs/raast/', 'Builds a Raast QR that banking apps scan.'],
+      ['parseAmount', '/docs/amount/', 'Reads amounts typed as 1,50,000 or 1.5 lakh.'],
+      ['amountInWords', '/docs/words/', 'Writes amounts in words, with lakh and crore.'],
+      ['parseElectricityRef', '/docs/bills/', 'Checks electricity and gas bill numbers.'],
+    ],
+  },
+  {
+    id: 'tax',
+    name: 'Tax and FBR',
+    items: [
+      ['calculateSalaryTax', '/docs/incometax/', 'Salary income tax, tax years 2020–2027.'],
+      ['calculateSalesTax', '/docs/salestax/', 'Sales tax by province and date.'],
+      ['validateFbrInvoice', '/docs/fbr-invoice/', "Checks digital-invoice JSON offline, with FBR's error codes."],
+    ],
+  },
+  {
+    id: 'addresses',
+    name: 'Addresses',
+    items: [
+      ['parseAddress', '/docs/address/', 'Splits an address into street, area, city and province.'],
+      ['getPostalCode', '/docs/postal/', 'Postal codes and post offices.'],
+      ['getTehsils', '/docs/geo/', 'Provinces, districts and tehsils.'],
+      ['scoreAddress', '/docs/quality/', 'Scores how much an address tells a rider.'],
+    ],
+  },
+  {
+    id: 'text',
+    name: 'Text',
+    items: [
+      ['slugify', '/docs/text/#slugify', 'URL slugs that keep Urdu letters.'],
+      ['compareUrdu', '/docs/text/#compareurdu', 'Sorts in Urdu alphabetical order.'],
+      ['romanUrduKey', '/docs/text/#romanurdukey', 'Matches spellings such as Rehman and Rahman.'],
+      ['toHijri', '/docs/hijri/', 'Converts to and from Hijri dates.'],
+      ['getPakistanHolidays', '/docs/holidays/', 'Lists public holidays for a year.'],
+    ],
+  },
+];
+---
+
+<section class="pdk-home-section not-content" aria-labelledby="modules">
+  <span class="pdk-label">04 · Modules</span>
+  <h2 id="modules">Modules</h2>
+  <nav aria-label="Module groups">
+    <ul class="pdk-pills pdk-module-pills">
+      {GROUPS.map((g) => <li><a class="pdk-pill" href={`#m-${g.id}`}>{g.name}</a></li>)}
+    </ul>
+  </nav>
+  <div class="pdk-modules">
+    {
+      GROUPS.map((g) => (
+        <div class="pdk-module" id={`m-${g.id}`}>
+          <h3>{g.name}</h3>
+          <dl>
+            {g.items.map(([fn, href, what]) => (
+              <>
+                <dt>
+                  <a href={href}>
+                    <code>{fn}</code>
+                  </a>
+                </dt>
+                <dd>{what}</dd>
+              </>
+            ))}
+          </dl>
+        </div>
+      ))
+    }
+  </div>
+  <p class="pdk-home-links">
+    <a href="/docs/">All 27 guides</a>
+    <a href="/use-cases/">Use cases</a>
+    <a href="/tools/">Tools</a>
+    <span>API: <a href="/api/typescript/">TypeScript</a> · <a href="/api/python/">Python</a> · <a href="/api/dart/">Dart</a> · <a href="/api/dotnet/">.NET</a> · <a href="/api/php/">PHP</a></span>
+  </p>
+  <p class="pdk-home-links">
+    <span>Add-ons:</span>
+    <a href="/install/react/"><code>pakdatakit-react</code></a>
+    <a href="/install/vue/"><code>pakdatakit-vue</code></a>
+    <a href="/install/angular/"><code>pakdatakit-angular</code></a>
+    <a href="/install/flutter/"><code>pakdatakit_flutter</code></a>
+    <a href="https://www.npmjs.com/package/pakdatakit-faker"><code>pakdatakit-faker</code></a>
+    <a href="https://www.npmjs.com/package/pakdatakit-pay"><code>pakdatakit-pay</code></a>
+  </p>
+</section>

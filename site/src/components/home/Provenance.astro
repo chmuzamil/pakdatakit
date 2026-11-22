@@ -1,0 +1,55 @@
+---
+/**
+ * Home, section 03: where the data comes from. Counts are read from
+ * data/*.json at build time and the date from the library's dataVersion;
+ * the sources are the ones DATA.md documents for each dataset (see /data/
+ * for every source, URL and date).
+ */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { dataVersion } from 'pakdatakit';
+
+const data = join(process.cwd(), '..', 'data');
+const count = (file: string) => {
+  const d = JSON.parse(readFileSync(join(data, file), 'utf8'));
+  return Array.isArray(d) ? d.length : Object.keys(d).length;
+};
+const n = (x: number) => x.toLocaleString('en-US');
+const ROWS = [
+  { name: 'Bank codes', entries: n(count('banks.json')), source: 'State Bank of Pakistan' },
+  { name: 'Mobile prefixes', entries: n(count('networks.json')), source: 'PTA numbering plan' },
+  { name: 'Landline area codes', entries: n(count('area-codes.json')), source: 'PTA numbering plan, as filed with the ITU (2021)' },
+  { name: 'Post offices', entries: n(count('post-offices.json')), source: 'Pakistan Post' },
+  {
+    name: 'Districts · tehsils',
+    entries: `${n(count('districts.json'))} · ${n(count('tehsils.json'))}`,
+    source: 'Pakistan Bureau of Statistics, Census 2023',
+  },
+  { name: 'Salary tax years', entries: n(count('income-tax-slabs.json')), source: 'Finance Acts and FBR' },
+];
+---
+
+<section class="pdk-home-section not-content" aria-labelledby="provenance">
+  <span class="pdk-label">03 · Provenance</span>
+  <h2 id="provenance">Where the data comes from</h2>
+  <table class="pdk-prov">
+    <thead>
+      <tr><th scope="col">Dataset</th><th scope="col" class="n">Entries</th><th scope="col">Source</th></tr>
+    </thead>
+    <tbody>
+      {
+        ROWS.map((r) => (
+          <tr>
+            <td>{r.name}</td>
+            <td class="n">{r.entries}</td>
+            <td>{r.source}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <p class="pdk-home-links">
+    <span class="pdk-num">Checked {dataVersion}</span>
+    <a href="/data/">Every source, with links and dates</a>
+  </p>
+</section>

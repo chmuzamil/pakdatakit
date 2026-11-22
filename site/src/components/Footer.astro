@@ -1,4 +1,9 @@
 ---
+/**
+ * Site footer, like an open-source project's: version, data date and
+ * licence, then project, contribution and reference links. Under Starlight's
+ * own footer (edit links, pagination) on every page.
+ */
 import Default from '@astrojs/starlight/components/Footer.astro';
 import { version } from 'pakdatakit/package.json' with { type: 'json' };
 import { dataVersion } from 'pakdatakit';
@@ -6,16 +11,34 @@ import { GITHUB } from '../../site.config.mjs';
 ---
 
 <Default />
-<p class="pdk-footer">
-  pakdatakit {version} · data checked {dataVersion}
-  · <a href={GITHUB}>GitHub</a> · <a href="/about/">About and privacy</a> · MIT licence
-  · by <a href="https://github.com/chmuzamil">chmuzamil</a>
-</p>
-
-<style>
-  .pdk-footer {
-    margin-top: 1.5rem;
-    font-size: var(--sl-text-xs);
-    color: var(--sl-color-gray-3);
-  }
-</style>
+<footer class="pdk-footer not-content">
+  <div class="pdk-footer-id">
+    <strong>pakdatakit {version}</strong>
+    <span class="pdk-num">Data checked {dataVersion}</span>
+    <span>MIT licence · by <a href="https://github.com/chmuzamil">chmuzamil</a></span>
+  </div>
+  <div>
+    <h2>Project</h2>
+    <ul>
+      <li><a href={GITHUB}>GitHub</a></li>
+      <li><a href={`${GITHUB}/blob/main/CHANGELOG.md`}>Changelog</a></li>
+      <li><a href="/releases/">Releases</a></li>
+    </ul>
+  </div>
+  <div>
+    <h2>Contribute</h2>
+    <ul>
+      <li><a href={`${GITHUB}/blob/main/test-vectors/README.md#how-they-are-generated`}>Add a test vector</a></li>
+      <li><a href={`${GITHUB}/blob/main/CONTRIBUTING.md`}>Contributing guide</a></li>
+      <li><a href={`${GITHUB}/issues`}>Report a problem</a></li>
+    </ul>
+  </div>
+  <div>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="/data/">Data sources</a></li>
+      <li><a href="/install/typescript/">Install guides</a></li>
+      <li><a href="/about/">About and privacy</a></li>
+    </ul>
+  </div>
+</footer>

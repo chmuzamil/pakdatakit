@@ -30,6 +30,7 @@ const jsonLd = is404
 ---
 
 <Default />
+<link rel="preload" href="/fonts/pdk-serif-600.woff2" as="font" type="font/woff2" crossorigin />
 {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
 <script is:inline src="/lang.js"></script>
 <meta property="og:image" content={ogImage} />

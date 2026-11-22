@@ -13,7 +13,6 @@ import { getBankFromIBAN, validateIBAN } from 'pakdatakit/iban';
 import { LANGS, snippet, type Example, type Lang } from '../../lib/snippets';
 import cnicExamples from '../../../examples/cnic.json';
 import ibanExamples from '../../../examples/iban.json';
-import { Badge } from './common';
 
 const TABS = {
   cnic: {
@@ -158,20 +157,21 @@ export default function HeroDemo() {
 
   const info = tab === 'cnic' ? getCNICInfo(value.trim()) : null;
   const bank = tab === 'iban' ? getBankFromIBAN(value.trim()) : null;
-  const summary = empty
-    ? `Type ${TABS[tab].field.toLowerCase()}.`
+  // A test-runner line: "✓ valid · Punjab · male" / "✗ invalid · …".
+  const detail = empty
+    ? `type ${TABS[tab].field.toLowerCase()}`
     : tab === 'cnic'
       ? valid && info
-        ? `${info.province} · ${info.gender === 'male' ? 'Male' : 'Female'}`
-        : 'Not in the CNIC format'
+        ? `${info.province} · ${info.gender}`
+        : 'not the CNIC format'
       : valid
-        ? (bank ?? 'Bank code not in our list')
-        : 'Length or check digits are wrong';
+        ? (bank ?? 'bank code not in our list')
+        : 'length or check digits fail';
 
   return (
-    <div className="pdk-demo not-content">
+    <div className="pdk-demo pdk-glass not-content">
       <div
-        className="pdk-demo-tabs"
+        className="pdk-demo-tabs pdk-pills"
         role="tablist"
         aria-label="What to check"
         onKeyDown={onTabKey}
@@ -184,6 +184,7 @@ export default function HeroDemo() {
             }}
             type="button"
             role="tab"
+            className="pdk-pill"
             id={`${id}-tab-${t}`}
             aria-controls={`${id}-panel`}
             aria-selected={tab === t}
@@ -214,13 +215,24 @@ export default function HeroDemo() {
           spellCheck={false}
           aria-describedby={`${id}-result`}
         />
-        <p id={`${id}-result`} className="pdk-demo-result" aria-live="polite">
-          {!empty && <Badge valid={valid} />} <span>{summary}</span>
+        <p
+          id={`${id}-result`}
+          className={`pdk-demo-result pdk-status${empty ? '' : valid ? ' valid' : ' invalid'}`}
+          aria-live="polite"
+        >
+          {empty ? (
+            detail
+          ) : (
+            <>
+              <span aria-hidden="true">{valid ? '\u2713 ' : '\u2717 '}</span>
+              {valid ? 'valid' : 'invalid'} · {detail}
+            </>
+          )}
         </p>
         <div className="pdk-demo-code">
           <div className="pdk-demo-code-bar">
             <div
-              className="pdk-demo-langs"
+              className="pdk-demo-langs pdk-pills"
               role="tablist"
               aria-label="Language"
               onKeyDown={onLangKey}
@@ -233,6 +245,7 @@ export default function HeroDemo() {
                   }}
                   type="button"
                   role="tab"
+                  className="pdk-pill"
                   id={`${id}-lang-${l.id}`}
                   aria-controls={`${id}-code`}
                   aria-selected={lang === l.id}
@@ -280,9 +293,7 @@ export default function HeroDemo() {
           </pre>
         </div>
         <p className="pdk-demo-note">
-          Runs in your browser with the real library; nothing you type is sent
-          anywhere. The code uses your value once it's valid, and the documented
-          example until then.
+          Runs in your browser. What you type is not sent anywhere.
         </p>
       </div>
     </div>

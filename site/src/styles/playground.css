@@ -26,6 +26,18 @@
   --color-code: var(--sl-color-gray-6);
   --color-brand: var(--sl-color-accent);
   --font-mono: var(--sl-font-mono);
+  /* One radius for the whole site (pills stay rounded-full). */
+  --radius-xs: 6px;
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+  --radius-2xl: 6px;
+  /* No soft shadows. */
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
 }
 
 /* Resets live in the base layer, so Tailwind utilities (layer utilities)

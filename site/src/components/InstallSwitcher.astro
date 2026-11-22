@@ -1,57 +1,54 @@
 ---
 /**
- * Install command per package manager, as tabs with a copy button. Plain
- * HTML plus a small script (no framework): the first tab works without JS.
+ * Install command per language: language pills (tabs), the command and a
+ * copy button. Plain HTML plus a small script (no framework): the first tab
+ * works without JS.
  */
-const MANAGERS = [
-  { id: 'npm', label: 'npm', command: 'npm install pakdatakit', lang: 'TypeScript / JavaScript', href: '/install/typescript/' },
-  { id: 'pip', label: 'pip', command: 'pip install pakdatakit', lang: 'Python', href: '/install/python/' },
-  { id: 'dart', label: 'dart', command: 'dart pub add pakdatakit', lang: 'Dart (Flutter: pakdatakit_flutter)', href: '/install/dart/' },
-  { id: 'dotnet', label: 'dotnet', command: 'dotnet add package PakDataKit', lang: '.NET', href: '/install/dotnet/' },
-  { id: 'composer', label: 'composer', command: 'composer require chmuzamil/pakdatakit', lang: 'PHP / Laravel', href: '/install/php/' },
+const LANGS = [
+  { id: 'ts', label: 'TypeScript', command: 'npm install pakdatakit', href: '/install/typescript/' },
+  { id: 'py', label: 'Python', command: 'pip install pakdatakit', href: '/install/python/' },
+  { id: 'dart', label: 'Dart', command: 'dart pub add pakdatakit', href: '/install/dart/' },
+  { id: 'cs', label: 'C#', command: 'dotnet add package PakDataKit', href: '/install/dotnet/' },
+  { id: 'php', label: 'PHP', command: 'composer require chmuzamil/pakdatakit', href: '/install/php/' },
 ];
 ---
 
 <pdk-install class="pdk-install not-content">
-  <div class="pdk-install-tabs" role="tablist" aria-label="Package manager">
+  <div class="pdk-pills" role="tablist" aria-label="Install for">
     {
-      MANAGERS.map((m, i) => (
+      LANGS.map((l, i) => (
         <button
           type="button"
           role="tab"
-          id={`install-tab-${m.id}`}
-          aria-controls={`install-panel-${m.id}`}
+          class="pdk-pill"
+          id={`install-tab-${l.id}`}
+          aria-controls={`install-panel-${l.id}`}
           aria-selected={i === 0 ? 'true' : 'false'}
           tabindex={i === 0 ? 0 : -1}
         >
-          {m.label}
+          {l.label}
         </button>
       ))
     }
   </div>
   {
-    MANAGERS.map((m, i) => (
+    LANGS.map((l, i) => (
       <div
         class="pdk-install-panel"
         role="tabpanel"
-        id={`install-panel-${m.id}`}
-        aria-labelledby={`install-tab-${m.id}`}
+        id={`install-panel-${l.id}`}
+        aria-labelledby={`install-tab-${l.id}`}
         hidden={i !== 0}
       >
         <div class="pdk-install-line">
-          <code>
-            <span aria-hidden="true" class="pdk-install-prompt">
-              ${' '}
-            </span>
-            {m.command}
-          </code>
-          <button type="button" class="pdk-install-copy" data-command={m.command}>
+          <code>{l.command}</code>
+          <button type="button" class="pdk-install-copy" data-command={l.command}>
             Copy
           </button>
         </div>
-        <p>
-          {m.lang}: <a href={m.href}>install guide</a>
-        </p>
+        <a class="pdk-install-guide" href={l.href}>
+          {l.label} install guide
+        </a>
       </div>
     ))
   }
@@ -92,7 +89,7 @@ const MANAGERS = [
           } catch {
             ok = false;
           }
-          b.textContent = ok ? 'Copied' : 'Select and copy';
+          b.textContent = ok ? 'Copied' : 'Select it';
           if (status) status.textContent = ok ? 'Install command copied' : 'Could not copy; select the command instead';
           clearTimeout(timer);
           timer = window.setTimeout(() => {

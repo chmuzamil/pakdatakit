@@ -128,7 +128,18 @@ export const API: Record<string, Api> = {
   validateCNIC: { cs: 'Cnic.Validate', php: 'Cnic::validate' },
   getCNICInfo: { cs: 'Cnic.GetInfo', php: 'Cnic::getInfo' },
   findCNICs: { py: 'find_cnics', cs: 'Cnic.FindAll', php: 'Cnic::findAll' },
-  maskCNICs: { py: 'mask_cnics', cs: 'Cnic.Mask', php: 'Cnic::mask' },
+  maskCNICs: {
+    py: 'mask_cnics',
+    cs: 'Cnic.Mask',
+    php: 'Cnic::mask',
+    // .NET and PHP take mask and replacement as named parameters.
+    render: {
+      cs: (a, k) =>
+        `Cnic.Mask(${[lit('cs', a[0]), ...Object.entries(k).map(([n, v]) => `${n}: ${lit('cs', v)}`)].join(', ')})`,
+      php: (a, k) =>
+        `Cnic::mask(${[lit('php', a[0]), ...Object.entries(k).map(([n, v]) => `${n}: ${lit('php', v)}`)].join(', ')})`,
+    },
+  },
   // phone, networks, numbers, whatsapp
   validatePhone: { cs: 'Phone.Validate', php: 'Phone::validate' },
   formatPhone: { cs: 'Phone.Format', php: 'Phone::format' },

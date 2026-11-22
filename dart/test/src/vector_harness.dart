@@ -281,7 +281,7 @@ const Map<String, Set<String>> allowedKwargs = {
   'calculateSalaryTax': {'taxYear', 'date', 'includeSurcharge'},
   'calculateMonthlySalaryTax': {'taxYear', 'date', 'includeSurcharge'},
   'validateLandline': {'services'},
-  'maskCNICs': {'mask'},
+  'maskCNICs': {'mask', 'replacement'},
   // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
   'formatAddress': {
     'raw',
@@ -302,6 +302,9 @@ final Map<String, Call> functions = {
   'maskCNICs': (a, k) => maskCNICs(
         textOr(a[0], const {'text': '', 'count': 0}),
         mask: optStr(k['mask']) ?? 'X',
+        // A non-string replacement is ignored, as in TypeScript.
+        replacement:
+            k['replacement'] is String ? k['replacement']! as String : null,
       ),
   'validatePhone': one(validatePhone),
   'formatPhone': one(formatPhone),

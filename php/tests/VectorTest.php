@@ -390,9 +390,11 @@ final class VectorTest extends TestCase
             'validateCNIC' => $one(Cnic::validate(...)),
             'getCNICInfo' => $one(Cnic::getInfo(...)),
             'findCNICs' => static fn (array $a, array $k): mixed => Cnic::findAll($a[0] ?? null),
-            'maskCNICs' => static fn (array $a, array $k): mixed => array_key_exists('mask', $k)
-                ? Cnic::mask($a[0] ?? null, $k['mask'])
-                : Cnic::mask($a[0] ?? null),
+            'maskCNICs' => static fn (array $a, array $k): mixed => Cnic::mask(
+                $a[0] ?? null,
+                array_key_exists('mask', $k) ? $k['mask'] : 'X',
+                $k['replacement'] ?? null,
+            ),
             'validatePhone' => $one(Phone::validate(...)),
             'formatPhone' => $one(Phone::format(...)),
             'analyzePhone' => $one(Phone::analyze(...)),

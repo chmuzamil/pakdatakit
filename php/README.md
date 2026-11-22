@@ -125,16 +125,22 @@ package; call `->toArray()` for an array.
 | `dataVersion`                                          | `PakData::version()`                                                              |
 
 `Cnic::findAll()` finds CNICs in free text (a chat message, a note) and
-`Cnic::mask()` masks their digits, for example before logging. A match is 13
-digits starting with a province digit (1-8), together or in 5-7-1 groups with
-any hyphen, dash, dot or space between the groups (the two may differ), in
-ASCII, Urdu or Arabic-Indic digits, and never next to another digit. Any other
-13-digit number starting with 1-8 matches too. `start` and `end` count code
-points, so use `mb_substr()`. `Cnic::mask($text, '*')` takes the mask string;
-anything that is not a string gives `[]` or an empty `MaskedText`.
+`Cnic::mask()` masks their digits, for example before logging. A match is a
+run of exactly 13 digits starting with a province digit (1-8), together or in
+any grouping joined by single separators (a space, a hyphen or dash, a dot or
+a slash: `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`), or a CNIC
+in 5-7-1 groups inside a longer run (`0300-1234567 35202-1234567-1`). Digits
+may be ASCII, Urdu or Arabic-Indic, and a match is never next to another
+digit. A run of more than 13 digits is never cut into a CNIC except at 5-7-1
+groups. Any other 13 digits starting with 1-8, however they are grouped, match
+too, so expect more false positives than `Cnic::validate()`. `start` and `end`
+count code points, so use `mb_substr()`. `Cnic::mask($text, '*')` takes the
+mask string, and `Cnic::mask($text, replacement: '[CNIC removed]')` replaces
+each whole CNIC instead; anything that is not a string gives `[]` or an empty
+`MaskedText`.
 
 `Numbers::validateLandline($phone, services: true)` also accepts UAN
-(`021-111-123-456`, `111-123-456`), toll-free (`0800` and five digits) and
+(`021-111-123-456`, `111-123-456`), toll-free (`0800` and five or six digits) and
 premium-rate (`0900` and five digits) numbers, as in PTA's numbering plan;
 `Numbers::analyze()` tells them apart by `type`.
 

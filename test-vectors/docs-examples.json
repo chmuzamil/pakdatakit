@@ -16,6 +16,8 @@
 {"fn":"getCNICInfo","args":["35202-1234567-1"],"kwargs":{},"expected":{"digits":"3520212345671","formatted":"35202-1234567-1","province":"Punjab","gender":"male"},"throws":false},
 {"fn":"findCNICs","args":["CNIC: 35202-1234567-1, phone 0300-1234567"],"kwargs":{},"expected":[{"raw":"35202-1234567-1","digits":"3520212345671","formatted":"35202-1234567-1","start":6,"end":21}],"throws":false},
 {"fn":"maskCNICs","args":["My CNIC is 35202 1234567-1"],"kwargs":{},"expected":{"text":"My CNIC is XXXXX XXXXXXX-X","count":1},"throws":false},
+{"fn":"findCNICs","args":["CNIC 352 0212 3456 71"],"kwargs":{},"expected":[{"raw":"352 0212 3456 71","digits":"3520212345671","formatted":"35202-1234567-1","start":5,"end":21}],"throws":false},
+{"fn":"maskCNICs","args":["CNIC 35202/1234567/1, call me"],"kwargs":{"replacement":"[CNIC removed]"},"expected":{"text":"CNIC [CNIC removed], call me","count":1},"throws":false},
 {"fn":"mapCourierStatus","args":["PostEx","Out for Delivery"],"kwargs":{},"expected":"out-for-delivery","throws":false},
 {"fn":"mapCourierStatus","args":["TCS","Delivered"],"kwargs":{},"expected":null,"throws":false},
 {"fn":"normalizeCityForCourier","args":["LHR"],"kwargs":{},"expected":"Lahore","throws":false},

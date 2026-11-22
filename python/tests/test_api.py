@@ -535,8 +535,11 @@ def test_landline_services() -> None:
     assert pdk.validate_landline("0900-12345", services=True) is True
     assert pdk.validate_landline("0122-123456", services=True) is False
     assert pdk.validate_landline("0300-1234567", services=True) is False
-    # Toll-free is 800 and exactly five digits.
+    # Toll-free is 800 and five or six digits.
     assert pdk.get_number_type("0800-12345") == "toll-free"
+    assert pdk.get_number_type("0800005000") == "toll-free"
+    assert pdk.analyze_number("0800005000").formatted == "0800-005000"  # type: ignore[union-attr]
+    assert pdk.validate_landline("0800-005000", services=True) is True
     assert pdk.get_number_type("0800-12345678") is None
     for value in HOSTILE_INPUTS + [True, 1.5, [], {}]:
         assert pdk.validate_landline(value, services=True) is False or isinstance(value, str)
@@ -561,7 +564,39 @@ def test_cnics_in_text() -> None:
         if not isinstance(value, str):
             assert pdk.find_cnics(value) == []
             assert pdk.mask_cnics(value) == pdk.MaskedText("", 0)
+            assert pdk.mask_cnics(value, replacement="[x]") == pdk.MaskedText("", 0)
 
+
+def test_cnics_in_text_any_grouping() -> None:
+    # Any grouping of exactly 13 digits, including slashes.
+    for raw in ["352 0212 3456 71", "35202/1234567/1", "3520-2123-4567-1", "35.20.21.23.45.67.1"]:
+        found = pdk.find_cnics(f"id {raw}.")
+        assert [(m.raw, m.digits, m.start) for m in found] == [(raw, "3520212345671", 3)]
+    assert pdk.find_cnics("a/35202/1234567/1/b")[0].raw == "35202/1234567/1"
+    # Two separators in a row end a run.
+    assert pdk.find_cnics("352 0212  3456 71") == []
+    assert pdk.find_cnics("952 0212 3456 71") == []
+    # A CNIC in 5-7-1 groups inside a longer run.
+    found = pdk.find_cnics("0300-1234567 35202-1234567-1")
+    assert [(m.raw, m.start, m.end) for m in found] == [("35202-1234567-1", 13, 28)]
+    # A longer run is never cut into a CNIC except at 5-7-1 groups.
+    assert pdk.find_cnics("352 0212 3456 712") == []
+    assert pdk.find_cnics("123520212345671") == []
+    assert pdk.find_cnics("0300 1234 5678 912") == []
+    assert pdk.find_cnics("35202/1234567/1/2")[0].raw == "35202/1234567/1"
+    assert pdk.find_cnics("1 35202-1234567-1")[0].raw == "35202-1234567-1"
+
+
+def test_mask_cnics_replacement() -> None:
+    text = "two: 352 0212 3456 71 and 61101/7654321/2."
+    assert pdk.mask_cnics(text).text == "two: XXX XXXX XXXX XX and XXXXX/XXXXXXX/X."
+    assert pdk.mask_cnics(text, replacement="[CNIC removed]") == pdk.MaskedText(
+        "two: [CNIC removed] and [CNIC removed].", 2
+    )
+    assert pdk.mask_cnics("CNIC 352 0212 3456 71", mask="*", replacement="").text == "CNIC "
+    assert pdk.mask_cnics("CNIC 352 0212 3456 71", replacement=42).text == "CNIC XXX XXXX XXXX XX"  # type: ignore[arg-type]
+    assert pdk.mask_cnics("a 3520212345671", replacement=r"\1").text == r"a \1"
+    assert pdk.mask_cnics("no ids here", replacement="[x]") == pdk.MaskedText("no ids here", 0)
 
 def test_roman_urdu_key() -> None:
     key = pdk.roman_urdu_key

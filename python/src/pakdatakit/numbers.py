@@ -20,7 +20,9 @@ __all__ = ["NumberInfo", "analyze_number", "get_number_type", "validate_landline
 # - UAN: an area code, then 111 and six digits (PTA's plan, "National Universal
 #   Access Number"). Written without the area code, ``111-XXX-XXX`` is how UANs
 #   are advertised and dialled within a city.
-# - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
+# - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number"),
+#   or six digits (PTA's National Numbering Plan 2008, 8.1 and 8.1.4; in use,
+#   e.g. 0800-005000).
 # - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
 #   9.1.4, "current structure"; the 2021 plan does not list 0900).
 # - 0122 numbers: seen in use, no PTA source, not supported since 2.7.0 (see DATA.md).
@@ -31,7 +33,7 @@ _UAN = re.compile(
     r"((?:2(?:[125]|3[2358]|4[2-4]|9[2-8])|4(?:[0-246-9]|5[3479])|5(?:[1-35-7]|4[2-467])|6(?:0[468]|[1-8])|7(?:[14]|2[236])|8(?:[16]|2[2-689]|3[23578]|4[3478]|5[2356])|9(?:1|22|3[27-9]|4[2-6]|6[3569]|9[2-7])))111([0-9]{6})\Z"
 )
 _UAN_WITHOUT_AREA_CODE = re.compile(r"111([0-9]{6})\Z")
-_TOLL_FREE = re.compile(r"800([0-9]{5})\Z")
+_TOLL_FREE = re.compile(r"800([0-9]{5,6})\Z")
 _PREMIUM = re.compile(r"900([0-9]{5})\Z")
 _NATIONAL = re.compile(r"[0-9]{8,12}\Z")
 

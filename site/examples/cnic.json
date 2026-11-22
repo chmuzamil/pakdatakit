@@ -52,6 +52,34 @@
         "text": "My CNIC is XXXXX XXXXXXX-X",
         "count": 1
       }
+    },
+    {
+      "id": "find-grouped",
+      "title": "Any grouping of the 13 digits",
+      "fn": "findCNICs",
+      "args": ["CNIC 352 0212 3456 71"],
+      "expected": [
+        {
+          "raw": "352 0212 3456 71",
+          "digits": "3520212345671",
+          "formatted": "35202-1234567-1",
+          "start": 5,
+          "end": 21
+        }
+      ]
+    },
+    {
+      "id": "replace",
+      "title": "Replace each CNIC with a label",
+      "fn": "maskCNICs",
+      "args": ["CNIC 35202/1234567/1, call me"],
+      "kwargs": {
+        "replacement": "[CNIC removed]"
+      },
+      "expected": {
+        "text": "CNIC [CNIC removed], call me",
+        "count": 1
+      }
     }
   ]
 }

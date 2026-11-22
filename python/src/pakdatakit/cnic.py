@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 from ._internal.js import trim
 from ._internal.normalize import to_ascii_digits
@@ -67,27 +67,51 @@ def get_cnic_info(cnic: str) -> Optional[CNICInfo]:
 
 # One digit: ASCII, Urdu (U+06F0-06F9) or Arabic-Indic (U+0660-0669).
 _ANY_DIGIT = "[0-9" + chr(0x06F0) + "-" + chr(0x06F9) + chr(0x0660) + "-" + chr(0x0669) + "]"
-# A CNIC separator: a hyphen or dash (U+2010-2014), a dot, or a space.
-_CNIC_SEPARATOR = "[\\-" + chr(0x2010) + "-" + chr(0x2014) + ". ]"
+# A separator between digit groups: a space, a hyphen or Unicode dash
+# (U+2010-2014), a dot or a slash.
+_CNIC_SEPARATOR = "[\\-" + chr(0x2010) + "-" + chr(0x2014) + "./ ]"
 # A province digit, 1-8, in any of the three scripts.
 _PROVINCE_DIGIT = "[1-8" + chr(0x06F1) + "-" + chr(0x06F8) + chr(0x0661) + "-" + chr(0x0668) + "]"
 
-# A CNIC in running text: a province digit (1-8), then 4, 7 and 1 more digits
-# with an optional separator between the groups (the two may differ), not
-# touching another digit on either side.
-_CNIC_IN_TEXT = re.compile(
+# A run of digit groups joined by single separators (``352 0212 3456 71``,
+# ``35202/1234567/1``), as long as it goes. Two separators in a row, or any
+# other character, end it.
+_DIGIT_RUN = re.compile(f"{_ANY_DIGIT}(?:{_CNIC_SEPARATOR}?{_ANY_DIGIT})*")
+# A CNIC in 5-7-1 groups (as in 2.7.0) inside a longer run, such as
+# ``0300-1234567 35202-1234567-1``: a province digit, then 4, 7 and 1 digits
+# with an optional separator between the groups, not next to another digit.
+_CNIC_571 = re.compile(
     f"(?<!{_ANY_DIGIT})"
     f"{_PROVINCE_DIGIT}{_ANY_DIGIT}{{4}}{_CNIC_SEPARATOR}?{_ANY_DIGIT}{{7}}{_CNIC_SEPARATOR}?{_ANY_DIGIT}"
     f"(?!{_ANY_DIGIT})"
 )
 _DIGIT = re.compile(_ANY_DIGIT)
+_FIRST_IS_PROVINCE = re.compile(_PROVINCE_DIGIT)
+
+
+def _cnic_spans(text: str) -> List[Tuple[int, int]]:
+    """Where CNICs are in a text: ``(start, end)`` pairs, in order."""
+    spans: List[Tuple[int, int]] = []
+    for run in _DIGIT_RUN.finditer(text):
+        raw = run.group(0)
+        start = run.start()
+        digits = len(_DIGIT.findall(raw))
+        if digits == 13 and _FIRST_IS_PROVINCE.match(raw):
+            # Exactly 13 digits in any grouping: the whole run.
+            spans.append((start, run.end()))
+        elif digits > 13:
+            # A longer run: only a CNIC written in 5-7-1 groups inside it.
+            for m in _CNIC_571.finditer(raw):
+                spans.append((start + m.start(), start + m.end()))
+    return spans
 
 
 @dataclass(frozen=True)
 class CNICMatch:
     """A CNIC found by :func:`find_cnics`."""
 
-    #: The text as written, e.g. ``35202 1234567-1`` or with Urdu digits.
+    #: The text as written, e.g. ``35202 1234567-1``, ``352 0212 3456 71`` or
+    #: with Urdu digits.
     raw: str
     #: The 13 digits, in ASCII.
     digits: str
@@ -104,7 +128,7 @@ class CNICMatch:
 class MaskedText:
     """Result of :func:`mask_cnics`."""
 
-    #: The text with every CNIC's digits masked; separators are kept.
+    #: The text with every CNIC masked (or replaced, with ``replacement``).
     text: str
     #: How many CNICs were masked.
     count: int
@@ -114,16 +138,23 @@ def find_cnics(text: Any) -> List[CNICMatch]:
     """Finds CNIC numbers in free text, such as a chat message, a note or an
     uploaded document, for example to mask them before logging.
 
-    A match is 13 digits whose first digit is a province code (1-8), written
-    together or in 5-7-1 groups with a hyphen, dash, dot or space between the
-    groups (the two separators may differ). Digits may be ASCII, Urdu or
-    Arabic-Indic, even mixed. A match never starts or ends next to another
-    digit, so a longer number is not cut into a CNIC.
+    A match is either:
 
-    This is looser than :func:`validate_cnic`, which needs the same separator
-    twice: text is written carelessly. It is a pattern match, so any other
-    13-digit number that starts with 1-8 (an account or order number, say)
-    also matches.
+    - a run of exactly 13 digits whose first digit is a province code (1-8),
+      together or in any grouping joined by single separators: a space, a
+      hyphen or Unicode dash, a dot or a slash (``3520212345671``,
+      ``35202-1234567-1``, ``352 0212 3456 71``, ``35202/1234567/1``); or
+    - a CNIC in 5-7-1 groups inside a longer run of such groups
+      (``0300-1234567 35202-1234567-1``).
+
+    Digits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never
+    starts or ends next to another digit, and a run of more than 13 digits is
+    never cut into a CNIC except at 5-7-1 groups.
+
+    Accepting any grouping catches CNICs as people really type them, but
+    matches more that is not a CNIC: any 13 digits starting with 1-8, however
+    they are grouped (an account, order or tracking number, or two shorter
+    numbers written together), are found. :func:`validate_cnic` stays strict.
 
     ``start`` and ``end`` are Python string indexes (code points); the npm
     package counts UTF-16 code units, which differ only after a character
@@ -134,33 +165,39 @@ def find_cnics(text: Any) -> List[CNICMatch]:
 
     >>> find_cnics("CNIC: 35202-1234567-1, phone 0300-1234567")
     [CNICMatch(raw='35202-1234567-1', digits='3520212345671', formatted='35202-1234567-1', start=6, end=21)]
+    >>> find_cnics("id 352 0212 3456 71")[0].digits
+    '3520212345671'
     """
     if not isinstance(text, str):
         return []
     matches = []
-    for match in _CNIC_IN_TEXT.finditer(text):
-        raw = match.group(0)
+    for start, end in _cnic_spans(text):
+        raw = text[start:end]
         digits = re.sub("[^0-9]", "", to_ascii_digits(raw))
         matches.append(
             CNICMatch(
                 raw=raw,
                 digits=digits,
                 formatted=f"{digits[:5]}-{digits[5:12]}-{digits[12]}",
-                start=match.start(),
-                end=match.end(),
+                start=start,
+                end=end,
             )
         )
     return matches
 
 
-def mask_cnics(text: Any, *, mask: Any = "X") -> MaskedText:
+def mask_cnics(text: Any, *, mask: Any = "X", replacement: Any = None) -> MaskedText:
     """Masks every CNIC in free text, as found by :func:`find_cnics`: each
     digit becomes ``mask`` and the separators stay, so ``35202-1234567-1``
     becomes ``XXXXX-XXXXXXX-X``. The rest of the text is unchanged.
 
-    Like :func:`find_cnics`, it also masks any other 13-digit number that
-    starts with 1-8. ``mask`` is the string that replaces each digit (default
-    ``"X"``; a value that is not a string means ``"X"``).
+    With ``replacement``, each whole CNIC, separators included, is replaced
+    by that string instead (e.g. ``"[CNIC removed]"``). It takes precedence
+    over ``mask``; a value that is not a string is ignored.
+
+    Like :func:`find_cnics`, it also masks any other 13 digits that start
+    with 1-8, however they are grouped. ``mask`` is the string that replaces
+    each digit (default ``"X"``; a value that is not a string means ``"X"``).
 
     Returns the masked text and the number of CNICs masked. A value that is
     not a string gives ``MaskedText(text="", count=0)``. Never raises.
@@ -169,9 +206,22 @@ def mask_cnics(text: Any, *, mask: Any = "X") -> MaskedText:
     MaskedText(text='My CNIC is XXXXX-XXXXXXX-X', count=1)
     >>> mask_cnics("35202 1234567 1", mask="*").text
     '***** ******* *'
+    >>> mask_cnics("CNIC 352 0212 3456 71", replacement="[CNIC removed]").text
+    'CNIC [CNIC removed]'
     """
     if not isinstance(text, str):
         return MaskedText(text="", count=0)
-    replacement = mask if isinstance(mask, str) else "X"
-    masked, count = _CNIC_IN_TEXT.subn(lambda m: _DIGIT.sub(lambda _: replacement, m.group(0)), text)
-    return MaskedText(text=masked, count=count)
+    digit_mask = mask if isinstance(mask, str) else "X"
+    whole = replacement if isinstance(replacement, str) else None
+    spans = _cnic_spans(text)
+    parts = []
+    at = 0
+    for start, end in spans:
+        parts.append(text[at:start])
+        if whole is not None:
+            parts.append(whole)
+        else:
+            parts.append(_DIGIT.sub(lambda _: digit_mask, text[start:end]))
+        at = end
+    parts.append(text[at:])
+    return MaskedText(text="".join(parts), count=len(spans))

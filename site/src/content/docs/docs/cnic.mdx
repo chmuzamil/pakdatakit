@@ -73,12 +73,12 @@ interface CNICMatch {
 
 **Parameters.** `text`: any text, such as a chat message, a note or an uploaded document.
 
-**Returns** every CNIC in the text, in order, or `[]`. A match is 13 digits starting with a province code (1-8), written together or in 5-7-1 groups with a hyphen, dash, dot or space between the groups; the two separators may differ. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. It never throws.
+**Returns** every CNIC in the text, in order, or `[]`. A match is a run of exactly 13 digits starting with a province code (1-8), together or in any grouping joined by single separators: a space, a hyphen or dash, a dot or a slash (`3520212345671`, `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`). Inside a longer run of such groups, a CNIC written in 5-7-1 groups is still found (`0300-1234567 35202-1234567-1`). Digits may be ASCII, Urdu or Arabic-Indic, even mixed. It never throws.
 
 **Caveats.**
 
-- A match never starts or ends next to another digit, so a longer number is not cut into a CNIC.
-- It is a pattern match: any other 13-digit number that starts with 1-8 (an account or order number) also matches.
+- A match never starts or ends next to another digit, and a run of more than 13 digits is never cut into a CNIC except at 5-7-1 groups. Two separators in a row (`35202 - 1234567 - 1`) end a run.
+- It is a pattern match, and since 2.7.1 a looser one: any 13 digits starting with 1-8, however they are grouped (an account, order or tracking number, or two shorter numbers written together), are found. Expect more false positives than with the 5-7-1 form alone; that is the price of catching CNICs as people really type them.
 - It is looser than [`validateCNIC()`](#validatecnic), which stays strict and needs the same separator twice.
 - Offsets are in UTF-16 code units in TypeScript, Dart and C#, and in characters (code points) in Python and PHP (use `mb_substr`), so slicing the text with them gives `raw` in each language.
 
@@ -87,10 +87,13 @@ interface CNICMatch {
 ```ts
 function maskCNICs(
   text: string,
-  options?: { mask?: string }, // default 'X'
+  options?: {
+    mask?: string; // replaces each digit; default 'X'
+    replacement?: string; // replaces each whole CNIC instead
+  },
 ): { text: string; count: number };
 ```
 
-**Returns** the text with each digit of every CNIC found by [`findCNICs()`](#findcnics) replaced by `mask`, keeping the separators (`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`), and how many CNICs were masked. It never throws.
+**Returns** the text with each digit of every CNIC found by [`findCNICs()`](#findcnics) replaced by `mask`, keeping the separators (`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`), and how many CNICs were masked. With `replacement`, each whole CNIC, separators included, becomes that text instead (`{ replacement: '[CNIC removed]' }`); it takes precedence over `mask`. It never throws.
 
-**Caveats.** Like `findCNICs()`, it also masks other 13-digit numbers that start with 1-8.
+**Caveats.** Like `findCNICs()`, it also masks any other 13 digits that start with 1-8, however they are grouped.

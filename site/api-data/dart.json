@@ -673,7 +673,7 @@
               "name": "raw",
               "type": "String",
               "default": null,
-              "doc": "The text as written, e.g. `35202 1234567-1` or with Urdu digits.",
+              "doc": "The text as written, e.g. `35202 1234567-1`, `352 0212 3456 71` or with\nUrdu digits.",
               "static": false,
               "readonly": true
             },
@@ -777,7 +777,7 @@
               "name": "text",
               "type": "String",
               "default": null,
-              "doc": "The text with every CNIC's digits masked; separators are kept.",
+              "doc": "The text with every CNIC masked (or replaced, with `replacement`).",
               "static": false,
               "readonly": true
             },
@@ -830,7 +830,7 @@
           "kind": "function",
           "name": "findCNICs",
           "signature": "List<CNICMatch> findCNICs(String text)",
-          "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is 13 digits whose first digit is a province code (1-8), written\ntogether or in 5-7-1 groups with a hyphen, dash, dot or space between the\ngroups (the two separators may differ). Digits may be ASCII, Urdu or\nArabic-Indic, even mixed. A match never starts or ends next to another\ndigit, so a longer number is not cut into a CNIC.\n\nThis is looser than {@link validateCNIC}, which needs the same separator\ntwice: text is written carelessly. It is a pattern match, so any other\n13-digit number that starts with 1-8 (an account or order number, say)\nalso matches.\n\nOffsets are UTF-16 code units, so `text.substring(m.start, m.end)` is\n`m.raw`.\n\n```dart\nfindCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CNICMatch(raw: 35202-1234567-1, digits: 3520212345671,\n//   formatted: 35202-1234567-1, start: 6, end: 21)]\n```\n\nReturns the matches in order, or an empty list. Never throws.",
+          "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is either:\n\n- a run of exactly 13 digits whose first digit is a province code (1-8),\n  together or in any grouping joined by single separators: a space, a\n  hyphen or Unicode dash, a dot or a slash (`3520212345671`,\n  `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`); or\n- a CNIC in 5-7-1 groups inside a longer run of such groups\n  (`0300-1234567 35202-1234567-1`).\n\nDigits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never\nstarts or ends next to another digit, and a run of more than 13 digits is\nnever cut into a CNIC except at 5-7-1 groups.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8, however\nthey are grouped (an account, order or tracking number, or two shorter\nnumbers written together), are found. {@link validateCNIC} stays strict.\n\nOffsets are UTF-16 code units, so `text.substring(m.start, m.end)` is\n`m.raw`.\n\n```dart\nfindCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CNICMatch(raw: 35202-1234567-1, digits: 3520212345671,\n//   formatted: 35202-1234567-1, start: 6, end: 21)]\nfindCNICs('id 352 0212 3456 71').first.digits; // '3520212345671'\n```\n\nReturns the matches in order, or an empty list. Never throws.",
           "params": [
             {
               "name": "text",
@@ -847,8 +847,8 @@
         {
           "kind": "function",
           "name": "maskCNICs",
-          "signature": "MaskedText maskCNICs(String text, {String mask = 'X'})",
-          "doc": "Masks every CNIC in free text, as found by [findCNICs]: each digit\nbecomes {@link mask} and the separators stay, so `35202-1234567-1` becomes\n`XXXXX-XXXXXXX-X`. The rest of the text is unchanged.\n\nLike {@link findCNICs}, it also masks any other 13-digit number that starts\nwith 1-8.\n\n```dart\nmaskCNICs('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nmaskCNICs('35202 1234567 1', mask: '*');\n// MaskedText(text: '***** ******* *', count: 1)\n```\n\n{@link mask} is the string that replaces each digit (default `'X'`). Returns\nthe masked text and the number of CNICs masked. Never throws.",
+          "signature": "MaskedText maskCNICs(String text, {String mask = 'X', String? replacement})",
+          "doc": "Masks every CNIC in free text, as found by [findCNICs]: each digit\nbecomes {@link mask} and the separators stay, so `35202-1234567-1` becomes\n`XXXXX-XXXXXXX-X`. The rest of the text is unchanged.\n\nWith {@link replacement}, each whole CNIC is replaced by that text instead.\n\nLike {@link findCNICs}, it also masks any other 13 digits that start with\n1-8, however they are grouped.\n\n```dart\nmaskCNICs('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nmaskCNICs('35202 1234567 1', mask: '*');\n// MaskedText(text: '***** ******* *', count: 1)\nmaskCNICs('CNIC 352 0212 3456 71', replacement: '[CNIC removed]');\n// MaskedText(text: 'CNIC [CNIC removed]', count: 1)\n```\n\n{@link mask} is the string that replaces each digit (default `'X'`);\n{@link replacement}, when given, is the string that replaces each whole CNIC,\nseparators included, and takes precedence over {@link mask}. Returns the\nmasked text and the number of CNICs masked. Never throws.",
           "params": [
             {
               "name": "text",
@@ -861,6 +861,13 @@
               "name": "mask",
               "type": "String",
               "default": "'X'",
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "replacement",
+              "type": "String?",
+              "default": null,
               "named": true,
               "required": false
             }

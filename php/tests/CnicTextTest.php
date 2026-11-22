@@ -117,4 +117,42 @@ final class CnicTextTest extends TestCase
         self::assertSame(1, Cnic::mask("\xff 35202-1234567-1")->count);
         self::assertCount(1, Cnic::findAll("\xff 35202-1234567-1"));
     }
+
+    public function testFindsThirteenDigitsInAnyGroupingWithSlashesToo(): void
+    {
+        foreach (['352 0212 3456 71', '35202/1234567/1', '3520/2123/4567/1', '352.0212.3456.71', '3 5 2 0 2 1 2 3 4 5 6 7 1'] as $raw) {
+            $found = Cnic::findAll("ID {$raw}, ok");
+            self::assertSame([$raw], array_map(static fn (CnicMatch $m): string => $m->raw, $found), $raw);
+            self::assertSame('3520212345671', $found[0]->digits);
+            self::assertSame(3, $found[0]->start);
+        }
+        self::assertCount(1, Cnic::findAll(self::urdu('352') . '/' . self::urdu('0212345671')));
+    }
+
+    public function testStillFindsAFiveSevenOneCnicInsideALongerRun(): void
+    {
+        $found = Cnic::findAll('0300-1234567 35202-1234567-1');
+        self::assertSame(['35202-1234567-1'], array_map(static fn (CnicMatch $m): string => $m->raw, $found));
+        self::assertSame(13, $found[0]->start);
+        self::assertSame('0300-1234567 XXXXX-XXXXXXX-X', Cnic::mask('0300-1234567 35202-1234567-1')->text);
+    }
+
+    public function testNeverCutsALongerRunOrOneWithDoubledSeparators(): void
+    {
+        foreach (['352 0212 3456 712', '1 352 0212 3456 71', '4111 1111 1111 1111', '35202 - 1234567 - 1'] as $text) {
+            self::assertSame([], Cnic::findAll($text), $text);
+        }
+        self::assertCount(1, Cnic::findAll('order 4520 1123 4567 8'));
+    }
+
+    public function testReplacementReplacesWholeMatches(): void
+    {
+        self::assertSame(
+            ['text' => 'a [CNIC removed] b [CNIC removed]', 'count' => 2],
+            Cnic::mask('a 352 0212 3456 71 b 35202/1234567/1', replacement: '[CNIC removed]')->toArray(),
+        );
+        self::assertSame('', Cnic::mask('352 0212 3456 71', '*', '')->text);
+        self::assertSame('XXX XXXX XXXX XX', Cnic::mask('352 0212 3456 71', replacement: 42)->text);
+        self::assertSame('no ids', Cnic::mask('no ids', replacement: '[x]')->text);
+    }
 }

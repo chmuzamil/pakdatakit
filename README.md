@@ -252,9 +252,11 @@ findCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');
 maskCNICs('My CNIC is 35202 1234567-1');
 // { text: 'My CNIC is XXXXX XXXXXXX-X', count: 1 }
 maskCNICs(text, { mask: '*' });
+maskCNICs('CNIC 352 0212 3456 71', { replacement: '[CNIC removed]' });
+// { text: 'CNIC [CNIC removed]', count: 1 }
 ```
 
-A match is 13 digits starting with a province code (1-8), together or in 5-7-1 groups with any hyphen, dash, dot or space between the groups (the two may differ), in ASCII, Urdu or Arabic-Indic digits, and never next to another digit. It is a pattern match: other 13-digit numbers starting with 1-8 also match. `validateCNIC` stays strict. Offsets are UTF-16 code units in TypeScript, Dart and C#, and code points in Python and PHP.
+A match is a run of exactly 13 digits starting with a province code (1-8), together or in any grouping joined by single separators (space, hyphen or dash, dot, slash: `352 0212 3456 71`, `35202/1234567/1`), or a 5-7-1 CNIC inside a longer run; in ASCII, Urdu or Arabic-Indic digits, never next to another digit, and never cut out of a longer run otherwise. It is a pattern match, and a loose one: any 13 digits starting with 1-8, however grouped, also match. `validateCNIC` stays strict. Offsets are UTF-16 code units in TypeScript, Dart and C#, and code points in Python and PHP.
 
 ---
 
@@ -519,7 +521,7 @@ getNetwork('03451234567');
 
 ### analyzeNumber() / getNumberType() / validateLandline() / getAreaCode()
 
-Identifies any Pakistani number: mobile, landline, UAN (`111`), toll-free (`0800`) or premium-rate (`0900`). `0122` numbers are not recognised: they are seen in use but no PTA document lists them. Service numbers follow PTA's numbering plan: a UAN is an area code, `111` and six digits (`111-123-456` without the area code also works); toll-free is `0800` and five digits; premium is `0900` and five digits. Landline patterns come from Google's libphonenumber, with area codes from PTA's plan.
+Identifies any Pakistani number: mobile, landline, UAN (`111`), toll-free (`0800`) or premium-rate (`0900`). `0122` numbers are not recognised: they are seen in use but no PTA document lists them. Service numbers follow PTA's numbering plan: a UAN is an area code, `111` and six digits (`111-123-456` without the area code also works); toll-free is `0800` and five or six digits (PTA's 2021 plan and its 2008 numbering plan); premium is `0900` and five digits. Landline patterns come from Google's libphonenumber, with area codes from PTA's plan.
 
 ```ts
 analyzeNumber('021-111-825-888');

@@ -137,10 +137,18 @@ plan with the same districts.
     ("National Universal Access Number" in the ITU plan of 9 November 2021,
     page 1). Written without the area code (`111-123-456`), as UANs are
     advertised, it is accepted with `e164: null`.
-  - **Toll-free**: `800` and five digits, 8 in all ("National Toll Free
-    Number", same page). Before 2.7.0 an 8-digit form taken from
-    libphonenumber was also accepted; PTA's plan does not list it, so it is
-    now rejected.
+  - **Toll-free**: `0800` and five or six digits. The ITU plan gives five
+    ("National Toll Free Number", same page: `800 XXXXX`, 8 digits in all).
+    PTA's National Numbering Plan 2008 gives six: "the numbers take the form
+    of '0800' access code + 6-digit virtual number (e.g. 0800 544321)"
+    (section 8.1) and the structure table "(0)800 XXXXXX" (section 8.1.4),
+    in both its final version and version 4
+    (https://www.pta.gov.pk/assets/media/num_plan_230108.pdf, section 8.1.4,
+    retrieved 2026-11-22). Six-digit numbers are in use: Soneri Bank
+    publishes `0800005000` (https://soneribank.com/complaint-and-suggestions,
+    retrieved 2026-11-22). Both lengths are accepted since 2.7.1; 2.7.0
+    accepted only five. An 8-digit form taken from libphonenumber was
+    accepted before 2.7.0; no PTA document lists it, so it stays rejected.
   - **Premium rate**: `0900` and five digits. The 2021 plan does not list
     0900; PTA's National Numbering Plan 2008 (Consultation Paper, final
     version, 25 June 2008, section 9.1.4,
@@ -153,9 +161,11 @@ plan with the same districts.
     `analyzeNumber` returns `null` for them and `validateLandline` rejects
     them with or without `services`. The `personal` number type is kept so
     existing code compiles, is never returned, and will be removed in 3.0.
-  - The 2008 paper's own text gives `0800` and `111` other lengths (six and
-    seven digits) as proposals; the 2021 plan, which is newer and was sent
-    to the ITU, is followed.
+  - For UANs the 2008 paper gives `111` and seven digits; the 2021 plan,
+    which is newer and was sent to the ITU, gives an area code, `111` and
+    six digits, and is followed. (2.7.0's notes called the paper's six-digit
+    toll-free form a proposal too; that was wrong: section 8.1 states it as
+    the form of 0800 numbers, and 2.7.1 accepts it.)
 - **Number lengths** are not taken from the ITU plan (its length table could
   not be read reliably). The patterns in `numbers.ts` come from
   libphonenumber's PK metadata (v9.0.41), which already accepted numbers in

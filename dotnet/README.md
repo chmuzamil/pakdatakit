@@ -41,6 +41,7 @@ Cnic.GetInfo("35202-1234567-1");
 Cnic.FindAll("CNIC: 35202-1234567-1, phone 0300-1234567");
 // [CnicMatch { Raw = 35202-1234567-1, Digits = 3520212345671, Formatted = 35202-1234567-1, Start = 6, End = 21 }]
 Cnic.Mask("My CNIC is 35202-1234567-1");     // Text = "My CNIC is XXXXX-XXXXXXX-X", Count = 1
+Cnic.Mask("CNIC 352 0212 3456 71", replacement: "[CNIC removed]"); // Text = "CNIC [CNIC removed]", Count = 1
 
 Phone.Format("0300 1234567");                // "+923001234567"
 Networks.GetNetwork("0300 1234567");         // "Jazz"
@@ -277,20 +278,26 @@ FluentValidation 11 and 12.
 
 - **Landlines and service numbers.** `Numbers.ValidateLandline` accepts
   fixed-line numbers only; with `services: true` it also accepts UAN
-  (`021-111-123-456`, `111-123-456`), toll-free (`0800` and five digits, as
-  in PTA's numbering plan) and premium-rate (`0900`) numbers, but not
+  (`021-111-123-456`, `111-123-456`), toll-free (`0800` and five or six digits,
+  as in PTA's numbering plans) and premium-rate (`0900`) numbers, but not
   mobile numbers, and `0122` numbers are not recognised (no PTA document
   lists them). `Numbers.Analyze` tells them apart.
 - **CNICs in free text.** `Cnic.FindAll(text)` returns a `CnicMatch` (`Raw`,
-  `Digits`, `Formatted`, `Start`, `End`) for each 13-digit number that starts
-  with a province digit (1-8), together or in 5-7-1 groups with a hyphen,
-  dash, dot or space between the groups (the two may differ), in ASCII, Urdu
-  or Arabic-Indic digits, and not touching another digit. `Start` and `End`
-  are `string` indexes (UTF-16 code units), so `text[match.Start..match.End]`
-  is `Raw`. `Cnic.Mask(text, mask)` replaces each digit with `mask` (default
-  `"X"`) and keeps the separators, returning a `MaskedText` (`Text`,
-  `Count`). Both are looser than `Cnic.Validate` and match any 13-digit
-  number that starts with 1-8, such as an account number.
+  `Digits`, `Formatted`, `Start`, `End`) for each run of exactly 13 digits
+  that starts with a province digit (1-8), together or in any grouping
+  joined by single separators (a space, hyphen or dash, dot or slash:
+  `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`), and for a CNIC
+  in 5-7-1 groups inside a longer run (`0300-1234567 35202-1234567-1`).
+  Digits may be ASCII, Urdu or Arabic-Indic; a match never touches another
+  digit, and a longer run is never cut except at 5-7-1 groups. `Start` and
+  `End` are `string` indexes (UTF-16 code units), so
+  `text[match.Start..match.End]` is `Raw`. `Cnic.Mask(text, mask)` replaces
+  each digit with `mask` (default `"X"`) and keeps the separators;
+  `Cnic.Mask(text, replacement: "[CNIC removed]")` replaces each whole
+  match instead. Both return a `MaskedText` (`Text`, `Count`). Both are
+  looser than `Cnic.Validate`: any 13 digits that start with 1-8, however
+  they are grouped (an account, order or tracking number, or two shorter
+  numbers written together), match.
 - **Raast QR kind.** `RaastQr.Validate` returns the `Kind` (`P2p`,
   `Merchant`, or `null` when the text is not a Raast QR). A merchant QR with
   no IBAN is valid with the warning `RaastQrWarning.NoIban`, since it may pay

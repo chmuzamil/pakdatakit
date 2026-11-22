@@ -100,6 +100,55 @@ public sealed class CnicTextTests
         Assert.Equal(new MaskedText("", 0), Cnic.Mask(null));
         Assert.Equal(new MaskedText("no ids", 0), Cnic.Mask("no ids"));
     }
+
+    [Theory]
+    [InlineData("352 0212 3456 71")]
+    [InlineData("35202/1234567/1")]
+    [InlineData("3520/2123/4567/1")]
+    [InlineData("352.0212.3456.71")]
+    [InlineData("3 5 2 0 2 1 2 3 4 5 6 7 1")]
+    public void FindsThirteenDigitsInAnyGroupingWithSlashesToo(string raw)
+    {
+        var match = Assert.Single(Cnic.FindAll($"ID {raw}, ok"));
+        Assert.Equal(raw, match.Raw);
+        Assert.Equal("3520212345671", match.Digits);
+        Assert.Equal(3, match.Start);
+    }
+
+    [Fact]
+    public void StillFindsA571CnicNextToAnotherNumber()
+    {
+        var match = Assert.Single(Cnic.FindAll("0300-1234567 35202-1234567-1"));
+        Assert.Equal(new CnicMatch("35202-1234567-1", "3520212345671", "35202-1234567-1", 13, 28), match);
+    }
+
+    [Theory]
+    [InlineData("352 0212 3456 712")]
+    [InlineData("1 352 0212 3456 71")]
+    [InlineData("4111 1111 1111 1111")]
+    [InlineData("35202 - 1234567 - 1")]
+    public void NeverCutsALongerRunOrOneWithDoubledSeparators(string text)
+    {
+        Assert.Empty(Cnic.FindAll(text));
+        Assert.Equal(new MaskedText(text, 0), Cnic.Mask(text));
+    }
+
+    [Fact]
+    public void MatchesAny13DigitsStartingWith1To8()
+    {
+        Assert.Single(Cnic.FindAll("order 4520 1123 4567 8"));
+    }
+
+    [Fact]
+    public void ReplacesWholeMatchesWithReplacement()
+    {
+        Assert.Equal(
+            new MaskedText("a [CNIC removed] b [CNIC removed]", 2),
+            Cnic.Mask("a 352 0212 3456 71 b 35202/1234567/1", replacement: "[CNIC removed]"));
+        Assert.Equal("", Cnic.Mask("352 0212 3456 71", "*", "").Text);
+        Assert.Equal("XXX XXXX XXXX XX", Cnic.Mask("352 0212 3456 71", replacement: null).Text);
+        Assert.Equal("*** **** **** **", Cnic.Mask("352 0212 3456 71", "*").Text);
+    }
 }
 
 /// <summary>Mirrors tests/roman-urdu-key.test.ts.</summary>
@@ -205,6 +254,8 @@ public sealed class LandlineTests
     public void FollowsPtasPlanForTollFreeNumbers()
     {
         Assert.Equal(NumberType.TollFree, Numbers.GetNumberType("0800-78686"));
+        // Six digits: PTA's National Numbering Plan 2008 (Soneri Bank uses one).
+        Assert.Equal(NumberType.TollFree, Numbers.GetNumberType("0800005000"));
         // libphonenumber also accepts eight digits; PTA's plan does not.
         Assert.Null(Numbers.GetNumberType("080012345678"));
         Assert.Null(Numbers.GetNumberType("0800-1234"));

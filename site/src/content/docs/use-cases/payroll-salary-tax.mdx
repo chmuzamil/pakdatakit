@@ -40,6 +40,17 @@ Pakistan's tax year runs from 1 July to 30 June and is named after the year it e
 
 <LangTabs module="use-payroll-salary-tax" ids={['monthly']} />
 
+Above Rs 10 million a year, section 4AB adds a surcharge: a percentage of the whole tax, so one rupee over the threshold adds it in full. Pass `includeSurcharge: true` (off by default in 2.x so that existing results don't change; on by default from 3.0). The result then has `surcharge` and `total`, and `monthly` includes the surcharge.
+
+| Tax year  | Surcharge on salaried individuals | Source (checked 22 November 2026)                                                                                                                                                                                                                                                                                           |
+| --------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2020–2024 | none                              | section 4AB did not exist yet                                                                                                                                                                                                                                                                                               |
+| 2025      | 10% of the tax                    | [Finance Act 2024](https://download1.fbr.gov.pk/Docs/2024630146346801FinanceAct-2024.pdf), s. 8(2)                                                                                                                                                                                                                          |
+| 2026      | 9% of the tax                     | Finance Act 2025 proviso, in [FBR's consolidated Ordinance (31 July 2025)](https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf); [FBR Circular No. 01 of 2025-26](https://download1.fbr.gov.pk/Docs/2025841183918948CircularNo01of2025-26IncomeTax.pdf), 2 August 2025 |
+| 2027      | none                              | [Finance Act 2026](https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf), s. 5(2)(b)                                                                                                                                                                                                                       |
+
+<LangTabs module="use-payroll-salary-tax" ids={['surcharge']} />
+
 ## 4. Show it on the payslip
 
 `formatPKR()` writes the amount with grouping, and `amountInWords()` writes it in words with lakh and crore, for a cheque or a letter.
@@ -104,20 +115,22 @@ export class SalaryDto {
 
 ## What this library does not do
 
-- **It applies the rate table only.** Tax credits, exemptions, allowances, the separate rate for pension from a former employer, and withholding adjustments are not applied.
-- **It does not apply the surcharge under section 4AB.** For tax year 2027 the Finance Act 2026, s. 5(2)(b), provides that no surcharge is payable by salaried individuals; FBR Circular No. 02 of 2026-27, paragraph 8, confirms it (checked 18 November 2026). For earlier years, the surcharge described in [Data sources](/data/) is not included.
+- **It applies the rate table and, when asked, the section 4AB surcharge only.** Tax credits, exemptions, allowances, the separate rate for pension from a former employer, super tax and withholding adjustments are not applied.
+- **It leaves the surcharge out unless you pass `includeSurcharge: true`** (in 2.x). For tax year 2027 none is payable by salaried individuals (Finance Act 2026, s. 5(2)(b); FBR Circular No. 02 of 2026-27, paragraph 8).
 - **It does not file returns, issue certificates or deposit tax** with FBR, and calls no FBR service.
 - **It is not tax advice.** It does not tell you what is taxable or how to treat any payment.
 - **It covers tax years 2020 to 2027.** Other years return `null`.
 
 ## Sources and date checked
 
-| What                                    | Source                                                                                                                                                                                | Checked          |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| Tax year 2027 rate table and start date | [Finance Act, 2026](https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf), Gazette of Pakistan, 26 June 2026: s. 5(44)(a)(i) (table), s. 1(2) (in force 1 July 2026) | 18 November 2026 |
-| No surcharge for salaried, 2027         | The same Act, s. 5(2)(b); [FBR Circular No. 02 of 2026-27](https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf), 8 September 2026, paragraph 8                 | 18 November 2026 |
-| The table, as consolidated              | [FBR's consolidated Income Tax Ordinance 2001](https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf)                                                         | 18 November 2026 |
-| Tax years 2020 to 2026                  | FBR's consolidated Ordinance for each year, listed in [Data sources](/data/)                                                                                                          | 18 November 2026 |
+| What                                    | Source                                                                                                                                                                                                                                                                                                                               | Checked          |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| Tax year 2027 rate table and start date | [Finance Act, 2026](https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf), Gazette of Pakistan, 26 June 2026: s. 5(44)(a)(i) (table), s. 1(2) (in force 1 July 2026)                                                                                                                                                | 18 November 2026 |
+| No surcharge for salaried, 2027         | The same Act, s. 5(2)(b); [FBR Circular No. 02 of 2026-27](https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf), 8 September 2026, paragraph 8                                                                                                                                                                | 22 November 2026 |
+| 10% surcharge, 2025                     | [Finance Act 2024](https://download1.fbr.gov.pk/Docs/2024630146346801FinanceAct-2024.pdf), s. 8(2), Gazette of Pakistan, 30 June 2024                                                                                                                                                                                                | 22 November 2026 |
+| 9% surcharge for salaried, 2026         | Finance Act 2025 proviso, per [FBR's consolidated Ordinance (31 July 2025)](https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf); [FBR Circular No. 01 of 2025-26](https://download1.fbr.gov.pk/Docs/2025841183918948CircularNo01of2025-26IncomeTax.pdf), 2 August 2025, page 3 | 22 November 2026 |
+| The table, as consolidated              | [FBR's consolidated Income Tax Ordinance 2001](https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf)                                                                                                                                                                                                        | 18 November 2026 |
+| Tax years 2020 to 2026                  | FBR's consolidated Ordinance for each year, listed in [Data sources](/data/)                                                                                                                                                                                                                                                         | 18 November 2026 |
 
 ## Related
 

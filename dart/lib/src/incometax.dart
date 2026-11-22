@@ -49,6 +49,53 @@ class SalaryTaxSlab {
   String toString() => 'SalaryTaxSlab${toJson()}';
 }
 
+/// The surcharge under section 4AB of the Income Tax Ordinance: [rate]
+/// percent of the tax from the rate table, payable when taxable income
+/// exceeds [over] rupees. See [SalaryTaxYear.surcharge].
+class SalaryTaxSurcharge {
+  /// Creates a salary tax surcharge value.
+  const SalaryTaxSurcharge({
+    required this.rate,
+    required this.over,
+    required this.law,
+    required this.source,
+  });
+
+  /// Percent of the tax from the rate table. `0` where the law sets none.
+  final double rate;
+
+  /// Taxable income must exceed this many rupees (Rs 10 million).
+  final int over;
+
+  /// The law that sets it.
+  final String law;
+
+  /// Official document.
+  final String source;
+
+  /// JSON form, with the same keys as the npm package.
+  Map<String, Object?> toJson() => {
+        'rate': rate,
+        'over': over,
+        'law': law,
+        'source': source,
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is SalaryTaxSurcharge &&
+      other.rate == rate &&
+      other.over == over &&
+      other.law == law &&
+      other.source == source;
+
+  @override
+  int get hashCode => Object.hash(rate, over, law, source);
+
+  @override
+  String toString() => 'SalaryTaxSurcharge${toJson()}';
+}
+
 /// The salaried rate table for one tax year (1 July to 30 June). Result of
 /// [getSalaryTaxSlabs].
 class SalaryTaxYear {
@@ -60,6 +107,7 @@ class SalaryTaxYear {
     required this.law,
     required this.source,
     required this.slabs,
+    this.surcharge,
   });
 
   /// The tax year, named after the June it ends in: 2026 is 1 July 2025 to
@@ -81,6 +129,10 @@ class SalaryTaxYear {
   /// The bands, lowest first.
   final List<SalaryTaxSlab> slabs;
 
+  /// The section 4AB surcharge on salaried individuals for the year, or
+  /// `null` for years before it existed (tax years up to 2024).
+  final SalaryTaxSurcharge? surcharge;
+
   /// JSON form, with the same keys as the npm package.
   Map<String, Object?> toJson() => {
         'taxYear': taxYear,
@@ -89,6 +141,7 @@ class SalaryTaxYear {
         'law': law,
         'source': source,
         'slabs': [for (final slab in slabs) slab.toJson()],
+        'surcharge': surcharge?.toJson(),
       };
 
   @override
@@ -99,11 +152,12 @@ class SalaryTaxYear {
       other.to == to &&
       other.law == law &&
       other.source == source &&
-      listEquals(other.slabs, slabs);
+      listEquals(other.slabs, slabs) &&
+      other.surcharge == surcharge;
 
   @override
   int get hashCode =>
-      Object.hash(taxYear, from, to, law, source, listHash(slabs));
+      Object.hash(taxYear, from, to, law, source, listHash(slabs), surcharge);
 
   @override
   String toString() => 'SalaryTaxYear${toJson()}';
@@ -114,19 +168,29 @@ class SalaryTax {
   /// Creates a salary tax value.
   const SalaryTax({
     required this.tax,
+    this.surcharge = 0,
+    double? total,
     required this.monthly,
     required this.effectiveRate,
     required this.slab,
     required this.taxYear,
-  });
+  }) : total = total ?? tax + surcharge;
 
-  /// Tax for the year, in rupees, rounded half up to the paisa.
+  /// Tax for the year from the rate table, in rupees, rounded half up to the
+  /// paisa.
   final double tax;
 
-  /// `tax / 12`, rounded half up to the paisa.
+  /// The section 4AB surcharge, rounded half up to the paisa. `0` unless
+  /// `includeSurcharge` is set and the year and income attract one.
+  final double surcharge;
+
+  /// `tax + surcharge`: the year's total.
+  final double total;
+
+  /// `total / 12`, rounded half up to the paisa.
   final double monthly;
 
-  /// [tax] as a percent of the income, rounded half up to 2 decimals.
+  /// [total] as a percent of the income, rounded half up to 2 decimals.
   final double effectiveRate;
 
   /// The band the income falls in.
@@ -138,6 +202,8 @@ class SalaryTax {
   /// JSON form, with the same keys as the npm package.
   Map<String, Object?> toJson() => {
         'tax': tax,
+        'surcharge': surcharge,
+        'total': total,
         'monthly': monthly,
         'effectiveRate': effectiveRate,
         'slab': slab.toJson(),
@@ -148,13 +214,16 @@ class SalaryTax {
   bool operator ==(Object other) =>
       other is SalaryTax &&
       other.tax == tax &&
+      other.surcharge == surcharge &&
+      other.total == total &&
       other.monthly == monthly &&
       other.effectiveRate == effectiveRate &&
       other.slab == slab &&
       other.taxYear == taxYear;
 
   @override
-  int get hashCode => Object.hash(tax, monthly, effectiveRate, slab, taxYear);
+  int get hashCode =>
+      Object.hash(tax, surcharge, total, monthly, effectiveRate, slab, taxYear);
 
   @override
   String toString() => 'SalaryTax${toJson()}';
@@ -179,6 +248,15 @@ final List<SalaryTaxYear> _years = List.unmodifiable([
             rate: (s['rate']! as num).toDouble(),
           ),
       ]),
+      surcharge: switch (e['surcharge']) {
+        final Map<String, Object?> s => SalaryTaxSurcharge(
+            rate: (s['rate']! as num).toDouble(),
+            over: s['over']! as int,
+            law: s['law']! as String,
+            source: s['source']! as String,
+          ),
+        _ => null,
+      },
     ),
 ]);
 
@@ -227,7 +305,11 @@ SalaryTaxYear? getSalaryTaxSlabs([int? taxYear]) => _findYear(taxYear, null);
 /// Which tax years [getSalaryTaxSlabs] covers, oldest first.
 List<int> getSalaryTaxYears() => [for (final y in _years) y.taxYear];
 
-SalaryTax _compute(int incomePaisa, SalaryTaxYear year) {
+SalaryTax _compute(
+  int incomePaisa,
+  SalaryTaxYear year,
+  bool includeSurcharge,
+) {
   var slab = year.slabs.first;
   for (final candidate in year.slabs) {
     if (incomePaisa > candidate.over * 100) slab = candidate;
@@ -242,13 +324,26 @@ SalaryTax _compute(int incomePaisa, SalaryTaxYear year) {
             BigInt.from(10000),
           )
       : slab.fixed * 100;
+  final surcharge = year.surcharge;
+  final surchargePaisa = includeSurcharge &&
+          surcharge != null &&
+          surcharge.rate > 0 &&
+          incomePaisa > surcharge.over * 100
+      ? divideHalfUp(
+          BigInt.from(taxPaisa) * BigInt.from((surcharge.rate * 100).round()),
+          BigInt.from(10000),
+        )
+      : 0;
+  final totalPaisa = taxPaisa + surchargePaisa;
   return SalaryTax(
     tax: fromPaisa(taxPaisa),
-    monthly: fromPaisa(divideHalfUp(BigInt.from(taxPaisa), BigInt.from(12))),
+    surcharge: fromPaisa(surchargePaisa),
+    total: fromPaisa(totalPaisa),
+    monthly: fromPaisa(divideHalfUp(BigInt.from(totalPaisa), BigInt.from(12))),
     effectiveRate: incomePaisa == 0
         ? 0
         : divideHalfUp(
-              BigInt.from(taxPaisa) * BigInt.from(10000),
+              BigInt.from(totalPaisa) * BigInt.from(10000),
               BigInt.from(incomePaisa),
             ) /
             100,
@@ -266,28 +361,46 @@ SalaryTax _compute(int incomePaisa, SalaryTaxYear year) {
 /// neither, the current tax year is used. The npm `SalaryTaxOptions` object
 /// is these named parameters.
 ///
-/// The rate table only: the surcharge, tax credits, exemptions, the separate
-/// pension rate and withholding adjustments are not applied.
+/// With [includeSurcharge] set to `true` it adds the section 4AB surcharge:
+/// a percentage of the whole tax once taxable income exceeds Rs 10 million
+/// (10% in tax year 2025, 9% for salaried individuals in 2026, none in 2027
+/// or before 2025). Because it applies to the whole tax, one rupee over
+/// Rs 10 million adds it in full. It is off by default in 2.x so that
+/// existing results do not change, and will be on by default in 3.0.
+///
+/// Tax credits, exemptions, the separate pension rate, super tax and
+/// withholding adjustments are not applied. This is an estimate, not tax
+/// advice.
 ///
 /// Returns `null` for an invalid amount or date, or a tax year that is not
 /// covered. Never throws.
 ///
 /// ```dart
 /// calculateSalaryTax(1800000, taxYear: 2026);
-/// // SalaryTax{tax: 72000.0, monthly: 6000.0, effectiveRate: 4.0,
+/// // SalaryTax{tax: 72000.0, surcharge: 0.0, total: 72000.0,
+/// //   monthly: 6000.0, effectiveRate: 4.0,
 /// //   slab: {over: 1200000, upTo: 2200000, fixed: 6000, rate: 11.0},
 /// //   taxYear: 2026}
+/// calculateSalaryTax(12000000, taxYear: 2026, includeSurcharge: true);
+/// // SalaryTax{tax: 3381000.0, surcharge: 304290.0, total: 3685290.0,
+/// //   monthly: 307107.5, ...}
 /// ```
-SalaryTax? calculateSalaryTax(num annualIncome, {int? taxYear, Object? date}) {
+SalaryTax? calculateSalaryTax(
+  num annualIncome, {
+  int? taxYear,
+  Object? date,
+  bool includeSurcharge = false,
+}) {
   final paisa = toUnits(annualIncome, 2);
   if (paisa == null) return null;
   final year = _findYear(taxYear, date);
-  return year == null ? null : _compute(paisa, year);
+  return year == null ? null : _compute(paisa, year, includeSurcharge);
 }
 
 /// [calculateSalaryTax] for a monthly salary: the income is
 /// `monthlySalary × 12`, and [SalaryTax.monthly] is the tax to withhold each
-/// month. Never throws.
+/// month. [includeSurcharge] adds the section 4AB surcharge, as in
+/// [calculateSalaryTax]. Never throws.
 ///
 /// ```dart
 /// calculateMonthlySalaryTax(150000, taxYear: 2026)?.monthly; // 6000
@@ -296,9 +409,10 @@ SalaryTax? calculateMonthlySalaryTax(
   num monthlySalary, {
   int? taxYear,
   Object? date,
+  bool includeSurcharge = false,
 }) {
   final paisa = toUnits(monthlySalary, 2);
   if (paisa == null) return null;
   final year = _findYear(taxYear, date);
-  return year == null ? null : _compute(paisa * 12, year);
+  return year == null ? null : _compute(paisa * 12, year, includeSurcharge);
 }

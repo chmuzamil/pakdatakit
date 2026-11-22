@@ -25,10 +25,12 @@ import pakdatakit as pdk
 pdk.validate_cnic("35202-1234567-1")          # True
 pdk.get_cnic_info("35202-1234567-1")
 # CNICInfo(digits='3520212345671', formatted='35202-1234567-1', province='Punjab', gender='male')
+pdk.mask_cnics("My CNIC is 35202-1234567-1")  # MaskedText(text='My CNIC is XXXXX-XXXXXXX-X', count=1)
 
 pdk.format_phone("0300 1234567")              # '+923001234567'
 pdk.get_network("0345-1234567")               # 'Telenor'
 pdk.create_whatsapp_link("03001234567", "Salam!")
+pdk.validate_landline("021-111-123-456", services=True)  # True (a UAN)
 
 pdk.validate_iban("PK36 SCBL 0000 0011 2345 6702")       # True
 pdk.get_bank_from_iban("PK36SCBL0000001123456702")       # 'Standard Chartered Bank (Pakistan) Limited'
@@ -51,12 +53,14 @@ pdk.parse_amount("Rs. 1,50,000/-")            # ParsedAmount(value=150000.0, raw
 pdk.format_amount_input("1.5 lakh")           # 'Rs. 150,000'
 pdk.amount_in_words(125000, cheque=True)      # 'Rupees One Lakh Twenty-Five Thousand Only'
 pdk.number_to_words(125000, language="ur")    # 'ایک لاکھ پچیس ہزار'
+pdk.roman_urdu_key("Mubeen") == pdk.roman_urdu_key("Mobeen")  # True
 
 pdk.format_hijri(dt.date(2026, 3, 1))         # '12 Ramadan 1447'
 pdk.get_pakistan_holidays(2026)[0]            # Holiday(id='kashmir-day', ...)
 
 payload = pdk.create_raast_p2p_qr("PK36SCBL0000001123456702", amount=1500, expires_in="1d")
 pdk.validate_raast_qr(payload).valid          # True
+pdk.validate_raast_qr(payload).kind           # 'p2p'
 
 pdk.format_cnic_input("3520212")              # '35202-12'
 pdk.check_phone_input("0300 12")              # 'incomplete'
@@ -72,6 +76,28 @@ empty input, signs, ranges (`5-10k`), two numbers, marks or units, leftover
 letters (`500 rupees`), ambiguous grouping (`1,50`) and amounts over Rs. 50
 trillion. `format_amount_input` writes the amount back as `Rs. 150,000`
 (paisa only when present), or `None` when `parse_amount` returns `None`.
+
+`find_cnics(text)` finds CNICs in free text (a chat message, a note, a
+document): 13 digits starting with a province code 1-8, together or in 5-7-1
+groups with a hyphen, dash, dot or space between the groups (the two may
+differ), in ASCII, Urdu or Arabic-Indic digits, never touching another digit.
+Each is a `CNICMatch(raw, digits, formatted, start, end)`, where `start` and
+`end` are Python string indexes (code points), so `text[m.start:m.end] ==
+m.raw`. `mask_cnics(text, mask="X")` replaces each of their digits with
+`mask`, keeping the separators, and returns `MaskedText(text, count)`. It is a
+pattern match, so any other 13-digit number starting with 1-8 matches too.
+Both return `[]` or `MaskedText("", 0)` for a value that is not a string.
+
+`validate_landline(phone)` accepts fixed-line numbers only; with
+`services=True` it also accepts UAN (`021-111-123-456`, `111-123-456`),
+toll-free (`0800-12345`, `800` and exactly five digits) and premium-rate
+(`0900-12345`) numbers, but not mobile numbers. `0122` numbers are not recognised:
+no PTA document lists them.
+
+`validate_raast_qr` returns `RaastQrValidation(valid, kind, errors, warnings,
+qr)`, where `kind` is `p2p`, `merchant` or `None` (not a Raast QR). A merchant
+QR with no IBAN pays through the merchant's own scheme, so it is valid with
+the warning `no-iban`; a person-to-person QR with no IBAN is still an error.
 
 ## API
 
@@ -174,13 +200,13 @@ pdk.split_inclusive(99.99, 18)            # SalesTaxAmounts(net=84.74, tax=15.25
 
 Income tax on salary:
 
-| Function                                                         | Returns                                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `calculate_salary_tax(annual_income, tax_year=None, date=None)`  | `SalaryTax(tax, monthly, effective_rate, slab, tax_year)`, or `None`         |
-| `calculate_monthly_salary_tax(monthly_salary, tax_year=, date=)` | The same for `monthly_salary × 12`; `monthly` is the tax to withhold a month |
-| `get_salary_tax_slabs(tax_year=None)`                            | `SalaryTaxYear(tax_year, from_, to, law, source, slabs)`, or `None`          |
-| `get_salary_tax_years()`                                         | The tax years covered, oldest first (`[2020, …, 2027]`)                      |
-| `get_tax_year(date=None)`                                        | The tax year (July to June) a date falls in, or `None` for an invalid date   |
+| Function                                                                                 | Returns                                                                                |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `calculate_salary_tax(annual_income, tax_year=None, date=None, include_surcharge=False)` | `SalaryTax(tax, surcharge, total, monthly, effective_rate, slab, tax_year)`, or `None` |
+| `calculate_monthly_salary_tax(monthly_salary, tax_year=, date=)`                         | The same for `monthly_salary × 12`; `monthly` is the tax to withhold a month           |
+| `get_salary_tax_slabs(tax_year=None)`                                                    | `SalaryTaxYear(tax_year, from_, to, law, source, slabs, surcharge)`, or `None`         |
+| `get_salary_tax_years()`                                                                 | The tax years covered, oldest first (`[2020, …, 2027]`)                                |
+| `get_tax_year(date=None)`                                                                | The tax year (July to June) a date falls in, or `None` for an invalid date             |
 
 The salaried rate table of the Income Tax Ordinance 2001 (First Schedule,
 Part I, Division I, clause (2), which applies when salary is more than 75% of
@@ -189,15 +215,22 @@ taxable income), for tax years 2020 to 2027. A tax year runs from 1 July to
 precedence over `date` (`YYYY-MM-DD` or a `datetime.date`); with neither, the
 current tax year is used, and a year that is not covered returns `None`. Each
 slab is `SalaryTaxSlab(over, up_to, fixed, rate)`. Tax is rounded half up to
-the paisa. Only the rate table is applied: the surcharge, tax credits,
-exemptions, the separate rate for pensions and withholding adjustments are
-not. Amounts from 0 to one trillion rupees are accepted; anything else
+the paisa. With `include_surcharge=True` (also on
+`calculate_monthly_salary_tax`) the section 4AB surcharge is added: a
+percentage of the whole tax once taxable income exceeds Rs 10 million (10% in
+tax year 2025, 9% in 2026, none in 2027 or before 2025), given by the year's
+`surcharge` (`SalaryTaxSurcharge(rate, over, law, source)`, or `None` before
+2025). It is off by default in 2.x. `total` is `tax + surcharge`, and
+`monthly` and `effective_rate` are based on `total`. Tax credits, exemptions,
+the separate rate for pensions, super tax and withholding adjustments are not
+applied. Amounts from 0 to one trillion rupees are accepted; anything else
 returns `None`, never an exception.
 
 ```python
 pdk.calculate_salary_tax(1_800_000, tax_year=2026)
-# SalaryTax(tax=72000.0, monthly=6000.0, effective_rate=4.0,
+# SalaryTax(tax=72000.0, surcharge=0.0, total=72000.0, monthly=6000.0, effective_rate=4.0,
 #           slab=SalaryTaxSlab(over=1200000, up_to=2200000, fixed=6000, rate=11), tax_year=2026)
+pdk.calculate_salary_tax(12_000_000, tax_year=2026, include_surcharge=True).total  # 3685290.0
 pdk.calculate_monthly_salary_tax(150_000, tax_year=2026).monthly  # 6000.0
 pdk.get_salary_tax_slabs(2027).law   # 'Income Tax Ordinance 2001, First Schedule, ...'
 pdk.get_tax_year("2025-07-01")       # 2026
@@ -211,6 +244,7 @@ Urdu text:
 | `compare_urdu(a, b)`                | `-1`, `0` or `1` in Urdu alphabetical order (CLDR 49), for `cmp_to_key`   |
 | `is_rtl(text)`                      | Whether the first letter is from a right-to-left script                   |
 | `wrap_bidi(text, direction="auto")` | The text wrapped in Unicode directional isolates                          |
+| `roman_urdu_key(text)`              | A phonetic key, so spellings of one Roman Urdu name compare equal         |
 
 `slugify` drops diacritics and zero-width characters, writes the Arabic
 look-alikes ك ي ى as ک ی ی, turns Urdu digits into `0-9` and folds accented
@@ -219,8 +253,12 @@ Latin-1 letters (`é` → `e`, `ß` → `ss`); `script` is `any`, `latin` or `ur
 پھ … ی یھ ے, a letter joined with ھ is a letter of its own), the same in every
 port without depending on ICU: digits come before letters one digit at a time
 (`10` before `2`), and other scripts after. `wrap_bidi` uses FSI … PDI, or
-RLI/LRI with `"rtl"`/`"ltr"` (`BidiDirection`). None of these raise; a value
-that is not a string gives `""` (or `False`).
+RLI/LRI with `"rtl"`/`"ltr"` (`BidiDirection`). `roman_urdu_key` keeps each
+word's consonants, first vowel sound and final vowel sound, merging letters
+for one sound, so `Muhammad`, `Mohammad` and `Muhammed` share a key; compare
+keys, and treat a match as "probably the same" (`Hamid` and `Hamad` match
+too). None of these raise; a value that is not a string gives `""` (or
+`False`).
 
 ```python
 pdk.slugify("Lahore Fort, 2024")                # 'lahore-fort-2024'
@@ -229,6 +267,7 @@ pdk.slugify("کراچی ۲۰۲۴", script="urdu")       # 'کراچی-2024'
 sorted(["ے", "بھائی", "آم", "باغ", "اب"], key=functools.cmp_to_key(pdk.compare_urdu))
 # ['اب', 'آم', 'باغ', 'بھائی', 'ے']
 pdk.is_rtl("123 سلام")                          # True
+pdk.roman_urdu_key("Muhammad Rehman")          # 'muhmd rahmn'
 f"آرڈر {pdk.wrap_bidi('PDK-1042')} بھیج دیا گیا"
 ```
 

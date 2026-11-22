@@ -9,24 +9,24 @@ port replays them and fails on any difference.
 
 <!-- vectors:count -->
 
-33,336 vectors in 27 files:
+35,182 vectors in 27 files:
 
 - `address.json`: 870
 - `bills.json`: 354
-- `cnic.json`: 96
+- `cnic.json`: 185
 - `courier.json`: 1,670
 - `data-version.json`: 1
-- `docs-examples.json`: 136
+- `docs-examples.json`: 145
 - `fbr-invoice.json`: 158
 - `format.json`: 1,040
 - `geo.json`: 4,583
 - `hijri.json`: 2,222
 - `holidays.json`: 214
 - `iban.json`: 514
-- `incometax.json`: 1,181
+- `incometax.json`: 1,469
 - `input.json`: 1,302
 - `networks.json`: 242
-- `numbers.json`: 1,380
+- `numbers.json`: 2,537
 - `passport.json`: 35
 - `phone.json`: 726
 - `postal.json`: 5,145
@@ -34,7 +34,7 @@ port replays them and fails on any difference.
 - `raast.json`: 1,369
 - `salestax.json`: 1,986
 - `tax.json`: 90
-- `text.json`: 6,279
+- `text.json`: 6,582
 - `vehicle.json`: 90
 - `whatsapp.json`: 45
 - `words.json`: 478

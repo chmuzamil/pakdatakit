@@ -1,5 +1,47 @@
 # Changelog
 
+## 2.7.0
+
+Minor release: new features and one accuracy fix behind an option. Every
+port gives the same results on the shared test vectors (35,000+, about 1,800
+new).
+
+### Added
+
+- **Salary tax surcharge.** `IncomeTax.CalculateSalaryTax()` and `CalculateMonthlySalaryTax()` take `SalaryTaxOptions.IncludeSurcharge` and return `Surcharge` and `Total`; `GetSalaryTaxSlabs()` gives each year's `SalaryTaxSurcharge` (`null` before 2025). The section 4AB surcharge
+  is a percentage of the whole tax once taxable income exceeds Rs 10
+  million: 10% in tax year 2025, 9% for salaried individuals in 2026, and
+  none in 2027 or before 2025. The option is off by default in 2.x, so
+  existing results don't change; it will be on by default in 3.0.
+- **Service numbers as landlines.** `Numbers.ValidateLandline(phone, services: true)` (a new overload) also accepts UAN,
+  toll-free and premium-rate numbers. The same option is in `[PakLandline(Services = true)]` (DataAnnotations) and `IsPakLandline(services: true)` (FluentValidation).
+- **CNICs in free text.** `Cnic.FindAll(text)` returns `CnicMatch` records (`Raw`, `Digits`, `Formatted`, `Start`, `End`; offsets in UTF-16 code units); `Cnic.Mask(text, mask)` returns `MaskedText(Text, Count)`. Pattern matches: other 13-digit
+  numbers starting with 1-8 also match; CNIC validation stays strict.
+- **Phonetic keys for Roman Urdu names**: `Text.RomanUrduKey(text)`, so that `Mubeen` and
+  `Mobeen`, or `Rehman` and `Rahman`, match.
+- **Raast**: `RaastQrValidation.Kind` and the warning `RaastQrWarning.NoIban`.
+
+### Changed
+
+- `0122` numbers are no longer recognised: they are seen in use, but no PTA
+  document lists them. `Numbers.Analyze()` now returns `null` for them;
+  `NumberType.Personal` is `[Obsolete]`, never returned, and will be removed
+  in 3.0.
+- Toll-free numbers follow PTA's numbering plan: `0800` and five digits; the
+  8-digit form is no longer accepted.
+- A merchant Raast QR without an IBAN is valid with the warning `no-iban`; a
+  person-to-person QR without an IBAN is still an error.
+
+### Compatibility
+
+Source that reads results by property name is unaffected, but binary
+compatibility changes: the positional records `SalaryTax`, `SalaryTaxYear`
+and `RaastQrValidation` have new constructor and deconstruct signatures, the
+compiled `IsPakLandline<T>()` signature has a new optional parameter, and
+`PakLandlineAttribute` is no longer a primary-constructor class. Rebuild
+projects that use them.
+
+
 ## 2.6.0
 
 Minor release: one new feature. Every port gives the same results on the

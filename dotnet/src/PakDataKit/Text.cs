@@ -93,6 +93,63 @@ public static class Text
         return result;
     }
 
+    /// <summary>
+    /// A phonetic key for Roman Urdu, so that different spellings of the same
+    /// name or word match: <c>Mubeen</c> and <c>Mobeen</c>, <c>Muhammad</c>,
+    /// <c>Mohammad</c> and <c>Muhammed</c>, <c>Rehman</c> and <c>Rahman</c>,
+    /// <c>Chaudhry</c>, <c>Chaudhary</c> and <c>Chaudhery</c>. Compare keys,
+    /// not the text.
+    /// </summary>
+    /// <remarks>
+    /// Each word keeps its consonants, its first vowel sound and a vowel sound
+    /// at its end. Letters for one sound are merged (<c>kh</c>, <c>sh</c>,
+    /// <c>ch</c>; <c>ph</c> and <c>f</c>; <c>q</c>, <c>c</c> and <c>k</c>;
+    /// <c>v</c> and <c>w</c>; <c>th</c> and <c>t</c>, <c>dh</c> and <c>d</c>),
+    /// doubled letters count once, <c>e</c> counts as <c>a</c>, <c>o</c> as
+    /// <c>u</c>, and a final <c>h</c> after a vowel is dropped. Accents are
+    /// removed and anything other than Latin letters splits words. The key is
+    /// not meant to be shown: it is an opaque string.
+    /// <para>
+    /// Different names can share a key (<c>Hamid</c> and <c>Hamad</c>), so
+    /// treat a match as "probably the same", not proof.
+    /// <see cref="NormalizeRomanUrdu"/> is a different tool: it rewrites
+    /// informal spellings into readable text.
+    /// </para>
+    /// <code>
+    /// Text.RomanUrduKey("Mubeen") == Text.RomanUrduKey("Mobeen");   // true
+    /// Text.RomanUrduKey("Muhammad Rehman");                          // "muhmd rahmn"
+    /// Text.RomanUrduKey("Hussain") == Text.RomanUrduKey("Hassan");   // false
+    /// </code>
+    /// </remarks>
+    /// <param name="text">A name or other Roman Urdu text.</param>
+    /// <returns>
+    /// The key, one part per word separated by spaces; <c>""</c> for text
+    /// with no Latin letters or <c>null</c>. Never throws.
+    /// </returns>
+    public static string RomanUrduKey(string? text)
+    {
+        if (text is null) return "";
+        var folded = Nfkd(Js.ToLower(text));
+        var words = new List<string>();
+        var word = new StringBuilder();
+        foreach (var c in folded)
+        {
+            if (c is >= 'a' and <= 'z')
+            {
+                word.Append(c);
+            }
+            else if (word.Length > 0)
+            {
+                // Combining marks (U+0300-036F) are removed, not word breaks.
+                if (c is >= '\u0300' and <= '\u036f') continue;
+                words.Add(WordKey(word.ToString()));
+                word.Clear();
+            }
+        }
+        if (word.Length > 0) words.Add(WordKey(word.ToString()));
+        return string.Join(" ", words);
+    }
+
     /// <summary>Converts English and Arabic-Indic digits to Urdu digits (۰–۹).</summary>
     /// <param name="text">Text to convert.</param>
     /// <returns>The text with Urdu digits.</returns>
@@ -479,6 +536,173 @@ public static class Text
         if (original.Length > 1 && original == Js.ToUpper(original)) return original;
         var first = original[..1];
         return first != Js.ToLower(first) ? Js.ToUpper(replacement[..1]) + replacement[1..] : replacement;
+    }
+
+    // ------------------------------------------------------------------
+    // Roman Urdu phonetic key
+    // ------------------------------------------------------------------
+
+    /// <summary>Two-letter spellings of one sound, and what each becomes in a key.</summary>
+    private static readonly Dictionary<string, string> KeyDigraphs = new(StringComparer.Ordinal)
+    {
+        ["kh"] = "kh",
+        ["gh"] = "g",
+        ["sh"] = "sh",
+        ["ch"] = "ch",
+        ["ph"] = "f",
+        ["th"] = "t",
+        ["dh"] = "d",
+        ["bh"] = "b",
+        ["jh"] = "j",
+        ["zh"] = "z",
+        ["ck"] = "k",
+    };
+
+    /// <summary>Letters written for the same sound as another letter.</summary>
+    private static readonly Dictionary<char, string> KeyLetters = new()
+    {
+        ['c'] = "k",
+        ['q'] = "k",
+        ['v'] = "w",
+        ['x'] = "ks",
+    };
+
+    private static bool IsPlainVowel(char c) => c is 'a' or 'e' or 'i' or 'o' or 'u';
+
+    /// <summary>The sound class of a vowel letter: a (a, e), i (i, y) or u (o, u, w).</summary>
+    private static char VowelClass(char letter) => letter switch
+    {
+        'a' or 'e' => 'a',
+        'i' or 'y' => 'i',
+        _ => 'u',
+    };
+
+    /// <summary>
+    /// The sound class of a word's first vowel sound: ee is i (Zeeshan,
+    /// Heera); a word-initial e is i (Ebrahim, Esmail); au, aw, ou and ow are
+    /// u (Chaudhry, Choudhry, Chowdhury); ai, ay, ae, ei and ey are e (Saeed,
+    /// Faisal, Sheikh); otherwise the class of the first letter.
+    /// </summary>
+    private static char FirstVowelClass(string run, bool wordStart)
+    {
+        if (run.StartsWith("ee", StringComparison.Ordinal)) return 'i';
+        if (wordStart && run[0] == 'e') return 'i';
+        var second = run.Length > 1 ? run[1] : '\0';
+        if (run[0] is 'a' or 'o' && second is 'u' or 'w') return 'u';
+        if ((run[0] == 'a' && second is 'i' or 'y' or 'e') || (run[0] == 'e' && second is 'i' or 'y')) return 'e';
+        return VowelClass(run[0]);
+    }
+
+    /// <summary>The phonetic key of one word of lowercase ASCII letters.</summary>
+    private static string WordKey(string word)
+    {
+        // 1. One letter per sound.
+        var mapped = new StringBuilder();
+        for (var i = 0; i < word.Length;)
+        {
+            if (i + 1 < word.Length && KeyDigraphs.TryGetValue(word.Substring(i, 2), out var pair))
+            {
+                mapped.Append(pair);
+                i += 2;
+            }
+            else
+            {
+                if (KeyLetters.TryGetValue(word[i], out var letter)) mapped.Append(letter);
+                else mapped.Append(word[i]);
+                i += 1;
+            }
+        }
+
+        // 2. Doubled letters count once (Muhammad, Rehmaan), except ee, which
+        //    is written for a long i (Zeeshan, Heera, Saeed).
+        var sb = new StringBuilder();
+        foreach (var c in mapped.ToString())
+        {
+            if (c != 'e' && sb.Length > 0 && sb[^1] == c) continue;
+            sb.Append(c);
+        }
+        var letters = sb.ToString();
+
+        // 3. Which letters are vowels: a, e, i, o, u; y except at the start; w
+        //    after a vowel and before a consonant (Chowdhury).
+        var vowel = new bool[letters.Length];
+        for (var i = 0; i < letters.Length; i++)
+        {
+            var c = letters[i];
+            vowel[i] = IsPlainVowel(c)
+                || (c == 'y' && i > 0)
+                || (c == 'w' && i > 0 && vowel[i - 1]
+                    // TypeScript's "aeiou".includes("") is true, so a final w is not a vowel.
+                    && i + 1 < letters.Length && !IsPlainVowel(letters[i + 1]));
+        }
+
+        // 4. A final h after a vowel is silent (Fatimah, Sarah).
+        var length = letters.Length;
+        var last = length - 1;
+        if (last > 0 && letters[last] == 'h' && vowel[last - 1]) length = last;
+
+        // 5. Consonants, the first vowel sound and a final vowel sound.
+        var key = new StringBuilder();
+        var firstVowelDone = false;
+        for (var i = 0; i < length;)
+        {
+            if (!vowel[i])
+            {
+                key.Append(letters[i]);
+                i += 1;
+                continue;
+            }
+            var end = i;
+            while (end < length && vowel[end]) end += 1;
+            var run = letters[i..end];
+            if (!firstVowelDone)
+            {
+                key.Append(FirstVowelClass(run, i == 0));
+                firstVowelDone = true;
+            }
+            else if (end == length)
+            {
+                key.Append(run.EndsWith("ee", StringComparison.Ordinal) ? 'i' : VowelClass(run[^1]));
+            }
+            i = end;
+        }
+        return key.ToString();
+    }
+
+    /// <summary>
+    /// <c>String.prototype.normalize('NFKD')</c>, for <see cref="RomanUrduKey"/>.
+    /// .NET rejects unpaired surrogates and noncharacters; JavaScript keeps
+    /// them, and they split words either way, so they become spaces.
+    /// </summary>
+    private static string Nfkd(string text)
+    {
+        try
+        {
+            return text.Normalize(NormalizationForm.FormKD);
+        }
+        catch (ArgumentException)
+        {
+            var sb = new StringBuilder(text.Length);
+            for (var i = 0; i < text.Length; i++)
+            {
+                var c = text[i];
+                var paired = char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]);
+                var code = paired ? char.ConvertToUtf32(c, text[i + 1]) : c;
+                var rejected = (!paired && char.IsSurrogate(c)) || (code & 0xFFFE) == 0xFFFE
+                    || code is >= 0xFDD0 and <= 0xFDEF;
+                if (rejected)
+                {
+                    sb.Append(paired ? "  " : " ");
+                }
+                else
+                {
+                    sb.Append(c);
+                    if (paired) sb.Append(text[i + 1]);
+                }
+                if (paired) i++;
+            }
+            return sb.ToString().Normalize(NormalizationForm.FormKD);
+        }
     }
 
     /// <summary>

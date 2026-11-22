@@ -34,10 +34,12 @@ import 'package:pakdatakit/pakdatakit.dart';
 validateCNIC('35202-1234567-1');             // true
 getCNICInfo('35202-1234567-1');
 // CNICInfo{digits: 3520212345671, formatted: 35202-1234567-1, province: Punjab, gender: male}
+maskCNICs('My CNIC is 35202-1234567-1').text; // 'My CNIC is XXXXX-XXXXXXX-X'
 
 formatPhone('0300 1234567');                 // '+923001234567'
 getNetwork('0345-1234567');                  // NetworkName.telenor
 createWhatsAppLink('03001234567', 'Salam!'); // 'https://wa.me/923001234567?text=Salam!'
+validateLandline('021-111-123-456', services: true); // true (UAN)
 
 validateIBAN('PK36 SCBL 0000 0011 2345 6702'); // true
 getBankFromIBAN('PK36SCBL0000001123456702');   // 'Standard Chartered Bank (Pakistan) Limited'
@@ -77,10 +79,12 @@ calculateSalesTax(1000, rate: 18)?.gross;    // 1180
 splitInclusive(99.99, 18)?.net;              // 84.74
 calculateSalaryTax(1800000, taxYear: 2026)?.tax; // 72000
 calculateMonthlySalaryTax(150000, taxYear: 2026)?.monthly; // 6000
+calculateSalaryTax(12000000, taxYear: 2026, includeSurcharge: true)?.total; // 3685290
 
 slugify('Lahore Fort, 2024');                // 'lahore-fort-2024'
 ['ے', 'بھائی', 'آم', 'باغ', 'اب']..sort(compareUrdu); // ['اب', 'آم', 'باغ', 'بھائی', 'ے']
 isRTL('123 سلام');                           // true
+romanUrduKey('Mubeen') == romanUrduKey('Mobeen'); // true
 
 parseElectricityRef('02-12624-0045901 R')?.formatted; // '02 12624 0045901 R'
 parseElectricityRef('0400012345678')?.disco; // 'K-Electric'
@@ -142,6 +146,19 @@ In Dart:
   `testNumber`; `.value` holds the npm string, e.g. `'repeated-digits'`), or
   `[]` for an unremarkable mobile number. Both are heuristics and never throw.
   `ADDRESS_WEIGHTS` is `addressWeights`, a `Map<AddressPart, int>`.
+- **Landlines:** `validateLandline(phone, services: true)` also accepts UAN
+  (`021-111-123-456`, `111-123-456`), toll-free (`0800-12345`) and premium
+  rate (`0900-12345`) numbers; `analyzeNumber` tells them apart. Toll-free
+  numbers are `0800` and exactly five digits, as in PTA's numbering plan.
+- **CNICs in free text:** `findCNICs(text)` returns a `CNICMatch` for each
+  CNIC in a message or document (`raw`, `digits`, `formatted`, and `start`
+  and `end`, UTF-16 offsets, so `text.substring(start, end) == raw`).
+  `maskCNICs(text, mask: 'X')` returns a `MaskedText` (`text`, with each
+  CNIC's digits masked and its separators kept, and `count`). A match is 13
+  digits starting with 1-8, together or in 5-7-1 groups (the separators may
+  differ), with ASCII, Urdu or Arabic-Indic digits, not touching another
+  digit. Any other 13-digit number of that shape matches too. They never
+  throw.
 - **Amount input:** `parseAmount(input)` reads a rupee amount as people type
   it (`'Rs. 1,50,000/-'`, `'2.25cr'`, `'1.5 lakh'`, `'۱۵۰۰۰۰'`, `'5k'`) and
   returns a `ParsedAmount` (`value`, a `double` in rupees rounded half up to
@@ -163,21 +180,27 @@ In Dart:
   written (`1.005` is Rs 1.01), computed exactly with `BigInt` on every
   platform. They never throw.
 - **Income tax on salary:** `calculateSalaryTax(annualIncome, taxYear: …,
-  date: …)` and `calculateMonthlySalaryTax(monthlySalary, taxYear: …, date:
-  …)` return a `SalaryTax` (`tax`, `monthly`, `effectiveRate`, all
-  `double`s; `slab`, a `SalaryTaxSlab` with `over`, `upTo`, `fixed` and
-  `rate`; `taxYear`) or `null`, from the salaried rate table of the Income
+  date: …, includeSurcharge: …)` and `calculateMonthlySalaryTax(monthlySalary,
+  taxYear: …, date: …, includeSurcharge: …)` return a `SalaryTax` (`tax`,
+  `surcharge`, `total`, `monthly`, `effectiveRate`, all `double`s; `slab`, a
+  `SalaryTaxSlab` with `over`, `upTo`, `fixed` and `rate`; `taxYear`) or
+  `null`, from the salaried rate table of the Income
   Tax Ordinance 2001 (First Schedule, Part I, Division I, clause (2)) for tax
   years 2020 to 2027. The npm `SalaryTaxOptions` object is these named
   parameters: `taxYear` (an `int`) takes precedence over `date` (a
   `'YYYY-MM-DD'` string or a `DateTime`), and with neither the current tax
   year is used. `getSalaryTaxSlabs([taxYear])` returns the `SalaryTaxYear`
-  (`taxYear`, `from`, `to`, `law`, `source`, `slabs`, an unmodifiable list),
+  (`taxYear`, `from`, `to`, `law`, `source`, `slabs`, an unmodifiable list,
+  and `surcharge`, a `SalaryTaxSurcharge` with `rate`, `over`, `law` and
+  `source`, or `null` before tax year 2025),
   `getSalaryTaxYears()` the years covered and `getTaxYear([date])` the tax
   year (July to June, named after the June it ends in) of a date. Tax is
-  rounded half up to the paisa, exactly with `BigInt` on every platform. Only
-  the rate table is applied: the surcharge, tax credits, exemptions, the
-  pension rate and withholding adjustments are not. They never throw. Also as
+  rounded half up to the paisa, exactly with `BigInt` on every platform.
+  `includeSurcharge: true` adds the section 4AB surcharge (10% of the tax in
+  tax year 2025, 9% in 2026, once taxable income exceeds Rs 10 million);
+  `total` is `tax + surcharge`, and `monthly` and `effectiveRate` are based on
+  it. It is off by default in 2.x. Tax credits, exemptions, the pension rate,
+  super tax and withholding adjustments are not applied. They never throw. Also as
   `package:pakdatakit/incometax.dart`.
 - **Urdu text:** `slugify(input, script: SlugScript.any)` makes a URL slug,
   keeping Urdu letters as they are (`SlugScript.latin` keeps only `a-z`,
@@ -188,6 +211,14 @@ In Dart:
   first letter is from a right-to-left script, and `wrapBidi(text,
   [direction])` wraps text in Unicode directional isolates
   (`BidiDirection.auto`, the default, `rtl` or `ltr`). They never throw.
+- **Roman Urdu names:** `romanUrduKey(text)` gives a phonetic key so that
+  spellings of one name match (`Mubeen`/`Mobeen`,
+  `Muhammad`/`Mohammad`/`Muhammed`, `Chaudhry`/`Chaudhary`): compare keys,
+  not the text. Different names can share a key (`Hamid`, `Hamad`), so a match
+  means "probably the same". Accents are removed (with the NFKD
+  compatibility forms, such as full-width letters, built in) and anything
+  other than Latin letters splits words. `normalizeRomanUrdu` is unchanged.
+  It never throws.
 - **Utility bills:** `parseElectricityRef(input)` returns an
   `ElectricityRef` (`type`, an `ElectricityRefType`: `reference`,
   `customerId` (`'customer-id'`) or `kElectric` (`'k-electric'`); `digits`;
@@ -244,6 +275,11 @@ In Dart:
   take a `DateTime` or a `'YYYY-MM-DD'` string.
 - Whole-number options are `int` (Hijri `offset`, `hijriOffset`, years);
   amounts are `num`.
+- `validateRaastQr` returns a `RaastQrValidation` with `kind` (a
+  `RaastQrKind`, or `null` when the text is not a Raast QR). A merchant QR
+  with no IBAN is valid with the `RaastQrWarning.noIban` warning (it pays
+  through the merchant's own scheme); a person-to-person QR with no IBAN is
+  still the `RaastQrError.noIban` error.
 - `ParsedRaastQr.isDynamic` and `createMerchantQr(isDynamic: …)` are called
   `dynamic` in the npm package (`dynamic` is a built-in Dart type); `toJson()` still
   uses `dynamic`.

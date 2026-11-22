@@ -4,7 +4,9 @@ import { RULES, type AdapterOptions, type RuleName } from './rules.js';
 function schema(name: RuleName) {
   const rule = RULES[name];
   return (options: AdapterOptions = {}) =>
-    z.string().refine(rule.test, { message: options.message ?? rule.message });
+    z.string().refine((value) => rule.test(value, options), {
+      message: options.message ?? rule.message,
+    });
 }
 
 /**

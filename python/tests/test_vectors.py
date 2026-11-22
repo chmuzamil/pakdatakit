@@ -30,6 +30,8 @@ if not DATA_DIR.is_dir():  # e.g. running from an sdist, outside the repository
 NAME_OVERRIDES = {
     "createWhatsAppLink": "create_whatsapp_link",
     "createRaastP2PQr": "create_raast_p2p_qr",
+    "findCNICs": "find_cnics",
+    "maskCNICs": "mask_cnics",
 }
 
 

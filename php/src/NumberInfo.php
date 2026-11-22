@@ -12,7 +12,7 @@ final readonly class NumberInfo
     use Internal\ToArray;
 
     public function __construct(
-        /** `mobile`, `landline`, `uan`, `toll-free`, `premium` or `personal`. */
+        /** `mobile`, `landline`, `uan`, `toll-free` or `premium` (`personal` is never returned since 2.7.0). */
         public string $type,
         /** National format with trunk prefix and separators, e.g. `021-111-825-888`. */
         public string $formatted,

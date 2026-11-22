@@ -278,8 +278,10 @@ const Map<String, Set<String>> allowedKwargs = {
   'getSalesTaxRate': {'kind', 'province', 'date'},
   'calculateSalesTax': {'rate', 'province', 'kind', 'date', 'inclusive'},
   'slugify': {'script'},
-  'calculateSalaryTax': {'taxYear', 'date'},
-  'calculateMonthlySalaryTax': {'taxYear', 'date'},
+  'calculateSalaryTax': {'taxYear', 'date', 'includeSurcharge'},
+  'calculateMonthlySalaryTax': {'taxYear', 'date', 'includeSurcharge'},
+  'validateLandline': {'services'},
+  'maskCNICs': {'mask'},
   // ParsedAddress fields; formatAddress ignores `warnings`, as in TypeScript.
   'formatAddress': {
     'raw',
@@ -296,6 +298,11 @@ const Map<String, Set<String>> allowedKwargs = {
 final Map<String, Call> functions = {
   'validateCNIC': one(validateCNIC),
   'getCNICInfo': one(getCNICInfo),
+  'findCNICs': (a, k) => findCNICs(textOr(a[0], const <Object?>[])),
+  'maskCNICs': (a, k) => maskCNICs(
+        textOr(a[0], const {'text': '', 'count': 0}),
+        mask: optStr(k['mask']) ?? 'X',
+      ),
   'validatePhone': one(validatePhone),
   'formatPhone': one(formatPhone),
   'analyzePhone': one(analyzePhone),
@@ -342,6 +349,7 @@ final Map<String, Call> functions = {
       ),
   'normalizeText': one(normalizeText),
   'normalizeRomanUrdu': one(normalizeRomanUrdu),
+  'romanUrduKey': (a, k) => romanUrduKey(textOr(a[0], '')),
   'toUrduDigits': one(toUrduDigits),
   'toEnglishDigits': one(toEnglishDigits),
   'slugify': (a, k) =>
@@ -411,7 +419,10 @@ final Map<String, Call> functions = {
   'parseVehiclePlate': one(parseVehiclePlate),
   'analyzeNumber': one(analyzeNumber),
   'getNumberType': one(getNumberType),
-  'validateLandline': one(validateLandline),
+  'validateLandline': (a, k) => validateLandline(
+        textOr(a[0], false),
+        services: optBool(k['services']) ?? false,
+      ),
   'getAreaCode': one(getAreaCode),
   'createRaastP2PQr': (a, k) => createRaastP2PQr(
         iban: str(k['iban']),
@@ -495,11 +506,13 @@ final Map<String, Call> functions = {
         number(a[0]),
         taxYear: optInteger(k['taxYear']),
         date: k['date'],
+        includeSurcharge: optBool(k['includeSurcharge']) ?? false,
       ),
   'calculateMonthlySalaryTax': (a, k) => calculateMonthlySalaryTax(
         number(a[0]),
         taxYear: optInteger(k['taxYear']),
         date: k['date'],
+        includeSurcharge: optBool(k['includeSurcharge']) ?? false,
       ),
 };
 

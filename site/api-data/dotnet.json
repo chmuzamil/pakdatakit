@@ -381,6 +381,87 @@
           "methods": []
         },
         {
+          "kind": "record",
+          "name": "CnicMatch",
+          "signature": "public sealed record CnicMatch(string Raw, string Digits, string Formatted, int Start, int End)",
+          "doc": "A CNIC found by {@link Cnic.FindAll}.",
+          "fields": [
+            {
+              "name": "Raw",
+              "type": "string",
+              "default": null,
+              "doc": "The text as written, e.g. `35202 1234567-1` or with Urdu digits.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Digits",
+              "type": "string",
+              "default": null,
+              "doc": "The 13 digits, in ASCII.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Formatted",
+              "type": "string",
+              "default": null,
+              "doc": "The CNIC in `#####-#######-#` form.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Start",
+              "type": "int",
+              "default": null,
+              "doc": "Index of the first character in the text (UTF-16 code units, as {@link String} indexes).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "End",
+              "type": "int",
+              "default": null,
+              "doc": "Index just after the last character, so `text[Start..End]` is {@link CnicMatch.Raw}.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "MaskedText",
+          "signature": "public sealed record MaskedText(string Text, int Count)",
+          "doc": "Result of {@link Cnic.Mask}.",
+          "fields": [
+            {
+              "name": "Text",
+              "type": "string",
+              "default": null,
+              "doc": "The text with every CNIC's digits masked; separators are kept.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Count",
+              "type": "int",
+              "default": null,
+              "doc": "How many CNICs were masked.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
           "kind": "class",
           "name": "Cnic",
           "signature": "public static class Cnic",
@@ -421,6 +502,48 @@
               "returns": {
                 "type": "CnicInfo?",
                 "doc": "The details, or `null` if the CNIC is invalid."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "FindAll",
+              "signature": "public static IReadOnlyList<CnicMatch> FindAll(string? text)",
+              "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is 13 digits whose first digit is a province code (1-8),\nwritten together or in 5-7-1 groups with a hyphen, dash, dot or space\nbetween the groups (the two separators may differ). Digits may be\nASCII, Urdu or Arabic-Indic, even mixed. A match never starts or ends\nnext to another digit, so a longer number is not cut into a CNIC.\n\nThis is looser than {@link Cnic.Validate}, which needs the same\nseparator twice: text is written carelessly. It is a pattern match, so\nany other 13-digit number that starts with 1-8 (an account or order\nnumber, say) also matches.\n\n```csharp\nCnic.FindAll(\"CNIC: 35202-1234567-1, phone 0300-1234567\");\n// [CnicMatch { Raw = \"35202-1234567-1\", Digits = \"3520212345671\",\n//   Formatted = \"35202-1234567-1\", Start = 6, End = 21 }]\n```",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Any text."
+                }
+              ],
+              "returns": {
+                "type": "IReadOnlyList<CnicMatch>",
+                "doc": "The matches in order, or an empty list (also for `null`). Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Mask",
+              "signature": "public static MaskedText Mask(string? text, string? mask = \"X\")",
+              "doc": "Masks every CNIC in free text, as found by {@link Cnic.FindAll}: each\ndigit becomes `mask` and the separators stay, so\n`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`. The rest of the\ntext is unchanged.\n\nLike {@link Cnic.FindAll}, it also masks any other 13-digit number\nthat starts with 1-8.\n\n```csharp\nCnic.Mask(\"My CNIC is 35202-1234567-1\");  // Text = \"My CNIC is XXXXX-XXXXXXX-X\", Count = 1\nCnic.Mask(\"35202 1234567 1\", \"*\");        // Text = \"***** ******* *\", Count = 1\n```",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Any text."
+                },
+                {
+                  "name": "mask",
+                  "type": "string?",
+                  "default": "\"X\"",
+                  "doc": "The string that replaces each digit. `null` means `\"X\"`."
+                }
+              ],
+              "returns": {
+                "type": "MaskedText",
+                "doc": "The masked text and the number of CNICs masked; `(\"\", 0)` for `null` text. Never throws."
               }
             }
           ]
@@ -2076,8 +2199,53 @@
         },
         {
           "kind": "record",
+          "name": "SalaryTaxSurcharge",
+          "signature": "public sealed record SalaryTaxSurcharge(double Rate, long Over, string Law, string Source)",
+          "doc": "The surcharge under section 4AB of the Income Tax Ordinance:\n{@link SalaryTaxSurcharge.Rate} percent of the tax from the rate table, payable when\ntaxable income exceeds {@link SalaryTaxSurcharge.Over} rupees.",
+          "fields": [
+            {
+              "name": "Rate",
+              "type": "double",
+              "default": null,
+              "doc": "Percent of the tax from the rate table. `0` where the law sets none.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Over",
+              "type": "long",
+              "default": null,
+              "doc": "Taxable income must exceed this many rupees (Rs 10 million).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Law",
+              "type": "string",
+              "default": null,
+              "doc": "The law that sets it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "string",
+              "default": null,
+              "doc": "Official document.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
           "name": "SalaryTaxYear",
-          "signature": "public sealed record SalaryTaxYear(int TaxYear, string From, string To, string Law, string Source, IReadOnlyList<SalaryTaxSlab> Slabs)",
+          "signature": "public sealed record SalaryTaxYear(int TaxYear, string From, string To, string Law, string Source, IReadOnlyList<SalaryTaxSlab> Slabs, SalaryTaxSurcharge? Surcharge)",
           "doc": "The salaried rate table for one tax year (1 July to 30 June).",
           "fields": [
             {
@@ -2133,6 +2301,15 @@
               "static": false,
               "readonly": false,
               "accessors": "get; init"
+            },
+            {
+              "name": "Surcharge",
+              "type": "SalaryTaxSurcharge?",
+              "default": null,
+              "doc": "The section 4AB surcharge on salaried individuals for the year, or\n`null` for years before it existed (tax years up to 2024).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
             }
           ],
           "methods": []
@@ -2169,6 +2346,15 @@
               "static": false,
               "readonly": false,
               "accessors": "get; init"
+            },
+            {
+              "name": "IncludeSurcharge",
+              "type": "bool",
+              "default": null,
+              "doc": "Add the section 4AB surcharge (tax years 2025 and 2026, above Rs 10\nmillion). Default `false` in 2.x, so existing results do not\nchange; it will default to `true` in 3.0.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
             }
           ],
           "methods": []
@@ -2176,14 +2362,32 @@
         {
           "kind": "record",
           "name": "SalaryTax",
-          "signature": "public sealed record SalaryTax(double Tax, double Monthly, double EffectiveRate, SalaryTaxSlab Slab, int TaxYear)",
+          "signature": "public sealed record SalaryTax(double Tax, double Surcharge, double Total, double Monthly, double EffectiveRate, SalaryTaxSlab Slab, int TaxYear)",
           "doc": "Result of {@link IncomeTax.CalculateSalaryTax} and {@link IncomeTax.CalculateMonthlySalaryTax}.",
           "fields": [
             {
               "name": "Tax",
               "type": "double",
               "default": null,
-              "doc": "Tax for the year, in rupees, rounded half up to the paisa.",
+              "doc": "Tax for the year from the rate table, in rupees, rounded half up to the paisa.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Surcharge",
+              "type": "double",
+              "default": null,
+              "doc": "The section 4AB surcharge, rounded half up to the paisa. `0` unless\n{@link SalaryTaxOptions.IncludeSurcharge} is set and the year and\nincome attract one.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Total",
+              "type": "double",
+              "default": null,
+              "doc": "`Tax + Surcharge`: the year's total.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -2192,7 +2396,7 @@
               "name": "Monthly",
               "type": "double",
               "default": null,
-              "doc": "`Tax / 12`, rounded half up to the paisa.",
+              "doc": "`Total / 12`, rounded half up to the paisa.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -2201,7 +2405,7 @@
               "name": "EffectiveRate",
               "type": "double",
               "default": null,
-              "doc": "{@link SalaryTax.Tax} as a percent of the income, rounded half up to 2 decimals.",
+              "doc": "{@link SalaryTax.Total} as a percent of the income, rounded half up to 2 decimals.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -2285,7 +2489,7 @@
               "kind": "method",
               "name": "GetSalaryTaxSlabs",
               "signature": "public static SalaryTaxYear? GetSalaryTaxSlabs(int? taxYear = null)",
-              "doc": "Returns the salaried rate table for a tax year: Division I of Part I\nof the First Schedule to the Income Tax Ordinance 2001, clause (2),\nwhich applies when salary is more than 75% of taxable income.\n\nCovers tax years 2020 to 2027, each from FBR's consolidated Ordinance.",
+              "doc": "Returns the salaried rate table for a tax year: Division I of Part I\nof the First Schedule to the Income Tax Ordinance 2001, clause (2),\nwhich applies when salary is more than 75% of taxable income.\n\nCovers tax years 2020 to 2027, each from FBR's consolidated Ordinance,\nwith the year's section 4AB surcharge (`null` before 2025).",
               "params": [
                 {
                   "name": "taxYear",
@@ -2314,7 +2518,7 @@
               "kind": "method",
               "name": "CalculateSalaryTax",
               "signature": "public static SalaryTax? CalculateSalaryTax(\n    double annualIncome,\n    SalaryTaxOptions? options = null)",
-              "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link IncomeTax.GetSalaryTaxSlabs}).\n\nThe rate table only: the surcharge, tax credits, exemptions, the\nseparate pension rate and withholding adjustments are not applied.\n\n```csharp\nIncomeTax.CalculateSalaryTax(1_800_000, new SalaryTaxOptions { TaxYear = 2026 });\n// Tax = 72000, Monthly = 6000, EffectiveRate = 4, Slab = { Over = 1200000, … }, TaxYear = 2026\n```",
+              "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link IncomeTax.GetSalaryTaxSlabs}).\n\nWith {@link SalaryTaxOptions.IncludeSurcharge} it adds the\nsection 4AB surcharge: a percentage of the whole tax once taxable\nincome exceeds Rs 10 million (10% in tax year 2025, 9% for salaried\nindividuals in 2026, none in 2027 or before 2025). Because it applies\nto the whole tax, one rupee over Rs 10 million adds it in full. It is\noff by default in 2.x so that existing results do not change, and will\nbe on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice.\n\n```csharp\nIncomeTax.CalculateSalaryTax(1_800_000, new SalaryTaxOptions { TaxYear = 2026 });\n// Tax = 72000, Surcharge = 0, Total = 72000, Monthly = 6000, EffectiveRate = 4,\n// Slab = { Over = 1200000, … }, TaxYear = 2026\nIncomeTax.CalculateSalaryTax(12_000_000, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true });\n// Tax = 3381000, Surcharge = 304290, Total = 3685290, Monthly = 307107.5, …\n```",
               "params": [
                 {
                   "name": "annualIncome",
@@ -2594,7 +2798,7 @@
             },
             {
               "name": "Personal",
-              "doc": "Personal number (`0122`)."
+              "doc": "Personal number (`0122`). Never returned since 2.7.0: 0122 numbers\nhave no PTA source (see DATA.md). Kept so existing code compiles;\nremoved in 3.0."
             }
           ],
           "fields": [],
@@ -2658,14 +2862,14 @@
           "kind": "class",
           "name": "Numbers",
           "signature": "public static class Numbers",
-          "doc": "Landline, UAN, toll-free, premium and personal numbers.",
+          "doc": "Landline, UAN, toll-free and premium numbers.",
           "fields": [],
           "methods": [
             {
               "kind": "method",
               "name": "Analyze",
               "signature": "public static NumberInfo? Analyze(string? phone)",
-              "doc": "Identifies and formats any Pakistani telephone number: mobile, landline,\nUAN (`111`), toll-free (`0800`), premium-rate (`0900`) and\npersonal (`0122`) numbers.",
+              "doc": "Identifies and formats any Pakistani telephone number: mobile, landline,\nUAN (`111`), toll-free (`0800`) and premium-rate (`0900`)\nnumbers. 0122 numbers are not recognised: no PTA document lists them.",
               "params": [
                 {
                   "name": "phone",
@@ -2701,18 +2905,42 @@
               "kind": "method",
               "name": "ValidateLandline",
               "signature": "public static bool ValidateLandline(string? phone)",
-              "doc": "Validates a landline (fixed-line) number such as `042-35761234`.",
+              "doc": "Validates a landline (fixed-line) number such as `042-35761234`.\n\nUAN, toll-free and premium-rate numbers are not landlines here; use\n{@link Numbers.ValidateLandline} with `services: true`\nto accept them too.",
               "params": [
                 {
                   "name": "phone",
                   "type": "string?",
                   "default": null,
-                  "doc": "Number to validate."
+                  "doc": "Number in local or international format."
                 }
               ],
               "returns": {
                 "type": "bool",
-                "doc": "`true` if it is a valid landline number."
+                "doc": "`true` if it is a valid landline number. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "ValidateLandline",
+              "signature": "public static bool ValidateLandline(string? phone, bool services)",
+              "doc": "Validates a landline (fixed-line) number such as `042-35761234`.\nWith `services` it also accepts the non-geographic\nservice numbers a business may give as its landline: UAN\n(`021-111-123-456`, `111-123-456`), toll-free\n(`0800-12345`) and premium rate (`0900-12345`);\n{@link Numbers.Analyze} tells them apart with its {@link NumberInfo.Type}.\n\n```csharp\nNumbers.ValidateLandline(\"042-35761234\");                     // true\nNumbers.ValidateLandline(\"021-111-123-456\");                  // false\nNumbers.ValidateLandline(\"021-111-123-456\", services: true);  // true\n```",
+              "params": [
+                {
+                  "name": "phone",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Number in local or international format."
+                },
+                {
+                  "name": "services",
+                  "type": "bool",
+                  "default": null,
+                  "doc": "`true` to also accept UAN, toll-free and premium-rate numbers."
+                }
+              ],
+              "returns": {
+                "type": "bool",
+                "doc": "`true` for a valid landline number (or service number, with `services`). Never throws."
               }
             },
             {
@@ -3323,7 +3551,7 @@
             },
             {
               "name": "NoIban",
-              "doc": "The QR code carries no IBAN."
+              "doc": "A person-to-person QR code carries no IBAN."
             },
             {
               "name": "InvalidIban",
@@ -3354,6 +3582,10 @@
             {
               "name": "ExpiresSoon",
               "doc": "The QR code expires soon."
+            },
+            {
+              "name": "NoIban",
+              "doc": "A merchant QR code names no IBAN. It pays through the merchant's own\nscheme, so it is valid, but the payee can't be checked from the QR."
             }
           ],
           "fields": [],
@@ -3740,7 +3972,7 @@
         {
           "kind": "record",
           "name": "RaastQrValidation",
-          "signature": "public sealed record RaastQrValidation(bool Valid, IReadOnlyList<RaastQrError> Errors, IReadOnlyList<RaastQrWarning> Warnings, ParsedRaastQr? Qr)",
+          "signature": "public sealed record RaastQrValidation(bool Valid, RaastQrKind? Kind, IReadOnlyList<RaastQrError> Errors, IReadOnlyList<RaastQrWarning> Warnings, ParsedRaastQr? Qr)",
           "doc": "Result of {@link RaastQr.Validate}.",
           "fields": [
             {
@@ -3748,6 +3980,15 @@
               "type": "bool",
               "default": null,
               "doc": "`true` when there are no errors.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Kind",
+              "type": "RaastQrKind?",
+              "default": null,
+              "doc": "{@link RaastQrKind.P2p} for a person-to-person QR,\n{@link RaastQrKind.Merchant} for a merchant QR, `null` when the\ntext is not a Raast QR.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -3907,7 +4148,7 @@
               "kind": "method",
               "name": "Validate",
               "signature": "public static RaastQrValidation Validate(\n    string? payload,\n    DateTime? now = null,\n    double expiresSoonMs = 3600000)",
-              "doc": "Checks whether a Raast QR code can be paid. Errors: not a Pakistani\npayment QR, checksum mismatch, no IBAN or an invalid IBAN, expired, or\na fixed-amount QR without an expiry. Warnings: an amount in a static\nQR (apps ignore it), or a QR that expires soon.",
+              "doc": "Checks whether a Raast QR code can be paid. Errors: not a Pakistani\npayment QR, checksum mismatch, a person-to-person QR with no IBAN, an\nIBAN that fails its checksum, expired, or a fixed-amount QR without an\nexpiry. Warnings: an amount in a static QR (apps ignore it), a QR that\nexpires soon, or a merchant QR with no IBAN\n({@link RaastQrWarning.NoIban}): merchant QRs may pay through the\nmerchant's own scheme, so it is valid, but the payee can't be checked\nfrom the QR.\n\n```csharp\nRaastQr.Validate(scannedText);\n// Valid = false, Kind = P2p, Errors = [Expired], Warnings = [], Qr = { ... }\n```",
               "params": [
                 {
                   "name": "payload",
@@ -4513,6 +4754,24 @@
             },
             {
               "kind": "method",
+              "name": "RomanUrduKey",
+              "signature": "public static string RomanUrduKey(string? text)",
+              "doc": "A phonetic key for Roman Urdu, so that different spellings of the same\nname or word match: `Mubeen` and `Mobeen`, `Muhammad`,\n`Mohammad` and `Muhammed`, `Rehman` and `Rahman`,\n`Chaudhry`, `Chaudhary` and `Chaudhery`. Compare keys,\nnot the text.\n\nEach word keeps its consonants, its first vowel sound and a vowel sound\nat its end. Letters for one sound are merged (`kh`, `sh`,\n`ch`; `ph` and `f`; `q`, `c` and `k`;\n`v` and `w`; `th` and `t`, `dh` and `d`),\ndoubled letters count once, `e` counts as `a`, `o` as\n`u`, and a final `h` after a vowel is dropped. Accents are\nremoved and anything other than Latin letters splits words. The key is\nnot meant to be shown: it is an opaque string.\n\nDifferent names can share a key (`Hamid` and `Hamad`), so\ntreat a match as \"probably the same\", not proof.\n{@link Text.NormalizeRomanUrdu} is a different tool: it rewrites\ninformal spellings into readable text.\n\n```csharp\nText.RomanUrduKey(\"Mubeen\") == Text.RomanUrduKey(\"Mobeen\");   // true\nText.RomanUrduKey(\"Muhammad Rehman\");                          // \"muhmd rahmn\"\nText.RomanUrduKey(\"Hussain\") == Text.RomanUrduKey(\"Hassan\");   // false\n```",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "A name or other Roman Urdu text."
+                }
+              ],
+              "returns": {
+                "type": "string",
+                "doc": "The key, one part per word separated by spaces; `\"\"` for text with no Latin letters or `null`. Never throws."
+              }
+            },
+            {
+              "kind": "method",
               "name": "ToUrduDigits",
               "signature": "public static string ToUrduDigits(string? text)",
               "doc": "Converts English and Arabic-Indic digits to Urdu digits (۰–۹).",
@@ -5043,14 +5302,24 @@
           "kind": "class",
           "name": "PakLandlineAttribute",
           "signature": "public sealed class PakLandlineAttribute : PakValidationAttribute",
-          "doc": "Validates a Pakistani landline number, using {@link Numbers.ValidateLandline}.",
-          "fields": [],
+          "doc": "Validates a Pakistani landline number, using\n{@link Numbers.ValidateLandline}. Set\n{@link PakLandlineAttribute.Services} to also accept UAN, toll-free and premium-rate\nnumbers: `[PakLandline(Services = true)]`.",
+          "fields": [
+            {
+              "name": "Services",
+              "type": "bool",
+              "default": null,
+              "doc": "Also accept the non-geographic service numbers a business may give as\nits landline: UAN, toll-free and premium rate. Default `false`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; set"
+            }
+          ],
           "methods": [
             {
               "kind": "constructor",
               "name": "PakLandlineAttribute",
               "signature": "public PakLandlineAttribute()",
-              "doc": "Validates a Pakistani landline number, using {@link Numbers.ValidateLandline}.",
+              "doc": "Creates the attribute.",
               "params": [],
               "returns": null
             }
@@ -5263,14 +5532,20 @@
             {
               "kind": "method",
               "name": "IsPakLandline",
-              "signature": "public static IRuleBuilderOptions<T, string?> IsPakLandline<T>(this IRuleBuilder<T, string?> rule)",
-              "doc": "Requires a valid Pakistani landline number, using {@link Numbers.ValidateLandline}.",
+              "signature": "public static IRuleBuilderOptions<T, string?> IsPakLandline<T>(\n    this IRuleBuilder<T, string?> rule,\n    bool services = false)",
+              "doc": "Requires a valid Pakistani landline number, using\n{@link Numbers.ValidateLandline}. With\n`services: true` it also accepts UAN, toll-free and premium-rate\nnumbers.",
               "params": [
                 {
                   "name": "rule",
                   "type": "IRuleBuilder<T, string?>",
                   "default": null,
                   "doc": "The rule builder."
+                },
+                {
+                  "name": "services",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": "`true` to also accept UAN, toll-free and premium-rate numbers."
                 }
               ],
               "returns": {

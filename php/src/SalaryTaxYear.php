@@ -24,6 +24,11 @@ final readonly class SalaryTaxYear
         public string $source,
         /** @var list<SalaryTaxSlab> The bands, lowest first. */
         public array $slabs,
+        /**
+         * The section 4AB surcharge on salaried individuals for the year, or
+         * null for years before it existed (tax years up to 2024).
+         */
+        public ?SalaryTaxSurcharge $surcharge = null,
     ) {
     }
 }

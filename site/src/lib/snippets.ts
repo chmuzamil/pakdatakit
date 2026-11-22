@@ -127,6 +127,8 @@ export const API: Record<string, Api> = {
   // cnic
   validateCNIC: { cs: 'Cnic.Validate', php: 'Cnic::validate' },
   getCNICInfo: { cs: 'Cnic.GetInfo', php: 'Cnic::getInfo' },
+  findCNICs: { py: 'find_cnics', cs: 'Cnic.FindAll', php: 'Cnic::findAll' },
+  maskCNICs: { py: 'mask_cnics', cs: 'Cnic.Mask', php: 'Cnic::mask' },
   // phone, networks, numbers, whatsapp
   validatePhone: { cs: 'Phone.Validate', php: 'Phone::validate' },
   formatPhone: { cs: 'Phone.Format', php: 'Phone::format' },
@@ -145,6 +147,13 @@ export const API: Record<string, Api> = {
   validateLandline: {
     cs: 'Numbers.ValidateLandline',
     php: 'Numbers::validateLandline',
+    // .NET and PHP take `services` as a parameter, not an options object.
+    render: {
+      cs: (a, k) =>
+        `Numbers.ValidateLandline(${[lit('cs', a[0]), ...('services' in k ? [`services: ${lit('cs', k.services)}`] : [])].join(', ')})`,
+      php: (a, k) =>
+        `Numbers::validateLandline(${[lit('php', a[0]), ...('services' in k ? [`services: ${lit('php', k.services)}`] : [])].join(', ')})`,
+    },
   },
   getAreaCode: { cs: 'Numbers.GetAreaCode', php: 'Numbers::getAreaCode' },
   createWhatsAppLink: {
@@ -305,6 +314,7 @@ export const API: Record<string, Api> = {
     cs: 'Text.NormalizeRomanUrdu',
     php: 'Text::normalizeRomanUrdu',
   },
+  romanUrduKey: { cs: 'Text.RomanUrduKey', php: 'Text::romanUrduKey' },
   toUrduDigits: { cs: 'Text.ToUrduDigits', php: 'Text::toUrduDigits' },
   toEnglishDigits: { cs: 'Text.ToEnglishDigits', php: 'Text::toEnglishDigits' },
   slugify: {

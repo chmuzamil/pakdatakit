@@ -8,18 +8,27 @@ use PakDataKit\Internal\Data;
 use PakDataKit\Internal\Js;
 
 /**
- * Landline, UAN, toll-free, premium and personal numbers.
+ * Landline, UAN, toll-free and premium numbers.
  */
 final class Numbers
 {
-    // Number patterns from Google libphonenumber's PK metadata (v9.0.41). They
-    // apply to the national significant number, without the trunk prefix 0.
+    // Number patterns. They apply to the national significant number, without
+    // the trunk prefix 0.
+    //
+    // - Fixed lines and area codes: Google libphonenumber's PK metadata
+    //   (v9.0.41), which matches PTA's numbering plan (ITU, 9 November 2021).
+    // - UAN: an area code, then 111 and six digits (PTA's plan, "National
+    //   Universal Access Number"). Written without the area code, `111-XXX-XXX`
+    //   is how UANs are advertised and dialled within a city.
+    // - Toll-free: 800 and five digits (PTA's plan, "National Toll Free Number").
+    // - Premium rate: 900 and five digits (PTA, National Numbering Plan 2008,
+    //   9.1.4, "current structure"; the 2021 plan does not list 0900).
+    // - 0122 numbers: seen in use, no PTA source, not supported since 2.7.0 (see DATA.md).
     private const FIXED_LINE = '/^(?:(?:(?:21|42)[2-9]|58[126])[0-9]{7}|(?:2[25]|4[0146-9]|5[1-35-7]|6[1-8]|7[14]|8[16]|91)[2-9][0-9]{6,7}|(?:2(?:3[2358]|4[2-4]|9[2-8])|45[3479]|54[2-467]|60[468]|72[236]|8(?:2[2-689]|3[23578]|4[3478]|5[2356])|9(?:2[2-8]|3[27-9]|4[2-6]|6[3569]|9[25-8]))[2-9][0-9]{5,6})\z/u';
     private const UAN = '/^((?:2(?:[125]|3[2358]|4[2-4]|9[2-8])|4(?:[0-246-9]|5[3479])|5(?:[1-35-7]|4[2-467])|6(?:0[468]|[1-8])|7(?:[14]|2[236])|8(?:[16]|2[2-689]|3[23578]|4[3478]|5[2356])|9(?:1|22|3[27-9]|4[2-6]|6[3569]|9[2-7])))111([0-9]{6})\z/u';
     private const UAN_WITHOUT_AREA_CODE = '/^111([0-9]{6})\z/u';
-    private const TOLL_FREE = '/^800([0-9]{5}(?:[0-9]{3})?)\z/u';
+    private const TOLL_FREE = '/^800([0-9]{5})\z/u';
     private const PREMIUM = '/^900([0-9]{5})\z/u';
-    private const PERSONAL = '/^122([0-9]{6})\z/u';
     private const NATIONAL = '/^[0-9]{8,12}\z/u';
 
     /** @var array<string, list<string>>|null */
@@ -27,8 +36,9 @@ final class Numbers
 
     /**
      * Identifies and formats any Pakistani telephone number: mobile,
-     * landline, UAN (`111`), toll-free (`0800`), premium-rate (`0900`) and
-     * personal (`0122`) numbers. Returns null if the number is invalid.
+     * landline, UAN (`111`), toll-free (`0800`) and premium-rate (`0900`)
+     * numbers. 0122 numbers are not recognised: no PTA document lists them
+     * (see DATA.md). Returns null if the number is invalid.
      */
     public static function analyze(?string $phone): ?NumberInfo
     {
@@ -49,7 +59,7 @@ final class Numbers
             return null;
         }
 
-        foreach ([['toll-free', self::TOLL_FREE, '800'], ['premium', self::PREMIUM, '900'], ['personal', self::PERSONAL, '122']] as [$type, $pattern, $prefix]) {
+        foreach ([['toll-free', self::TOLL_FREE, '800'], ['premium', self::PREMIUM, '900']] as [$type, $pattern, $prefix]) {
             $match = Js::match($pattern, $national);
             if ($match !== null) {
                 return new NumberInfo($type, '0' . $prefix . '-' . $match[1], '+92' . $national);
@@ -88,10 +98,37 @@ final class Numbers
         return self::analyze($phone)?->type;
     }
 
-    /** Validates a landline (fixed-line) number such as `042-35761234`. Never throws. */
-    public static function validateLandline(?string $phone): bool
+    /** The number types validateLandline() accepts with `services: true`. */
+    private const SERVICE_TYPES = ['uan', 'toll-free', 'premium'];
+
+    /**
+     * Validates a Pakistani landline (fixed-line) number such as
+     * `042-35761234`. With `services: true` it also accepts the
+     * non-geographic service numbers a business may give as its landline:
+     * UAN (`021-111-123-456`, `111-123-456`), toll-free (`0800-12345`) and
+     * premium rate (`0900-12345`); analyze() tells them apart with its
+     * `type` field.
+     *
+     * ```php
+     * Numbers::validateLandline('042-35761234');                     // true
+     * Numbers::validateLandline('021-111-123-456');                  // false
+     * Numbers::validateLandline('021-111-123-456', services: true);  // true
+     * ```
+     *
+     * @param mixed $phone Number in local or international format; anything
+     *   that is not a string gives false
+     * @param bool $services Also accept UAN, toll-free and premium numbers
+     *   (default false)
+     * @return bool True for a valid landline number (or service number, with
+     *   `$services`). Never throws.
+     */
+    public static function validateLandline(mixed $phone, bool $services = false): bool
     {
-        return self::getNumberType($phone) === 'landline';
+        if (!is_string($phone)) {
+            return false;
+        }
+        $type = self::getNumberType($phone);
+        return $type === 'landline' || ($services && in_array($type, self::SERVICE_TYPES, true));
     }
 
     /** Returns the landline area code for a city with trunk prefix (`042`), or null. */

@@ -3,22 +3,28 @@ import { RULES, type RuleName } from './rules.js';
 
 /**
  * Options for the decorators: class-validator's own options (`groups`,
- * `each`, `always`, `context`), plus a custom `message`.
+ * `each`, `always`, `context`), plus a custom `message`. `IsPakLandline`
+ * also takes `services: true` to accept UAN, toll-free and premium numbers.
  */
-export type DecoratorOptions = ValidationOptions;
+export type DecoratorOptions = ValidationOptions & { services?: boolean };
 
 function decorator(name: RuleName) {
   const rule = RULES[name];
   return (options: DecoratorOptions = {}): PropertyDecorator =>
     (target, propertyName) => {
+      const { services, ...validationOptions } = options;
+      const ruleOptions = { services: services === true };
       registerDecorator({
         name: `pk-${name}`,
         target: target.constructor,
         propertyName: propertyName as string,
-        options: { ...options, message: options.message ?? rule.message },
+        options: {
+          ...validationOptions,
+          message: options.message ?? rule.message,
+        },
         validator: {
           validate: (value: unknown) =>
-            typeof value === 'string' && rule.test(value),
+            typeof value === 'string' && rule.test(value, ruleOptions),
         },
       });
     };

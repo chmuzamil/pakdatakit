@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.7.0
+
+Minor release: new features and one accuracy fix behind an option. Every
+port gives the same results on the shared test vectors (35,000+, about 1,800
+new).
+
+### Added
+
+- **Salary tax surcharge.** `IncomeTax::calculateSalary()` and `calculateMonthlySalary()` take `['includeSurcharge' => true]` and return `surcharge` and `total`; `getSalarySlabs()` gives each year's `SalaryTaxSurcharge` (`null` before 2025). The section 4AB surcharge
+  is a percentage of the whole tax once taxable income exceeds Rs 10
+  million: 10% in tax year 2025, 9% for salaried individuals in 2026, and
+  none in 2027 or before 2025. The option is off by default in 2.x, so
+  existing results don't change; it will be on by default in 3.0.
+- **Service numbers as landlines.** `Numbers::validateLandline($phone, services: true)` also accepts UAN,
+  toll-free and premium-rate numbers. Laravel: the rule `pk_landline:services` and `new Rules\Landline(services: true)`.
+- **CNICs in free text.** `Cnic::findAll($text)` returns `CnicMatch` objects (`raw`, `digits`, `formatted`, `start`, `end`; offsets in code points, for `mb_substr`); `Cnic::mask($text, 'X')` returns `MaskedText`. Pattern matches: other 13-digit
+  numbers starting with 1-8 also match; CNIC validation stays strict.
+- **Phonetic keys for Roman Urdu names**: `Text::romanUrduKey($text)` (accents are folded with a table generated from Node.js, so the intl extension is not needed: `scripts/generate-latin-fold-php.mjs`), so that `Mubeen` and
+  `Mobeen`, or `Rehman` and `Rahman`, match.
+- **Raast**: `RaastQrValidation` has `kind` (after `valid`, also in `toArray()`).
+
+### Changed
+
+- `0122` numbers are no longer recognised: they are seen in use, but no PTA
+  document lists them. `Numbers::analyze()` now returns `null` for them; the
+  `personal` type is never returned.
+- Toll-free numbers follow PTA's numbering plan: `0800` and five digits; the
+  8-digit form is no longer accepted.
+- A merchant Raast QR without an IBAN is valid with the warning `no-iban`; a
+  person-to-person QR without an IBAN is still an error.
+
+### Compatibility
+
+`RaastQrValidation`'s constructor takes `kind` second, and `SalaryTax` and
+`SalaryTaxYear` have new properties; code that builds them positionally
+(normally only the library does) must be updated.
+
 ## 2.6.0
 
 Minor release: one new feature. Every port gives the same results on the

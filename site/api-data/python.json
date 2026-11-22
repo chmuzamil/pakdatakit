@@ -312,7 +312,7 @@
           "kind": "function",
           "name": "validate_cnic",
           "signature": "def validate_cnic(cnic: str) -> bool",
-          "doc": "Validates a Pakistani CNIC number (structure only).\n\nAccepts `3520212345671`, `35202-1234567-1`, `35202 1234567 1` and Urdu digits.",
+          "doc": "Validates the format of a Pakistani CNIC number: 13 digits, in 5-7-1\ngroups or together, starting with a province code from 1 to 8.\n\nAccepts `3520212345671`, `35202-1234567-1`, `35202 1234567 1` and Urdu digits.",
           "params": [
             {
               "name": "cnic",
@@ -340,6 +340,106 @@
           ],
           "returns": {
             "type": "Optional[CNICInfo]"
+          }
+        },
+        {
+          "kind": "class",
+          "name": "CNICMatch",
+          "signature": "@dataclass(frozen=True)\nclass CNICMatch",
+          "doc": "A CNIC found by {@link find_cnics}.",
+          "fields": [
+            {
+              "name": "raw",
+              "type": "str",
+              "default": null,
+              "doc": "The text as written, e.g. `35202 1234567-1` or with Urdu digits."
+            },
+            {
+              "name": "digits",
+              "type": "str",
+              "default": null,
+              "doc": "The 13 digits, in ASCII."
+            },
+            {
+              "name": "formatted",
+              "type": "str",
+              "default": null,
+              "doc": "The CNIC in `#####-#######-#` form."
+            },
+            {
+              "name": "start",
+              "type": "int",
+              "default": null,
+              "doc": "Offset of the first character in the text, in code points (a Python string index), so `text[match.start:match.end] == match.raw`."
+            },
+            {
+              "name": "end",
+              "type": "int",
+              "default": null,
+              "doc": "Offset just after the last character, in code points."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "MaskedText",
+          "signature": "@dataclass(frozen=True)\nclass MaskedText",
+          "doc": "Result of {@link mask_cnics}.",
+          "fields": [
+            {
+              "name": "text",
+              "type": "str",
+              "default": null,
+              "doc": "The text with every CNIC's digits masked; separators are kept."
+            },
+            {
+              "name": "count",
+              "type": "int",
+              "default": null,
+              "doc": "How many CNICs were masked."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "find_cnics",
+          "signature": "def find_cnics(text: Any) -> List[CNICMatch]",
+          "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nA match is 13 digits whose first digit is a province code (1-8), written\ntogether or in 5-7-1 groups with a hyphen, dash, dot or space between the\ngroups (the two separators may differ). Digits may be ASCII, Urdu or\nArabic-Indic, even mixed. A match never starts or ends next to another\ndigit, so a longer number is not cut into a CNIC.\n\nThis is looser than {@link validate_cnic}, which needs the same separator\ntwice: text is written carelessly. It is a pattern match, so any other\n13-digit number that starts with 1-8 (an account or order number, say)\nalso matches.\n\n`start` and `end` are Python string indexes (code points); the npm\npackage counts UTF-16 code units, which differ only after a character\noutside the Basic Multilingual Plane, such as an emoji.\n\nReturns the matches in order, or `[]` (also for a value that is not a\nstring). Never raises.\n\n```python\n>>> find_cnics(\"CNIC: 35202-1234567-1, phone 0300-1234567\")\n[CNICMatch(raw='35202-1234567-1', digits='3520212345671', formatted='35202-1234567-1', start=6, end=21)]\n```",
+          "params": [
+            {
+              "name": "text",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[CNICMatch]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "mask_cnics",
+          "signature": "def mask_cnics(text: Any, *, mask: Any = 'X') -> MaskedText",
+          "doc": "Masks every CNIC in free text, as found by {@link find_cnics}: each\ndigit becomes `mask` and the separators stay, so `35202-1234567-1`\nbecomes `XXXXX-XXXXXXX-X`. The rest of the text is unchanged.\n\nLike {@link find_cnics}, it also masks any other 13-digit number that\nstarts with 1-8. `mask` is the string that replaces each digit (default\n`\"X\"`; a value that is not a string means `\"X\"`).\n\nReturns the masked text and the number of CNICs masked. A value that is\nnot a string gives `MaskedText(text=\"\", count=0)`. Never raises.\n\n```python\n>>> mask_cnics(\"My CNIC is 35202-1234567-1\")\nMaskedText(text='My CNIC is XXXXX-XXXXXXX-X', count=1)\n>>> mask_cnics(\"35202 1234567 1\", mask=\"*\").text\n'***** ******* *'\n```",
+          "params": [
+            {
+              "name": "text",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "mask",
+              "type": "Any",
+              "default": "'X'",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "MaskedText"
           }
         }
       ]
@@ -415,7 +515,7 @@
         {
           "kind": "constant",
           "name": "DATA_VERSION",
-          "signature": "DATA_VERSION = '2026-11-18'",
+          "signature": "DATA_VERSION = '2026-11-22'",
           "doc": "Date (YYYY-MM-DD) the bundled datasets were last checked against their sources. Same value as `dataVersion` in the npm package; see DATA.md."
         },
         {
@@ -1753,6 +1853,39 @@
         },
         {
           "kind": "class",
+          "name": "SalaryTaxSurcharge",
+          "signature": "@dataclass(frozen=True)\nclass SalaryTaxSurcharge",
+          "doc": "The surcharge under section 4AB of the Income Tax Ordinance: `rate`\npercent of the tax from the rate table, payable when taxable income exceeds\n`over` rupees.",
+          "fields": [
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent of the tax from the rate table. `0` where the law sets none."
+            },
+            {
+              "name": "over",
+              "type": "float",
+              "default": null,
+              "doc": "Taxable income must exceed this many rupees (Rs 10 million)."
+            },
+            {
+              "name": "law",
+              "type": "str",
+              "default": null,
+              "doc": "The law that sets it."
+            },
+            {
+              "name": "source",
+              "type": "str",
+              "default": null,
+              "doc": "Official document."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "SalaryTaxYear",
           "signature": "@dataclass(frozen=True)\nclass SalaryTaxYear",
           "doc": "The salaried rate table for one tax year (1 July to 30 June).",
@@ -1792,6 +1925,12 @@
               "type": "List[SalaryTaxSlab]",
               "default": null,
               "doc": ""
+            },
+            {
+              "name": "surcharge",
+              "type": "Optional[SalaryTaxSurcharge]",
+              "default": null,
+              "doc": "The section 4AB surcharge on salaried individuals for the year, or `None` for years before it existed (tax years up to 2024)."
             }
           ],
           "methods": []
@@ -1806,19 +1945,31 @@
               "name": "tax",
               "type": "float",
               "default": null,
-              "doc": "Tax for the year, in rupees, rounded half up to the paisa."
+              "doc": "Tax for the year from the rate table, in rupees, rounded half up to the paisa."
+            },
+            {
+              "name": "surcharge",
+              "type": "float",
+              "default": null,
+              "doc": "The section 4AB surcharge, rounded half up to the paisa. `0` unless `include_surcharge` is set and the year and income attract one."
+            },
+            {
+              "name": "total",
+              "type": "float",
+              "default": null,
+              "doc": "`tax + surcharge`: the year's total."
             },
             {
               "name": "monthly",
               "type": "float",
               "default": null,
-              "doc": "`tax / 12`, rounded half up to the paisa."
+              "doc": "`total / 12`, rounded half up to the paisa."
             },
             {
               "name": "effective_rate",
               "type": "float",
               "default": null,
-              "doc": "`tax` as a percent of the income, rounded half up to 2 decimals."
+              "doc": "`total` as a percent of the income, rounded half up to 2 decimals."
             },
             {
               "name": "slab",
@@ -1882,8 +2033,8 @@
         {
           "kind": "function",
           "name": "calculate_salary_tax",
-          "signature": "def calculate_salary_tax(\n    annual_income: Any,\n    *,\n    tax_year: Any = None,\n    date: Any = None,\n) -> Optional[SalaryTax]",
-          "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link get_salary_tax_slabs}).\n\n`annual_income` is the taxable income for the year in rupees, 0 to 1\ntrillion (at most 2 decimals count). `tax_year` (e.g. `2026`) takes\nprecedence over `date` (`YYYY-MM-DD` or a `datetime.date`, a day in\nthe tax year); with neither, the current tax year is used.\n\nThe rate table only: the surcharge, tax credits, exemptions, the separate\npension rate and withholding adjustments are not applied. Returns `None`\nfor an invalid amount or a tax year that is not covered. Never raises.\n\n```python\n>>> calculate_salary_tax(1_800_000, tax_year=2026).tax\n72000.0\n```",
+          "signature": "def calculate_salary_tax(\n    annual_income: Any,\n    *,\n    tax_year: Any = None,\n    date: Any = None,\n    include_surcharge: bool = False,\n) -> Optional[SalaryTax]",
+          "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link get_salary_tax_slabs}).\n\n`annual_income` is the taxable income for the year in rupees, 0 to 1\ntrillion (at most 2 decimals count). `tax_year` (e.g. `2026`) takes\nprecedence over `date` (`YYYY-MM-DD` or a `datetime.date`, a day in\nthe tax year); with neither, the current tax year is used.\n\nWith `include_surcharge=True` it adds the section 4AB surcharge: a\npercentage of the whole tax once taxable income exceeds Rs 10 million (10%\nin tax year 2025, 9% for salaried individuals in 2026, none in 2027 or\nbefore 2025). Because it applies to the whole tax, one rupee over Rs 10\nmillion adds it in full. It is off by default in 2.x so that existing\nresults do not change, and will be on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice. Returns `None` for an invalid amount or a tax year that is not\ncovered. Never raises.\n\n```python\n>>> calculate_salary_tax(1_800_000, tax_year=2026).tax\n72000.0\n>>> calculate_salary_tax(12_000_000, tax_year=2026, include_surcharge=True).total\n3685290.0\n```",
           "params": [
             {
               "name": "annual_income",
@@ -1902,6 +2053,12 @@
               "type": "Any",
               "default": "None",
               "keywordOnly": true
+            },
+            {
+              "name": "include_surcharge",
+              "type": "bool",
+              "default": "False",
+              "keywordOnly": true
             }
           ],
           "returns": {
@@ -1911,8 +2068,8 @@
         {
           "kind": "function",
           "name": "calculate_monthly_salary_tax",
-          "signature": "def calculate_monthly_salary_tax(\n    monthly_salary: Any,\n    *,\n    tax_year: Any = None,\n    date: Any = None,\n) -> Optional[SalaryTax]",
-          "doc": "{@link calculate_salary_tax} for a monthly salary: the income is\n`monthly_salary * 12`, and `monthly` is the tax to withhold each month.\n\n```python\n>>> calculate_monthly_salary_tax(150_000, tax_year=2026).monthly\n6000.0\n```",
+          "signature": "def calculate_monthly_salary_tax(\n    monthly_salary: Any,\n    *,\n    tax_year: Any = None,\n    date: Any = None,\n    include_surcharge: bool = False,\n) -> Optional[SalaryTax]",
+          "doc": "{@link calculate_salary_tax} for a monthly salary: the income is\n`monthly_salary * 12`, and `monthly` is the tax to withhold each month.\n`include_surcharge` adds the section 4AB surcharge, as there.\n\n```python\n>>> calculate_monthly_salary_tax(150_000, tax_year=2026).monthly\n6000.0\n```",
           "params": [
             {
               "name": "monthly_salary",
@@ -1930,6 +2087,12 @@
               "name": "date",
               "type": "Any",
               "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "include_surcharge",
+              "type": "bool",
+              "default": "False",
               "keywordOnly": true
             }
           ],
@@ -2081,7 +2244,7 @@
       "name": "pakdatakit.numbers",
       "import": "from pakdatakit.numbers import ...",
       "source": "python/src/pakdatakit/numbers.py",
-      "doc": "Landline, UAN, toll-free, premium and personal numbers.",
+      "doc": "Landline, UAN, toll-free and premium numbers.",
       "entries": [
         {
           "kind": "class",
@@ -2093,7 +2256,7 @@
               "name": "type",
               "type": "str",
               "default": null,
-              "doc": "`mobile`, `landline`, `uan`, `toll-free`, `premium` or `personal`."
+              "doc": "`mobile`, `landline`, `uan`, `toll-free` or `premium` (`personal` is never returned since 2.7.0: 0122 numbers have no PTA source)."
             },
             {
               "name": "formatted",
@@ -2126,7 +2289,7 @@
           "kind": "function",
           "name": "analyze_number",
           "signature": "def analyze_number(phone: str) -> Optional[NumberInfo]",
-          "doc": "Identifies and formats any Pakistani telephone number.\n\nHandles mobile, landline, UAN (`111`), toll-free (`0800`), premium-rate\n(`0900`) and personal (`0122`) numbers. Returns `None` if invalid.",
+          "doc": "Identifies and formats any Pakistani telephone number.\n\nHandles mobile, landline, UAN (`111`), toll-free (`0800`) and\npremium-rate (`0900`) numbers. 0122 numbers are not recognised: no PTA\ndocument lists them (see DATA.md). Returns `None` if invalid.",
           "params": [
             {
               "name": "phone",
@@ -2159,14 +2322,20 @@
         {
           "kind": "function",
           "name": "validate_landline",
-          "signature": "def validate_landline(phone: str) -> bool",
-          "doc": "Validates a landline (fixed-line) number such as `042-35761234`.",
+          "signature": "def validate_landline(phone: str, *, services: bool = False) -> bool",
+          "doc": "Validates a Pakistani landline (fixed-line) number such as `042-35761234`.\n\nWith `services=True` it also accepts the non-geographic service numbers a\nbusiness may give as its landline: UAN (`021-111-123-456`,\n`111-123-456`), toll-free (`0800-12345`) and premium rate\n(`0900-12345`); {@link analyze_number} tells them apart with its `type`\nfield. Returns `False` for a value that is not a string. Never raises.\n\n```python\n>>> validate_landline(\"042-35761234\")\nTrue\n>>> validate_landline(\"021-111-123-456\")\nFalse\n>>> validate_landline(\"021-111-123-456\", services=True)\nTrue\n```",
           "params": [
             {
               "name": "phone",
               "type": "str",
               "default": null,
               "keywordOnly": false
+            },
+            {
+              "name": "services",
+              "type": "bool",
+              "default": "False",
+              "keywordOnly": true
             }
           ],
           "returns": {
@@ -2767,6 +2936,12 @@
               "doc": "`True` when there are no errors."
             },
             {
+              "name": "kind",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "`p2p` for a person-to-person QR, `merchant` for a merchant QR, `None` when the text is not a Raast QR."
+            },
+            {
               "name": "errors",
               "type": "List[str]",
               "default": null,
@@ -2776,7 +2951,7 @@
               "name": "warnings",
               "type": "List[str]",
               "default": null,
-              "doc": "`amount-ignored` or `expires-soon`."
+              "doc": "`amount-ignored`, `expires-soon` or `no-iban` (a merchant QR that names no IBAN: it pays through the merchant's own scheme, so the payee can't be checked from the QR)."
             },
             {
               "name": "qr",
@@ -2944,7 +3119,7 @@
           "kind": "function",
           "name": "validate_raast_qr",
           "signature": "def validate_raast_qr(\n    payload: str,\n    *,\n    now: Optional[_dt.datetime] = None,\n    expires_soon_ms: Optional[Number] = None,\n) -> RaastQrValidation",
-          "doc": "Checks whether a Raast QR code can be paid.\n\nErrors: not a Pakistani payment QR, checksum mismatch, no IBAN or an\ninvalid IBAN, expired, or a fixed-amount QR without an expiry.\nWarnings: an amount in a static QR (apps ignore it), or a QR that expires\nwithin `expires_soon_ms` (default one hour) of `now` (default: the\ncurrent local time).",
+          "doc": "Checks whether a Raast QR code can be paid.\n\nErrors: not a Pakistani payment QR, checksum mismatch, a person-to-person\nQR with no IBAN, an invalid IBAN, expired, or a fixed-amount QR without an\nexpiry.\nWarnings: an amount in a static QR (apps ignore it), a QR that expires\nwithin `expires_soon_ms` (default one hour) of `now` (default: the\ncurrent local time), or a merchant QR with no IBAN (`no-iban`): merchant\nQRs may pay through the merchant's own scheme, so it is valid, but the\npayee can't be checked from the QR.\n\n`kind` is `p2p`, `merchant`, or `None` when the text is not a\nRaast QR.",
           "params": [
             {
               "name": "payload",
@@ -3428,6 +3603,23 @@
               "name": "direction",
               "type": "Any",
               "default": "'auto'",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "str"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "roman_urdu_key",
+          "signature": "def roman_urdu_key(text: Any) -> str",
+          "doc": "A phonetic key for Roman Urdu, so that different spellings of the same\nname or word match: `Mubeen` and `Mobeen`, `Muhammad`, `Mohammad`\nand `Muhammed`, `Rehman` and `Rahman`, `Chaudhry`, `Chaudhary`\nand `Chaudhery`. Compare keys, not the text.\n\nEach word keeps its consonants, its first vowel sound and a vowel sound at\nits end. Letters for one sound are merged (`kh`, `sh`, `ch`; `ph`\nand `f`; `q`, `c` and `k`; `v` and `w`; `th` and `t`,\n`dh` and `d`), doubled letters count once, `e` counts as `a`,\n`o` as `u`, and a final `h` after a vowel is dropped. Accents are\nremoved and anything other than Latin letters splits words. The key is not\nmeant to be shown: it is an opaque string.\n\nDifferent names can share a key (`Hamid` and `Hamad`), so treat a match\nas \"probably the same\", not proof. {@link normalize_roman_urdu} is a\ndifferent tool: it rewrites informal spellings into readable text.\n\nReturns the key, one part per word separated by spaces; `\"\"` for text\nwith no Latin letters or a value that is not a string. Never raises.\n\n```python\n>>> roman_urdu_key(\"Mubeen\") == roman_urdu_key(\"Mobeen\")\nTrue\n>>> roman_urdu_key(\"Muhammad Rehman\")\n'muhmd rahmn'\n>>> roman_urdu_key(\"Hussain\") == roman_urdu_key(\"Hassan\")\nFalse\n```",
+          "params": [
+            {
+              "name": "text",
+              "type": "Any",
+              "default": null,
               "keywordOnly": false
             }
           ],

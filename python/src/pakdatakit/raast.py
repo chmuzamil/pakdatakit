@@ -99,10 +99,15 @@ class RaastQrValidation:
 
     #: ``True`` when there are no errors.
     valid: bool
+    #: ``p2p`` for a person-to-person QR, ``merchant`` for a merchant QR,
+    #: ``None`` when the text is not a Raast QR.
+    kind: Optional[str]
     #: ``not-a-raast-qr``, ``bad-checksum``, ``no-iban``, ``invalid-iban``,
     #: ``expired`` or ``missing-expiry``.
     errors: List[str]
-    #: ``amount-ignored`` or ``expires-soon``.
+    #: ``amount-ignored``, ``expires-soon`` or ``no-iban`` (a merchant QR that
+    #: names no IBAN: it pays through the merchant's own scheme, so the payee
+    #: can't be checked from the QR).
     warnings: List[str]
     #: The parsed QR, or ``None`` if it could not be read.
     qr: Optional[ParsedRaastQr]
@@ -459,15 +464,21 @@ def validate_raast_qr(
 ) -> RaastQrValidation:
     """Checks whether a Raast QR code can be paid.
 
-    Errors: not a Pakistani payment QR, checksum mismatch, no IBAN or an
-    invalid IBAN, expired, or a fixed-amount QR without an expiry.
-    Warnings: an amount in a static QR (apps ignore it), or a QR that expires
+    Errors: not a Pakistani payment QR, checksum mismatch, a person-to-person
+    QR with no IBAN, an invalid IBAN, expired, or a fixed-amount QR without an
+    expiry.
+    Warnings: an amount in a static QR (apps ignore it), a QR that expires
     within ``expires_soon_ms`` (default one hour) of ``now`` (default: the
-    current local time).
+    current local time), or a merchant QR with no IBAN (``no-iban``): merchant
+    QRs may pay through the merchant's own scheme, so it is valid, but the
+    payee can't be checked from the QR.
+
+    ``kind`` is ``p2p``, ``merchant``, or ``None`` when the text is not a
+    Raast QR.
     """
     qr = parse_raast_qr(payload)
     if qr is None:
-        return RaastQrValidation(valid=False, errors=["not-a-raast-qr"], warnings=[], qr=None)
+        return RaastQrValidation(valid=False, kind=None, errors=["not-a-raast-qr"], warnings=[], qr=None)
 
     errors: List[str] = []
     warnings: List[str] = []
@@ -476,7 +487,11 @@ def validate_raast_qr(
     if not qr.crc_valid:
         errors.append("bad-checksum")
     if qr.iban is None:
-        errors.append("no-iban")
+        # A merchant QR may route through the merchant's scheme without an IBAN.
+        if qr.kind == "merchant":
+            warnings.append("no-iban")
+        else:
+            errors.append("no-iban")
     elif not qr.iban_valid:
         errors.append("invalid-iban")
 
@@ -495,4 +510,4 @@ def validate_raast_qr(
             elif remaining <= (3_600_000 if expires_soon_ms is None else expires_soon_ms):
                 warnings.append("expires-soon")
 
-    return RaastQrValidation(valid=len(errors) == 0, errors=errors, warnings=warnings, qr=qr)
+    return RaastQrValidation(valid=len(errors) == 0, kind=qr.kind, errors=errors, warnings=warnings, qr=qr)

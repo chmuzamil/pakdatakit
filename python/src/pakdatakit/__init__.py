@@ -19,7 +19,7 @@ from .bills import (
     validate_electricity_ref,
     validate_gas_consumer_number,
 )
-from .cnic import CNICInfo, get_cnic_info, validate_cnic
+from .cnic import CNICInfo, CNICMatch, MaskedText, find_cnics, get_cnic_info, mask_cnics, validate_cnic
 from .courier import Courier, CourierStatus, map_courier_status, normalize_city_for_courier
 from .data_version import DATA_VERSION, data_version
 from .fbr_invoice import (
@@ -63,6 +63,7 @@ from .iban import BankInfo, get_bank_from_iban, get_bank_info, get_banks, valida
 from .incometax import (
     SalaryTax,
     SalaryTaxSlab,
+    SalaryTaxSurcharge,
     SalaryTaxYear,
     calculate_monthly_salary_tax,
     calculate_salary_tax,
@@ -132,6 +133,7 @@ from .text import (
     is_rtl,
     normalize_roman_urdu,
     normalize_text,
+    roman_urdu_key,
     slugify,
     to_english_digits,
     to_urdu_digits,
@@ -141,7 +143,7 @@ from .vehicle import VehiclePlate, parse_vehicle_plate, validate_vehicle_plate
 from .whatsapp import create_whatsapp_link
 from .words import amount_in_words, number_to_words
 
-__version__ = "2.6.0"
+__version__ = "2.7.0"
 
 __all__ = [
     "__version__",
@@ -151,6 +153,10 @@ __all__ = [
     "CNICInfo",
     "validate_cnic",
     "get_cnic_info",
+    "CNICMatch",
+    "find_cnics",
+    "MaskedText",
+    "mask_cnics",
     # phone
     "PhoneAnalysis",
     "validate_phone",
@@ -202,6 +208,7 @@ __all__ = [
     # text
     "normalize_text",
     "normalize_roman_urdu",
+    "roman_urdu_key",
     "to_urdu_digits",
     "to_english_digits",
     "SlugScript",
@@ -239,6 +246,7 @@ __all__ = [
     "split_inclusive",
     # income tax on salary
     "SalaryTaxSlab",
+    "SalaryTaxSurcharge",
     "SalaryTaxYear",
     "SalaryTax",
     "get_salary_tax_slabs",

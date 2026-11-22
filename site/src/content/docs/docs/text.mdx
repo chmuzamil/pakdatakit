@@ -6,9 +6,9 @@ description: URL slugs that keep Urdu letters, Urdu alphabetical sorting, right-
 import LangTabs from '../../../components/LangTabs.astro';
 import TextWidget from '../../../components/widgets/TextWidget.tsx';
 
-`import { slugify, compareUrdu, isRTL, wrapBidi, toUrduDigits, toEnglishDigits, normalizeText, normalizeRomanUrdu } from 'pakdatakit/text'`
+`import { slugify, compareUrdu, isRTL, wrapBidi, toUrduDigits, toEnglishDigits, normalizeText, normalizeRomanUrdu, romanUrduKey } from 'pakdatakit/text'`
 
-Small helpers for text that mixes Urdu and English: slugs that keep Urdu letters as they are, sorting in Urdu alphabetical order, telling whether text reads right to left, isolating an English order number inside an Urdu sentence, and switching between Urdu digits (<span lang="ur" dir="rtl">۰–۹</span>) and English digits (0–9).
+Small helpers for text that mixes Urdu and English: slugs that keep Urdu letters as they are, sorting in Urdu alphabetical order, telling whether text reads right to left, isolating an English order number inside an Urdu sentence, switching between Urdu digits (<span lang="ur" dir="rtl">۰–۹</span>) and English digits (0–9), and matching different Roman Urdu spellings of the same name.
 
 <TextWidget client:visible />
 
@@ -113,6 +113,22 @@ function normalizeRomanUrdu(text: string): string;
 **Returns** the text with common informal Roman Urdu spellings changed to a preferred form (`kia` → `kya`, `ap` → `aap`, `shukria` → `shukriya`, `nhi` → `nahi` and a few more). It also applies [`normalizeText()`](#normalizetext) and changes Urdu and Arabic-Indic digits to English.
 
 **Caveats.** Only unambiguous variants are changed: words like `men`/`mein` ("in") and `main` ("I") are left alone, because rewriting them changes the meaning. A capitalized word keeps its capital; all-caps words (acronyms such as `AP`) are left unchanged.
+
+### romanUrduKey()
+
+```ts
+function romanUrduKey(text: string): string;
+```
+
+**Returns** a phonetic key, one part per word, so that different Roman Urdu spellings of a name match: `Mubeen` and `Mobeen`; `Muhammad`, `Mohammad` and `Muhammed`; `Rehman` and `Rahman`; `Chaudhry`, `Chaudhary` and `Chaudhery`. Compare keys, not text: `romanUrduKey(a) === romanUrduKey(b)`. The key is an opaque string, not meant to be shown. It returns `''` for text with no Latin letters and never throws.
+
+**How it works.** Each word keeps its consonants, its first vowel sound and a vowel sound at its end. Letters for one sound are merged (`kh`, `sh`, `ch`; `ph` and `f`; `q`, `c` and `k`; `v` and `w`; `th` and `t`; `dh` and `d`), doubled letters count once, `e` counts as `a` and `o` as `u`, `ee` and a word-initial `e` count as `i` (`Zeeshan`, `Ebrahim`), and a final `h` after a vowel is dropped (`Fatimah`).
+
+**Caveats.**
+
+- On a list of 277 spellings of 118 common Pakistani given names and surnames, 96.8% of pairs of spellings of the same name share a key, and 0.021% of pairs of different names do (8 of 38,004 pairs, all from Sajid and Sajjad, and Amna and Amina). Treat a match as "probably the same", not proof.
+- Some real variants don't match, such as `Zeshan` and `Zishan`, or `Zenab` and `Zainab`.
+- [`normalizeRomanUrdu()`](#normalizeromanurdu) is a different tool and is unchanged: it rewrites informal spellings into readable text.
 
 ## Related
 

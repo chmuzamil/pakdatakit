@@ -44,12 +44,22 @@ public static class PakRuleBuilderExtensions
     public static IRuleBuilderOptions<T, string?> IsStrn<T>(this IRuleBuilder<T, string?> rule) =>
         Rule(rule, Tax.ValidateStrn, "'{PropertyName}' is not a valid STRN.");
 
-    /// <summary>Requires a valid Pakistani landline number, using <see cref="Numbers.ValidateLandline"/>.</summary>
+    /// <summary>
+    /// Requires a valid Pakistani landline number, using
+    /// <see cref="Numbers.ValidateLandline(string?, bool)"/>. With
+    /// <c>services: true</c> it also accepts UAN, toll-free and premium-rate
+    /// numbers.
+    /// </summary>
     /// <typeparam name="T">Type being validated.</typeparam>
     /// <param name="rule">The rule builder.</param>
+    /// <param name="services"><c>true</c> to also accept UAN, toll-free and premium-rate numbers.</param>
     /// <returns>The rule builder, for chaining.</returns>
-    public static IRuleBuilderOptions<T, string?> IsPakLandline<T>(this IRuleBuilder<T, string?> rule) =>
-        Rule(rule, Numbers.ValidateLandline, "'{PropertyName}' is not a valid Pakistani landline number.");
+    public static IRuleBuilderOptions<T, string?> IsPakLandline<T>(
+        this IRuleBuilder<T, string?> rule, bool services = false) =>
+        Rule(
+            rule,
+            value => Numbers.ValidateLandline(value, services),
+            "'{PropertyName}' is not a valid Pakistani landline number.");
 
     /// <summary>
     /// Requires a Pakistani passport number in the common format, using

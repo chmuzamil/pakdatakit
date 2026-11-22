@@ -34,7 +34,7 @@ const MODULES = [
   [
     'cnic',
     'cnic',
-    'Validate CNICs; read province of registration and gender (validateCNIC, getCNICInfo)',
+    'Validate CNICs; read province of registration and gender; find and mask CNICs in free text (validateCNIC, getCNICInfo, findCNICs, maskCNICs)',
   ],
   [
     'phone',
@@ -45,7 +45,7 @@ const MODULES = [
   [
     'numbers',
     'numbers',
-    'Landline, UAN 111, toll-free 0800, premium 0900 numbers, area codes (analyzeNumber, getAreaCode)',
+    'Landline, UAN 111, toll-free 0800, premium 0900 numbers per the PTA numbering plan, area codes (analyzeNumber, validateLandline with services, getAreaCode)',
   ],
   ['whatsapp', 'whatsapp', 'WhatsApp click-to-chat links (createWhatsAppLink)'],
   [
@@ -96,7 +96,7 @@ const MODULES = [
   [
     'text',
     'text',
-    'Roman Urdu normalization and Urdu digits (normalizeRomanUrdu, toUrduDigits)',
+    'Roman Urdu normalization and phonetic keys for name spellings, Urdu digits, slugs, sorting and bidi (normalizeRomanUrdu, romanUrduKey, toUrduDigits, slugify, compareUrdu, wrapBidi)',
   ],
   [
     'hijri',
@@ -122,7 +122,7 @@ const MODULES = [
   [
     'incometax',
     'incometax',
-    'Income tax on salary, tax years 2020 to 2027 (calculateSalaryTax, calculateMonthlySalaryTax, getSalaryTaxSlabs, getSalaryTaxYears, getTaxYear)',
+    'Income tax on salary, tax years 2020 to 2027, with the section 4AB surcharge on request (calculateSalaryTax with includeSurcharge, calculateMonthlySalaryTax, getSalaryTaxSlabs, getSalaryTaxYears, getTaxYear)',
   ],
   [
     'fbr-invoice',

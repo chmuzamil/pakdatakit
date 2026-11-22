@@ -7,7 +7,7 @@ extracted CSV files in `data/sources/` and read by the generator: Pakistan
 Post's post code directory and the 2023 census's administrative units. The exported `dataVersion` is the
 date the data was last checked.
 
-**Data version: 2026-11-18**
+**Data version: 2026-11-22**
 
 The datasets were audited against official sources on 16 November 2026;
 [AUDIT.md](AUDIT.md) has the findings, the fixes made and what is still open.
@@ -132,6 +132,30 @@ plan with the same districts.
 - PTCL's own list differs for Azad Jammu and Kashmir (Muzaffarabad "58",
   Kotli "574") and has no Mirpur or Gilgit entry. The ITU plan is the newer
   list from PTA, so it is followed.
+- **Non-geographic numbers** (since 2.7.0), from PTA's documents only:
+  - **UAN**: an area code, then `111` and six digits, 11 to 13 digits in all
+    ("National Universal Access Number" in the ITU plan of 9 November 2021,
+    page 1). Written without the area code (`111-123-456`), as UANs are
+    advertised, it is accepted with `e164: null`.
+  - **Toll-free**: `800` and five digits, 8 in all ("National Toll Free
+    Number", same page). Before 2.7.0 an 8-digit form taken from
+    libphonenumber was also accepted; PTA's plan does not list it, so it is
+    now rejected.
+  - **Premium rate**: `0900` and five digits. The 2021 plan does not list
+    0900; PTA's National Numbering Plan 2008 (Consultation Paper, final
+    version, 25 June 2008, section 9.1.4,
+    https://www.pta.gov.pk/assets/media/nnp_08_final.pdf, retrieved
+    2026-11-22) gives this as the "current structure". The 6-digit form in
+    the same paper was a proposal.
+  - **Personal (`0122`)**: seen in use, no PTA source, not supported
+    (decided 2026-11-22). libphonenumber lists `0122` as personal numbers,
+    but neither PTA's 2021 plan nor its 2008 paper does, so since 2.7.0
+    `analyzeNumber` returns `null` for them and `validateLandline` rejects
+    them with or without `services`. The `personal` number type is kept so
+    existing code compiles, is never returned, and will be removed in 3.0.
+  - The 2008 paper's own text gives `0800` and `111` other lengths (six and
+    seven digits) as proposals; the 2021 plan, which is newer and was sent
+    to the ITU, is followed.
 - **Number lengths** are not taken from the ITU plan (its length table could
   not be read reliably). The patterns in `numbers.ts` come from
   libphonenumber's PK metadata (v9.0.41), which already accepted numbers in
@@ -413,14 +437,66 @@ How sure we are, and what is left out:
   table was also checked against the Finance Act, 2026 as gazetted and FBR
   Circular No. 02 of 2026-27. For earlier years the Finance Act texts
   (Gazette) were not read; FBR's consolidations are the source.
-- **Not applied** (out of scope): the surcharge under section 4AB (from tax
-  year 2025: 10% of the tax over Rs 10 million of taxable income; 9% for
-  salaried individuals in 2026; none for salaried individuals in 2027), tax
-  credits, exemptions, the separate rate for pension from a former employer
-  (2026 onwards: 0% up to Rs 10 million, 5% above), and withholding
-  adjustments.
+- **Not applied** (out of scope): tax credits, exemptions, the separate
+  rate for pension from a former employer (2026 onwards: 0% up to Rs 10
+  million, 5% above), super tax under section 4C, and withholding
+  adjustments. The section 4AB surcharge is applied on request; see below.
 - Tax is rounded half up to the paisa; the Ordinance's own rounding to whole
   rupees is left to the caller.
+
+### Surcharge under section 4AB (`surcharge` in `income-tax-slabs.json`)
+
+Since 2.7.0 each tax year carries the section 4AB surcharge, which
+`calculateSalaryTax` adds with `includeSurcharge: true` (off by default in
+2.x). The section's wording, the same in every version: a surcharge "at the
+rate of ten percent of the income tax imposed under Division I of Part I of
+the First Schedule where the taxable income exceeds rupees ten million". It
+is a percentage of the whole tax from the rate table, not of the tax on the
+income above Rs 10 million, so one rupee over the threshold adds it in full
+(there is no marginal relief in the section). All documents retrieved
+2026-11-22.
+
+| Tax year  | Salaried rate | Law                                                                                                                                                                                                                                                             | Source                                                                                                   |
+| --------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 2020–2024 | none          | Section 4AB did not exist (it is absent from FBR's consolidated Ordinance amended up to 30.06.2023)                                                                                                                                                             | https://download1.fbr.gov.pk/Docs/202412215122448762IncomeTaxOrdinance,2001Amendedupto30.06.2023.pdf     |
+| 2025      | 10%           | Finance Act 2024, s. 8(2), Gazette of Pakistan (Extraordinary), 30 June 2024, p. 279: inserts section 4AB; in force 1 July 2024 (s. 1(2))                                                                                                                       | https://download1.fbr.gov.pk/Docs/2024630146346801FinanceAct-2024.pdf                                    |
+| 2026      | 9%            | Finance Act 2025: adds the proviso "in case of an individual deriving income chargeable under the head Salary, a surcharge shall be payable at the rate of nine percent", per FBR's consolidated Ordinance amended up to 31.07.2025 (footnote 5 to section 4AB) | https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf |
+| 2027      | none          | Finance Act 2026, s. 5(2)(b): the proviso now reads "no surcharge shall be payable"                                                                                                                                                                             | https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf                                    |
+
+Supporting FBR documents:
+
+- **Circular No. 01 of 2025-26 (Income Tax)**, C. No. 4(32) IT-Budget/2025,
+  2 August 2025, page 3: the employer collects the "surcharge, if applicable
+  under the provision of section 4AB, at the rate of 9%"
+  (https://download1.fbr.gov.pk/Docs/2025841183918948CircularNo01of2025-26IncomeTax.pdf).
+- **Circular No. 02 of 2026-27 (Income Tax)**, 8 September 2026, paragraph
+  8: the nine percent surcharge on salaried individuals is withdrawn, and the
+  ten percent surcharge on other individuals and associations of persons
+  continues (https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf).
+- **FBR's consolidated Ordinance (2026)** prints section 4AB with the 2026
+  proviso and footnotes for each amendment
+  (https://download1.fbr.gov.pk/Docs/2026724177725705IncomeTaxOrdinanace2001.pdf).
+
+How sure we are:
+
+- **Verified** from the section's text in each consolidation and, for 2025
+  and 2027, from the Finance Act as gazetted. The Finance Act 2025 itself
+  was not read: FBR's budget pages returned HTTP 403 on 2026-11-22. The 9%
+  rate for 2026 rests on FBR's consolidation and Circular No. 01 of 2025-26.
+- **Only salaried individuals are covered**, because only the salaried rate
+  table is: the 10% rate for other individuals and associations of persons
+  is not applied.
+- The surcharge is rounded half up to the paisa, like the tax.
+
+## Roman Urdu name spellings (`data/sources/roman-urdu-names.json`)
+
+Not used by the library at run time: a test list for `romanUrduKey`. It
+groups everyday spellings of 118 common Pakistani given names and surnames
+(277 spellings), compiled for PakDataKit's tests from common usage; it is
+not an official list. In 2.7.0, 96.8% of pairs of spellings of the same name
+share a key, and 8 of 38,004 pairs of different names (0.021%) do, all from
+two close pairs: Sajid and Sajjad, and Amna and Amina. The test suite fails
+if these rates get worse than 95% and 0.05%.
 
 ## Urdu alphabetical order (no dataset)
 

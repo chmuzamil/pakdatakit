@@ -14,20 +14,35 @@ use Illuminate\Validation\Validator;
  */
 final class PakDataKitServiceProvider extends ServiceProvider
 {
-    /** Rule name to the PakDataKit check behind it. */
+    /**
+     * Rule name to the PakDataKit check behind it. Each check gets the value
+     * and the rule's parameters (`pk_landline:services` gives `['services']`).
+     */
     public const RULES = [
         'pk_cnic' => [\PakDataKit\Cnic::class, 'validate'],
         'pk_phone' => [\PakDataKit\Phone::class, 'validate'],
         'pk_iban' => [\PakDataKit\Iban::class, 'validate'],
         'pk_ntn' => [\PakDataKit\Tax::class, 'validateNtn'],
         'pk_strn' => [\PakDataKit\Tax::class, 'validateStrn'],
-        'pk_landline' => [\PakDataKit\Numbers::class, 'validateLandline'],
+        'pk_landline' => [self::class, 'isLandline'],
         'pk_passport' => [\PakDataKit\Passport::class, 'validate'],
         'pk_vehicle_plate' => [\PakDataKit\VehiclePlate::class, 'validate'],
         'pk_electricity_ref' => [\PakDataKit\Bills::class, 'validateElectricityRef'],
         'pk_cod_phone' => [self::class, 'isCodPhone'],
         'pk_amount' => [self::class, 'isAmount'],
     ];
+
+    /**
+     * Passes for a landline number (Numbers::validateLandline()). With the
+     * `services` parameter (`pk_landline:services`) it also accepts UAN,
+     * toll-free and premium-rate numbers.
+     *
+     * @param list<string> $parameters The rule's parameters
+     */
+    public static function isLandline(string $value, array $parameters = []): bool
+    {
+        return \PakDataKit\Numbers::validateLandline($value, services: in_array('services', $parameters, true));
+    }
 
     /** Passes when Quality::phoneRiskSignals() finds nothing: a mobile number a courier can call. */
     public static function isCodPhone(string $value): bool
@@ -57,7 +72,8 @@ final class PakDataKitServiceProvider extends ServiceProvider
             foreach (self::RULES as $rule => $check) {
                 $factory->extend(
                     $rule,
-                    static fn (string $attribute, mixed $value): bool => is_string($value) && $check($value),
+                    static fn (string $attribute, mixed $value, array $parameters = []): bool => is_string($value)
+                        && $check($value, $parameters),
                 );
                 // If the application has no `validation.{rule}` line of its
                 // own, use this package's message in the current locale.

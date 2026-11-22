@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.7.0
+
+Minor release: new features and one accuracy fix behind an option. Every
+port gives the same results on the shared test vectors (35,000+, about 1,800
+new).
+
+### Added
+
+- **Salary tax surcharge.** `calculate_salary_tax()` and `calculate_monthly_salary_tax()` take `include_surcharge` and return `surcharge` and `total`; `get_salary_tax_slabs()` gives each year's `SalaryTaxSurcharge` (`None` before 2025). The section 4AB surcharge
+  is a percentage of the whole tax once taxable income exceeds Rs 10
+  million: 10% in tax year 2025, 9% for salaried individuals in 2026, and
+  none in 2027 or before 2025. The option is off by default in 2.x, so
+  existing results don't change; it will be on by default in 3.0.
+- **Service numbers as landlines.** `validate_landline(phone, services=True)` also accepts UAN,
+  toll-free and premium-rate numbers.
+- **CNICs in free text.** `find_cnics(text)` returns `CNICMatch` objects (`raw`, `digits`, `formatted`, `start`, `end`; offsets in code points); `mask_cnics(text, mask='X')` returns `MaskedText(text, count)`. Pattern matches: other 13-digit
+  numbers starting with 1-8 also match; CNIC validation stays strict.
+- **Phonetic keys for Roman Urdu names**: `roman_urdu_key(text)`, so that `Mubeen` and
+  `Mobeen`, or `Rehman` and `Rahman`, match.
+- **Raast**: `validate_raast_qr()` returns `kind`.
+
+### Changed
+
+- `0122` numbers are no longer recognised: they are seen in use, but no PTA
+  document lists them. `analyze_number()` now returns `None` for them; the
+  `personal` type is never returned.
+- Toll-free numbers follow PTA's numbering plan: `0800` and five digits; the
+  8-digit form is no longer accepted.
+- A merchant Raast QR without an IBAN is valid with the warning `no-iban`; a
+  person-to-person QR without an IBAN is still an error.
+
 ## 2.6.0
 
 Minor release: one new feature. Every port gives the same results on the

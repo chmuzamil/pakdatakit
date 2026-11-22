@@ -178,7 +178,7 @@ import { pk } from 'pakdatakit/superstruct';
 const CheckoutForm = object({ cnic: pk.cnic(), phone: optional(pk.phone()) });
 ```
 
-Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()` and `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags). Every factory accepts `{ message }` to replace the default error. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
+Available schemas: `pk.cnic()`, `pk.phone()`, `pk.iban()`, `pk.ntn()`, `pk.strn()`, `pk.landline()`, `pk.passport()`, `pk.vehiclePlate()`, `pk.codPhone()` (a mobile number with no `phoneRiskSignals` flags) and `pk.amount()` (an amount `parseAmount()` reads, such as `1.5 lakh`). Every factory accepts `{ message }` to replace the default error, and `pk.landline({ services: true })` also accepts UAN, toll-free and premium-rate numbers. The Yup schemas let empty values pass so `.required()` decides whether a field is mandatory.
 
 ### class-validator and NestJS
 
@@ -201,7 +201,7 @@ export class CreateCustomerDto {
 }
 ```
 
-Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline`, `IsPakPassport`, `IsVehiclePlate` and `IsCodPhone`. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
+Decorators: `IsCNIC`, `IsPakPhone`, `IsPakIBAN` (named so it doesn't clash with class-validator's own `IsIBAN`), `IsNTN`, `IsSTRN`, `IsPakLandline` (with `{ services: true }` for UAN, toll-free and premium numbers), `IsPakPassport`, `IsVehiclePlate`, `IsCodPhone` and `IsPakAmount`. They accept class-validator's options (`message`, `groups`, `each`, `always`); use `@IsOptional()` for optional fields. Values that are not strings fail.
 
 ## Related
 

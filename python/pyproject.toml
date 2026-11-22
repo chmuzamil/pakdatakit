@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pakdatakit"
-version = "2.6.0"
+version = "2.7.0"
 description = "Pakistani data utilities for Python: validate CNIC, mobile, IBAN, NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, mobile networks, postal codes, districts, holidays, Hijri dates and amounts in words. No dependencies; gives the same results as the pakdatakit npm package."
 readme = "README.md"
 license = "MIT"

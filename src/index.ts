@@ -1,4 +1,13 @@
-export { validateCNIC, getCNICInfo, type CNICInfo } from './cnic.js';
+export {
+  validateCNIC,
+  getCNICInfo,
+  findCNICs,
+  maskCNICs,
+  type CNICInfo,
+  type CNICMatch,
+  type MaskCNICsOptions,
+  type MaskedText,
+} from './cnic.js';
 export {
   validatePhone,
   formatPhone,
@@ -50,6 +59,7 @@ export { parseAddress, formatAddress, type ParsedAddress } from './address.js';
 export {
   normalizeText,
   normalizeRomanUrdu,
+  romanUrduKey,
   toUrduDigits,
   toEnglishDigits,
   slugify,
@@ -188,6 +198,7 @@ export {
   type SalaryTax,
   type SalaryTaxOptions,
   type SalaryTaxSlab,
+  type SalaryTaxSurcharge,
   type SalaryTaxYear,
 } from './incometax.js';
 export { dataVersion } from './data-version.js';

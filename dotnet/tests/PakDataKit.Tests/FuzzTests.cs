@@ -106,6 +106,7 @@ public sealed class FuzzTests
             "Quality.ScoreAddress", "Quality.PhoneRiskSignals", "Bills.ParseElectricityRef",
             "Bills.ValidateElectricityRef", "Courier.MapStatus", "Courier.NormalizeCity",
             "Text.Slugify", "Text.CompareUrdu", "Text.IsRtl", "Text.WrapBidi", "IncomeTax.GetTaxYear",
+            "Cnic.FindAll", "Cnic.Mask", "Text.RomanUrduKey",
         })
         {
             Assert.Contains(expected, names);
@@ -191,6 +192,21 @@ public sealed class FuzzTests
                 City = "Lahore",
             },
             out _));
+    }
+
+    [Fact]
+    public void TextScannersHandleHostileInput()
+    {
+        foreach (var input in Hostile)
+        {
+            var found = Cnic.FindAll(input);
+            var masked = Cnic.Mask(input, "*");
+            Assert.Equal(found.Count, masked.Count);
+            Assert.Equal(input?.Length ?? 0, masked.Text.Length);
+            Assert.False(Numbers.ValidateLandline(input, services: true));
+            var key = Text.RomanUrduKey(input);
+            Assert.Matches("^(?:[a-z]+(?: [a-z]+)*)?$", key);
+        }
     }
 
     [Fact]

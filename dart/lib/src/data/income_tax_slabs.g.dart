@@ -84,6 +84,7 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': null,
   },
   <String, Object?>{
     'taxYear': 2021,
@@ -167,6 +168,7 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': null,
   },
   <String, Object?>{
     'taxYear': 2022,
@@ -250,6 +252,7 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': null,
   },
   <String, Object?>{
     'taxYear': 2023,
@@ -303,6 +306,7 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': null,
   },
   <String, Object?>{
     'taxYear': 2024,
@@ -350,6 +354,7 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': null,
   },
   <String, Object?>{
     'taxYear': 2025,
@@ -397,6 +402,14 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': <String, Object?>{
+      'rate': 10,
+      'over': 10000000,
+      'law':
+          'Income Tax Ordinance 2001, s. 4AB, inserted by the Finance Act 2024, s. 8(2): 10% of the tax under Division I where taxable income exceeds Rs 10 million',
+      'source':
+          'https://download1.fbr.gov.pk/Docs/2024630146346801FinanceAct-2024.pdf',
+    },
   },
   <String, Object?>{
     'taxYear': 2026,
@@ -444,6 +457,14 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': <String, Object?>{
+      'rate': 9,
+      'over': 10000000,
+      'law':
+          'Income Tax Ordinance 2001, s. 4AB, proviso added by the Finance Act 2025: 9% for an individual with income under the head Salary, where taxable income exceeds Rs 10 million',
+      'source':
+          'https://download1.fbr.gov.pk/Docs/2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-31.07.2025.pdf',
+    },
   },
   <String, Object?>{
     'taxYear': 2027,
@@ -503,5 +524,13 @@ const List<Object?> incomeTaxSlabsJson = <Object?>[
         'rate': 35,
       },
     ],
+    'surcharge': <String, Object?>{
+      'rate': 0,
+      'over': 10000000,
+      'law':
+          'Income Tax Ordinance 2001, s. 4AB, proviso substituted by the Finance Act 2026, s. 5(2)(b): no surcharge for an individual with income under the head Salary',
+      'source':
+          'https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf',
+    },
   },
 ];

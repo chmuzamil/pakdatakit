@@ -5,7 +5,7 @@ function schema(name: RuleName) {
   const rule = RULES[name];
   return (options: AdapterOptions = {}) =>
     Joi.string().custom((value: string, helpers) =>
-      rule.test(value)
+      rule.test(value, options)
         ? value
         : helpers.message({ custom: options.message ?? rule.message }),
     );

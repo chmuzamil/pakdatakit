@@ -172,6 +172,27 @@ final class LaravelTest extends TestCase
         );
     }
 
+    public function testLandlineAcceptsServiceNumbersWithTheServicesOption(): void
+    {
+        foreach (['021-111-123-456', '111-123-456', '0800-78686', '0900 12345'] as $number) {
+            $data = ['landline' => $number];
+            self::assertTrue(Validator::make($data, ['landline' => 'pk_landline'])->fails(), $number);
+            self::assertTrue(Validator::make($data, ['landline' => [new Rules\Landline()]])->fails(), $number);
+            self::assertTrue(Validator::make($data, ['landline' => 'pk_landline:services'])->passes(), $number);
+            self::assertTrue(Validator::make($data, ['landline' => [new Rules\Landline(services: true)]])->passes(), $number);
+        }
+        foreach (['042-35761234', '+92 42 35761234'] as $number) {
+            self::assertTrue(Validator::make(['landline' => $number], ['landline' => 'pk_landline:services'])->passes(), $number);
+        }
+        foreach (['0300-1234567', '0122 123456'] as $number) {
+            self::assertSame(
+                ['The landline field must be a valid Pakistani landline number.'],
+                Validator::make(['landline' => $number], ['landline' => 'pk_landline:services'])->errors()->all(),
+            );
+            self::assertTrue(Validator::make(['landline' => $number], ['landline' => [new Rules\Landline(services: true)]])->fails());
+        }
+    }
+
     public function testElectricityRefAcceptsEveryBillIdentifier(): void
     {
         foreach (['01141111234567', '01-14111-1234567u', '1234567890', '12345678901', '0400012345678'] as $ref) {

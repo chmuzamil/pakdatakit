@@ -44,14 +44,15 @@ describe('analyzeNumber', () => {
     });
   });
 
-  it('identifies toll-free, premium and personal numbers', () => {
+  it('identifies toll-free and premium numbers, but not 0122', () => {
     expect(analyzeNumber('0800-12345')).toMatchObject({
       type: 'toll-free',
       formatted: '0800-12345',
       e164: '+9280012345',
     });
     expect(analyzeNumber('0900 12345')?.type).toBe('premium');
-    expect(analyzeNumber('0122 044444')?.type).toBe('personal');
+    // 0122 has no PTA source, so it is not recognised since 2.7.0.
+    expect(analyzeNumber('0122 044444')).toBeNull();
   });
 
   it('identifies mobiles', () => {
@@ -69,13 +70,18 @@ describe('analyzeNumber', () => {
     expect(getNumberType('0210123456')).toBeNull();
   });
 
+  it("follows PTA's plan for toll-free numbers: 0800 and five digits", () => {
+    expect(getNumberType('0800-78686')).toBe('toll-free');
+    // libphonenumber also accepts eight digits; PTA's plan does not.
+    expect(getNumberType('080012345678')).toBeNull();
+    expect(getNumberType('0800-1234')).toBeNull();
+  });
   it('agrees with libphonenumber on number types', () => {
     const expected: Record<string, string> = {
       FIXED_LINE: 'landline',
       MOBILE: 'mobile',
       TOLL_FREE: 'toll-free',
       PREMIUM_RATE: 'premium',
-      PERSONAL_NUMBER: 'personal',
       UAN: 'uan',
     };
     const samples = [
@@ -88,9 +94,7 @@ describe('analyzeNumber', () => {
       '021111825888',
       '051111123456',
       '080012345',
-      '080012345678',
       '090012345',
-      '0122044444',
       '03001234567',
       '03451234567',
     ];

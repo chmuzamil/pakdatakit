@@ -95,7 +95,8 @@ enum RaastQrError {
   /// The CRC does not match: the QR is damaged or was edited.
   badChecksum('bad-checksum'),
 
-  /// No IBAN in the QR.
+  /// No IBAN in a person-to-person QR. (A merchant QR with no IBAN gets the
+  /// [RaastQrWarning.noIban] warning instead.)
   noIban('no-iban'),
 
   /// The IBAN fails its checksum.
@@ -122,7 +123,11 @@ enum RaastQrWarning {
   amountIgnored('amount-ignored'),
 
   /// The QR expires soon.
-  expiresSoon('expires-soon');
+  expiresSoon('expires-soon'),
+
+  /// A merchant QR that names no IBAN: it pays through the merchant's own
+  /// scheme, so the payee can't be checked from the QR.
+  noIban('no-iban');
 
   const RaastQrWarning(this.value);
 
@@ -308,6 +313,7 @@ class RaastQrValidation {
   /// Creates a validation result.
   const RaastQrValidation({
     required this.valid,
+    this.kind,
     required this.errors,
     required this.warnings,
     required this.qr,
@@ -315,6 +321,10 @@ class RaastQrValidation {
 
   /// `true` when there are no errors.
   final bool valid;
+
+  /// [RaastQrKind.p2p] for a person-to-person QR, [RaastQrKind.merchant] for
+  /// a merchant QR, `null` when the text is not a Raast QR.
+  final RaastQrKind? kind;
 
   /// Problems that stop payment.
   final List<RaastQrError> errors;
@@ -328,6 +338,7 @@ class RaastQrValidation {
   /// JSON form, with the same keys as the npm package.
   Map<String, Object?> toJson() => {
         'valid': valid,
+        'kind': kind?.value,
         'errors': [for (final error in errors) error.value],
         'warnings': [for (final warning in warnings) warning.value],
         'qr': qr?.toJson(),
@@ -337,13 +348,14 @@ class RaastQrValidation {
   bool operator ==(Object other) =>
       other is RaastQrValidation &&
       other.valid == valid &&
+      other.kind == kind &&
       listEquals(other.errors, errors) &&
       listEquals(other.warnings, warnings) &&
       other.qr == qr;
 
   @override
   int get hashCode =>
-      Object.hash(valid, listHash(errors), listHash(warnings), qr);
+      Object.hash(valid, kind, listHash(errors), listHash(warnings), qr);
 
   @override
   String toString() => 'RaastQrValidation${toJson()}';
@@ -730,12 +742,24 @@ DateTime _localDateTime(String value) {
 /// screen or to warn about a tampered sticker.
 ///
 /// Errors: not a Pakistani payment QR, checksum mismatch (damaged or edited),
-/// no IBAN or an IBAN that fails its checksum, expired, or a fixed-amount QR
-/// without the expiry that banking apps require.
+/// a person-to-person QR with no IBAN, an IBAN that fails its checksum,
+/// expired, or a fixed-amount QR without the expiry that banking apps
+/// require.
 ///
 /// Warnings: an amount in a static QR (apps ignore it, so the payer must
-/// type it), or a QR that expires within [expiresSoonMs] milliseconds (an
-/// hour by default) of [now] (defaults to [DateTime.now]).
+/// type it), a QR that expires within [expiresSoonMs] milliseconds (an hour
+/// by default) of [now] (defaults to [DateTime.now]), or a merchant QR with
+/// no IBAN ([RaastQrWarning.noIban]): merchant QRs may pay through the
+/// merchant's own scheme, so it is valid, but the payee can't be checked
+/// from the QR.
+///
+/// The result's `kind` says whether the QR is person-to-person or a
+/// merchant QR (`null` when it is not a Raast QR).
+///
+/// ```dart
+/// validateRaastQr(scannedText);
+/// // valid: false, kind: p2p, errors: [expired], warnings: [], qr: ...
+/// ```
 RaastQrValidation validateRaastQr(
   String payload, {
   DateTime? now,
@@ -757,7 +781,12 @@ RaastQrValidation validateRaastQr(
 
   if (!qr.crcValid) errors.add(RaastQrError.badChecksum);
   if (qr.iban == null) {
-    errors.add(RaastQrError.noIban);
+    // A merchant QR may route through the merchant's scheme without an IBAN.
+    if (qr.kind == RaastQrKind.merchant) {
+      warnings.add(RaastQrWarning.noIban);
+    } else {
+      errors.add(RaastQrError.noIban);
+    }
   } else if (!qr.ibanValid) {
     errors.add(RaastQrError.invalidIban);
   }
@@ -782,6 +811,7 @@ RaastQrValidation validateRaastQr(
 
   return RaastQrValidation(
     valid: errors.isEmpty,
+    kind: qr.kind,
     errors: List.unmodifiable(errors),
     warnings: List.unmodifiable(warnings),
     qr: qr,

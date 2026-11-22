@@ -6,9 +6,9 @@ description: Validate Pakistani CNIC numbers and read the province of registrati
 import LangTabs from '../../../components/LangTabs.astro';
 import CnicWidget from '../../../components/widgets/CnicWidget.tsx';
 
-`import { validateCNIC, getCNICInfo } from 'pakdatakit/cnic'`
+`import { validateCNIC, getCNICInfo, findCNICs, maskCNICs } from 'pakdatakit/cnic'`
 
-Checks the structure of a 13-digit Computerised National Identity Card number, and reads the two facts the number itself encodes: the province where it was first registered and the holder's gender.
+Checks the structure of a 13-digit Computerised National Identity Card number, and reads the two facts the number itself encodes: the province where it was first registered and the holder's gender. It also finds and masks CNICs in free text, for example before logging a chat message.
 
 <CnicWidget client:visible />
 
@@ -56,3 +56,41 @@ interface CNICInfo {
 **Caveats.** The province is where the CNIC was first registered, not necessarily where the holder lives now. Gender comes from the last digit: odd for male, even for female.
 
 **Related:** [`validateCNIC()`](#validatecnic), [`formatCNICInput()`](/api/typescript/input/functions/formatcnicinput/) for as-you-type fields.
+
+### findCNICs()
+
+```ts
+function findCNICs(text: string): CNICMatch[];
+
+interface CNICMatch {
+  raw: string; // as written, e.g. '35202 1234567-1'
+  digits: string; // '3520212345671'
+  formatted: string; // '35202-1234567-1'
+  start: number; // offset of the first character
+  end: number; // offset just after the last one
+}
+```
+
+**Parameters.** `text`: any text, such as a chat message, a note or an uploaded document.
+
+**Returns** every CNIC in the text, in order, or `[]`. A match is 13 digits starting with a province code (1-8), written together or in 5-7-1 groups with a hyphen, dash, dot or space between the groups; the two separators may differ. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. It never throws.
+
+**Caveats.**
+
+- A match never starts or ends next to another digit, so a longer number is not cut into a CNIC.
+- It is a pattern match: any other 13-digit number that starts with 1-8 (an account or order number) also matches.
+- It is looser than [`validateCNIC()`](#validatecnic), which stays strict and needs the same separator twice.
+- Offsets are in UTF-16 code units in TypeScript, Dart and C#, and in characters (code points) in Python and PHP (use `mb_substr`), so slicing the text with them gives `raw` in each language.
+
+### maskCNICs()
+
+```ts
+function maskCNICs(
+  text: string,
+  options?: { mask?: string }, // default 'X'
+): { text: string; count: number };
+```
+
+**Returns** the text with each digit of every CNIC found by [`findCNICs()`](#findcnics) replaced by `mask`, keeping the separators (`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`), and how many CNICs were masked. It never throws.
+
+**Caveats.** Like `findCNICs()`, it also masks other 13-digit numbers that start with 1-8.

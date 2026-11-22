@@ -38,10 +38,14 @@ using PakDataKit;
 Cnic.Validate("35202-1234567-1");            // true
 Cnic.GetInfo("35202-1234567-1");
 // CnicInfo { Digits = 3520212345671, Formatted = 35202-1234567-1, Province = Punjab, Gender = Male }
+Cnic.FindAll("CNIC: 35202-1234567-1, phone 0300-1234567");
+// [CnicMatch { Raw = 35202-1234567-1, Digits = 3520212345671, Formatted = 35202-1234567-1, Start = 6, End = 21 }]
+Cnic.Mask("My CNIC is 35202-1234567-1");     // Text = "My CNIC is XXXXX-XXXXXXX-X", Count = 1
 
 Phone.Format("0300 1234567");                // "+923001234567"
 Networks.GetNetwork("0300 1234567");         // "Jazz"
 Numbers.ValidateLandline("042-35761234");    // true
+Numbers.ValidateLandline("021-111-123-456", services: true); // true (UAN, toll-free, premium too)
 
 Iban.Validate("PK36SCBL0000001123456702");   // true
 Iban.GetBank("PK36SCBL0000001123456702");    // "Standard Chartered Bank (Pakistan) Limited"
@@ -68,10 +72,15 @@ SalesTax.Calculate(1150, new SalesTaxOptions { Province = "Sindh", Date = "2026-
 SalesTax.SplitInclusive(99.99, 18);          // Net = 84.74, Tax = 15.25, Gross = 99.99, Rate = 18
 
 IncomeTax.CalculateSalaryTax(1_800_000, new SalaryTaxOptions { TaxYear = 2026 });
-// Tax = 72000, Monthly = 6000, EffectiveRate = 4, Slab = { Over = 1200000, UpTo = 2200000, Fixed = 6000, Rate = 11 }, TaxYear = 2026
+// Tax = 72000, Surcharge = 0, Total = 72000, Monthly = 6000, EffectiveRate = 4,
+// Slab = { Over = 1200000, UpTo = 2200000, Fixed = 6000, Rate = 11 }, TaxYear = 2026
+IncomeTax.CalculateSalaryTax(12_000_000, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true });
+// Tax = 3381000, Surcharge = 304290, Total = 3685290, Monthly = 307107.5, …
 IncomeTax.CalculateMonthlySalaryTax(150_000, new SalaryTaxOptions { TaxYear = 2026 })?.Monthly; // 6000
 IncomeTax.GetTaxYear("2025-07-01");          // 2026
 
+Text.RomanUrduKey("Mubeen") == Text.RomanUrduKey("Mobeen"); // true
+Text.RomanUrduKey("Muhammad Rehman");        // "muhmd rahmn"
 Text.Slugify("Lahore Fort, 2024");           // "lahore-fort-2024"
 Text.Slugify("لاہور قلعہ");                  // "لاہور-قلعہ"
 Text.Slugify("کراچی ۲۰۲۴", new SlugifyOptions { Script = SlugScript.Urdu }); // "کراچی-2024"
@@ -114,6 +123,7 @@ var payload = RaastQr.CreateP2P(new RaastP2POptions
     ExpiresIn = "1d",
 });
 RaastQr.Validate(payload).Valid;             // true
+RaastQr.Validate(payload).Kind;              // RaastQrKind.P2p
 ```
 
 ### What throws and what doesn't
@@ -126,14 +136,15 @@ Unicode (unpaired surrogates, noncharacters).
 | --- | --- |
 | `Validate*`, `Is*` (e.g. `Cnic.Validate`, `Holidays.IsHoliday(string)`) | `false` |
 | `Parse`, `Get*`, `Analyze*` returning one value (e.g. `VehiclePlate.Parse`, `Iban.GetBank`, `Tax.AnalyzeNtn`) | `null` |
-| `Search*`, `Get*` returning a list (e.g. `Geo.SearchCities`, `Holidays.GetHolidaysOn(string)`) | an empty list |
+| `Search*`, `Get*` returning a list (e.g. `Geo.SearchCities`, `Holidays.GetHolidaysOn(string)`), `Cnic.FindAll` | an empty list |
+| `Cnic.Mask` | the text with no CNICs masked (`Text = ""`, `Count = 0` for `null`) |
 | `Phone.Analyze`, `RaastQr.Validate`, `Address.Parse`, `Networks.GetNetwork`, `Quality.*` | a result that says so (`Valid = false`, an error list, empty parts, `"Unknown"`, score 0, `PhoneRiskFlag.Invalid`), as in the npm package |
 | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`, `Bills.ValidateGasConsumerNumber` | `null` / `false` (also for an undefined `GasCompany` value) |
 | `SalesTax.GetRate`, `SalesTax.Calculate`, `SalesTax.SplitInclusive` | `null` (also for NaN, infinite, negative or too large amounts and rates, and `null` options) |
 | `IncomeTax.CalculateSalaryTax`, `IncomeTax.CalculateMonthlySalaryTax`, `IncomeTax.GetSalaryTaxSlabs`, `IncomeTax.GetTaxYear(string)` | `null` (also for NaN, infinite, negative or too large amounts, an invalid date and a tax year that is not covered) |
 | `FbrInvoice.Validate`, `FbrInvoice.Build`, `FbrInvoice.ExpectedSalesTax` | `Valid = false` with the errors (any JSON, including `null`, arrays, strings where numbers belong and NaN); `null` |
 | `Courier.MapStatus`, `Courier.NormalizeCity` | `null` (also for an unknown courier, and a numeric status that is negative, fractional, NaN or infinite) |
-| `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` (`Text.Slugify` and `Text.WrapBidi` return `""` for `null`, `Text.IsRtl` returns `false`, and `Text.CompareUrdu` reads `null` as `""`) |
+| `Input.Format*`, `Input.Check*`, `Text.*` | the best formatting of what was typed; `InputState.Invalid` (`Text.Slugify` and `Text.WrapBidi` return `""` for `null`, `Text.IsRtl` returns `false`, `Text.RomanUrduKey` returns `""`, and `Text.CompareUrdu` reads `null` as `""`) |
 
 Every regular expression has a one-second timeout; if one is ever hit, the
 input is treated as not matching, so the method still returns `false` or
@@ -169,6 +180,7 @@ strings to every public method that takes a string and checks this contract.
 | npm                                                    | .NET                                                                    |
 | ------------------------------------------------------ | ----------------------------------------------------------------------- |
 | `validateCNIC`, `getCNICInfo`                          | `Cnic.Validate`, `Cnic.GetInfo`                                         |
+| `findCNICs`, `maskCNICs`                               | `Cnic.FindAll`, `Cnic.Mask`                                             |
 | `validatePhone`, `formatPhone`, `analyzePhone`         | `Phone.Validate`, `Phone.Format`, `Phone.Analyze`                       |
 | `getNetwork`                                           | `Networks.GetNetwork`                                                   |
 | `analyzeNumber`, `validateLandline`, `getAreaCode`     | `Numbers.Analyze`, `Numbers.ValidateLandline`, `Numbers.GetAreaCode`    |
@@ -189,6 +201,7 @@ strings to every public method that takes a string and checks this contract.
 | `parseElectricityRef`, `validateElectricityRef`        | `Bills.ParseElectricityRef`, `Bills.ValidateElectricityRef`            |
 | `validateGasConsumerNumber`                            | `Bills.ValidateGasConsumerNumber`                                       |
 | `normalizeText`, `normalizeRomanUrdu`, `toUrduDigits`  | `Text.Normalize`, `Text.NormalizeRomanUrdu`, `Text.ToUrduDigits`        |
+| `romanUrduKey`                                         | `Text.RomanUrduKey`                                                     |
 | `slugify`, `compareUrdu`, `isRTL`, `wrapBidi`          | `Text.Slugify`, `Text.CompareUrdu`, `Text.IsRtl`, `Text.WrapBidi`       |
 | `getSalaryTaxSlabs`, `getSalaryTaxYears`, `getTaxYear` | `IncomeTax.GetSalaryTaxSlabs`, `IncomeTax.GetSalaryTaxYears`, `IncomeTax.GetTaxYear` |
 | `calculateSalaryTax`, `calculateMonthlySalaryTax`      | `IncomeTax.CalculateSalaryTax`, `IncomeTax.CalculateMonthlySalaryTax`   |
@@ -229,7 +242,8 @@ Attributes: `[Cnic]`, `[PakPhone]`, `[PakIban]`, `[Ntn]`, `[Strn]`,
 `[PakLandline]`, `[PakPassport]`, `[VehiclePlate]`, `[CodPhone]` (a mobile
 number a courier can call: `Quality.PhoneRiskSignals` returns no flags) and
 `[PakAmount]` (a rupee amount `Currency.ParseAmount` reads, like `150,000` or
-`1.5 lakh`). Like the built-in
+`1.5 lakh`). `[PakLandline(Services = true)]` also accepts UAN, toll-free and
+premium-rate numbers. Like the built-in
 attributes, they accept `null` and empty strings; add `[Required]` for
 mandatory fields.
 
@@ -254,12 +268,34 @@ Rules: `IsCnic()`, `IsPakPhone()`, `IsPakIban()`, `IsNtn()`, `IsStrn()`,
 `IsPakLandline()`, `IsPakPassport()`, `IsVehiclePlate()`, `IsCodPhone()` (a
 mobile number a courier can call: `Quality.PhoneRiskSignals` returns no flags) and
 `IsPakAmount()` (a rupee amount `Currency.ParseAmount` reads, like `150,000` or
-`1.5 lakh`). They pass `null`
+`1.5 lakh`). `IsPakLandline(services: true)` also accepts UAN, toll-free and
+premium-rate numbers. They pass `null`
 and empty strings; add `NotEmpty()` for mandatory fields. Works with
 FluentValidation 11 and 12.
 
 ## Notes
 
+- **Landlines and service numbers.** `Numbers.ValidateLandline` accepts
+  fixed-line numbers only; with `services: true` it also accepts UAN
+  (`021-111-123-456`, `111-123-456`), toll-free (`0800` and five digits, as
+  in PTA's numbering plan) and premium-rate (`0900`) numbers, but not
+  mobile numbers, and `0122` numbers are not recognised (no PTA document
+  lists them). `Numbers.Analyze` tells them apart.
+- **CNICs in free text.** `Cnic.FindAll(text)` returns a `CnicMatch` (`Raw`,
+  `Digits`, `Formatted`, `Start`, `End`) for each 13-digit number that starts
+  with a province digit (1-8), together or in 5-7-1 groups with a hyphen,
+  dash, dot or space between the groups (the two may differ), in ASCII, Urdu
+  or Arabic-Indic digits, and not touching another digit. `Start` and `End`
+  are `string` indexes (UTF-16 code units), so `text[match.Start..match.End]`
+  is `Raw`. `Cnic.Mask(text, mask)` replaces each digit with `mask` (default
+  `"X"`) and keeps the separators, returning a `MaskedText` (`Text`,
+  `Count`). Both are looser than `Cnic.Validate` and match any 13-digit
+  number that starts with 1-8, such as an account number.
+- **Raast QR kind.** `RaastQr.Validate` returns the `Kind` (`P2p`,
+  `Merchant`, or `null` when the text is not a Raast QR). A merchant QR with
+  no IBAN is valid with the warning `RaastQrWarning.NoIban`, since it may pay
+  through the merchant's own scheme; a person-to-person QR with no IBAN is
+  still an error.
 - **Format-only checks.** NADRA, FBR and DGIP publish no check-digit
   algorithms, so CNIC, NTN, STRN and passport numbers are checked for format
   only. Vehicle plates are checked against the shape the provinces share. See
@@ -308,21 +344,27 @@ FluentValidation 11 and 12.
   the salaried rate table (Division I of Part I of the First Schedule to the
   Income Tax Ordinance 2001, clause (2)) for tax years 2020 to 2027 as a
   `SalaryTaxYear` (`TaxYear`, `From`, `To`, `Law`, `Source` and the
-  `SalaryTaxSlab` bands: `Over`, `UpTo`, `Fixed`, `Rate`), or `null`; it
+  `SalaryTaxSlab` bands: `Over`, `UpTo`, `Fixed`, `Rate`, and the section 4AB
+  `Surcharge`: `Rate`, `Over`, `Law`, `Source`, or `null` before 2025), or `null`; it
   defaults to the current tax year, and `IncomeTax.GetSalaryTaxYears()` lists
   the years covered. A tax year runs from 1 July to 30 June and is named after
   the June it ends in: `IncomeTax.GetTaxYear("2025-07-01")` is 2026 (also for
   a `DateOnly`, or today with no argument). `IncomeTax.CalculateSalaryTax(annualIncome, options)`
-  returns a `SalaryTax` (`Tax`, `Monthly` = tax / 12, `EffectiveRate` in
-  percent to 2 decimals, the `Slab` and the `TaxYear`); income must exceed a
-  band's `Over` to fall in it. `SalaryTaxOptions` takes `TaxYear`, which wins
-  over `Date` (`YYYY-MM-DD`) or `OnDate` (a `DateOnly`); without either it
-  uses today's local date. `IncomeTax.CalculateMonthlySalaryTax(monthlySalary, options)`
+  returns a `SalaryTax` (`Tax`, `Surcharge`, `Total` = tax + surcharge,
+  `Monthly` = total / 12, `EffectiveRate` of the total in percent to 2
+  decimals, the `Slab` and the `TaxYear`); income must exceed a band's `Over`
+  to fall in it. `SalaryTaxOptions` takes `TaxYear`, which wins over `Date`
+  (`YYYY-MM-DD`) or `OnDate` (a `DateOnly`); without either it uses today's
+  local date. `IncludeSurcharge = true` adds the section 4AB surcharge on the
+  whole tax once taxable income exceeds Rs 10 million (10% in tax year 2025,
+  9% for salaried individuals in 2026, none in 2027 or before 2025); it is
+  off by default in 2.x, so `Surcharge` is 0 and `Total` equals `Tax`. `IncomeTax.CalculateMonthlySalaryTax(monthlySalary, options)`
   works on `monthlySalary × 12`, so `Monthly` is the tax to withhold each
   month. Amounts are rounded half up to the paisa in exact integer
   arithmetic, reading the number as written; amounts from 0 to one trillion
-  rupees are accepted. Only the rate table is applied: no surcharge, tax
-  credits, exemptions, pension rate or withholding adjustments.
+  rupees are accepted. Tax credits, exemptions, the pension rate, super tax
+  and withholding adjustments are not applied: this is an estimate, not tax
+  advice.
 - **Urdu text.** `Text.Slugify(input, options)` makes a URL slug: lower-case
   words joined by `-`. Urdu letters are kept as they are (no
   transliteration), diacritics, tatweel and zero-width characters are
@@ -343,7 +385,11 @@ FluentValidation 11 and 12.
   script. `Text.WrapBidi(text, direction)` wraps text in a directional isolate
   (`BidiDirection.Auto`, U+2068, by default; `Rtl`, U+2067; `Ltr`, U+2066)
   closed with U+2069, so an English order number does not reorder an Urdu
-  sentence.
+  sentence. `Text.RomanUrduKey(text)` is a phonetic key for Roman Urdu, so
+  spellings of one name match (`Mubeen` and `Mobeen`, `Muhammad` and
+  `Mohammad`, `Chaudhry` and `Chaudhary`): compare keys, not text. Different
+  names can share a key (`Hamid` and `Hamad`), so a match means "probably the
+  same". `Text.NormalizeRomanUrdu` is unchanged.
 - **Utility bills.** `Bills.ParseElectricityRef` reads a DISCO (WAPDA)
   reference number (14 digits, optional `U` or `R`), a DISCO customer ID (10
   digits, 11 for LESCO) or a K-Electric account number (13 digits starting

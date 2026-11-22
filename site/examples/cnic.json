@@ -27,6 +27,31 @@
         "province": "Punjab",
         "gender": "male"
       }
+    },
+    {
+      "id": "find",
+      "title": "Find CNICs in free text",
+      "fn": "findCNICs",
+      "args": ["CNIC: 35202-1234567-1, phone 0300-1234567"],
+      "expected": [
+        {
+          "raw": "35202-1234567-1",
+          "digits": "3520212345671",
+          "formatted": "35202-1234567-1",
+          "start": 6,
+          "end": 21
+        }
+      ]
+    },
+    {
+      "id": "mask",
+      "title": "Mask them before logging",
+      "fn": "maskCNICs",
+      "args": ["My CNIC is 35202 1234567-1"],
+      "expected": {
+        "text": "My CNIC is XXXXX XXXXXXX-X",
+        "count": 1
+      }
     }
   ]
 }

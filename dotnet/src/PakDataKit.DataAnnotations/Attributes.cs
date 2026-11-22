@@ -32,9 +32,14 @@ public abstract class PakValidationAttribute : ValidationAttribute
     public override bool IsValid(object? value) => value switch
     {
         null => true,
-        string text => text.Length == 0 || _isValid(text),
+        string text => text.Length == 0 || IsValidText(text),
         _ => false,
     };
+
+    /// <summary>Runs this attribute's check on a non-empty string.</summary>
+    /// <param name="text">The string to check.</param>
+    /// <returns><c>true</c> if it passes.</returns>
+    protected virtual bool IsValidText(string text) => _isValid(text);
 }
 
 /// <summary>Validates a CNIC, using <see cref="Cnic.Validate"/>.</summary>
@@ -54,9 +59,29 @@ public sealed class NtnAttribute() : PakValidationAttribute(Tax.ValidateNtn, "Th
 /// <summary>Validates the format of a Sales Tax Registration Number, using <see cref="Tax.ValidateStrn"/>.</summary>
 public sealed class StrnAttribute() : PakValidationAttribute(Tax.ValidateStrn, "The {0} field is not a valid STRN.");
 
-/// <summary>Validates a Pakistani landline number, using <see cref="Numbers.ValidateLandline"/>.</summary>
-public sealed class PakLandlineAttribute()
-    : PakValidationAttribute(Numbers.ValidateLandline, "The {0} field is not a valid Pakistani landline number.");
+/// <summary>
+/// Validates a Pakistani landline number, using
+/// <see cref="Numbers.ValidateLandline(string?, bool)"/>. Set
+/// <see cref="Services"/> to also accept UAN, toll-free and premium-rate
+/// numbers: <c>[PakLandline(Services = true)]</c>.
+/// </summary>
+public sealed class PakLandlineAttribute : PakValidationAttribute
+{
+    /// <summary>Creates the attribute.</summary>
+    public PakLandlineAttribute()
+        : base(value => Numbers.ValidateLandline(value), "The {0} field is not a valid Pakistani landline number.")
+    {
+    }
+
+    /// <summary>
+    /// Also accept the non-geographic service numbers a business may give as
+    /// its landline: UAN, toll-free and premium rate. Default <c>false</c>.
+    /// </summary>
+    public bool Services { get; set; }
+
+    /// <inheritdoc/>
+    protected override bool IsValidText(string text) => Numbers.ValidateLandline(text, Services);
+}
 
 /// <summary>
 /// Validates the format of a Pakistani passport number, using

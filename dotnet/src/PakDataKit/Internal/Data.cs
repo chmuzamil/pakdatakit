@@ -74,7 +74,12 @@ internal static class Data
                 s.GetProperty("over").GetInt64(),
                 s.GetProperty("upTo").ValueKind == JsonValueKind.Number ? s.GetProperty("upTo").GetInt64() : null,
                 s.GetProperty("fixed").GetInt64(),
-                s.GetProperty("rate").GetDouble())).ToArray())));
+                s.GetProperty("rate").GetDouble())).ToArray(),
+            e.GetProperty("surcharge") is { ValueKind: JsonValueKind.Object } surcharge
+                ? new SalaryTaxSurcharge(
+                    surcharge.GetProperty("rate").GetDouble(), surcharge.GetProperty("over").GetInt64(),
+                    Str(surcharge, "law")!, Str(surcharge, "source")!)
+                : null)));
 
     private static readonly Lazy<IReadOnlyDictionary<string, IReadOnlyDictionary<string, ObservedHoliday>>>
         HolidaysLazy = new(() =>

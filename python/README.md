@@ -78,21 +78,26 @@ trillion. `format_amount_input` writes the amount back as `Rs. 150,000`
 (paisa only when present), or `None` when `parse_amount` returns `None`.
 
 `find_cnics(text)` finds CNICs in free text (a chat message, a note, a
-document): any run of exactly 13 digits starting with a province code 1-8,
-together or in any grouping joined by single separators (a space, a hyphen or
-dash, a dot or a slash: `35202-1234567-1`, `352 0212 3456 71`,
-`35202/1234567/1`), or a CNIC in 5-7-1 groups inside a longer run
-(`0300-1234567 35202-1234567-1`), in ASCII, Urdu or Arabic-Indic digits, never
-touching another digit. A run of more than 13 digits is never cut into a CNIC
-except at 5-7-1 groups. Each is a `CNICMatch(raw, digits, formatted, start,
+document). Digits are read in groups (unbroken runs of digits), joined by any
+run of spaces or tabs, or by one mark (a hyphen or dash, a dot, a slash or an
+underscore) with any spaces around it: `35202-1234567-1`, `352 0212 3456 71`,
+`35202/1234567/1`, `35202  1234567  1`, `35202 - 1234567 - 1`,
+`35202_1234567_1`. A line break never joins groups. A match is consecutive
+whole groups that add up to exactly 13 digits, starting with a province code
+1-8, in ASCII, Urdu or Arabic-Indic digits; the search goes on after each
+match, so `0300-1234567 35202-1234567-1` finds the CNIC. A group is never
+split, so 13 digits inside a longer unbroken number (an IBAN, a card number)
+never match. Each is a `CNICMatch(raw, digits, formatted, start,
 end)`, where `start` and `end` are Python string indexes (code points), so
 `text[m.start:m.end] == m.raw`. `mask_cnics(text, mask="X")` replaces each of
 their digits with `mask`, keeping the separators, and returns
 `MaskedText(text, count)`; `mask_cnics(text, replacement="[CNIC removed]")`
 replaces each whole CNIC, separators included, instead. Accepting any grouping
 catches CNICs as people type them, but also matches more that is not a CNIC:
-any 13 digits starting with 1-8 (an account, order or tracking number, or two
-shorter numbers written together). `validate_cnic` stays strict.
+any 13 digits starting with 1-8 split into groups this way (an account, order
+or tracking number, table columns, a price list such as `8260 - 8048 - 2804 - 0`,
+a file name such as `IMG_20261123_12345`, or two shorter numbers written
+together). `validate_cnic` stays strict.
 Both return `[]` or `MaskedText("", 0)` for a value that is not a string.
 
 `validate_landline(phone)` accepts fixed-line numbers only; with

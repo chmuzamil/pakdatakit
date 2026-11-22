@@ -47,28 +47,30 @@ public static class Cnic
     private const string ProvinceDigit = @"[1-8\u06F1-\u06F8\u0661-\u0668]";
 
     /// <summary>
-    /// A separator between digit groups: a space, a hyphen or Unicode dash
-    /// (U+2010-2014), a dot or a slash.
+    /// Horizontal space between digit groups: a space, a tab, a no-break space
+    /// (U+00A0) or a narrow no-break space (U+202F). Never a line break.
     /// </summary>
-    private const string Separator = @"[-\u2010\u2011\u2012\u2013\u2014./ ]";
+    private const string Space = @"[ \t\u00A0\u202F]";
 
     /// <summary>
-    /// A run of digit groups joined by single separators (<c>352 0212 3456 71</c>,
-    /// <c>35202/1234567/1</c>), as long as it goes. Two separators in a row, or
-    /// any other character, end it.
+    /// One separator mark: a hyphen or Unicode dash (U+2010-2014), a dot, a
+    /// slash or an underscore.
     /// </summary>
-    private static readonly SafeRegex DigitRun = Js.Rx($"{AnyDigit}(?:{Separator}?{AnyDigit})*");
+    private const string Mark = @"[-\u2010\u2011\u2012\u2013\u2014./_]";
 
     /// <summary>
-    /// A CNIC in 5-7-1 groups (as in 2.7.0) inside a longer run, such as
-    /// <c>0300-1234567 35202-1234567-1</c>: a province digit, then 4, 7 and 1
-    /// digits with an optional separator between the groups, not next to
-    /// another digit.
+    /// What may join two digit groups: any run of spaces, or one mark with any
+    /// spaces around it (<c>35202  1234567  1</c>, <c>35202 -1234567- 1</c>,
+    /// <c>35202_1234567_1</c>, <c>35202 - 1234567 - 1</c>). A line break never
+    /// joins them.
     /// </summary>
-    private static readonly SafeRegex Cnic571 = Js.Rx(
-        $"(?<!{AnyDigit}){ProvinceDigit}"
-        + $"{AnyDigit}{{4}}{Separator}?{AnyDigit}{{7}}{Separator}?{AnyDigit}"
-        + $"(?!{AnyDigit})");
+    private const string Join = $"(?:{Space}+|{Space}*{Mark}{Space}*)";
+
+    /// <summary>One digit group: an unbroken run of digits.</summary>
+    private static readonly SafeRegex Group = Js.Rx($"{AnyDigit}+");
+
+    /// <summary>Digit groups joined as above, as long as the run goes.</summary>
+    private static readonly SafeRegex DigitRun = Js.Rx($"{AnyDigit}+(?:{Join}{AnyDigit}+)*");
 
     private static readonly SafeRegex FirstIsProvince = Js.Rx($"^{ProvinceDigit}");
 
@@ -115,24 +117,36 @@ public static class Cnic
             (digits[12] - '0') % 2 == 1 ? CnicGender.Male : CnicGender.Female);
     }
 
-    /// <summary>Where CNICs are in a text: <c>(Start, End)</c> pairs, in order.</summary>
+    /// <summary>
+    /// Where CNICs are in a text: <c>(Start, End)</c> pairs, in order. In each
+    /// run of digit groups, consecutive whole groups that add up to exactly 13
+    /// digits, starting with a province digit, are a CNIC; the search goes on
+    /// after it. A group is never split, so 13 digits inside a longer unbroken
+    /// number are never matched.
+    /// </summary>
     private static List<(int Start, int End)> Spans(string text)
     {
         var spans = new List<(int Start, int End)>();
         foreach (var run in DigitRun.Matches(text))
         {
-            var raw = run.Value;
-            var digits = OneDigit.Matches(raw).Count;
-            if (digits == 13 && FirstIsProvince.IsMatch(raw))
+            var groups = Group.Matches(run.Value)
+                .Select(g => (Start: run.Index + g.Index, End: run.Index + g.Index + g.Length, g.Value))
+                .ToArray();
+            for (var i = 0; i < groups.Length; i++)
             {
-                // Exactly 13 digits in any grouping: the whole run.
-                spans.Add((run.Index, run.Index + raw.Length));
-            }
-            else if (digits > 13)
-            {
-                // A longer run: only a CNIC written in 5-7-1 groups inside it.
-                foreach (var m in Cnic571.Matches(raw))
-                    spans.Add((run.Index + m.Index, run.Index + m.Index + m.Length));
+                var digits = 0;
+                for (var j = i; j < groups.Length; j++)
+                {
+                    digits += groups[j].Value.Length;
+                    if (digits < 13) continue;
+                    if (digits == 13 && FirstIsProvince.IsMatch(groups[i].Value))
+                    {
+                        spans.Add((groups[i].Start, groups[j].End));
+                        i = j;
+                    }
+
+                    break;
+                }
             }
         }
 
@@ -144,24 +158,27 @@ public static class Cnic
     /// uploaded document, for example to mask them before logging.
     /// </summary>
     /// <remarks>
-    /// A match is either:
-    /// <list type="bullet">
-    /// <item>a run of exactly 13 digits whose first digit is a province code
-    /// (1-8), together or in any grouping joined by single separators: a
-    /// space, a hyphen or Unicode dash, a dot or a slash (<c>3520212345671</c>,
-    /// <c>35202-1234567-1</c>, <c>352 0212 3456 71</c>, <c>35202/1234567/1</c>); or</item>
-    /// <item>a CNIC in 5-7-1 groups inside a longer run of such groups
-    /// (<c>0300-1234567 35202-1234567-1</c>).</item>
-    /// </list>
-    /// Digits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never
-    /// starts or ends next to another digit, and a run of more than 13 digits
-    /// is never cut into a CNIC except at 5-7-1 groups.
+    /// Digits are read in groups (unbroken runs of digits). Groups may be
+    /// joined by any run of spaces or tabs, or by one mark (a hyphen or
+    /// Unicode dash, a dot, a slash or an underscore) with any spaces around
+    /// it: <c>35202 1234567 1</c>, <c>35202  1234567  1</c>,
+    /// <c>35202 -1234567- 1</c>, <c>35202_1234567_1</c>,
+    /// <c>35202 - 1234567 - 1</c>, <c>352 0212 3456 71</c>,
+    /// <c>35202/1234567/1</c>. A line break never joins groups. A match is
+    /// consecutive whole groups that add up to exactly 13 digits, starting
+    /// with a province code (1-8); the search goes on after each match, so
+    /// <c>0300-1234567 35202-1234567-1</c> finds the CNIC. A group is never
+    /// split, so 13 digits inside a longer unbroken number (an IBAN, a card
+    /// number) never match. Digits may be ASCII, Urdu or Arabic-Indic, even
+    /// mixed. This matches everything Jaanch's own CNIC redaction does, except
+    /// across line breaks.
     /// <para>
     /// Accepting any grouping catches CNICs as people really type them, but
-    /// matches more that is not a CNIC: any 13 digits starting with 1-8,
-    /// however they are grouped (an account, order or tracking number, or two
-    /// shorter numbers written together), are found. <see cref="Validate"/>
-    /// stays strict.
+    /// matches more that is not a CNIC: any 13 digits starting with 1-8 split
+    /// into groups this way (an account, order or tracking number, table
+    /// columns, a price list such as <c>8260 - 8048 - 2804 - 0</c>, a file
+    /// name such as <c>IMG_20261123_12345</c>, or two shorter numbers written
+    /// together) are found. <see cref="Validate"/> stays strict.
     /// </para>
     /// <code>
     /// Cnic.FindAll("CNIC: 35202-1234567-1, phone 0300-1234567");

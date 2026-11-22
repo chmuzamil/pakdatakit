@@ -31,15 +31,16 @@ void main() {
       expect(m.start, 13);
     });
 
-    test('never cuts a longer run, or one with doubled separators', () {
+    test('never splits an unbroken run of digits', () {
       for (final text in [
         '352 0212 3456 712',
-        '1 352 0212 3456 71',
         '4111 1111 1111 1111',
-        '35202 - 1234567 - 1',
+        '352021234567123',
       ]) {
         expect(findCNICs(text), isEmpty, reason: text);
       }
+      // Whole groups inside a longer run still match (2.7.2).
+      expect(findCNICs('1 352 0212 3456 71').single.raw, '352 0212 3456 71');
     });
 
     test('matches any 13 digits starting with 1-8 (the trade-off)', () {

@@ -65,13 +65,15 @@ final class CnicTextTest extends TestCase
     {
         self::assertSame([], Cnic::findAll('1235202-1234567-1'));
         self::assertSame([], Cnic::findAll('35202-1234567-12'));
-        self::assertSame([], Cnic::findAll(self::urdu('1') . '35202-1234567-1'));
+        // Since 2.7.2, whole groups adding up to 13 match, as in Jaanch's
+        // redaction: here the first two groups. No unbroken run is split.
+        self::assertSame('1352021234567', Cnic::findAll(self::urdu('1') . '35202-1234567-1')[0]->digits);
         self::assertCount(1, Cnic::findAll('x35202-1234567-1y'));
     }
 
     public function testNeedsAProvinceDigitAndFiveSevenOneGroups(): void
     {
-        foreach (['05202-1234567-1', '95202-1234567-1', '35202-123456-1', '35202--1234567-1', '35202_1234567_1'] as $text) {
+        foreach (['05202-1234567-1', '95202-1234567-1', '35202-123456-1', '35202--1234567-1'] as $text) {
             self::assertSame([], Cnic::findAll($text), $text);
         }
         self::assertCount(1, Cnic::findAll('Account: 1234567890123'));
@@ -137,11 +139,13 @@ final class CnicTextTest extends TestCase
         self::assertSame('0300-1234567 XXXXX-XXXXXXX-X', Cnic::mask('0300-1234567 35202-1234567-1')->text);
     }
 
-    public function testNeverCutsALongerRunOrOneWithDoubledSeparators(): void
+    public function testNeverSplitsAnUnbrokenRunOfDigits(): void
     {
-        foreach (['352 0212 3456 712', '1 352 0212 3456 71', '4111 1111 1111 1111', '35202 - 1234567 - 1'] as $text) {
+        foreach (['352 0212 3456 712', '4111 1111 1111 1111', '352021234567123'] as $text) {
             self::assertSame([], Cnic::findAll($text), $text);
         }
+        // Whole groups inside a longer run still match (2.7.2).
+        self::assertSame('352 0212 3456 71', Cnic::findAll('1 352 0212 3456 71')[0]->raw);
         self::assertCount(1, Cnic::findAll('order 4520 1123 4567 8'));
     }
 
@@ -154,5 +158,38 @@ final class CnicTextTest extends TestCase
         self::assertSame('', Cnic::mask('352 0212 3456 71', '*', '')->text);
         self::assertSame('XXX XXXX XXXX XX', Cnic::mask('352 0212 3456 71', replacement: 42)->text);
         self::assertSame('no ids', Cnic::mask('no ids', replacement: '[x]')->text);
+    }
+
+    public function testMasksSpacesSpacedMarksAndUnderscores(): void
+    {
+        foreach (['35202  1234567  1', '35202 -1234567- 1', '35202_1234567_1', '35202 - 1234567 - 1', "35202\t1234567\t1", '35202 _ 1234567 _ 1'] as $raw) {
+            self::assertSame(
+                ['text' => 'id [CNIC] ok', 'count' => 1],
+                Cnic::mask("id {$raw} ok", replacement: '[CNIC]')->toArray(),
+                $raw,
+            );
+        }
+    }
+
+    public function testAllowsOneMarkBetweenGroupsNotTwo(): void
+    {
+        self::assertSame([], Cnic::findAll('35202 -- 1234567 -- 1'));
+        self::assertSame([], Cnic::findAll('35202,1234567,1'));
+    }
+
+    public function testNeverJoinsDigitsAcrossALineBreak(): void
+    {
+        foreach (["35202\n1234567\n1", "35202 \n 1234567 \n 1", "35202\r\n1234567\r\n1"] as $text) {
+            self::assertSame([], Cnic::findAll($text), $text);
+        }
+        self::assertCount(2, Cnic::findAll("35202-1234567-1\n42201-7654321-2"));
+    }
+
+    public function testLongInputsDoNotHitPcreLimits(): void
+    {
+        $long = str_repeat('35202 - 1234567 - 1 ', 20000);
+        self::assertCount(20000, Cnic::findAll($long));
+        self::assertSame([], Cnic::findAll(str_repeat('0 ', 100000) . 'x'));
+        self::assertSame([], Cnic::findAll(str_repeat(' -', 100000) . '1'));
     }
 }

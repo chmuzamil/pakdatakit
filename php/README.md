@@ -125,16 +125,19 @@ package; call `->toArray()` for an array.
 | `dataVersion`                                          | `PakData::version()`                                                              |
 
 `Cnic::findAll()` finds CNICs in free text (a chat message, a note) and
-`Cnic::mask()` masks their digits, for example before logging. A match is a
-run of exactly 13 digits starting with a province digit (1-8), together or in
-any grouping joined by single separators (a space, a hyphen or dash, a dot or
-a slash: `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`), or a CNIC
-in 5-7-1 groups inside a longer run (`0300-1234567 35202-1234567-1`). Digits
-may be ASCII, Urdu or Arabic-Indic, and a match is never next to another
-digit. A run of more than 13 digits is never cut into a CNIC except at 5-7-1
-groups. Any other 13 digits starting with 1-8, however they are grouped, match
-too, so expect more false positives than `Cnic::validate()`. `start` and `end`
-count code points, so use `mb_substr()`. `Cnic::mask($text, '*')` takes the
+`Cnic::mask()` masks their digits, for example before logging. Digits are
+read in groups, and groups may be joined by spaces or tabs, or by one mark (a
+hyphen or dash, a dot, a slash or an underscore) with any spaces around it:
+`35202-1234567-1`, `35202  1234567  1`, `35202 - 1234567 - 1`,
+`35202_1234567_1`, `352 0212 3456 71`, `35202/1234567/1`. A line break never
+joins groups. A match is consecutive whole groups adding up to exactly 13
+digits, starting with a province digit (1-8), so
+`0300-1234567 35202-1234567-1` finds the CNIC; a group is never split, so 13
+digits inside a longer unbroken number never match. Digits may be ASCII, Urdu
+or Arabic-Indic. Any other 13 digits starting with 1-8 grouped this way match
+too (table columns, a price list such as `8260 - 8048 - 2804 - 0`, a file
+name such as `IMG_20261123_12345`), so expect more false positives than
+`Cnic::validate()`. `start` and `end` count code points, so use `mb_substr()`. `Cnic::mask($text, '*')` takes the
 mask string, and `Cnic::mask($text, replacement: '[CNIC removed]')` replaces
 each whole CNIC instead; anything that is not a string gives `[]` or an empty
 `MaskedText`.

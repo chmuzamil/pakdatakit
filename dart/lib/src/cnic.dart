@@ -116,41 +116,49 @@ const String _anyDigit = r'[0-9\u06F0-\u06F9\u0660-\u0669]';
 /// A province digit (1-8) in any of the three scripts.
 const String _provinceDigit = r'[1-8\u06F1-\u06F8\u0661-\u0668]';
 
-/// A separator between digit groups: a space, a hyphen or Unicode dash
-/// (U+2010-2014), a dot or a slash.
-const String _cnicSeparator = r'[-\u2010\u2011\u2012\u2013\u2014./ ]';
+/// Horizontal space between digit groups: a space, a tab, a no-break space
+/// (U+00A0) or a narrow no-break space (U+202F). Never a line break.
+const String _space = r'[ \t\u00A0\u202F]';
 
-/// A run of digit groups joined by single separators (`352 0212 3456 71`,
-/// `35202/1234567/1`), as long as it goes. Two separators in a row, or any
-/// other character, end it.
-final RegExp _digitRun = RegExp('$_anyDigit(?:$_cnicSeparator?$_anyDigit)*');
+/// One separator mark: a hyphen or Unicode dash (U+2010-2014), a dot, a
+/// slash or an underscore.
+const String _mark = r'[-\u2010\u2011\u2012\u2013\u2014./_]';
 
-/// A CNIC in 5-7-1 groups (as in 2.7.0) inside a longer run, such as
-/// `0300-1234567 35202-1234567-1`: a province digit, then 4, 7 and 1 digits
-/// with an optional separator between the groups, not next to another digit.
-final RegExp _cnic571 = RegExp(
-  '(?<!$_anyDigit)'
-  '$_provinceDigit'
-  '$_anyDigit{4}$_cnicSeparator?$_anyDigit{7}$_cnicSeparator?$_anyDigit'
-  '(?!$_anyDigit)',
-);
+/// What may join two digit groups: any run of spaces, or one mark with any
+/// spaces around it (`35202  1234567  1`, `35202 -1234567- 1`,
+/// `35202_1234567_1`, `35202 - 1234567 - 1`). A line break never joins them.
+const String _join = '(?:$_space+|$_space*$_mark$_space*)';
+
+/// One digit group: an unbroken run of digits.
+final RegExp _group = RegExp('$_anyDigit+');
+
+/// Digit groups joined as above, as long as the run goes.
+final RegExp _digitRun = RegExp('$_anyDigit+(?:$_join$_anyDigit+)*');
 final RegExp _anyDigitPattern = RegExp(_anyDigit);
 final RegExp _firstIsProvince = RegExp('^$_provinceDigit');
 
-/// Where CNICs are in [text]: `(start, end)` pairs, in order.
+/// Where CNICs are in [text]: `(start, end)` pairs, in order. In each run of
+/// digit groups, consecutive whole groups that add up to exactly 13 digits,
+/// starting with a province digit, are a CNIC; the search goes on after it.
+/// A group is never split, so 13 digits inside a longer unbroken number are
+/// never matched.
 List<(int, int)> _cnicSpans(String text) {
   final spans = <(int, int)>[];
   for (final run in _digitRun.allMatches(text)) {
-    final raw = run[0]!;
-    final start = run.start;
-    final digits = _anyDigitPattern.allMatches(raw).length;
-    if (digits == 13 && _firstIsProvince.hasMatch(raw)) {
-      // Exactly 13 digits in any grouping: the whole run.
-      spans.add((start, start + raw.length));
-    } else if (digits > 13) {
-      // A longer run: only a CNIC written in 5-7-1 groups inside it.
-      for (final m in _cnic571.allMatches(raw)) {
-        spans.add((start + m.start, start + m.end));
+    final groups = [
+      for (final g in _group.allMatches(run[0]!))
+        (start: run.start + g.start, end: run.start + g.end, text: g[0]!),
+    ];
+    for (var i = 0; i < groups.length; i++) {
+      var digits = 0;
+      for (var j = i; j < groups.length; j++) {
+        digits += groups[j].text.length;
+        if (digits < 13) continue;
+        if (digits == 13 && _firstIsProvince.hasMatch(groups[i].text)) {
+          spans.add((groups[i].start, groups[j].end));
+          i = j;
+        }
+        break;
       }
     }
   }
@@ -239,23 +247,25 @@ class MaskedText {
 /// Finds CNIC numbers in free text, such as a chat message, a note or an
 /// uploaded document, for example to mask them before logging.
 ///
-/// A match is either:
-///
-/// - a run of exactly 13 digits whose first digit is a province code (1-8),
-///   together or in any grouping joined by single separators: a space, a
-///   hyphen or Unicode dash, a dot or a slash (`3520212345671`,
-///   `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`); or
-/// - a CNIC in 5-7-1 groups inside a longer run of such groups
-///   (`0300-1234567 35202-1234567-1`).
-///
-/// Digits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never
-/// starts or ends next to another digit, and a run of more than 13 digits is
-/// never cut into a CNIC except at 5-7-1 groups.
+/// Digits are read in groups (unbroken runs of digits). Groups may be joined
+/// by any run of spaces or tabs, or by one mark (a hyphen or Unicode dash, a
+/// dot, a slash or an underscore) with any spaces around it: `35202 1234567
+/// 1`, `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`,
+/// `35202 - 1234567 - 1`, `352 0212 3456 71`, `35202/1234567/1`. A line
+/// break never joins groups. A match is consecutive whole groups that add up
+/// to exactly 13 digits, starting with a province code (1-8); the search
+/// goes on after each match, so `0300-1234567 35202-1234567-1` finds the
+/// CNIC. A group is never split, so 13 digits inside a longer unbroken
+/// number (an IBAN, a card number) never match. Digits may be ASCII, Urdu or
+/// Arabic-Indic, even mixed. This matches everything Jaanch's own CNIC
+/// redaction does, except across line breaks.
 ///
 /// Accepting any grouping catches CNICs as people really type them, but
-/// matches more that is not a CNIC: any 13 digits starting with 1-8, however
-/// they are grouped (an account, order or tracking number, or two shorter
-/// numbers written together), are found. [validateCNIC] stays strict.
+/// matches more that is not a CNIC: any 13 digits starting with 1-8 split
+/// into groups this way (an account, order or tracking number, table
+/// columns, a price list such as `8260 - 8048 - 2804 - 0`, a file name such
+/// as `IMG_20261123_12345`, or two shorter numbers written together) are
+/// found. [validateCNIC] stays strict.
 ///
 /// Offsets are UTF-16 code units, so `text.substring(m.start, m.end)` is
 /// `m.raw`.

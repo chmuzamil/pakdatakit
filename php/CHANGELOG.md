@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.7.2
+
+Patch release. Every port gives the same results on the shared test
+vectors, which now include Jaanch's CNIC redaction cases.
+
+### Changed
+
+- `Cnic::findAll()` and `Cnic::mask()` now join digit groups with any run of spaces or tabs, or one
+  mark (hyphen or dash, dot, slash, or now underscore) with spaces around it:
+  `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`,
+  `35202 - 1234567 - 1`. A line break never joins groups. A match is
+  consecutive whole groups adding up to exactly 13 digits and starting with
+  1-8; a group is never split. This masks everything Jaanch's redaction
+  masks except across line breaks, and also matches more numbers that are
+  not CNICs (table columns, price lists, file names).
+
 ## 2.7.1
 
 Patch release, from real data. Every port gives the same results on the

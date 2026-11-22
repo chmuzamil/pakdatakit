@@ -67,42 +67,51 @@ def get_cnic_info(cnic: str) -> Optional[CNICInfo]:
 
 # One digit: ASCII, Urdu (U+06F0-06F9) or Arabic-Indic (U+0660-0669).
 _ANY_DIGIT = "[0-9" + chr(0x06F0) + "-" + chr(0x06F9) + chr(0x0660) + "-" + chr(0x0669) + "]"
-# A separator between digit groups: a space, a hyphen or Unicode dash
-# (U+2010-2014), a dot or a slash.
-_CNIC_SEPARATOR = "[\\-" + chr(0x2010) + "-" + chr(0x2014) + "./ ]"
 # A province digit, 1-8, in any of the three scripts.
 _PROVINCE_DIGIT = "[1-8" + chr(0x06F1) + "-" + chr(0x06F8) + chr(0x0661) + "-" + chr(0x0668) + "]"
+# Horizontal space between digit groups: a space, a tab, a no-break space
+# (U+00A0) or a narrow no-break space (U+202F). Never a line break.
+_SPACE = "[ \\t" + chr(0x00A0) + chr(0x202F) + "]"
+# One separator mark: a hyphen or Unicode dash (U+2010-2014), a dot, a slash
+# or an underscore.
+_MARK = "[\\-" + chr(0x2010) + "-" + chr(0x2014) + "./_]"
+# What may join two digit groups: any run of spaces, or one mark with any
+# spaces around it (``35202  1234567  1``, ``35202 -1234567- 1``,
+# ``35202_1234567_1``, ``35202 - 1234567 - 1``). A line break never joins
+# them.
+_JOIN = f"(?:{_SPACE}+|{_SPACE}*{_MARK}{_SPACE}*)"
 
-# A run of digit groups joined by single separators (``352 0212 3456 71``,
-# ``35202/1234567/1``), as long as it goes. Two separators in a row, or any
-# other character, end it.
-_DIGIT_RUN = re.compile(f"{_ANY_DIGIT}(?:{_CNIC_SEPARATOR}?{_ANY_DIGIT})*")
-# A CNIC in 5-7-1 groups (as in 2.7.0) inside a longer run, such as
-# ``0300-1234567 35202-1234567-1``: a province digit, then 4, 7 and 1 digits
-# with an optional separator between the groups, not next to another digit.
-_CNIC_571 = re.compile(
-    f"(?<!{_ANY_DIGIT})"
-    f"{_PROVINCE_DIGIT}{_ANY_DIGIT}{{4}}{_CNIC_SEPARATOR}?{_ANY_DIGIT}{{7}}{_CNIC_SEPARATOR}?{_ANY_DIGIT}"
-    f"(?!{_ANY_DIGIT})"
-)
+# One digit group: an unbroken run of digits.
+_GROUP = re.compile(f"{_ANY_DIGIT}+")
+# Digit groups joined as above, as long as the run goes.
+_DIGIT_RUN = re.compile(f"{_ANY_DIGIT}+(?:{_JOIN}{_ANY_DIGIT}+)*")
 _DIGIT = re.compile(_ANY_DIGIT)
 _FIRST_IS_PROVINCE = re.compile(_PROVINCE_DIGIT)
 
 
 def _cnic_spans(text: str) -> List[Tuple[int, int]]:
-    """Where CNICs are in a text: ``(start, end)`` pairs, in order."""
+    """Where CNICs are in a text: ``(start, end)`` pairs, in order. In each
+    run of digit groups, consecutive whole groups that add up to exactly 13
+    digits, starting with a province digit, are a CNIC; the search goes on
+    after it. A group is never split, so 13 digits inside a longer unbroken
+    number are never matched.
+    """
     spans: List[Tuple[int, int]] = []
     for run in _DIGIT_RUN.finditer(text):
-        raw = run.group(0)
-        start = run.start()
-        digits = len(_DIGIT.findall(raw))
-        if digits == 13 and _FIRST_IS_PROVINCE.match(raw):
-            # Exactly 13 digits in any grouping: the whole run.
-            spans.append((start, run.end()))
-        elif digits > 13:
-            # A longer run: only a CNIC written in 5-7-1 groups inside it.
-            for m in _CNIC_571.finditer(raw):
-                spans.append((start + m.start(), start + m.end()))
+        offset = run.start()
+        groups = [(offset + g.start(), offset + g.end()) for g in _GROUP.finditer(run.group(0))]
+        i = 0
+        while i < len(groups):
+            digits = 0
+            for j in range(i, len(groups)):
+                digits += groups[j][1] - groups[j][0]
+                if digits < 13:
+                    continue
+                if digits == 13 and _FIRST_IS_PROVINCE.match(text, groups[i][0]):
+                    spans.append((groups[i][0], groups[j][1]))
+                    i = j
+                break
+            i += 1
     return spans
 
 
@@ -138,23 +147,26 @@ def find_cnics(text: Any) -> List[CNICMatch]:
     """Finds CNIC numbers in free text, such as a chat message, a note or an
     uploaded document, for example to mask them before logging.
 
-    A match is either:
-
-    - a run of exactly 13 digits whose first digit is a province code (1-8),
-      together or in any grouping joined by single separators: a space, a
-      hyphen or Unicode dash, a dot or a slash (``3520212345671``,
-      ``35202-1234567-1``, ``352 0212 3456 71``, ``35202/1234567/1``); or
-    - a CNIC in 5-7-1 groups inside a longer run of such groups
-      (``0300-1234567 35202-1234567-1``).
-
-    Digits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never
-    starts or ends next to another digit, and a run of more than 13 digits is
-    never cut into a CNIC except at 5-7-1 groups.
+    Digits are read in groups (unbroken runs of digits). Groups may be
+    joined by any run of spaces or tabs, or by one mark (a hyphen or Unicode
+    dash, a dot, a slash or an underscore) with any spaces around it:
+    ``35202 1234567 1``, ``35202  1234567  1``, ``35202 -1234567- 1``,
+    ``35202_1234567_1``, ``35202 - 1234567 - 1``, ``352 0212 3456 71``,
+    ``35202/1234567/1``. A line break never joins groups. A match is
+    consecutive whole groups that add up to exactly 13 digits, starting with
+    a province code (1-8); the search goes on after each match, so
+    ``0300-1234567 35202-1234567-1`` finds the CNIC. A group is never split,
+    so 13 digits inside a longer unbroken number (an IBAN, a card number)
+    never match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. This
+    matches everything Jaanch's own CNIC redaction does, except across line
+    breaks.
 
     Accepting any grouping catches CNICs as people really type them, but
-    matches more that is not a CNIC: any 13 digits starting with 1-8, however
-    they are grouped (an account, order or tracking number, or two shorter
-    numbers written together), are found. :func:`validate_cnic` stays strict.
+    matches more that is not a CNIC: any 13 digits starting with 1-8 split
+    into groups this way (an account, order or tracking number, table
+    columns, a price list such as ``8260 - 8048 - 2804 - 0``, a file name
+    such as ``IMG_20261123_12345``, or two shorter numbers written together)
+    are found. :func:`validate_cnic` stays strict.
 
     ``start`` and ``end`` are Python string indexes (code points); the npm
     package counts UTF-16 code units, which differ only after a character

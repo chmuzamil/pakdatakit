@@ -21,26 +21,26 @@ final class Cnic
     private const PROVINCE_DIGIT = '[1-8\x{06F1}-\x{06F8}\x{0661}-\x{0668}]';
 
     /**
-     * A separator between digit groups: a space, a hyphen or Unicode dash
-     * (U+2010-2014), a dot or a slash.
+     * Horizontal space between digit groups: a space, a tab, a no-break space
+     * (U+00A0) or a narrow no-break space (U+202F). Never a line break.
      */
-    private const SEPARATOR = '[\-\x{2010}-\x{2014}.\/ ]';
+    private const SPACE = '[ \t\x{00A0}\x{202F}]';
+
+    /** One separator mark: a hyphen or Unicode dash (U+2010-2014), a dot, a slash or an underscore. */
+    private const MARK = '[\-\x{2010}-\x{2014}.\/_]';
 
     /**
-     * A run of digit groups joined by single separators (`352 0212 3456 71`,
-     * `35202/1234567/1`), as long as it goes. Two separators in a row, or any
-     * other character, end it.
+     * What may join two digit groups: any run of spaces, or one mark with any
+     * spaces around it (`35202  1234567  1`, `35202 -1234567- 1`,
+     * `35202_1234567_1`, `35202 - 1234567 - 1`). A line break never joins them.
      */
-    private const DIGIT_RUN = '/' . self::ANY_DIGIT . '(?:' . self::SEPARATOR . '?' . self::ANY_DIGIT . ')*+/u';
+    private const JOIN = '(?:' . self::SPACE . '++|' . self::SPACE . '*+' . self::MARK . self::SPACE . '*+)';
 
-    /**
-     * A CNIC in 5-7-1 groups (as in 2.7.0) inside a longer run, such as
-     * `0300-1234567 35202-1234567-1`: a province digit, then 4, 7 and 1 digits
-     * with an optional separator between the groups, not next to another digit.
-     */
-    private const CNIC_571 = '/(?<!' . self::ANY_DIGIT . ')' . self::PROVINCE_DIGIT
-        . self::ANY_DIGIT . '{4}' . self::SEPARATOR . '?' . self::ANY_DIGIT . '{7}'
-        . self::SEPARATOR . '?' . self::ANY_DIGIT . '(?!' . self::ANY_DIGIT . ')/u';
+    /** One digit group: an unbroken run of digits. */
+    private const GROUP = '/' . self::ANY_DIGIT . '++/u';
+
+    /** Digit groups joined as above, as long as the run goes. */
+    private const DIGIT_RUN = '/' . self::ANY_DIGIT . '++(?:' . self::JOIN . self::ANY_DIGIT . '++)*+/u';
 
     private const PROVINCES = [
         '1' => 'Khyber Pakhtunkhwa',
@@ -89,7 +89,10 @@ final class Cnic
 
     /**
      * Where CNICs are in a (valid UTF-8) text: `[start, end]` byte offsets,
-     * in order.
+     * in order. In each run of digit groups, consecutive whole groups that
+     * add up to exactly 13 digits, starting with a province digit, are a
+     * CNIC; the search goes on after it. A group is never split, so 13
+     * digits inside a longer unbroken number are never matched.
      *
      * @return list<array{int, int}>
      */
@@ -100,14 +103,31 @@ final class Cnic
         }
         $spans = [];
         foreach ($runs[0] as [$raw, $start]) {
-            $digits = (int) @preg_match_all(self::ONE_DIGIT, $raw);
-            if ($digits === 13 && @preg_match(self::FIRST_IS_PROVINCE, $raw) === 1) {
-                // Exactly 13 digits in any grouping: the whole run.
-                $spans[] = [$start, $start + strlen($raw)];
-            } elseif ($digits > 13 && @preg_match_all(self::CNIC_571, $raw, $inner, PREG_OFFSET_CAPTURE)) {
-                // A longer run: only a CNIC written in 5-7-1 groups inside it.
-                foreach ($inner[0] as [$match, $at]) {
-                    $spans[] = [$start + $at, $start + $at + strlen($match)];
+            if (!@preg_match_all(self::GROUP, $raw, $found, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+            $groups = [];
+            foreach ($found[0] as [$group, $at]) {
+                $groups[] = [
+                    'start' => $start + $at,
+                    'end' => $start + $at + strlen($group),
+                    'digits' => mb_strlen($group, 'UTF-8'),
+                    'first' => $group,
+                ];
+            }
+            $count = count($groups);
+            for ($i = 0; $i < $count; $i++) {
+                $digits = 0;
+                for ($j = $i; $j < $count; $j++) {
+                    $digits += $groups[$j]['digits'];
+                    if ($digits < 13) {
+                        continue;
+                    }
+                    if ($digits === 13 && @preg_match(self::FIRST_IS_PROVINCE, $groups[$i]['first']) === 1) {
+                        $spans[] = [$groups[$i]['start'], $groups[$j]['end']];
+                        $i = $j;
+                    }
+                    break;
                 }
             }
         }
@@ -118,23 +138,26 @@ final class Cnic
      * Finds CNIC numbers in free text, such as a chat message, a note or an
      * uploaded document, for example to mask them before logging.
      *
-     * A match is either:
-     *
-     * - a run of exactly 13 digits whose first digit is a province code
-     *   (1-8), together or in any grouping joined by single separators: a
-     *   space, a hyphen or Unicode dash, a dot or a slash (`3520212345671`,
-     *   `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`); or
-     * - a CNIC in 5-7-1 groups inside a longer run of such groups
-     *   (`0300-1234567 35202-1234567-1`).
-     *
-     * Digits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never
-     * starts or ends next to another digit, and a run of more than 13 digits
-     * is never cut into a CNIC except at 5-7-1 groups.
+     * Digits are read in groups (unbroken runs of digits). Groups may be
+     * joined by any run of spaces or tabs, or by one mark (a hyphen or
+     * Unicode dash, a dot, a slash or an underscore) with any spaces around
+     * it: `35202 1234567 1`, `35202  1234567  1`, `35202 -1234567- 1`,
+     * `35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`,
+     * `35202/1234567/1`. A line break never joins groups. A match is
+     * consecutive whole groups that add up to exactly 13 digits, starting
+     * with a province code (1-8); the search goes on after each match, so
+     * `0300-1234567 35202-1234567-1` finds the CNIC. A group is never split,
+     * so 13 digits inside a longer unbroken number (an IBAN, a card number)
+     * never match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed.
+     * This matches everything Jaanch's own CNIC redaction does, except
+     * across line breaks.
      *
      * Accepting any grouping catches CNICs as people really type them, but
-     * matches more that is not a CNIC: any 13 digits starting with 1-8,
-     * however they are grouped (an account, order or tracking number, or two
-     * shorter numbers written together), are found. validate() stays strict.
+     * matches more that is not a CNIC: any 13 digits starting with 1-8 split
+     * into groups this way (an account, order or tracking number, table
+     * columns, a price list such as `8260 - 8048 - 2804 - 0`, a file name
+     * such as `IMG_20261123_12345`, or two shorter numbers written together)
+     * are found. validate() stays strict.
      *
      * Offsets are in code points, so `mb_substr($text, $m->start, $m->end -
      * $m->start)` is `$m->raw`. Invalid UTF-8 bytes are first replaced as

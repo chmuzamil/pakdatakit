@@ -157,13 +157,18 @@ In Dart:
   `maskCNICs(text, mask: 'X')` returns a `MaskedText` (`text`, with each
   CNIC's digits masked and its separators kept, and `count`);
   `maskCNICs(text, replacement: '[CNIC removed]')` replaces each whole CNIC
-  instead. A match is a run of exactly 13 digits starting with 1-8, together
-  or in any grouping joined by single spaces, hyphens or dashes, dots or
-  slashes (`352 0212 3456 71`, `35202/1234567/1`), or a CNIC in 5-7-1 groups
-  inside a longer run (`0300-1234567 35202-1234567-1`), with ASCII, Urdu or
-  Arabic-Indic digits, not touching another digit. A longer run is never cut
-  into a CNIC otherwise. This catches CNICs as people type them, but any
-  other 13 digits starting with 1-8 match too, however they are grouped;
+  instead. Digits are read in groups; groups are joined by any run of
+  spaces or tabs, or by one mark (a hyphen or dash, a dot, a slash or an
+  underscore) with any spaces around it (`352 0212 3456 71`,
+  `35202 - 1234567 - 1`, `35202_1234567_1`, `35202/1234567/1`). A line
+  break never joins groups. Consecutive whole groups that add up to exactly
+  13 digits, starting with 1-8, match, and the search goes on after each
+  match (`0300-1234567 35202-1234567-1` finds the CNIC); a group is never
+  split, so 13 digits inside a longer unbroken number never match. Digits
+  may be ASCII, Urdu or Arabic-Indic. This catches CNICs as people type
+  them, but any other 13 digits starting with 1-8 grouped this way match
+  too (table columns, price lists, file names such as
+  `IMG_20261123_12345`);
   `validateCNIC` stays strict. They never throw.
 - **Amount input:** `parseAmount(input)` reads a rupee amount as people type
   it (`'Rs. 1,50,000/-'`, `'2.25cr'`, `'1.5 lakh'`, `'۱۵۰۰۰۰'`, `'5k'`) and

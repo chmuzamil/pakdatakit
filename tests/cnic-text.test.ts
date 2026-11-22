@@ -45,7 +45,11 @@ describe('findCNICs', () => {
   it('does not cut a CNIC out of a longer digit run', () => {
     expect(findCNICs('1235202-1234567-1')).toEqual([]);
     expect(findCNICs('35202-1234567-12')).toEqual([]);
-    expect(findCNICs(`${URDU('1')}35202-1234567-1`)).toEqual([]);
+    // Since 2.7.2, whole groups adding up to 13 match, as in Jaanch's
+    // redaction: here the first two groups. No unbroken run is split.
+    expect(findCNICs(`${URDU('1')}35202-1234567-1`)[0]?.digits).toBe(
+      '1352021234567',
+    );
     expect(findCNICs('x35202-1234567-1y')).toHaveLength(1);
   });
 
@@ -120,14 +124,15 @@ describe('2.7.1: any grouping of 13 digits, slashes and replacement', () => {
     );
   });
 
-  it('never cuts a longer run, or one with doubled separators', () => {
+  it('never splits an unbroken run of digits', () => {
     for (const text of [
       '352 0212 3456 712',
-      '1 352 0212 3456 71',
       '4111 1111 1111 1111',
-      '35202 - 1234567 - 1',
+      '352021234567123',
     ])
       expect(findCNICs(text)).toEqual([]);
+    // Whole groups inside a longer run still match (2.7.2).
+    expect(findCNICs('1 352 0212 3456 71')[0]?.raw).toBe('352 0212 3456 71');
   });
 
   it('matches any 13 digits starting with 1-8 (the documented trade-off)', () => {
@@ -148,5 +153,37 @@ describe('2.7.1: any grouping of 13 digits, slashes and replacement', () => {
         replacement: 42 as unknown as string,
       }).text,
     ).toBe('XXX XXXX XXXX XX');
+  });
+});
+
+describe('2.7.2: spaces, spaced marks, underscores; never across a line break', () => {
+  it('masks every form Jaanch masks, and spaced dashes', () => {
+    for (const raw of [
+      '35202  1234567  1',
+      '35202 -1234567- 1',
+      '35202_1234567_1',
+      '35202 - 1234567 - 1',
+      '35202\t1234567\t1',
+      '35202 _ 1234567 _ 1',
+    ])
+      expect(maskCNICs(`id ${raw} ok`, { replacement: '[CNIC]' })).toEqual({
+        text: 'id [CNIC] ok',
+        count: 1,
+      });
+  });
+
+  it('allows one mark between groups, not two', () => {
+    expect(findCNICs('35202 -- 1234567 -- 1')).toEqual([]);
+    expect(findCNICs('35202,1234567,1')).toEqual([]);
+  });
+
+  it('never joins digits across a line break', () => {
+    for (const text of [
+      '35202\n1234567\n1',
+      '35202 \n 1234567 \n 1',
+      '35202\r\n1234567\r\n1',
+    ])
+      expect(findCNICs(text)).toEqual([]);
+    expect(findCNICs('35202-1234567-1\n42201-7654321-2')).toHaveLength(2);
   });
 });

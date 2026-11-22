@@ -82,55 +82,59 @@ const ANY_DIGIT = /[0-9\u06F0-\u06F9\u0660-\u0669]/.source;
 /** A province digit (1-8) in any of the three scripts. */
 const PROVINCE_DIGIT = /[1-8\u06F1-\u06F8\u0661-\u0668]/.source;
 /**
- * A separator between digit groups: a space, a hyphen or Unicode dash
- * (U+2010-2014), a dot or a slash.
+ * Horizontal space between digit groups: a space, a tab, a no-break space
+ * (U+00A0) or a narrow no-break space (U+202F). Never a line break.
  */
-const CNIC_SEPARATOR = /[-\u2010\u2011\u2012\u2013\u2014./ ]/.source;
-
+const SPACE = /[ \t\u00A0\u202F]/.source;
+/** One separator mark: a hyphen or Unicode dash (U+2010-2014), a dot, a slash or an underscore. */
+const MARK = /[-\u2010\u2011\u2012\u2013\u2014./_]/.source;
 /**
- * A run of digit groups joined by single separators (`352 0212 3456 71`,
- * `35202/1234567/1`), as long as it goes. Two separators in a row, or any
- * other character, end it.
+ * What may join two digit groups: any run of spaces, or one mark with any
+ * spaces around it (`35202  1234567  1`, `35202 -1234567- 1`,
+ * `35202_1234567_1`, `35202 - 1234567 - 1`). A line break never joins them.
  */
-const DIGIT_RUN = new RegExp(
-  `${ANY_DIGIT}(?:${CNIC_SEPARATOR}?${ANY_DIGIT})*`,
-  'g',
-);
+const JOIN = `(?:${SPACE}+|${SPACE}*${MARK}${SPACE}*)`;
 
-/**
- * A CNIC in 5-7-1 groups (as in 2.7.0) inside a longer run, such as
- * `0300-1234567 35202-1234567-1`: a province digit, then 4, 7 and 1 digits
- * with an optional separator between the groups, not next to another digit.
- */
-const CNIC_571 = new RegExp(
-  `(?<!${ANY_DIGIT})` +
-    PROVINCE_DIGIT +
-    `${ANY_DIGIT}{4}${CNIC_SEPARATOR}?${ANY_DIGIT}{7}${CNIC_SEPARATOR}?${ANY_DIGIT}` +
-    `(?!${ANY_DIGIT})`,
-  'g',
-);
-
-const ONE_DIGIT = new RegExp(ANY_DIGIT, 'g');
+/** One digit group: an unbroken run of digits. */
+const GROUP = new RegExp(`${ANY_DIGIT}+`, 'g');
+/** Digit groups joined as above, as long as the run goes. */
+const DIGIT_RUN = new RegExp(`${ANY_DIGIT}+(?:${JOIN}${ANY_DIGIT}+)*`, 'g');
 const FIRST_IS_PROVINCE = new RegExp(`^${PROVINCE_DIGIT}`);
 
-/** Where CNICs are in a text: `[start, end]` pairs, in order. */
+/**
+ * Where CNICs are in a text: `[start, end]` pairs, in order. In each run of
+ * digit groups, consecutive whole groups that add up to exactly 13 digits,
+ * starting with a province digit, are a CNIC; the search goes on after it.
+ * A group is never split, so 13 digits inside a longer unbroken number are
+ * never matched.
+ */
 function cnicSpans(text: string): [number, number][] {
   const spans: [number, number][] = [];
   for (const run of text.matchAll(DIGIT_RUN)) {
-    const raw = run[0];
-    const start = run.index;
-    const digits = raw.match(ONE_DIGIT)?.length ?? 0;
-    if (digits === 13 && FIRST_IS_PROVINCE.test(raw)) {
-      // Exactly 13 digits in any grouping: the whole run.
-      spans.push([start, start + raw.length]);
-    } else if (digits > 13) {
-      // A longer run: only a CNIC written in 5-7-1 groups inside it.
-      for (const m of raw.matchAll(CNIC_571))
-        spans.push([start + m.index, start + m.index + m[0].length]);
+    const groups = [...run[0].matchAll(GROUP)].map((g) => ({
+      start: run.index + g.index,
+      end: run.index + g.index + g[0].length,
+      digits: g[0].length,
+      first: g[0],
+    }));
+    for (let i = 0; i < groups.length; i += 1) {
+      let digits = 0;
+      for (let j = i; j < groups.length; j += 1) {
+        digits += (groups[j] as { digits: number }).digits;
+        if (digits < 13) continue;
+        const from = groups[i] as { start: number; first: string };
+        if (digits === 13 && FIRST_IS_PROVINCE.test(from.first)) {
+          spans.push([from.start, (groups[j] as { end: number }).end]);
+          i = j;
+        }
+        break;
+      }
     }
   }
   return spans;
 }
+
+const ONE_DIGIT = new RegExp(ANY_DIGIT, 'g');
 
 /**
  * A CNIC that {@link findCNICs} found in free text: as written, its digits,
@@ -153,23 +157,25 @@ export interface CNICMatch {
  * Finds CNIC numbers in free text, such as a chat message, a note or an
  * uploaded document, for example to mask them before logging.
  *
- * A match is either:
- *
- * - a run of exactly 13 digits whose first digit is a province code (1-8),
- *   together or in any grouping joined by single separators: a space, a
- *   hyphen or Unicode dash, a dot or a slash (`3520212345671`,
- *   `35202-1234567-1`, `352 0212 3456 71`, `35202/1234567/1`); or
- * - a CNIC in 5-7-1 groups inside a longer run of such groups
- *   (`0300-1234567 35202-1234567-1`).
- *
- * Digits may be ASCII, Urdu or Arabic-Indic, even mixed. A match never
- * starts or ends next to another digit, and a run of more than 13 digits is
- * never cut into a CNIC except at 5-7-1 groups.
+ * Digits are read in groups (unbroken runs of digits). Groups may be joined
+ * by any run of spaces or tabs, or by one mark (a hyphen or Unicode dash, a
+ * dot, a slash or an underscore) with any spaces around it: `35202 1234567
+ * 1`, `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`,
+ * `35202 - 1234567 - 1`, `352 0212 3456 71`, `35202/1234567/1`. A line
+ * break never joins groups. A match is consecutive whole groups that add up
+ * to exactly 13 digits, starting with a province code (1-8); the search
+ * goes on after each match, so `0300-1234567 35202-1234567-1` finds the
+ * CNIC. A group is never split, so 13 digits inside a longer unbroken
+ * number (an IBAN, a card number) never match. Digits may be ASCII, Urdu or
+ * Arabic-Indic, even mixed. This matches everything Jaanch's own CNIC
+ * redaction does, except across line breaks.
  *
  * Accepting any grouping catches CNICs as people really type them, but
- * matches more that is not a CNIC: any 13 digits starting with 1-8, however
- * they are grouped (an account, order or tracking number, or two shorter
- * numbers written together), are found. {@link validateCNIC} stays strict.
+ * matches more that is not a CNIC: any 13 digits starting with 1-8 split
+ * into groups this way (an account, order or tracking number, table
+ * columns, a price list such as `8260 - 8048 - 2804 - 0`, a file name such
+ * as `IMG_20261123_12345`, or two shorter numbers written together) are
+ * found. {@link validateCNIC} stays strict.
  *
  * @example
  * findCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');

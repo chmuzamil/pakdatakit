@@ -1,4 +1,5 @@
 <!-- datasets: income-tax-slabs -->
+
 ## Income tax on salary (`income-tax-slabs.json`)
 
 The salaried rate table for each tax year: Division I of Part I of the First

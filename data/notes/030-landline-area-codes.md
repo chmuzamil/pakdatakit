@@ -1,4 +1,5 @@
 <!-- datasets: area-codes -->
+
 ## Landline area codes (`area-codes.json`)
 
 114 codes, from the numbering plan PTA sent to the ITU on 9 November 2021

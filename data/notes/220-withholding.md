@@ -1,4 +1,5 @@
 <!-- datasets: withholding-rates -->
+
 ## Withholding tax rates (`withholding-rates.json`)
 
 Rates for persons on and not on FBR's Active Taxpayers List (ATL), for
@@ -12,11 +13,11 @@ Sources, all from FBR's rate card page
 (https://fbr.gov.pk/withholding-taxes-rate-card/174298/174301), retrieved
 2026-11-23. The cards print no date; the dates are the PDFs' creation dates.
 
-| Tax year | Card | PDF date | Also read |
-| --- | --- | --- | --- |
-| 2027 | "Updated up to June 30, 2026 as per Finance Act, 2026" (https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf) | 2026-08-11 | FBR's xlsx edition |
-| 2026 | "Updated up to June 30, 2025 as per Finance Act, 2025" (http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf) | 2025-08-15 | FBR's xlsx edition |
-| 2025 | "Withholding Income Tax Regime (WHT Rates Card) ... updated up to June 30, 2024" (http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf) | 2024-08-21 | a scan; read from the page images and FBR's docx edition |
+| Tax year | Card                                                                                                                                                                       | PDF date   | Also read                                                |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------- |
+| 2027     | "Updated up to June 30, 2026 as per Finance Act, 2026" (https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf)                                  | 2026-08-11 | FBR's xlsx edition                                       |
+| 2026     | "Updated up to June 30, 2025 as per Finance Act, 2025" (http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf)                                                | 2025-08-15 | FBR's xlsx edition                                       |
+| 2025     | "Withholding Income Tax Regime (WHT Rates Card) ... updated up to June 30, 2024" (http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf) | 2024-08-21 | a scan; read from the page images and FBR's docx edition |
 
 Every row was then checked against FBR's consolidated Income Tax Ordinance
 2001 for its year: amended up to 30.06.2024 (tax year 2025), 31.07.2025
@@ -39,8 +40,7 @@ multiplier:
 
 - **Doubled** (R.1, "increased by hundred percent"): 150, 151 (2026,
   2027), 153 and 154B.
-- **A fixed rate** (R.1, table): 236C (10% in 2025, 11.5% in 2026 and
-  2027) and 151 (35% in 2025).
+- **A fixed rate** (R.1, table): 236C (10% in 2025, 11.5% in 2026 and 2027) and 151 (35% in 2025).
 - **Its own value bands** (R.1, proviso): 236K (12/16/20% in 2025,
   10.5/14.5/18.5% in 2026 and 2027).
 - **Only for persons not on the ATL:** 231AB (excluded from R.1 by

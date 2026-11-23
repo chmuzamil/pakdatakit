@@ -257,12 +257,12 @@ No datasets, but each follows an official document that can change.
       compare the fields and error codes, update `src/fbr-invoice.ts`,
       `FBR_DI_SPEC_VERSION` and DATA.md.
 
-
 FBR sale types (`data/fbr-sale-types.json`): check
 https://www.fbr.gov.pk/di-technical-assistance/173967/173970 for a newer
 "Technical Specification for DI API". If there is one, update the sale
 types from its scenarios table, `FBR_DI_SPEC_VERSION` in
 `src/fbr-invoice.ts`, and the `fbr-sale-types` manifest entry.
+
 ## Also
 
 - [ ] Raast QR: any change in the QR format that banking apps generate

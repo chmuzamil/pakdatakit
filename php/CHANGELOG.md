@@ -26,7 +26,7 @@ results on the shared test vectors. The new datasets load on first use.
   `deduction($balance, zakatYear: ..., exempt: ...)` returns a
   `ZakatDeduction` (2.5% at or above the nisab) (#93).
 - **Withholding tax** (`Withholding`): `calculate($section, $amount, atl: ...,
-  subType: ..., taxYear: ..., date: ..., lateFiler: ...)` returns a
+subType: ..., taxYear: ..., date: ..., lateFiler: ...)` returns a
   `WithholdingTax` for persons on and not on the Active Taxpayers List
   (231AB, 236C, 236K, 151, 150, 153, 154B, 149) from FBR's rate cards for
   tax years 2025-2027; `getRates($taxYear, $section)` lists the cases as
@@ -38,7 +38,7 @@ results on the shared test vectors. The new datasets load on first use.
 - **FBR Digital Invoicing.** `FbrInvoice::getSaleTypes()` lists the
   specification's sale types as `FbrSaleType`. `FbrInvoice::validate()`
   takes `['reference' => ['provinces' => [...], 'saleTypes' => [...],
-  'uoms' => [...], 'hsUom' => [...]]]`, lists synced from FBR's reference
+'uoms' => [...], 'hsUom' => [...]]]`, lists synced from FBR's reference
   APIs, and checks provinces (0073, 0074), sale types (0013), units (0099)
   and HS code/unit pairs against them (#91).
 

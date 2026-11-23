@@ -524,6 +524,30 @@
             },
             {
               "kind": "method",
+              "name": "FindAll",
+              "signature": "public static IReadOnlyList<CnicMatch> FindAll(string? text, bool acrossLines)",
+              "doc": "Finds CNIC numbers in free text, as {@link Cnic.FindAll}\ndoes, optionally also joining digit groups across a single line break.\n\nWith `acrossLines`, a single line break (`\\r\\n`,\n`\\r` or `\\n`, with any spaces around it) also joins groups,\nlike a space, so a CNIC written over several lines is found; a blank\nline (two or more line breaks) never joins them. This can also join\nnumbers on consecutive lines, such as a list of amounts.\n\n```csharp\nCnic.FindAll(\"CNIC\\n35202\\n1234567\\n1\", acrossLines: true)[0].Formatted;  // \"35202-1234567-1\"\n```",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Any text."
+                },
+                {
+                  "name": "acrossLines",
+                  "type": "bool",
+                  "default": null,
+                  "doc": "Also join digit groups across single line breaks."
+                }
+              ],
+              "returns": {
+                "type": "IReadOnlyList<CnicMatch>",
+                "doc": "The matches in order, or an empty list (also for `null`). Never throws."
+              }
+            },
+            {
+              "kind": "method",
               "name": "Mask",
               "signature": "public static MaskedText Mask(\n    string? text,\n    string? mask = \"X\",\n    string? replacement = null)",
               "doc": "Masks every CNIC in free text, as found by {@link Cnic.FindAll}: each\ndigit becomes `mask` and the separators stay, so\n`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`. The rest of the\ntext is unchanged. With `replacement`, each whole CNIC\nis replaced by that text instead.\n\nLike {@link Cnic.FindAll}, it also masks any other 13 digits that start\nwith 1-8, however they are grouped.\n\n```csharp\nCnic.Mask(\"My CNIC is 35202-1234567-1\");  // Text = \"My CNIC is XXXXX-XXXXXXX-X\", Count = 1\nCnic.Mask(\"35202 1234567 1\", \"*\");        // Text = \"***** ******* *\", Count = 1\nCnic.Mask(\"CNIC 352 0212 3456 71\", replacement: \"[CNIC removed]\");\n// Text = \"CNIC [CNIC removed]\", Count = 1\n```",
@@ -550,6 +574,42 @@
               "returns": {
                 "type": "MaskedText",
                 "doc": "The masked text (or replaced, with `replacement`) and the number of CNICs masked; `(\"\", 0)` for `null` text. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Mask",
+              "signature": "public static MaskedText Mask(\n    string? text,\n    bool acrossLines,\n    string? mask = \"X\",\n    string? replacement = null)",
+              "doc": "Masks every CNIC in free text, as\n{@link Cnic.Mask} does, optionally also\nfinding CNICs written across single line breaks, as\n{@link Cnic.FindAll} does.\n\nWith `mask` the line breaks inside a CNIC stay; with\n`replacement` they are replaced with the rest of the CNIC.\n\n```csharp\nCnic.Mask(\"35202\\n1234567\\n1\", acrossLines: true);  // Text = \"XXXXX\\nXXXXXXX\\nX\", Count = 1\nCnic.Mask(\"35202\\n1234567\\n1\", acrossLines: true, replacement: \"[CNIC removed]\");\n// Text = \"[CNIC removed]\", Count = 1\n```",
+              "params": [
+                {
+                  "name": "text",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Any text."
+                },
+                {
+                  "name": "acrossLines",
+                  "type": "bool",
+                  "default": null,
+                  "doc": "Also join digit groups across single line breaks."
+                },
+                {
+                  "name": "mask",
+                  "type": "string?",
+                  "default": "\"X\"",
+                  "doc": "The string that replaces each digit. `null` means `\"X\"`."
+                },
+                {
+                  "name": "replacement",
+                  "type": "string?",
+                  "default": "null",
+                  "doc": "The string that replaces each whole CNIC, separators included. Takes precedence over `mask`; `null` means no replacement."
+                }
+              ],
+              "returns": {
+                "type": "MaskedText",
+                "doc": "The masked text and the number of CNICs masked; `(\"\", 0)` for `null` text. Never throws."
               }
             },
             {
@@ -719,6 +779,213 @@
       ]
     },
     {
+      "id": "data-info",
+      "name": "PakDataKit",
+      "import": "using PakDataKit;",
+      "source": "dotnet/src/PakDataKit",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "record",
+          "name": "DataInfo",
+          "signature": "public sealed record DataInfo(string Id, string File, string Title, string Issuer, string SourceUrl, string SourceReference, string? SourceDate, string RetrievedAt, string EffectiveFrom, string? EffectiveTo, string Coverage, int RecordCount, string NextExpectedUpdate, string UpdateCadence, string Notes)",
+          "doc": "Where a dataset comes from and which period it covers: one entry of\n`data/manifest.json`. See {@link PakData.GetDataInfo}.",
+          "fields": [
+            {
+              "name": "Id",
+              "type": "string",
+              "default": null,
+              "doc": "The dataset's id, e.g. `income-tax-slabs`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "File",
+              "type": "string",
+              "default": null,
+              "doc": "Its file in `data/`, e.g. `income-tax-slabs.json`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Title",
+              "type": "string",
+              "default": null,
+              "doc": "What the dataset is, e.g. `Banks and IBAN bank codes`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Issuer",
+              "type": "string",
+              "default": null,
+              "doc": "The body that publishes the source, e.g. `Federal Board of Revenue (FBR)`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SourceUrl",
+              "type": "string",
+              "default": null,
+              "doc": "The official document or page the data is taken from.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SourceReference",
+              "type": "string",
+              "default": null,
+              "doc": "Its number or title: an SRO, circular, notification or table.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SourceDate",
+              "type": "string?",
+              "default": null,
+              "doc": "When the source was issued (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`), or `null` if it is undated.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "RetrievedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the source was last downloaded and checked (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "EffectiveFrom",
+              "type": "string",
+              "default": null,
+              "doc": "First date the data applies to (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "EffectiveTo",
+              "type": "string?",
+              "default": null,
+              "doc": "Last date it applies to, or `null` while it is current.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Coverage",
+              "type": "string",
+              "default": null,
+              "doc": "What it covers, e.g. `Tax years 2020-2027`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "RecordCount",
+              "type": "int",
+              "default": null,
+              "doc": "Number of records in the file.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "NextExpectedUpdate",
+              "type": "string",
+              "default": null,
+              "doc": "When the source is next expected to change (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "UpdateCadence",
+              "type": "string",
+              "default": null,
+              "doc": "What triggers an update, e.g. `After the Finance Act each July`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Notes",
+              "type": "string",
+              "default": null,
+              "doc": "Anything else about the source or how the data was made.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "DataSource",
+          "signature": "public sealed record DataSource(string Id, string EffectiveFrom, string? EffectiveTo, string SourceReference, string SourceUrl)",
+          "doc": "The source of the dated record a result was calculated from: which\ndataset, the period that record applies to, and the law or notification\nbehind it.",
+          "fields": [
+            {
+              "name": "Id",
+              "type": "string",
+              "default": null,
+              "doc": "The dataset's id, as in {@link PakData.GetDataInfo}.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "EffectiveFrom",
+              "type": "string",
+              "default": null,
+              "doc": "First date the record applies to (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "EffectiveTo",
+              "type": "string?",
+              "default": null,
+              "doc": "Last date it applies to, or `null` while it is current.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SourceReference",
+              "type": "string",
+              "default": null,
+              "doc": "The law, SRO, circular or notification, as written in the source.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SourceUrl",
+              "type": "string",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        }
+      ]
+    },
+    {
       "id": "data-version",
       "name": "PakDataKit",
       "import": "using PakDataKit;",
@@ -741,7 +1008,37 @@
               "accessors": "get"
             }
           ],
-          "methods": []
+          "methods": [
+            {
+              "kind": "method",
+              "name": "GetDataInfo",
+              "signature": "public static DataInfo? GetDataInfo(string? id)",
+              "doc": "Where a bundled dataset comes from: the issuer, the official source and\nits reference and date, when it was checked, the period it covers, its\nrecord count and when it is next expected to change.\n\n```csharp\nPakData.GetDataInfo(\"income-tax-slabs\")?.Coverage;            // \"Tax years 2020-2027\"\nPakData.GetDataInfo(\"income-tax-slabs\")?.NextExpectedUpdate;  // \"2027-07-15\"\n```",
+              "params": [
+                {
+                  "name": "id",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "A dataset id, such as `banks`, `income-tax-slabs` or `sales-tax-rates` (see {@link PakData.ListDataInfo}). Case matters."
+                }
+              ],
+              "returns": {
+                "type": "DataInfo?",
+                "doc": "The manifest entry, or `null` for an unknown id (also for `null`). Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "ListDataInfo",
+              "signature": "public static IReadOnlyList<DataInfo> ListDataInfo()",
+              "doc": "Every bundled dataset's manifest entry, as {@link PakData.GetDataInfo}\nreturns them, in id order (ordinal).\n\n```csharp\nPakData.ListDataInfo().Select(d => d.Id);  // [\"area-codes\", \"banks\", …]\n```",
+              "params": [],
+              "returns": {
+                "type": "IReadOnlyList<DataInfo>",
+                "doc": "The entries."
+              }
+            }
+          ]
         }
       ]
     },
@@ -867,6 +1164,78 @@
         },
         {
           "kind": "record",
+          "name": "FbrInvoiceReference",
+          "signature": "public sealed record FbrInvoiceReference",
+          "doc": "Reference lists from FBR's own APIs (PRAL's `/pdi/v1/provinces`,\n`/pdi/v1/uom`, `/pdi/v2/HS_UOM`, sale types from\n`/pdi/v2/SaleTypeToRate` …), which an app syncs with its token, for\n{@link FbrInvoice.Validate}.\nFBR's APIs are authoritative; this library ships no copy of these lists.\nEach list given is checked; a list left `null` is not. Names are\ncompared in any case, with spaces collapsed.",
+          "fields": [
+            {
+              "name": "Provinces",
+              "type": "IReadOnlyList<string>?",
+              "default": null,
+              "doc": "Province names as FBR lists them, e.g. `[\"PUNJAB\", \"SINDH\", …]` (errors 0073, 0074).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SaleTypes",
+              "type": "IReadOnlyList<string>?",
+              "default": null,
+              "doc": "Sale type descriptions as FBR lists them (error 0013).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Uoms",
+              "type": "IReadOnlyList<string>?",
+              "default": null,
+              "doc": "Unit of measure descriptions as FBR lists them (error 0099).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "HsUom",
+              "type": "IReadOnlyDictionary<string, IReadOnlyList<string>?>?",
+              "default": null,
+              "doc": "The units allowed for each HS code, as FBR's HS_UOM API returns them:\n`{ [\"0101.2100\"] = [\"Numbers, pieces, units\"] }`. An HS code that\nis not listed is an error without a code; a unit not allowed for its\nHS code is error 0099. A `null` list allows no unit.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "FbrSaleType",
+          "signature": "public sealed record FbrSaleType(string SaleType, IReadOnlyList<string> ScenarioIds)",
+          "doc": "A sale type as PRAL's specification names it, with its sandbox scenarios. See {@link FbrInvoice.GetSaleTypes}.",
+          "fields": [
+            {
+              "name": "SaleType",
+              "type": "string",
+              "default": null,
+              "doc": "The sale type, e.g. `Goods at Standard Rate (default)`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "ScenarioIds",
+              "type": "IReadOnlyList<string>",
+              "default": null,
+              "doc": "The specification's sandbox scenarios (SN001-SN028) that use it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
           "name": "FbrInvoiceTotals",
           "signature": "public sealed record FbrInvoiceTotals(double Quantity, double ValueSalesExcludingST, double SalesTaxApplicable, double SalesTaxWithheldAtSource, double ExtraTax, double FurtherTax, double FedPayable, double Discount)",
           "doc": "Column totals of an invoice, in rupees (quantity in units). Not sent to FBR.",
@@ -977,7 +1346,7 @@
           "kind": "class",
           "name": "FbrInvoice",
           "signature": "public static class FbrInvoice",
-          "doc": "FBR Digital Invoicing (DI): a builder that works out the sales tax on the\ninvoice JSON posted to PRAL's gateway, and an offline validator for the\nrules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12, and\nPRAL's \"Error Message Guide (Sales)\"; see DATA.md. Nothing here talks to\nFBR: there is no HTTP client and no token handling. Values that only FBR's\nreference APIs can confirm (provinces, HS codes, units, rates, sale types,\nSRO numbers) are checked for presence, not against FBR's lists.\n\nThe invoice is JSON ({@link JsonNode}), with the specification's\ncamelCase keys, because that is what is posted to FBR and what arrives\nfrom untrusted sources. A JSON number is a number however it is written\n(`5` or `5.0`); a number in a string (`\"5\"`) is not.",
+          "doc": "FBR Digital Invoicing (DI): a builder that works out the sales tax on the\ninvoice JSON posted to PRAL's gateway, and an offline validator for the\nrules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12, and\nPRAL's \"Error Message Guide (Sales)\"; see DATA.md. Nothing here talks to\nFBR: there is no HTTP client and no token handling. Values that only FBR's\nreference APIs can confirm (provinces, HS codes, units, rates, sale types,\nSRO numbers) are checked for presence, not against FBR's lists, unless the\napp passes the lists it synced from those APIs ({@link FbrInvoiceReference}).\n\nThe invoice is JSON ({@link JsonNode}), with the specification's\ncamelCase keys, because that is what is posted to FBR and what arrives\nfrom untrusted sources. A JSON number is a number however it is written\n(`5` or `5.0`); a number in a string (`\"5\"`) is not.",
           "fields": [
             {
               "name": "SpecVersion",
@@ -989,6 +1358,17 @@
             }
           ],
           "methods": [
+            {
+              "kind": "method",
+              "name": "GetSaleTypes",
+              "signature": "public static IReadOnlyList<FbrSaleType> GetSaleTypes()",
+              "doc": "The sale types named in PRAL's DI specification (v1.12, section 9,\n\"Scenarios for Sandbox Testing\"), with the scenarios that use each.\n\nFBR's full, current list comes from its reference API; this is a\nconvenience for building forms and tests, and\n{@link FbrInvoice.Validate} does not reject a sale type\nthat is not in it.\n\n```csharp\nFbrInvoice.GetSaleTypes()[0];\n// FbrSaleType { SaleType = \"Goods at Standard Rate (default)\", ScenarioIds = [\"SN001\", \"SN002\", \"SN026\"] }\n```",
+              "params": [],
+              "returns": {
+                "type": "IReadOnlyList<FbrSaleType>",
+                "doc": "The sale types, in the specification's order."
+              }
+            },
             {
               "kind": "method",
               "name": "ExpectedSalesTax",
@@ -1052,6 +1432,36 @@
             {
               "kind": "method",
               "name": "Validate",
+              "signature": "public static FbrInvoiceValidation Validate(\n    JsonNode? invoice,\n    string? today,\n    FbrInvoiceReference? reference)",
+              "doc": "Checks an FBR digital invoice as {@link FbrInvoice.Validate}\ndoes, and also against the reference lists an app syncs from FBR's APIs.\n\nEach list given in `reference` is checked: provinces\n(0073, 0074), sale types (0013), units (0099) and, with\n{@link FbrInvoiceReference.HsUom}, that the HS code is listed and\nthe unit is allowed for it (0099). Lists left out are not checked.\nFBR's APIs are authoritative. Province errors follow the invoice-level\nerrors; sale type, unit and HS code errors follow all the item errors.",
+              "params": [
+                {
+                  "name": "invoice",
+                  "type": "JsonNode?",
+                  "default": null,
+                  "doc": "The invoice JSON; any JSON is accepted."
+                },
+                {
+                  "name": "today",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Today as `YYYY-MM-DD`, to reject invoices dated later (0043). Not checked when `null` or invalid."
+                },
+                {
+                  "name": "reference",
+                  "type": "FbrInvoiceReference?",
+                  "default": null,
+                  "doc": "Lists synced from FBR's reference APIs; `null` checks none."
+                }
+              ],
+              "returns": {
+                "type": "FbrInvoiceValidation",
+                "doc": "`Valid` and the errors. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Validate",
               "signature": "public static FbrInvoiceValidation Validate(JsonElement invoice, string? today = null)",
               "doc": "Checks an FBR digital invoice given as a {@link JsonElement}; see\n{@link FbrInvoice.Validate}. A key that appears twice\ncounts once, with its last value, as in JavaScript's `JSON.parse`.",
               "params": [
@@ -1066,6 +1476,36 @@
                   "type": "string?",
                   "default": "null",
                   "doc": "Today as `YYYY-MM-DD`, to reject invoices dated later (0043)."
+                }
+              ],
+              "returns": {
+                "type": "FbrInvoiceValidation",
+                "doc": "`Valid` and the errors. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Validate",
+              "signature": "public static FbrInvoiceValidation Validate(\n    JsonElement invoice,\n    string? today,\n    FbrInvoiceReference? reference)",
+              "doc": "Checks an FBR digital invoice given as a {@link JsonElement}\nagainst the rules and the reference lists; see\n{@link FbrInvoice.Validate}.",
+              "params": [
+                {
+                  "name": "invoice",
+                  "type": "JsonElement",
+                  "default": null,
+                  "doc": "The invoice JSON."
+                },
+                {
+                  "name": "today",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "Today as `YYYY-MM-DD`, to reject invoices dated later (0043)."
+                },
+                {
+                  "name": "reference",
+                  "type": "FbrInvoiceReference?",
+                  "default": null,
+                  "doc": "Lists synced from FBR's reference APIs; `null` checks none."
                 }
               ],
               "returns": {
@@ -2457,6 +2897,15 @@
               "static": false,
               "readonly": false,
               "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource?",
+              "default": null,
+              "doc": "The rate table used: its tax year's dates, law and official source\n(dataset `income-tax-slabs`). Set on every result\n{@link IncomeTax} returns.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
             }
           ],
           "methods": []
@@ -2548,7 +2997,7 @@
               "kind": "method",
               "name": "CalculateSalaryTax",
               "signature": "public static SalaryTax? CalculateSalaryTax(\n    double annualIncome,\n    SalaryTaxOptions? options = null)",
-              "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link IncomeTax.GetSalaryTaxSlabs}).\n\nWith {@link SalaryTaxOptions.IncludeSurcharge} it adds the\nsection 4AB surcharge: a percentage of the whole tax once taxable\nincome exceeds Rs 10 million (10% in tax year 2025, 9% for salaried\nindividuals in 2026, none in 2027 or before 2025). Because it applies\nto the whole tax, one rupee over Rs 10 million adds it in full. It is\noff by default in 2.x so that existing results do not change, and will\nbe on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice.\n\n```csharp\nIncomeTax.CalculateSalaryTax(1_800_000, new SalaryTaxOptions { TaxYear = 2026 });\n// Tax = 72000, Surcharge = 0, Total = 72000, Monthly = 6000, EffectiveRate = 4,\n// Slab = { Over = 1200000, … }, TaxYear = 2026\nIncomeTax.CalculateSalaryTax(12_000_000, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true });\n// Tax = 3381000, Surcharge = 304290, Total = 3685290, Monthly = 307107.5, …\n```",
+              "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link IncomeTax.GetSalaryTaxSlabs}).\n\nWith {@link SalaryTaxOptions.IncludeSurcharge} it adds the\nsection 4AB surcharge: a percentage of the whole tax once taxable\nincome exceeds Rs 10 million (10% in tax year 2025, 9% for salaried\nindividuals in 2026, none in 2027 or before 2025). Because it applies\nto the whole tax, one rupee over Rs 10 million adds it in full. It is\noff by default in 2.x so that existing results do not change, and will\nbe on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice.\n\n```csharp\nIncomeTax.CalculateSalaryTax(1_800_000, new SalaryTaxOptions { TaxYear = 2026 });\n// Tax = 72000, Surcharge = 0, Total = 72000, Monthly = 6000, EffectiveRate = 4,\n// Slab = { Over = 1200000, … }, TaxYear = 2026,\n// Source = { Id = \"income-tax-slabs\", EffectiveFrom = \"2025-07-01\", … }\nIncomeTax.CalculateSalaryTax(12_000_000, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true });\n// Tax = 3381000, Surcharge = 304290, Total = 3685290, Monthly = 307107.5, …\n```",
               "params": [
                 {
                   "name": "annualIncome",
@@ -3133,6 +3582,282 @@
               "returns": {
                 "type": "PhoneAnalysis",
                 "doc": "The analysis; {@link PhoneAnalysis.Valid} is `false` for invalid numbers."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "population",
+      "name": "PakDataKit",
+      "import": "using PakDataKit;",
+      "source": "dotnet/src/PakDataKit",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "record",
+          "name": "DistrictPopulation",
+          "signature": "public sealed record DistrictPopulation(string District, string Province, long? Population, long? Households, long? Urban, long? Rural, int Census, string? CensusDistrict, bool BoundaryChanged, string? Note, DataSource Source)",
+          "doc": "Result of {@link Population.GetDistrict}: a district's 2023 census figures.",
+          "fields": [
+            {
+              "name": "District",
+              "type": "string",
+              "default": null,
+              "doc": "The district, as {@link Geo.GetDistrictsByProvince} names it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Province",
+              "type": "string",
+              "default": null,
+              "doc": "Its province or territory.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Population",
+              "type": "long?",
+              "default": null,
+              "doc": "Total population (all sexes), or `null` where the census has no figure.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Households",
+              "type": "long?",
+              "default": null,
+              "doc": "Households, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Urban",
+              "type": "long?",
+              "default": null,
+              "doc": "Urban population, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Rural",
+              "type": "long?",
+              "default": null,
+              "doc": "Rural population, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "CensusDistrict",
+              "type": "string?",
+              "default": null,
+              "doc": "The census district the figures belong to. For a district created after\nthe census, the one its area was part of (its own figures are\n`null`); `null` in Gilgit-Baltistan and Azad Jammu and Kashmir,\nwhich the census did not cover.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "BoundaryChanged",
+              "type": "bool",
+              "default": null,
+              "doc": "`true` when the district has lost area to a district created after\nthe census: the figures are for the district as it was at the census.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Note",
+              "type": "string?",
+              "default": null,
+              "doc": "Why figures are missing or what they cover, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The census tables (dataset `district-population`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "TehsilPopulation",
+          "signature": "public sealed record TehsilPopulation(string Tehsil, string CensusDistrict, string? CurrentDistrict, string Province, long Population, long Households, long Urban, long Rural, int Census, string? Note, DataSource Source)",
+          "doc": "Result of {@link Population.GetTehsil}: a tehsil's 2023 census figures.",
+          "fields": [
+            {
+              "name": "Tehsil",
+              "type": "string",
+              "default": null,
+              "doc": "The tehsil (taluka, sub-division) as the census tables name it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "CensusDistrict",
+              "type": "string",
+              "default": null,
+              "doc": "The district at the census.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "CurrentDistrict",
+              "type": "string?",
+              "default": null,
+              "doc": "The district today, or `null` where its census district has since\nbeen split and no official source yet confirms which district it is in.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Province",
+              "type": "string",
+              "default": null,
+              "doc": "Its province or territory.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Population",
+              "type": "long",
+              "default": null,
+              "doc": "Total population (all sexes).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Households",
+              "type": "long",
+              "default": null,
+              "doc": "Households.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Urban",
+              "type": "long",
+              "default": null,
+              "doc": "Urban population.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Rural",
+              "type": "long",
+              "default": null,
+              "doc": "Rural population.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Note",
+              "type": "string?",
+              "default": null,
+              "doc": "What the figures cover, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The census tables (dataset `tehsil-population`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Population",
+          "signature": "public static class Population",
+          "doc": "Population, households and the urban/rural split of districts and tehsils\nfrom Pakistan's 2023 census (Pakistan Bureau of Statistics).",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "GetDistrict",
+              "signature": "public static DistrictPopulation? GetDistrict(string? district)",
+              "doc": "A district's population, households and urban/rural split from the\n2023 census, for any of the 177 districts in\n{@link Geo.GetDistrictsByProvince}.\n\nDistricts created after the census have `null` figures and name\nthe census district their area was part of; nothing is estimated.\nDistricts that lost area to a new district keep their census figures,\nwith {@link DistrictPopulation.BoundaryChanged} set.\nGilgit-Baltistan and Azad Jammu and Kashmir were not enumerated by this\ncensus, so their figures are `null`.\n\n```csharp\nPopulation.GetDistrict(\"Lahore\")?.Population;  // 13004135\nPopulation.GetDistrict(\"Murree\")?.Population;  // null (created after the census)\n```",
+              "params": [
+                {
+                  "name": "district",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "A district name, in any case."
+                }
+              ],
+              "returns": {
+                "type": "DistrictPopulation?",
+                "doc": "The figures and their source, or `null` for an unknown district (also for `null`). Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "GetTehsil",
+              "signature": "public static TehsilPopulation? GetTehsil(string? tehsil, string? district = null)",
+              "doc": "A tehsil's (or taluka's, sub-division's) population, households and\nurban/rural split from the 2023 census, for the 591 units in the\ncensus tables.\n\nA few names occur in more than one district; give the district (at the\ncensus or today) to choose.\n\n```csharp\nPopulation.GetTehsil(\"Murree\")?.CurrentDistrict; // \"Murree\"\n```",
+              "params": [
+                {
+                  "name": "tehsil",
+                  "type": "string?",
+                  "default": null,
+                  "doc": "A tehsil name, in any case."
+                },
+                {
+                  "name": "district",
+                  "type": "string?",
+                  "default": "null",
+                  "doc": "Its district (at the census or today), needed only when the name is not unique."
+                }
+              ],
+              "returns": {
+                "type": "TehsilPopulation?",
+                "doc": "The figures and their source, or `null` for an unknown or ambiguous name (also for `null`). Never throws."
               }
             }
           ]
@@ -4355,6 +5080,15 @@
               "static": false,
               "readonly": false,
               "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource?",
+              "default": null,
+              "doc": "The rate's period, law and official source (dataset\n`sales-tax-rates`), when {@link SalesTax.Calculate} looked\nthe rate up from a province or kind. `null` when you passed the\nrate yourself, and from {@link SalesTax.SplitInclusive}.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
             }
           ],
           "methods": []
@@ -4520,7 +5254,7 @@
               "kind": "method",
               "name": "Calculate",
               "signature": "public static SalesTaxAmounts? Calculate(double amount, SalesTaxOptions? options)",
-              "doc": "Adds sales tax to an amount, or splits it out when\n{@link SalesTaxOptions.Inclusive} is set.\n\nGive a {@link SalesTaxOptions.Rate}, or a\n{@link SalesTaxOptions.Province} (and {@link SalesTaxOptions.Kind},\ndefault services, and a date) to use the standard rate from\n{@link SalesTax.GetRate}. The tax is rounded half up to the paisa.\n\n```csharp\nSalesTax.Calculate(1000, new SalesTaxOptions { Rate = 18 }); // Net = 1000, Tax = 180, Gross = 1180, Rate = 18\n```",
+              "doc": "Adds sales tax to an amount, or splits it out when\n{@link SalesTaxOptions.Inclusive} is set.\n\nGive a {@link SalesTaxOptions.Rate}, or a\n{@link SalesTaxOptions.Province} (and {@link SalesTaxOptions.Kind},\ndefault services, and a date) to use the standard rate from\n{@link SalesTax.GetRate}. The tax is rounded half up to the paisa.\n\n```csharp\nSalesTax.Calculate(1000, new SalesTaxOptions { Rate = 18 }); // Net = 1000, Tax = 180, Gross = 1180, Rate = 18\nSalesTax.Calculate(1000, new SalesTaxOptions { Province = \"Punjab\", Date = \"2026-11-18\" });\n// Net = 1000, Tax = 160, Gross = 1160, Rate = 16,\n// Source = { Id = \"sales-tax-rates\", EffectiveFrom = \"2019-07-01\", … }\n```",
               "params": [
                 {
                   "name": "amount",
@@ -5108,6 +5842,569 @@
       ]
     },
     {
+      "id": "withholding",
+      "name": "PakDataKit",
+      "import": "using PakDataKit;",
+      "source": "dotnet/src/PakDataKit",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "enum",
+          "name": "WithholdingNonAtlRule",
+          "signature": "public enum WithholdingNonAtlRule",
+          "doc": "How the rate for a person not on the Active Taxpayers List is set for a\nwithholding case, under the Tenth Schedule to the Income Tax Ordinance.",
+          "values": [
+            {
+              "name": "Double",
+              "doc": "The Tenth Schedule's 100% increase: double the ATL rate."
+            },
+            {
+              "name": "Fixed",
+              "doc": "Its own rate (236C; 231AB, which applies only to persons not on the list)."
+            },
+            {
+              "name": "Slabs",
+              "doc": "Its own value bands (236K)."
+            },
+            {
+              "name": "NotApplicable",
+              "doc": "The same rate for everyone (149)."
+            }
+          ],
+          "fields": [],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "WithholdingSlab",
+          "signature": "public sealed record WithholdingSlab(long Over, long? UpTo, double Rate)",
+          "doc": "A value band: the rate for amounts over {@link WithholdingSlab.Over} up to\n{@link WithholdingSlab.UpTo} (inclusive).",
+          "fields": [
+            {
+              "name": "Over",
+              "type": "long",
+              "default": null,
+              "doc": "Lower bound in rupees (the amount must exceed it).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "UpTo",
+              "type": "long?",
+              "default": null,
+              "doc": "Upper bound in rupees, or `null` for no limit.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Rate",
+              "type": "double",
+              "default": null,
+              "doc": "Percent of the whole amount.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "WithholdingThreshold",
+          "signature": "public sealed record WithholdingThreshold(long Amount, string Per)",
+          "doc": "The amount at or below which nothing is collected (231AB: Rs 50,000 of\ncash withdrawn in a day, all withdrawals added up).",
+          "fields": [
+            {
+              "name": "Amount",
+              "type": "long",
+              "default": null,
+              "doc": "The threshold in rupees.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Per",
+              "type": "string",
+              "default": null,
+              "doc": "The period it applies to, e.g. `day`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "WithholdingThresholdCheck",
+          "signature": "public sealed record WithholdingThresholdCheck(long Amount, string Per, bool WithinThreshold)",
+          "doc": "A case's threshold and whether the amount was within it.",
+          "fields": [
+            {
+              "name": "Amount",
+              "type": "long",
+              "default": null,
+              "doc": "The threshold in rupees.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Per",
+              "type": "string",
+              "default": null,
+              "doc": "The period it applies to, e.g. `day`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "WithinThreshold",
+              "type": "bool",
+              "default": null,
+              "doc": "`true` if the amount was at or below it, so nothing was collected.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "WithholdingInput",
+          "signature": "public sealed record WithholdingInput",
+          "doc": "Input of {@link Withholding.Calculate}.",
+          "fields": [
+            {
+              "name": "Section",
+              "type": "string",
+              "default": null,
+              "doc": "Section of the Income Tax Ordinance 2001: `231AB`, `236C`,\n`236K`, `151`, `150`, `153`, `154B` or\n`149` (any case, spaces around it ignored).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SubType",
+              "type": "string?",
+              "default": null,
+              "doc": "Which case of the section, e.g. `bank-deposit` (151) or\n`goods-company` (153); see {@link Withholding.GetRates}.\nMay be left out for sections with one case.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Amount",
+              "type": "double",
+              "default": null,
+              "doc": "The payment (or, for 236C and 236K, the value; for 149, the year's\ntaxable salary) in rupees, 0 to 1 trillion.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Atl",
+              "type": "bool",
+              "default": null,
+              "doc": "`true` if the person is on FBR's Active Taxpayers List.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "LateFiler",
+              "type": "bool",
+              "default": null,
+              "doc": "`true` for a person on the list who filed the return late.\nChanges the rate only where the year has a late-filer rate (236C and\n236K in tax years 2025 and 2026).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "TaxYear",
+              "type": "int?",
+              "default": null,
+              "doc": "Tax year (July to June), e.g. `2027`. Takes precedence over {@link WithholdingInput.Date} and {@link WithholdingInput.OnDate}.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Date",
+              "type": "string?",
+              "default": null,
+              "doc": "A date in the tax year as `YYYY-MM-DD`, instead of {@link WithholdingInput.TaxYear}. Use this or {@link WithholdingInput.OnDate}, not both.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "OnDate",
+              "type": "DateOnly?",
+              "default": null,
+              "doc": "A date in the tax year as a {@link DateOnly}, instead of {@link WithholdingInput.TaxYear}. Use this or {@link WithholdingInput.Date}, not both.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "WithholdingTax",
+          "signature": "public sealed record WithholdingTax(string Section, string SubType, string Description, int TaxYear, bool Atl, bool LateFiler, double Rate, double Tax, WithholdingNonAtlRule NonAtlRule, WithholdingSlab? Slab, WithholdingThresholdCheck? Threshold, string CardRef, string LawRef, string? StatuteOverride, DataSource Source)",
+          "doc": "Result of {@link Withholding.Calculate}.",
+          "fields": [
+            {
+              "name": "Section",
+              "type": "string",
+              "default": null,
+              "doc": "The section, e.g. `236K`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SubType",
+              "type": "string",
+              "default": null,
+              "doc": "The case used, e.g. `purchase`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Description",
+              "type": "string",
+              "default": null,
+              "doc": "The case as the rate card describes it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "TaxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year used.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Atl",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the person is on the Active Taxpayers List.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "LateFiler",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether a late filer's rate was asked for (only for a person on the list).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Rate",
+              "type": "double",
+              "default": null,
+              "doc": "Percent applied to the whole amount (for 149, the effective rate).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Tax",
+              "type": "double",
+              "default": null,
+              "doc": "Tax to withhold or collect, rounded half up to the paisa.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "NonAtlRule",
+              "type": "WithholdingNonAtlRule",
+              "default": null,
+              "doc": "How the rate for a person not on the list is set for this case.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Slab",
+              "type": "WithholdingSlab?",
+              "default": null,
+              "doc": "The value band used (236C, 236K), or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Threshold",
+              "type": "WithholdingThresholdCheck?",
+              "default": null,
+              "doc": "The amount at or below which nothing is collected, and whether this amount was within it; `null` where there is none.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "CardRef",
+              "type": "string",
+              "default": null,
+              "doc": "Where the case is on FBR's rate card.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "LawRef",
+              "type": "string",
+              "default": null,
+              "doc": "The law, as printed on the card.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "StatuteOverride",
+              "type": "string?",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why; otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate card and law (dataset `withholding-rates`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "WithholdingRate",
+          "signature": "public sealed record WithholdingRate(int TaxYear, string Section, string SubType, string Description, double? AtlRate, IReadOnlyList<WithholdingSlab>? AtlSlabs, WithholdingNonAtlRule NonAtlRule, double? NonAtlRate, IReadOnlyList<WithholdingSlab>? NonAtlSlabs, IReadOnlyList<WithholdingSlab>? LateFilerSlabs, WithholdingThreshold? Threshold, string CardRef, string LawRef, string? StatuteOverride, string? Note, DataSource Source)",
+          "doc": "One case of a section in a tax year, as in FBR's rate card. See {@link Withholding.GetRates}.",
+          "fields": [
+            {
+              "name": "TaxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Section",
+              "type": "string",
+              "default": null,
+              "doc": "The section, e.g. `153`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SubType",
+              "type": "string",
+              "default": null,
+              "doc": "The case, e.g. `goods-company`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Description",
+              "type": "string",
+              "default": null,
+              "doc": "The case as the rate card describes it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "AtlRate",
+              "type": "double?",
+              "default": null,
+              "doc": "Percent for a person on the list; `null` where it does not apply or depends on the value (see `AtlSlabs`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "AtlSlabs",
+              "type": "IReadOnlyList<WithholdingSlab>?",
+              "default": null,
+              "doc": "Value bands for a person on the list, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "NonAtlRule",
+              "type": "WithholdingNonAtlRule",
+              "default": null,
+              "doc": "How the rate for a person not on the list is set.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "NonAtlRate",
+              "type": "double?",
+              "default": null,
+              "doc": "Percent for a person not on the list, or `null` (see `NonAtlSlabs`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "NonAtlSlabs",
+              "type": "IReadOnlyList<WithholdingSlab>?",
+              "default": null,
+              "doc": "Value bands for a person not on the list, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "LateFilerSlabs",
+              "type": "IReadOnlyList<WithholdingSlab>?",
+              "default": null,
+              "doc": "Late-filer value bands, where the year has them; otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Threshold",
+              "type": "WithholdingThreshold?",
+              "default": null,
+              "doc": "The amount at or below which nothing is collected, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "CardRef",
+              "type": "string",
+              "default": null,
+              "doc": "Where the case is on FBR's rate card.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "LawRef",
+              "type": "string",
+              "default": null,
+              "doc": "The law, as printed on the card.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "StatuteOverride",
+              "type": "string?",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why; otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Note",
+              "type": "string?",
+              "default": null,
+              "doc": "More about the case, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate card and law (dataset `withholding-rates`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Withholding",
+          "signature": "public static class Withholding",
+          "doc": "Income tax withheld or collected at source under the Income Tax Ordinance\n2001, for persons on and not on FBR's Active Taxpayers List (ATL), from\nFBR's Withholding Tax Rate Cards for tax years 2025 to 2027.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "GetRates",
+              "signature": "public static IReadOnlyList<WithholdingRate> GetRates(int taxYear, string? section = null)",
+              "doc": "Every case FBR's Withholding Tax Rate Card lists for the covered\nsections in a tax year (2025 to 2027), with its rates for persons on\nand not on the Active Taxpayers List and its references.\n\n```csharp\nWithholding.GetRates(2027, \"153\").Select(r => r.SubType); // [\"rice-cotton-seed-edible-oil\", …]\n```",
+              "params": [
+                {
+                  "name": "taxYear",
+                  "type": "int",
+                  "default": null,
+                  "doc": "The tax year, e.g. `2027`."
+                },
+                {
+                  "name": "section",
+                  "type": "string?",
+                  "default": "null",
+                  "doc": "Only this section, e.g. `153` (any case); `null` for all."
+                }
+              ],
+              "returns": {
+                "type": "IReadOnlyList<WithholdingRate>",
+                "doc": "The cases, or an empty list for a year that is not covered. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Calculate",
+              "signature": "public static WithholdingTax? Calculate(WithholdingInput? input)",
+              "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List,\nfrom FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of\nimmovable property, 151 profit on debt, 150 dividends, 153 goods,\nservices and contracts, 154B social media income (from 2027) and 149\nsalary (the salaried rate table, as {@link IncomeTax.CalculateSalaryTax}).\n\nThe rate for a person not on the list follows each case's own rule in\nthe Tenth Schedule: usually double, but a fixed rate (236C, and 151 in\n2025), its own value bands (236K), or none (149; 231AB applies only to\nthem). The rate applies to the whole amount. Where FBR's card and the\nOrdinance differ, the Ordinance is used and\n{@link WithholdingTax.StatuteOverride} says so.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many\ncases not listed here are not applied.\n\n```csharp\nWithholding.Calculate(new WithholdingInput { Section = \"236K\", Amount = 60_000_000, Atl = false, TaxYear = 2027 });\n// Rate = 14.5, Tax = 8700000, NonAtlRule = Slabs, …\nWithholding.Calculate(new WithholdingInput { Section = \"231AB\", Amount = 80_000, Atl = false, TaxYear = 2027 })?.Tax; // 640\n```",
+              "params": [
+                {
+                  "name": "input",
+                  "type": "WithholdingInput?",
+                  "default": null,
+                  "doc": "The section, case, amount, ATL status and tax year (or a date in it)."
+                }
+              ],
+              "returns": {
+                "type": "WithholdingTax?",
+                "doc": "The rate, tax and references, or `null` for an unknown section, case or tax year, an invalid amount or date, or no tax year or date. Never throws."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "words",
       "name": "PakDataKit",
       "import": "using PakDataKit;",
@@ -5204,6 +6501,371 @@
                   "doc": "`amount` is negative, not finite or too large."
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zakat",
+      "name": "PakDataKit",
+      "import": "using PakDataKit;",
+      "source": "dotnet/src/PakDataKit",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "record",
+          "name": "ZakatDocument",
+          "signature": "public sealed record ZakatDocument(string Number, string Date, string Url)",
+          "doc": "A document behind a Zakat year's nisab: its number, date and URL.",
+          "fields": [
+            {
+              "name": "Number",
+              "type": "string",
+              "default": null,
+              "doc": "The document's number, as printed.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Date",
+              "type": "string",
+              "default": null,
+              "doc": "Its date (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Url",
+              "type": "string",
+              "default": null,
+              "doc": "The official copy.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "ZakatNisab",
+          "signature": "public sealed record ZakatNisab(int ZakatYear, string Label, long Nisab, string ValuationDateHijri, IReadOnlyList<string> ExpectedValuationDates, string? BankHolidayDate, ZakatDocument Notification, ZakatDocument SbpCircular, DataSource Source)",
+          "doc": "One Zakat year's nisab for deduction at source, as notified.",
+          "fields": [
+            {
+              "name": "ZakatYear",
+              "type": "int",
+              "default": null,
+              "doc": "The Hijri year of the valuation date (1 Ramazan), e.g. `1447`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Label",
+              "type": "string",
+              "default": null,
+              "doc": "The year as the Ministry's notification writes it, e.g. `1446-47`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Nisab",
+              "type": "long",
+              "default": null,
+              "doc": "Nisab in rupees: accounts with a lower balance are not deducted.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "ValuationDateHijri",
+              "type": "string",
+              "default": null,
+              "doc": "The valuation (deduction) date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "ExpectedValuationDates",
+              "type": "IReadOnlyList<string>",
+              "default": null,
+              "doc": "The two Gregorian dates the notification says 1 Ramazan is likely to fall\non (`YYYY-MM-DD`). The day itself depends on the moon sighting.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "BankHolidayDate",
+              "type": "string?",
+              "default": null,
+              "doc": "The bank holiday for the deduction, when SBP's circular names a Gregorian\ndate (`YYYY-MM-DD`); otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Notification",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The Ministry of Poverty Alleviation & Social Safety notification.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SbpCircular",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The SBP BPRD circular letter that conveys it to banks.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The notification and SBP circular, as a {@link DataSource} (dataset `zakat-nisab`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "ZakatYearQuery",
+          "signature": "public sealed record ZakatYearQuery",
+          "doc": "Which Zakat year: by its Hijri year ({@link ZakatYearQuery.ZakatYear} or\n{@link ZakatYearQuery.Label}) or by a date ({@link ZakatYearQuery.Date} or\n{@link ZakatYearQuery.OnDate}). Give one of the four.",
+          "fields": [
+            {
+              "name": "ZakatYear",
+              "type": "int?",
+              "default": null,
+              "doc": "The Hijri year, e.g. `1447`. Takes precedence over a date.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Label",
+              "type": "string?",
+              "default": null,
+              "doc": "The year as text: `\"1447\"`, or as the notification writes it,\n`\"1446-47\"`. Use this or {@link ZakatYearQuery.ZakatYear}, not both. Takes\nprecedence over a date.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Date",
+              "type": "string?",
+              "default": null,
+              "doc": "A date in the Zakat year as `YYYY-MM-DD`. Use this or {@link ZakatYearQuery.OnDate}, not both.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "OnDate",
+              "type": "DateOnly?",
+              "default": null,
+              "doc": "A date in the Zakat year as a {@link DateOnly}. Use this or {@link ZakatYearQuery.Date}, not both.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "enum",
+          "name": "ZakatExemption",
+          "signature": "public enum ZakatExemption",
+          "doc": "Why {@link Zakat.CalculateDeduction} deducts nothing.",
+          "values": [
+            {
+              "name": "Exempt",
+              "doc": "The holder filed the exemption declaration (Form CZ-50)."
+            },
+            {
+              "name": "BelowNisab",
+              "doc": "The balance is below the year's nisab."
+            }
+          ],
+          "fields": [],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "ZakatDeduction",
+          "signature": "public sealed record ZakatDeduction(int ZakatYear, long Nisab, double Balance, bool Deductible, ZakatExemption? Reason, double Rate, double Zakat, DataSource Source)",
+          "doc": "Result of {@link Zakat.CalculateDeduction}.",
+          "fields": [
+            {
+              "name": "ZakatYear",
+              "type": "int",
+              "default": null,
+              "doc": "The Hijri Zakat year used.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Nisab",
+              "type": "long",
+              "default": null,
+              "doc": "That year's nisab in rupees.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Balance",
+              "type": "double",
+              "default": null,
+              "doc": "The balance in rupees (rounded half up to the paisa).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Deductible",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether Zakat is deducted from this balance.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Reason",
+              "type": "ZakatExemption?",
+              "default": null,
+              "doc": "Why not, when `Deductible` is `false`; otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Rate",
+              "type": "double",
+              "default": null,
+              "doc": "Percent of the whole balance: 2.5.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Zakat",
+              "type": "double",
+              "default": null,
+              "doc": "The amount deducted, rounded half up to the paisa; `0` if not deductible.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The year's notification and SBP circular (dataset `zakat-nisab`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Zakat",
+          "signature": "public static class Zakat",
+          "doc": "Zakat deducted at source in Pakistan: the nisab notified each year by the\nAdministrator-General Zakat and conveyed to banks by SBP (Zakat years 1433\nto 1447 AH, 2012-2026), and the deduction from one account.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "GetNisab",
+              "signature": "public static ZakatNisab? GetNisab(ZakatYearQuery? query)",
+              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year,\ngiven by its Hijri year or a date in it.\n\nA Zakat year starts on 1 Ramazan; for a date on the first of the two\ndays the notification gives for it, the year is unknown and the result\nis `null`, as it is for a date past the last notified year.\n\n```csharp\nZakat.GetNisab(new ZakatYearQuery { ZakatYear = 1447 })?.Nisab;    // 503529\nZakat.GetNisab(new ZakatYearQuery { Label = \"1445-46\" })?.ZakatYear; // 1446\nZakat.GetNisab(new ZakatYearQuery { Date = \"2025-06-01\" })?.Nisab;  // 179689\n```",
+              "params": [
+                {
+                  "name": "query",
+                  "type": "ZakatYearQuery?",
+                  "default": null,
+                  "doc": "The year or a date."
+                }
+              ],
+              "returns": {
+                "type": "ZakatNisab?",
+                "doc": "The year's nisab, dates and sources, or `null` for a year that is not covered, an invalid query, or an ambiguous date. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "GetNisab",
+              "signature": "public static ZakatNisab? GetNisab(int zakatYear)",
+              "doc": "The nisab for compulsory Zakat deduction at source for a Hijri Zakat year.\n\n```csharp\nZakat.GetNisab(1447)?.Nisab; // 503529\n```",
+              "params": [
+                {
+                  "name": "zakatYear",
+                  "type": "int",
+                  "default": null,
+                  "doc": "The Hijri year of the valuation date, e.g. `1447`."
+                }
+              ],
+              "returns": {
+                "type": "ZakatNisab?",
+                "doc": "The year's nisab, dates and sources, or `null` for a year that is not covered. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "GetYears",
+              "signature": "public static IReadOnlyList<int> GetYears()",
+              "doc": "Every notified Zakat year, oldest first.",
+              "params": [],
+              "returns": {
+                "type": "IReadOnlyList<int>",
+                "doc": "The Hijri years (1433 to 1447)."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "CalculateDeduction",
+              "signature": "public static ZakatDeduction? CalculateDeduction(\n    double balance,\n    ZakatYearQuery? query,\n    bool exempt = false)",
+              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance when it is at or above that year's\nnisab, and nothing when it is below or the holder filed the exemption\ndeclaration (Form CZ-50).\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```csharp\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 });\n// ZakatYear = 1447, Nisab = 503529, Balance = 600000, Deductible = true,\n// Reason = null, Rate = 2.5, Zakat = 15000, Source = { … }\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 }, exempt: true)?.Zakat; // 0\n```",
+              "params": [
+                {
+                  "name": "balance",
+                  "type": "double",
+                  "default": null,
+                  "doc": "The account balance in rupees at the start of the valuation date, 0 to 1 trillion."
+                },
+                {
+                  "name": "query",
+                  "type": "ZakatYearQuery?",
+                  "default": null,
+                  "doc": "The Zakat year or a date in it."
+                },
+                {
+                  "name": "exempt",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": "`true` if the holder filed the exemption declaration (Form CZ-50)."
+                }
+              ],
+              "returns": {
+                "type": "ZakatDeduction?",
+                "doc": "The deduction and its source, or `null` for an invalid balance, a year that is not covered, or an ambiguous date. Never throws."
+              }
             }
           ]
         }

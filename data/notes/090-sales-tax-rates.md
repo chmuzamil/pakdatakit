@@ -1,4 +1,5 @@
 <!-- datasets: sales-tax-rates -->
+
 ## Sales tax rates (`sales-tax-rates.json`)
 
 Standard rates only, from 1 July 2019, each with the period it applied, the

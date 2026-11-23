@@ -405,14 +405,20 @@
         {
           "kind": "function",
           "name": "find_cnics",
-          "signature": "def find_cnics(text: Any) -> List[CNICMatch]",
-          "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nDigits are read in groups (unbroken runs of digits). Groups may be\njoined by any run of spaces or tabs, or by one mark (a hyphen or Unicode\ndash, a dot, a slash or an underscore) with any spaces around it:\n`35202 1234567 1`, `35202  1234567  1`, `35202 -1234567- 1`,\n`35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`,\n`35202/1234567/1`. A line break never joins groups. A match is\nconsecutive whole groups that add up to exactly 13 digits, starting with\na province code (1-8); the search goes on after each match, so\n`0300-1234567 35202-1234567-1` finds the CNIC. A group is never split,\nso 13 digits inside a longer unbroken number (an IBAN, a card number)\nnever match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. This\nmatches everything Jaanch's own CNIC redaction does, except across line\nbreaks.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8 split\ninto groups this way (an account, order or tracking number, table\ncolumns, a price list such as `8260 - 8048 - 2804 - 0`, a file name\nsuch as `IMG_20261123_12345`, or two shorter numbers written together)\nare found. {@link validate_cnic} stays strict.\n\n`start` and `end` are Python string indexes (code points); the npm\npackage counts UTF-16 code units, which differ only after a character\noutside the Basic Multilingual Plane, such as an emoji.\n\nReturns the matches in order, or `[]` (also for a value that is not a\nstring). Never raises.\n\n```python\n>>> find_cnics(\"CNIC: 35202-1234567-1, phone 0300-1234567\")\n[CNICMatch(raw='35202-1234567-1', digits='3520212345671', formatted='35202-1234567-1', start=6, end=21)]\n>>> find_cnics(\"id 352 0212 3456 71\")[0].digits\n'3520212345671'\n```",
+          "signature": "def find_cnics(text: Any, *, across_lines: Any = False) -> List[CNICMatch]",
+          "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nDigits are read in groups (unbroken runs of digits). Groups may be\njoined by any run of spaces or tabs, or by one mark (a hyphen or Unicode\ndash, a dot, a slash or an underscore) with any spaces around it:\n`35202 1234567 1`, `35202  1234567  1`, `35202 -1234567- 1`,\n`35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`,\n`35202/1234567/1`. A line break never joins groups. A match is\nconsecutive whole groups that add up to exactly 13 digits, starting with\na province code (1-8); the search goes on after each match, so\n`0300-1234567 35202-1234567-1` finds the CNIC. A group is never split,\nso 13 digits inside a longer unbroken number (an IBAN, a card number)\nnever match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. This\nmatches everything Jaanch's own CNIC redaction does, except across line\nbreaks.\n\nWith `across_lines=True`, a single line break (`\\r\\n`, `\\r` or\n`\\n`, with any spaces around it) also joins groups, as if it were a\nspace, so a CNIC written over several lines is found; a blank line (two\nor more line breaks) never joins them. This can also join numbers on\nconsecutive lines, such as a list of amounts. Only `True` turns it on.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8 split\ninto groups this way (an account, order or tracking number, table\ncolumns, a price list such as `8260 - 8048 - 2804 - 0`, a file name\nsuch as `IMG_20261123_12345`, or two shorter numbers written together)\nare found. {@link validate_cnic} stays strict.\n\n`start` and `end` are Python string indexes (code points); the npm\npackage counts UTF-16 code units, which differ only after a character\noutside the Basic Multilingual Plane, such as an emoji.\n\nReturns the matches in order, or `[]` (also for a value that is not a\nstring). Never raises.\n\n```python\n>>> find_cnics(\"CNIC: 35202-1234567-1, phone 0300-1234567\")\n[CNICMatch(raw='35202-1234567-1', digits='3520212345671', formatted='35202-1234567-1', start=6, end=21)]\n>>> find_cnics(\"id 352 0212 3456 71\")[0].digits\n'3520212345671'\n>>> find_cnics(\"CNIC\\n35202\\n1234567\\n1\", across_lines=True)[0].formatted\n'35202-1234567-1'\n```",
           "params": [
             {
               "name": "text",
               "type": "Any",
               "default": null,
               "keywordOnly": false
+            },
+            {
+              "name": "across_lines",
+              "type": "Any",
+              "default": "False",
+              "keywordOnly": true
             }
           ],
           "returns": {
@@ -422,8 +428,8 @@
         {
           "kind": "function",
           "name": "mask_cnics",
-          "signature": "def mask_cnics(\n    text: Any,\n    *,\n    mask: Any = 'X',\n    replacement: Any = None,\n) -> MaskedText",
-          "doc": "Masks every CNIC in free text, as found by {@link find_cnics}: each\ndigit becomes `mask` and the separators stay, so `35202-1234567-1`\nbecomes `XXXXX-XXXXXXX-X`. The rest of the text is unchanged.\n\nWith `replacement`, each whole CNIC, separators included, is replaced\nby that string instead (e.g. `\"[CNIC removed]\"`). It takes precedence\nover `mask`; a value that is not a string is ignored.\n\nLike {@link find_cnics}, it also masks any other 13 digits that start\nwith 1-8, however they are grouped. `mask` is the string that replaces\neach digit (default `\"X\"`; a value that is not a string means `\"X\"`).\n\nReturns the masked text and the number of CNICs masked. A value that is\nnot a string gives `MaskedText(text=\"\", count=0)`. Never raises.\n\n```python\n>>> mask_cnics(\"My CNIC is 35202-1234567-1\")\nMaskedText(text='My CNIC is XXXXX-XXXXXXX-X', count=1)\n>>> mask_cnics(\"35202 1234567 1\", mask=\"*\").text\n'***** ******* *'\n>>> mask_cnics(\"CNIC 352 0212 3456 71\", replacement=\"[CNIC removed]\").text\n'CNIC [CNIC removed]'\n```",
+          "signature": "def mask_cnics(\n    text: Any,\n    *,\n    mask: Any = 'X',\n    replacement: Any = None,\n    across_lines: Any = False,\n) -> MaskedText",
+          "doc": "Masks every CNIC in free text, as found by {@link find_cnics}: each\ndigit becomes `mask` and the separators stay, so `35202-1234567-1`\nbecomes `XXXXX-XXXXXXX-X`. The rest of the text is unchanged.\n\nWith `replacement`, each whole CNIC, separators included, is replaced\nby that string instead (e.g. `\"[CNIC removed]\"`). It takes precedence\nover `mask`; a value that is not a string is ignored.\n\nLike {@link find_cnics}, it also masks any other 13 digits that start\nwith 1-8, however they are grouped. `mask` is the string that replaces\neach digit (default `\"X\"`; a value that is not a string means `\"X\"`).\n\nWith `across_lines=True`, CNICs written across single line breaks are\nfound too, as in {@link find_cnics}. With `mask` the line breaks stay;\nwith `replacement` they are replaced with the rest of the CNIC.\n\nReturns the masked text and the number of CNICs masked. A value that is\nnot a string gives `MaskedText(text=\"\", count=0)`. Never raises.\n\n```python\n>>> mask_cnics(\"My CNIC is 35202-1234567-1\")\nMaskedText(text='My CNIC is XXXXX-XXXXXXX-X', count=1)\n>>> mask_cnics(\"35202 1234567 1\", mask=\"*\").text\n'***** ******* *'\n>>> mask_cnics(\"CNIC 352 0212 3456 71\", replacement=\"[CNIC removed]\").text\n'CNIC [CNIC removed]'\n```",
           "params": [
             {
               "name": "text",
@@ -441,6 +447,12 @@
               "name": "replacement",
               "type": "Any",
               "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "across_lines",
+              "type": "Any",
+              "default": "False",
               "keywordOnly": true
             }
           ],
@@ -512,6 +524,180 @@
       ]
     },
     {
+      "id": "data-info",
+      "name": "pakdatakit.data_info",
+      "import": "from pakdatakit.data_info import ...",
+      "source": "python/src/pakdatakit/data_info.py",
+      "doc": "Where each bundled dataset comes from and which period it covers.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "DataInfo",
+          "signature": "@dataclass(frozen=True)\nclass DataInfo",
+          "doc": "Where a dataset comes from and which period it covers: one entry of\n`data/manifest.json`. See {@link get_data_info}.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "str",
+              "default": null,
+              "doc": "The dataset's id, e.g. `income-tax-slabs`."
+            },
+            {
+              "name": "file",
+              "type": "str",
+              "default": null,
+              "doc": "Its file in `data/`, e.g. `income-tax-slabs.json`."
+            },
+            {
+              "name": "title",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "issuer",
+              "type": "str",
+              "default": null,
+              "doc": "The body that publishes the source, e.g. `Federal Board of Revenue (FBR)`."
+            },
+            {
+              "name": "source_url",
+              "type": "str",
+              "default": null,
+              "doc": "The official document or page the data is taken from."
+            },
+            {
+              "name": "source_reference",
+              "type": "str",
+              "default": null,
+              "doc": "Its number or title: an SRO, circular, notification or table."
+            },
+            {
+              "name": "source_date",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "When the source was issued (YYYY, YYYY-MM or YYYY-MM-DD), or `None` if it is undated."
+            },
+            {
+              "name": "retrieved_at",
+              "type": "str",
+              "default": null,
+              "doc": "When the source was last downloaded and checked (YYYY-MM-DD)."
+            },
+            {
+              "name": "effective_from",
+              "type": "str",
+              "default": null,
+              "doc": "First date the data applies to (YYYY, YYYY-MM or YYYY-MM-DD)."
+            },
+            {
+              "name": "effective_to",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Last date it applies to, or `None` while it is current."
+            },
+            {
+              "name": "coverage",
+              "type": "str",
+              "default": null,
+              "doc": "What it covers, e.g. `Tax years 2020-2027`."
+            },
+            {
+              "name": "record_count",
+              "type": "int",
+              "default": null,
+              "doc": "Number of records in the file."
+            },
+            {
+              "name": "next_expected_update",
+              "type": "str",
+              "default": null,
+              "doc": "When the source is next expected to change (YYYY-MM-DD)."
+            },
+            {
+              "name": "update_cadence",
+              "type": "str",
+              "default": null,
+              "doc": "What triggers an update, e.g. `After the Finance Act each July`."
+            },
+            {
+              "name": "notes",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "DataSource",
+          "signature": "@dataclass(frozen=True)\nclass DataSource",
+          "doc": "The source of the dated record a result was calculated from: which\ndataset, the period that record applies to, and the law or notification\nbehind it.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "str",
+              "default": null,
+              "doc": "The dataset's id, as in {@link get_data_info}."
+            },
+            {
+              "name": "effective_from",
+              "type": "str",
+              "default": null,
+              "doc": "First date the record applies to (YYYY-MM-DD)."
+            },
+            {
+              "name": "effective_to",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Last date it applies to, or `None` while it is current."
+            },
+            {
+              "name": "source_reference",
+              "type": "str",
+              "default": null,
+              "doc": "The law, SRO, circular or notification, as written in the source."
+            },
+            {
+              "name": "source_url",
+              "type": "str",
+              "default": null,
+              "doc": "The official document."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_data_info",
+          "signature": "def get_data_info(id: Any = None) -> Optional[DataInfo]",
+          "doc": "Where a bundled dataset comes from: the issuer, the official source and\nits reference and date, when it was checked, the period it covers, its\nrecord count and when it is next expected to change.\n\n`id` is a dataset id such as `banks`, `income-tax-slabs` or\n`sales-tax-rates` (see {@link list_data_info}); it must match exactly.\nReturns the manifest entry, or `None` for an unknown id or a value that\nis not a string. Never raises.\n\n```python\n>>> get_data_info(\"income-tax-slabs\").coverage\n'Tax years 2020-2027'\n>>> get_data_info(\"income-tax-slabs\").next_expected_update\n'2027-07-15'\n```",
+          "params": [
+            {
+              "name": "id",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[DataInfo]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "list_data_info",
+          "signature": "def list_data_info() -> List[DataInfo]",
+          "doc": "Every bundled dataset's manifest entry, as {@link get_data_info} returns\nthem, sorted by id.\n\n```python\n>>> [d.id for d in list_data_info()][:2]\n['area-codes', 'banks']\n```",
+          "params": [],
+          "returns": {
+            "type": "List[DataInfo]"
+          }
+        }
+      ]
+    },
+    {
       "id": "data-version",
       "name": "pakdatakit.data_version",
       "import": "from pakdatakit.data_version import ...",
@@ -537,7 +723,7 @@
       "name": "pakdatakit.fbr_invoice",
       "import": "from pakdatakit.fbr_invoice import ...",
       "source": "python/src/pakdatakit/fbr_invoice.py",
-      "doc": "FBR Digital Invoicing (DI): types for the invoice JSON that is posted to\nPRAL's gateway, a builder that works out the sales tax, and an offline\nvalidator for the rules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12 (last\nupdated 24 July 2025), and PRAL's \"Error Message Guide (Sales)\"; see DATA.md.\nNothing here talks to FBR: there is no HTTP client and no token handling.\nValues that only FBR's reference APIs can confirm (provinces, HS codes, units,\nrates, sale types, SRO numbers) are checked for presence, not against FBR's\nlists.\n\nThe invoice is a plain `dict` with the camelCase keys FBR expects, so it can\nbe sent with `json.dumps` as is. The `TypedDict` classes below describe it.",
+      "doc": "FBR Digital Invoicing (DI): types for the invoice JSON that is posted to\nPRAL's gateway, a builder that works out the sales tax, and an offline\nvalidator for the rules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12 (last\nupdated 24 July 2025), and PRAL's \"Error Message Guide (Sales)\"; see DATA.md.\nNothing here talks to FBR: there is no HTTP client and no token handling.\nValues that only FBR's reference APIs can confirm (provinces, HS codes, units,\nrates, sale types, SRO numbers) are checked for presence, not against FBR's\nlists, unless the app passes the lists it synced from those APIs\n(`validate_fbr_invoice(invoice, reference=...)`).\n\nThe invoice is a plain `dict` with the camelCase keys FBR expects, so it can\nbe sent with `json.dumps` as is. The `TypedDict` classes below describe it.",
       "entries": [
         {
           "kind": "constant",
@@ -1092,6 +1278,70 @@
           "methods": []
         },
         {
+          "kind": "class",
+          "name": "FbrInvoiceReference",
+          "signature": "class FbrInvoiceReference(TypedDict)",
+          "doc": "Reference lists from FBR's own APIs (PRAL's `/pdi/v1/provinces`,\n`/pdi/v1/uom`, `/pdi/v2/HS_UOM`, sale types from\n`/pdi/v2/SaleTypeToRate` ...), which an app syncs with its token. FBR's\nAPIs are authoritative; this library ships no copy of these lists. Every\nkey is optional, and only the lists given are checked.",
+          "fields": [
+            {
+              "name": "provinces",
+              "type": "List[str]",
+              "default": null,
+              "doc": "Province names as FBR lists them, e.g. `[\"PUNJAB\", \"SINDH\", ...]`."
+            },
+            {
+              "name": "saleTypes",
+              "type": "List[str]",
+              "default": null,
+              "doc": "Sale type descriptions as FBR lists them."
+            },
+            {
+              "name": "uoms",
+              "type": "List[str]",
+              "default": null,
+              "doc": "Unit of measure descriptions as FBR lists them."
+            },
+            {
+              "name": "hsUom",
+              "type": "Dict[str, List[str]]",
+              "default": null,
+              "doc": "The units allowed for each HS code, as FBR's HS_UOM API returns them: `{\"0101.2100\": [\"Numbers, pieces, units\"]}`."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FbrSaleType",
+          "signature": "@dataclass(frozen=True)\nclass FbrSaleType",
+          "doc": "A sale type as PRAL's specification names it, with its sandbox\nscenarios. Returned by {@link get_sale_types}.",
+          "fields": [
+            {
+              "name": "sale_type",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "scenario_ids",
+              "type": "List[str]",
+              "default": null,
+              "doc": "The specification's sandbox scenarios (SN001-SN028) that use it."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_sale_types",
+          "signature": "def get_sale_types() -> List[FbrSaleType]",
+          "doc": "The sale types named in PRAL's DI specification (v1.12, section 9,\n\"Scenarios for Sandbox Testing\"), with the scenarios that use each.\n\nFBR's full, current list comes from its reference API; this is a\nconvenience for building forms and tests, and {@link validate_fbr_invoice}\ndoes not reject a sale type that is not in it.\n\n```python\n>>> get_sale_types()[0]\nFbrSaleType(sale_type='Goods at Standard Rate (default)', scenario_ids=['SN001', 'SN002', 'SN026'])\n```",
+          "params": [],
+          "returns": {
+            "type": "List[FbrSaleType]"
+          }
+        },
+        {
           "kind": "function",
           "name": "expected_sales_tax",
           "signature": "def expected_sales_tax(item: Any) -> Optional[float]",
@@ -1128,8 +1378,8 @@
         {
           "kind": "function",
           "name": "validate_fbr_invoice",
-          "signature": "def validate_fbr_invoice(\n    invoice: Any,\n    *,\n    today: Any = None,\n) -> FbrInvoiceValidation",
-          "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns\nevery problem with FBR's error code.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith `today` (`YYYY-MM-DD`), a future date (0043); seller and buyer\nNTN/CNIC (0401, 0402, 0009), self-invoicing (0058), names, provinces\n(0073, 0074), addresses, buyer registration type (0012), the reference\nnumber of a debit note (0026), the sandbox scenario, and on each line: HS\ncode (0044), rate (0020), unit, sale type (0013), required and valid\namounts (0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial\n(0077, 0078), Third Schedule retail price (0090), extra tax on\nreduced-rate goods (0091) and the sales tax arithmetic (0102, 0104, 0105,\nto within one paisa).\n\nNot checked, because they need FBR's data: registration status, whether a\nprovince, HS code, unit, rate, sale type or SRO is in FBR's lists or fits\nthe others, and the original invoice of a debit note.\n\n`invoice` is a `dict` with FBR's camelCase keys; any value (untrusted\nJSON) is accepted. Returns {@link FbrInvoiceValidation} (`valid`,\n`errors`). Never raises.",
+          "signature": "def validate_fbr_invoice(\n    invoice: Any,\n    *,\n    today: Any = None,\n    reference: Any = None,\n) -> FbrInvoiceValidation",
+          "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns\nevery problem with FBR's error code.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith `today` (`YYYY-MM-DD`), a future date (0043); seller and buyer\nNTN/CNIC (0401, 0402, 0009), self-invoicing (0058), names, provinces\n(0073, 0074), addresses, buyer registration type (0012), the reference\nnumber of a debit note (0026), the sandbox scenario, and on each line: HS\ncode (0044), rate (0020), unit, sale type (0013), required and valid\namounts (0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial\n(0077, 0078), Third Schedule retail price (0090), extra tax on\nreduced-rate goods (0091) and the sales tax arithmetic (0102, 0104, 0105,\nto within one paisa).\n\nNot checked, because they need FBR's data: registration status, whether a\nprovince, HS code, unit, rate, sale type or SRO is in FBR's lists or fits\nthe others, and the original invoice of a debit note.\n\nPass the lists your app syncs from FBR's reference APIs as `reference`\n(a {@link FbrInvoiceReference} `dict`: `provinces`, `saleTypes`,\n`uoms`, `hsUom`; the snake_case keys `sale_types` and `hs_uom`\nwork too) to check them: provinces (0073, 0074), sale types (0013), units\n(0099) and, with `hsUom`, that each HS code is listed (no code) and the\nunit is allowed for it (0099). Matching ignores case and extra spaces.\nLists left out, or not given as lists, are not checked; FBR's APIs are\nauthoritative.\n\n`invoice` is a `dict` with FBR's camelCase keys; any value (untrusted\nJSON) is accepted. Returns {@link FbrInvoiceValidation} (`valid`,\n`errors`). Never raises.",
           "params": [
             {
               "name": "invoice",
@@ -1139,6 +1389,12 @@
             },
             {
               "name": "today",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "reference",
               "type": "Any",
               "default": "None",
               "keywordOnly": true
@@ -1988,6 +2244,12 @@
               "type": "int",
               "default": null,
               "doc": ""
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate table used: its tax year's dates, law and official source."
             }
           ],
           "methods": []
@@ -2040,7 +2302,7 @@
           "kind": "function",
           "name": "calculate_salary_tax",
           "signature": "def calculate_salary_tax(\n    annual_income: Any,\n    *,\n    tax_year: Any = None,\n    date: Any = None,\n    include_surcharge: bool = False,\n) -> Optional[SalaryTax]",
-          "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link get_salary_tax_slabs}).\n\n`annual_income` is the taxable income for the year in rupees, 0 to 1\ntrillion (at most 2 decimals count). `tax_year` (e.g. `2026`) takes\nprecedence over `date` (`YYYY-MM-DD` or a `datetime.date`, a day in\nthe tax year); with neither, the current tax year is used.\n\nWith `include_surcharge=True` it adds the section 4AB surcharge: a\npercentage of the whole tax once taxable income exceeds Rs 10 million (10%\nin tax year 2025, 9% for salaried individuals in 2026, none in 2027 or\nbefore 2025). Because it applies to the whole tax, one rupee over Rs 10\nmillion adds it in full. It is off by default in 2.x so that existing\nresults do not change, and will be on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice. Returns `None` for an invalid amount or a tax year that is not\ncovered. Never raises.\n\n```python\n>>> calculate_salary_tax(1_800_000, tax_year=2026).tax\n72000.0\n>>> calculate_salary_tax(12_000_000, tax_year=2026, include_surcharge=True).total\n3685290.0\n```",
+          "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see {@link get_salary_tax_slabs}).\n\n`annual_income` is the taxable income for the year in rupees, 0 to 1\ntrillion (at most 2 decimals count). `tax_year` (e.g. `2026`) takes\nprecedence over `date` (`YYYY-MM-DD` or a `datetime.date`, a day in\nthe tax year); with neither, the current tax year is used.\n\nWith `include_surcharge=True` it adds the section 4AB surcharge: a\npercentage of the whole tax once taxable income exceeds Rs 10 million (10%\nin tax year 2025, 9% for salaried individuals in 2026, none in 2027 or\nbefore 2025). Because it applies to the whole tax, one rupee over Rs 10\nmillion adds it in full. It is off by default in 2.x so that existing\nresults do not change, and will be on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice. `source` gives the rate table's dates, law and official\ndocument (a {@link DataSource}). Returns `None` for an invalid amount\nor a tax year that is not covered. Never raises.\n\n```python\n>>> calculate_salary_tax(1_800_000, tax_year=2026).tax\n72000.0\n>>> calculate_salary_tax(12_000_000, tax_year=2026, include_surcharge=True).total\n3685290.0\n```",
           "params": [
             {
               "name": "annual_income",
@@ -2510,6 +2772,250 @@
           ],
           "returns": {
             "type": "Optional[str]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "population",
+      "name": "pakdatakit.population",
+      "import": "from pakdatakit.population import ...",
+      "source": "python/src/pakdatakit/population.py",
+      "doc": "District and tehsil population from Pakistan's 2023 census.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "CensusCounts",
+          "signature": "@dataclass(frozen=True)\nclass CensusCounts",
+          "doc": "Census 2023 counts for a district or tehsil.",
+          "fields": [
+            {
+              "name": "population",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Total population (all sexes), or `None` where the census has no figure."
+            },
+            {
+              "name": "households",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Households, or `None`."
+            },
+            {
+              "name": "urban",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Urban population, or `None`."
+            },
+            {
+              "name": "rural",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Rural population, or `None`."
+            },
+            {
+              "name": "census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census."
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "DistrictPopulation",
+          "signature": "@dataclass(frozen=True)\nclass DistrictPopulation(CensusCounts)",
+          "doc": "Result of {@link get_district_population}.",
+          "fields": [
+            {
+              "name": "population",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Total population (all sexes), or `None` where the census has no figure."
+            },
+            {
+              "name": "households",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Households, or `None`."
+            },
+            {
+              "name": "urban",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Urban population, or `None`."
+            },
+            {
+              "name": "rural",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Rural population, or `None`."
+            },
+            {
+              "name": "census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census."
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "district",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "province",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "census_district",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "The census district the figures belong to. For a district created after the census, the one its area was part of (its own figures are `None`); `None` in Gilgit-Baltistan and Azad Jammu and Kashmir, which the census did not cover."
+            },
+            {
+              "name": "boundary_changed",
+              "type": "bool",
+              "default": null,
+              "doc": "`True` when the district has lost area to a district created after the census: the figures are for the district as it was at the census."
+            },
+            {
+              "name": "note",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Why figures are missing or what they cover, or `None`."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "TehsilPopulation",
+          "signature": "@dataclass(frozen=True)\nclass TehsilPopulation(CensusCounts)",
+          "doc": "Result of {@link get_tehsil_population}.",
+          "fields": [
+            {
+              "name": "population",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Total population (all sexes), or `None` where the census has no figure."
+            },
+            {
+              "name": "households",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Households, or `None`."
+            },
+            {
+              "name": "urban",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Urban population, or `None`."
+            },
+            {
+              "name": "rural",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "Rural population, or `None`."
+            },
+            {
+              "name": "census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census."
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "tehsil",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "census_district",
+              "type": "str",
+              "default": null,
+              "doc": "The district at the census."
+            },
+            {
+              "name": "current_district",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "The district today, or `None` where the data names none."
+            },
+            {
+              "name": "province",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "note",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_district_population",
+          "signature": "def get_district_population(district: Any) -> Optional[DistrictPopulation]",
+          "doc": "A district's population, households and urban/rural split from\nPakistan's 2023 census (Pakistan Bureau of Statistics), for any of the\n177 districts in {@link get_districts_by_province}.\n\n- Districts created after the census have `None` figures and name the\n  census district their area was part of; nothing is estimated.\n- Districts that lost area to a new district keep their census figures,\n  with `boundary_changed=True`.\n- Gilgit-Baltistan and Azad Jammu and Kashmir were not enumerated by this\n  census, so their figures are `None`.\n\n`district` is a district name, in any case. Returns the figures and\ntheir source, or `None` for an unknown district or a value that is not\na string. Never raises.\n\n```python\n>>> get_district_population(\"Lahore\").population\n13004135\n>>> get_district_population(\"Murree\").population is None\nTrue\n```",
+          "params": [
+            {
+              "name": "district",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[DistrictPopulation]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_tehsil_population",
+          "signature": "def get_tehsil_population(\n    tehsil: Any,\n    district: Any = None,\n) -> Optional[TehsilPopulation]",
+          "doc": "A tehsil's (or taluka's, sub-division's) population, households and\nurban/rural split from the 2023 census, for the 591 units in the census\ntables.\n\n`tehsil` is a tehsil name, in any case. A few names occur in more than\none district; give `district` (the district at the census or today) to\nchoose. Returns the figures and their source, or `None` for an unknown\nor ambiguous name or a value that is not a string. Never raises.\n\n```python\n>>> get_tehsil_population(\"Murree\").current_district\n'Murree'\n```",
+          "params": [
+            {
+              "name": "tehsil",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "district",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "Optional[TehsilPopulation]"
           }
         }
       ]
@@ -3251,6 +3757,12 @@
               "type": "float",
               "default": null,
               "doc": "Percent used."
+            },
+            {
+              "name": "source",
+              "type": "Optional[DataSource]",
+              "default": "None",
+              "doc": "The rate's period, law and official source, when the rate was looked up from a province or kind. `None` when you passed the `rate` yourself."
             }
           ],
           "methods": []
@@ -3288,7 +3800,7 @@
           "kind": "function",
           "name": "split_inclusive",
           "signature": "def split_inclusive(gross: Any, rate: Any) -> Optional[SalesTaxAmounts]",
-          "doc": "Splits an amount that includes sales tax into its value and tax.\n\nThe value is rounded half up to the paisa and the tax is the rest, so\n`net + tax` is always `gross`. `gross` is 0 to 1 trillion rupees and\n`rate` a percent from 0 to 100 with at most 2 decimals. Returns `None`\nfor an invalid amount or rate. Never raises.\n\n```python\n>>> split_inclusive(1180, 18)\nSalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)\n```",
+          "doc": "Splits an amount that includes sales tax into its value and tax.\n\nThe value is rounded half up to the paisa and the tax is the rest, so\n`net + tax` is always `gross`. `gross` is 0 to 1 trillion rupees and\n`rate` a percent from 0 to 100 with at most 2 decimals. Returns `None`\nfor an invalid amount or rate. Never raises.\n\n```python\n>>> split_inclusive(1180, 18)\nSalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0, source=None)\n```",
           "params": [
             {
               "name": "gross",
@@ -3311,7 +3823,7 @@
           "kind": "function",
           "name": "calculate_sales_tax",
           "signature": "def calculate_sales_tax(\n    amount: Any,\n    *,\n    rate: Any = None,\n    province: Optional[str] = None,\n    kind: Any = None,\n    date: Any = None,\n    inclusive: Any = False,\n) -> Optional[SalesTaxAmounts]",
-          "doc": "Adds sales tax to an amount, or splits it out when `inclusive=True`.\n\nGive a `rate` (percent, 0 to 100, at most 2 decimals; it takes\nprecedence), or a `province` (and `kind`, default `\"services\"`, and\n`date`) to use the standard rate from {@link get_sales_tax_rate}. The\ntax is rounded half up to the paisa. `amount` is 0 to 1 trillion rupees.\n\nReturns `None` if the amount, rate or province is invalid or no rate\napplies. Never raises.\n\n```python\n>>> calculate_sales_tax(1000, rate=18)\nSalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0)\n>>> calculate_sales_tax(1000, province=\"Punjab\", date=\"2026-11-18\").tax\n160.0\n```",
+          "doc": "Adds sales tax to an amount, or splits it out when `inclusive=True`.\n\nGive a `rate` (percent, 0 to 100, at most 2 decimals; it takes\nprecedence), or a `province` (and `kind`, default `\"services\"`, and\n`date`) to use the standard rate from {@link get_sales_tax_rate}. The\ntax is rounded half up to the paisa. `amount` is 0 to 1 trillion rupees.\n\nWhen the rate was looked up, `source` gives its period, law and\nofficial document (a {@link DataSource}); with your own `rate` it is\n`None`.\n\nReturns `None` if the amount, rate or province is invalid or no rate\napplies. Never raises.\n\n```python\n>>> calculate_sales_tax(1000, rate=18)\nSalesTaxAmounts(net=1000.0, tax=180.0, gross=1180.0, rate=18.0, source=None)\n>>> calculate_sales_tax(1000, province=\"Punjab\", date=\"2026-11-18\").tax\n160.0\n>>> calculate_sales_tax(1000, province=\"Punjab\", date=\"2026-11-18\").source.effective_from\n'2019-07-01'\n```",
           "params": [
             {
               "name": "amount",
@@ -3744,6 +4256,361 @@
       ]
     },
     {
+      "id": "withholding",
+      "name": "pakdatakit.withholding",
+      "import": "from pakdatakit.withholding import ...",
+      "source": "python/src/pakdatakit/withholding.py",
+      "doc": "Withholding tax in Pakistan for persons on and not on the Active Taxpayers List.",
+      "entries": [
+        {
+          "kind": "type",
+          "name": "WithholdingNonAtlRule",
+          "signature": "WithholdingNonAtlRule = Literal['double', 'fixed', 'slabs', 'not-applicable']",
+          "doc": "How the rate for a person not on the Active Taxpayers List is set: `double` (the Tenth Schedule's 100% increase), `fixed` (its own rate), `slabs` (its own value bands) or `not-applicable` (the same rate for all)."
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingSlab",
+          "signature": "@dataclass(frozen=True)\nclass WithholdingSlab",
+          "doc": "A value band: the rate for amounts over `over` up to `up_to`\n(inclusive; `None` means no limit).",
+          "fields": [
+            {
+              "name": "over",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "up_to",
+              "type": "Optional[float]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingThreshold",
+          "signature": "@dataclass(frozen=True)\nclass WithholdingThreshold",
+          "doc": "The amount at or below which nothing is collected (231AB: Rs 50,000 of\ncash withdrawn in a day, all withdrawals added up).",
+          "fields": [
+            {
+              "name": "amount",
+              "type": "float",
+              "default": null,
+              "doc": "In rupees."
+            },
+            {
+              "name": "per",
+              "type": "str",
+              "default": null,
+              "doc": "The period it applies to, e.g. `day`."
+            },
+            {
+              "name": "within_threshold",
+              "type": "Optional[bool]",
+              "default": "None",
+              "doc": "In {@link calculate_withholding}, whether the amount was within the threshold (so nothing is collected); `None` in {@link get_withholding_rates}."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingRate",
+          "signature": "@dataclass(frozen=True)\nclass WithholdingRate",
+          "doc": "One case of a section in a tax year, as in FBR's rate card. Returned by\n{@link get_withholding_rates}.",
+          "fields": [
+            {
+              "name": "tax_year",
+              "type": "int",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "section",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sub_type",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "description",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "atl_rate",
+              "type": "Optional[float]",
+              "default": null,
+              "doc": "Percent for a person on the list; `None` where it does not apply or depends on the value (see `atl_slabs`)."
+            },
+            {
+              "name": "atl_slabs",
+              "type": "Optional[List[WithholdingSlab]]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "non_atl_rule",
+              "type": "str",
+              "default": null,
+              "doc": "`double`, `fixed`, `slabs` or `not-applicable`."
+            },
+            {
+              "name": "non_atl_rate",
+              "type": "Optional[float]",
+              "default": null,
+              "doc": "Percent for a person not on the list, or `None` (see `non_atl_slabs`)."
+            },
+            {
+              "name": "non_atl_slabs",
+              "type": "Optional[List[WithholdingSlab]]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "late_filer_slabs",
+              "type": "Optional[List[WithholdingSlab]]",
+              "default": null,
+              "doc": "Late-filer value bands, where the year has them."
+            },
+            {
+              "name": "threshold",
+              "type": "Optional[WithholdingThreshold]",
+              "default": null,
+              "doc": "The threshold, or `None` where there is none."
+            },
+            {
+              "name": "card_ref",
+              "type": "str",
+              "default": null,
+              "doc": "Rate card and law references, as printed on the card."
+            },
+            {
+              "name": "law_ref",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "statute_override",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why."
+            },
+            {
+              "name": "note",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Withholding",
+          "signature": "@dataclass(frozen=True)\nclass Withholding",
+          "doc": "Result of {@link calculate_withholding}, in rupees.",
+          "fields": [
+            {
+              "name": "section",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "sub_type",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "description",
+              "type": "str",
+              "default": null,
+              "doc": "The case as the rate card describes it."
+            },
+            {
+              "name": "tax_year",
+              "type": "int",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "atl",
+              "type": "bool",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "late_filer",
+              "type": "bool",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent applied to the whole amount (for 149, the effective rate)."
+            },
+            {
+              "name": "tax",
+              "type": "float",
+              "default": null,
+              "doc": "Tax to withhold or collect, rounded half up to the paisa."
+            },
+            {
+              "name": "non_atl_rule",
+              "type": "str",
+              "default": null,
+              "doc": "How the rate for a person not on the list is set for this case: `double` (the Tenth Schedule's 100% increase), `fixed` (its own rate, as for 236C, or 231AB, which applies only to them), `slabs` (its own value bands, 236K) or `not-applicable` (149: the same rate for all)."
+            },
+            {
+              "name": "slab",
+              "type": "Optional[WithholdingSlab]",
+              "default": null,
+              "doc": "The value band used (236C, 236K), or `None`."
+            },
+            {
+              "name": "threshold",
+              "type": "Optional[WithholdingThreshold]",
+              "default": null,
+              "doc": "The amount at or below which nothing is collected, and whether this amount was within it (`within_threshold`). `None` where there is none."
+            },
+            {
+              "name": "card_ref",
+              "type": "str",
+              "default": null,
+              "doc": "Rate card and law references, as printed on the card."
+            },
+            {
+              "name": "law_ref",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "statute_override",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why."
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_withholding_rates",
+          "signature": "def get_withholding_rates(\n    tax_year: Any,\n    section: Any = None,\n) -> List[WithholdingRate]",
+          "doc": "Every case FBR's Withholding Tax Rate Card lists for the covered\nsections in a tax year (2025 to 2027), with its rates for persons on and\nnot on the Active Taxpayers List and its references.\n\n`tax_year` is e.g. `2027`; `section` (optional, e.g. `\"153\"`, in\nany case) keeps only that section. Returns the cases, or `[]` for a\nyear that is not covered. Never raises.\n\n```python\n>>> [r.sub_type for r in get_withholding_rates(2027, \"236K\")]\n['purchase']\n```",
+          "params": [
+            {
+              "name": "tax_year",
+              "type": "Any",
+              "default": null,
+              "keywordOnly": false
+            },
+            {
+              "name": "section",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            }
+          ],
+          "returns": {
+            "type": "List[WithholdingRate]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "calculate_withholding",
+          "signature": "def calculate_withholding(\n    input: Any = None,\n    *,\n    section: Any = None,\n    sub_type: Any = None,\n    amount: Any = None,\n    atl: Any = None,\n    late_filer: Any = False,\n    tax_year: Any = None,\n    date: Any = None,\n) -> Optional[Withholding]",
+          "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary (the\nsalaried rate table, as {@link calculate_salary_tax}).\n\n`section` is the section (`\"231AB\"`, `\"236C\"`, `\"236K\"`,\n`\"151\"`, `\"150\"`, `\"153\"`, `\"154B\"` or `\"149\"`, in any case);\n`sub_type` the case, e.g. `\"bank-deposit\"` (151) or\n`\"goods-company\"` (153), optional for sections with one case (see\n{@link get_withholding_rates}). `amount` is the payment (for 236C and\n236K the value; for 149 the year's taxable salary) in rupees. `atl` is\n`True` if the person is on the list and is required. `late_filer=True`\nis for a person on the list who filed late; it changes the rate only\nwhere the year has a late-filer rate (236C and 236K in 2025 and 2026).\n`tax_year` (e.g. `2027`) takes precedence over `date`. All of them\nmay also be passed as one `dict` with the npm package's camelCase keys.\n\nThe rate for a person not on the list follows each case's own rule in the\nTenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),\nits own value bands (236K), or none (149; 231AB applies only to them).\nThe rate applies to the whole amount. Where FBR's card and the Ordinance\ndiffer, the Ordinance is used and `statute_override` says so.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many cases\nnot listed here are not applied. Returns the rate, tax and references\n({@link Withholding}), or `None` for an unknown section, case or tax\nyear, an invalid amount, or a missing `atl`. Never raises.\n\n```python\n>>> calculate_withholding(section=\"236K\", amount=60_000_000, atl=False, tax_year=2027).rate\n14.5\n>>> calculate_withholding(section=\"231AB\", amount=80_000, atl=False, tax_year=2027).tax\n640.0\n>>> calculate_withholding(\n...     section=\"151\", sub_type=\"bank-deposit\", amount=10_000, atl=True, tax_year=2027\n... ).tax\n2000.0\n```",
+          "params": [
+            {
+              "name": "input",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            },
+            {
+              "name": "section",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "sub_type",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "amount",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "atl",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "late_filer",
+              "type": "Any",
+              "default": "False",
+              "keywordOnly": true
+            },
+            {
+              "name": "tax_year",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "Optional[Withholding]"
+          }
+        }
+      ]
+    },
+    {
       "id": "words",
       "name": "pakdatakit.words",
       "import": "from pakdatakit.words import ...",
@@ -3800,6 +4667,242 @@
           ],
           "returns": {
             "type": "str"
+          }
+        }
+      ]
+    },
+    {
+      "id": "zakat",
+      "name": "pakdatakit.zakat",
+      "import": "from pakdatakit.zakat import ...",
+      "source": "python/src/pakdatakit/zakat.py",
+      "doc": "Zakat deduction at source in Pakistan: each Zakat year's notified nisab.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "ZakatDocument",
+          "signature": "@dataclass(frozen=True)\nclass ZakatDocument",
+          "doc": "A document behind a Zakat year's nisab: its number, date and URL.",
+          "fields": [
+            {
+              "name": "number",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "date",
+              "type": "str",
+              "default": null,
+              "doc": "`YYYY-MM-DD`."
+            },
+            {
+              "name": "url",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ZakatNisab",
+          "signature": "@dataclass(frozen=True)\nclass ZakatNisab",
+          "doc": "One Zakat year's nisab for deduction at source, as notified. Returned\nby {@link get_zakat_nisab}.",
+          "fields": [
+            {
+              "name": "zakat_year",
+              "type": "int",
+              "default": null,
+              "doc": "The Hijri year of the valuation date (1 Ramazan), e.g. `1447`."
+            },
+            {
+              "name": "label",
+              "type": "str",
+              "default": null,
+              "doc": "The year as the Ministry's notification writes it, e.g. `1446-47`."
+            },
+            {
+              "name": "nisab",
+              "type": "float",
+              "default": null,
+              "doc": "Nisab in rupees: accounts with a lower balance are not deducted."
+            },
+            {
+              "name": "valuation_date_hijri",
+              "type": "str",
+              "default": null,
+              "doc": "The valuation (deduction) date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`."
+            },
+            {
+              "name": "expected_valuation_dates",
+              "type": "Tuple[str, str]",
+              "default": null,
+              "doc": "The two Gregorian dates the notification says 1 Ramazan is likely to fall on (`YYYY-MM-DD`). The day itself depends on the moon sighting."
+            },
+            {
+              "name": "bank_holiday_date",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "The bank holiday for the deduction, when SBP's circular names a Gregorian date (`YYYY-MM-DD`); otherwise `None`."
+            },
+            {
+              "name": "notification",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The Ministry of Poverty Alleviation & Social Safety notification."
+            },
+            {
+              "name": "sbp_circular",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The SBP BPRD circular letter that conveys it to banks."
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The notification and SBP circular, as a {@link DataSource}."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ZakatDeduction",
+          "signature": "@dataclass(frozen=True)\nclass ZakatDeduction",
+          "doc": "Result of {@link zakat_deduction}, in rupees.",
+          "fields": [
+            {
+              "name": "zakat_year",
+              "type": "int",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "nisab",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "balance",
+              "type": "float",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "deductible",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether Zakat is deducted from this balance."
+            },
+            {
+              "name": "reason",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Why not, when `deductible` is false: `\"exempt\"` or `\"below-nisab\"`; otherwise `None`."
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent of the whole balance: 2.5."
+            },
+            {
+              "name": "zakat",
+              "type": "float",
+              "default": null,
+              "doc": "The amount deducted, rounded half up to the paisa; `0` if not deductible."
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "get_zakat_nisab",
+          "signature": "def get_zakat_nisab(\n    query: Any = None,\n    *,\n    zakat_year: Any = None,\n    date: Any = None,\n) -> Optional[ZakatNisab]",
+          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive the year with `zakat_year` (`1447`, `\"1447\"` or the\nnotification's `\"1446-47\"`) or a `date` (`YYYY-MM-DD` or a\n`datetime.date`); `zakat_year` takes precedence. They may also be\npassed as a `dict`, `{\"zakatYear\": 1447}` or `{\"date\": ...}`, as in\nthe npm package. A Zakat year starts on 1 Ramazan; for a date on the\nfirst of the two days the notification gives for it, the year is unknown\nand the result is `None`.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources ({@link ZakatNisab}), or\n`None` for a year that is not covered, an invalid query or an\nambiguous date. Never raises.\n\n```python\n>>> get_zakat_nisab(zakat_year=1447).nisab\n503529\n>>> get_zakat_nisab(zakat_year=\"1445-46\").zakat_year\n1446\n>>> get_zakat_nisab(date=\"2025-06-01\").nisab\n179689\n```",
+          "params": [
+            {
+              "name": "query",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            },
+            {
+              "name": "zakat_year",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "Optional[ZakatNisab]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "get_zakat_years",
+          "signature": "def get_zakat_years() -> List[int]",
+          "doc": "Every notified Zakat year that {@link get_zakat_nisab} covers, as Hijri\nyears, oldest first.\n\n```python\n>>> get_zakat_years()[0]\n1433\n```",
+          "params": [],
+          "returns": {
+            "type": "List[int]"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "zakat_deduction",
+          "signature": "def zakat_deduction(\n    input: Any = None,\n    *,\n    balance: Any = None,\n    zakat_year: Any = None,\n    date: Any = None,\n    exempt: Any = False,\n) -> Optional[ZakatDeduction]",
+          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance when it is at or above that year's\nnisab, and nothing when it is below or the holder filed the exemption\ndeclaration (Form CZ-50, `exempt=True`).\n\n`balance` is the account balance in rupees at the start of the\nvaluation date (0 to 1 trillion, at most 2 decimals count). The year is\ngiven by `zakat_year` or `date`, as in {@link get_zakat_nisab}. All of\nthem may also be passed as one `dict` with the npm package's keys:\n`{\"balance\": 600000, \"zakatYear\": 1447, \"exempt\": True}`.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source ({@link ZakatDeduction}), or\n`None` for an invalid balance, a year that is not covered, or an\nambiguous date. Never raises.\n\n```python\n>>> zakat_deduction(balance=600000, zakat_year=1447).zakat\n15000.0\n>>> zakat_deduction(balance=600000, zakat_year=1447, exempt=True).reason\n'exempt'\n```",
+          "params": [
+            {
+              "name": "input",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": false
+            },
+            {
+              "name": "balance",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "zakat_year",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "date",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "exempt",
+              "type": "Any",
+              "default": "False",
+              "keywordOnly": true
+            }
+          ],
+          "returns": {
+            "type": "Optional[ZakatDeduction]"
           }
         }
       ]

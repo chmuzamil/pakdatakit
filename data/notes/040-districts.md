@@ -1,4 +1,5 @@
 <!-- datasets: districts -->
+
 ## Districts (`districts.json`)
 
 177 districts as of October 2026: Punjab 41, Sindh 30, Khyber Pakhtunkhwa 40,

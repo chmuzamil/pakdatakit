@@ -10,10 +10,6 @@ namespace PakDataKit;
  */
 final readonly class SalesTaxAmounts
 {
-    use Internal\ToArray {
-        toArray as private allFields;
-    }
-
     public function __construct(
         /** Value excluding tax, in rupees (2 decimals at most). */
         public float $net,
@@ -40,9 +36,14 @@ final readonly class SalesTaxAmounts
      */
     public function toArray(): array
     {
-        $fields = $this->allFields();
-        if ($this->source === null) {
-            unset($fields['source']);
+        $fields = [
+            'net' => $this->net,
+            'tax' => $this->tax,
+            'gross' => $this->gross,
+            'rate' => $this->rate,
+        ];
+        if ($this->source !== null) {
+            $fields['source'] = $this->source->toArray();
         }
         return $fields;
     }

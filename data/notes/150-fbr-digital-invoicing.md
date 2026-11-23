@@ -1,4 +1,5 @@
 <!-- datasets: fbr-sale-types -->
+
 ## FBR Digital Invoicing
 
 No dataset: `buildFbrInvoice` and `validateFbrInvoice` follow these

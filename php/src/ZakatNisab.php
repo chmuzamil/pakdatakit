@@ -28,6 +28,13 @@ final readonly class ZakatNisab
          */
         public array $expectedValuationDates,
         /**
+         * The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a
+         * source states it; otherwise null.
+         */
+        public ?string $valuationDate,
+        /** The source that confirms `valuationDate`, or null. */
+        public ?ZakatValuationDateSource $valuationDateSource,
+        /**
          * The bank holiday for the deduction (`YYYY-MM-DD`), when SBP's
          * circular names a Gregorian date; otherwise null.
          */

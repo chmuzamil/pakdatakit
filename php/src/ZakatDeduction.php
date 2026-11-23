@@ -24,8 +24,12 @@ final readonly class ZakatDeduction
         public ?string $reason,
         /** Percent of the whole balance: 2.5. */
         public float $rate,
-        /** The amount deducted, rounded half up to the paisa; `0` if not deductible. */
-        public float $zakat,
+        /**
+         * The amount deducted, in whole rupees (First Schedule, Note 2: less
+         * than a rupee is not charged, 50 paisa or more counts as a rupee);
+         * `0` if not deductible.
+         */
+        public int $zakat,
         /** The notification and SBP circular for the year. */
         public DataSource $source,
     ) {

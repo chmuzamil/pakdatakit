@@ -15,6 +15,7 @@ from .data_info import DataSource
 
 __all__ = [
     "ZakatDocument",
+    "ZakatValuationDateSource",
     "ZakatNisab",
     "ZakatDeduction",
     "get_zakat_nisab",
@@ -38,6 +39,15 @@ class ZakatDocument:
 
 
 @dataclass(frozen=True)
+class ZakatValuationDateSource:
+    """The source that confirms the Gregorian date of a Zakat year's 1
+    Ramazan (``ZakatNisab.valuation_date``)."""
+
+    reference: str
+    url: str
+
+
+@dataclass(frozen=True)
 class ZakatNisab:
     """One Zakat year's nisab for deduction at source, as notified. Returned
     by :func:`get_zakat_nisab`."""
@@ -53,6 +63,11 @@ class ZakatNisab:
     #: The two Gregorian dates the notification says 1 Ramazan is likely to
     #: fall on (``YYYY-MM-DD``). The day itself depends on the moon sighting.
     expected_valuation_dates: Tuple[str, str]
+    #: The confirmed Gregorian date of 1 Ramazan (``YYYY-MM-DD``), where a
+    #: source states it; otherwise ``None``.
+    valuation_date: Optional[str]
+    #: The source of ``valuation_date``, or ``None`` with it.
+    valuation_date_source: Optional[ZakatValuationDateSource]
     #: The bank holiday for the deduction, when SBP's circular names a
     #: Gregorian date (``YYYY-MM-DD``); otherwise ``None``.
     bank_holiday_date: Optional[str]
@@ -78,8 +93,10 @@ class ZakatDeduction:
     reason: Optional[str]
     #: Percent of the whole balance: 2.5.
     rate: float
-    #: The amount deducted, rounded half up to the paisa; ``0`` if not deductible.
-    zakat: float
+    #: The amount deducted, in whole rupees (First Schedule, Note 2: less
+    #: than a rupee is not charged, 50 paisa or more counts as a rupee);
+    #: ``0`` if not deductible.
+    zakat: int
     source: DataSource
 
 
@@ -95,6 +112,12 @@ def _document(raw: Any) -> ZakatDocument:
     return ZakatDocument(number=raw["number"], date=raw["date"], url=raw["url"])
 
 
+def _start(row: Any) -> str:
+    """The confirmed 1 Ramazan, or the earlier of the two likely days."""
+    confirmed = row.get("valuationDate")
+    return confirmed if confirmed is not None else row["expectedValuationDates"][0]  # type: ignore[no-any-return]
+
+
 def _source(row: Any) -> DataSource:
     following = next((r for r in _rows() if r["zakatYear"] == row["zakatYear"] + 1), None)
     notification = row["notification"]
@@ -103,10 +126,8 @@ def _source(row: Any) -> DataSource:
         id="zakat-nisab",
         # From the earlier of the two likely days of 1 Ramazan, to the day
         # before the next year's; open while it is the latest year.
-        effective_from=row["expectedValuationDates"][0],
-        effective_to=(
-            None if following is None else _add_days(following["expectedValuationDates"][0], -1)
-        ),
+        effective_from=_start(row),
+        effective_to=None if following is None else _add_days(_start(following), -1),
         source_reference=(
             f"Notification No. {notification['number']} ({notification['date']}); "
             f"SBP {circular['number']} ({circular['date']})"
@@ -123,6 +144,14 @@ def _nisab(row: Any) -> ZakatNisab:
         nisab=row["nisab"],
         valuation_date_hijri=row["valuationDateHijri"],
         expected_valuation_dates=(first, second),
+        valuation_date=row.get("valuationDate"),
+        valuation_date_source=(
+            None
+            if row.get("valuationDateSource") is None
+            else ZakatValuationDateSource(
+                reference=row["valuationDateSource"]["reference"], url=row["valuationDateSource"]["url"]
+            )
+        ),
         bank_holiday_date=row["bankHolidayDate"],
         notification=_document(row["notification"]),
         sbp_circular=_document(row["sbpCircular"]),
@@ -146,16 +175,23 @@ def _by_year(value: Any) -> Optional[Any]:
 
 
 def _by_date(value: Any) -> Optional[Any]:
-    """The Zakat year a date falls in. A year starts on 1 Ramazan, which the
-    notification gives only as one of two likely days; a date on the earlier
-    of the two is ambiguous and gives ``None``, as does a date past the last
-    notified year."""
+    """The Zakat year a date falls in. A year starts on 1 Ramazan: its
+    confirmed date where known, otherwise one of the notification's two
+    likely days, and a date on the earlier of the two is ambiguous and gives
+    ``None``, as does a date past the last notified year."""
     date = iso_date(value)
     if date is None:
         return None
     rows = _rows()
     for i in range(len(rows) - 1, -1, -1):
         row = rows[i]
+        confirmed = row.get("valuationDate")
+        if confirmed is not None:
+            if date < confirmed:
+                continue
+            if i == len(rows) - 1 and date >= _add_days(confirmed, _LUNAR_YEAR_DAYS):
+                return None
+            return row
         first, second = row["expectedValuationDates"]
         if date >= second:
             if i == len(rows) - 1 and date >= _add_days(first, _LUNAR_YEAR_DAYS):
@@ -197,9 +233,11 @@ def get_zakat_nisab(
     notification's ``"1446-47"``) or a ``date`` (``YYYY-MM-DD`` or a
     ``datetime.date``); ``zakat_year`` takes precedence. They may also be
     passed as a ``dict``, ``{"zakatYear": 1447}`` or ``{"date": ...}``, as in
-    the npm package. A Zakat year starts on 1 Ramazan; for a date on the
-    first of the two days the notification gives for it, the year is unknown
-    and the result is ``None``.
+    the npm package. A Zakat year starts on 1 Ramazan. Where its Gregorian
+    date is confirmed (``valuation_date``, 2026 so far), that date is used.
+    Otherwise only the two likely days the notification gives are known, and
+    for a date on the first of them the year is unknown and the result is
+    ``None``.
 
     This is the nisab for deduction from savings and similar bank accounts
     under the Zakat and Ushr Ordinance 1980, not a religious ruling on
@@ -239,9 +277,22 @@ def zakat_deduction(
     exempt: Any = False,
 ) -> Optional[ZakatDeduction]:
     """Zakat deducted at source from one account on the valuation date (1
-    Ramazan): 2.5% of the whole balance when it is at or above that year's
-    nisab, and nothing when it is below or the holder filed the exemption
-    declaration (Form CZ-50, ``exempt=True``).
+    Ramazan): 2.5% of the whole balance, rounded to the nearest rupee (First
+    Schedule, Note 2), when it is at or above that year's nisab, and nothing
+    when it is below or the holder has a valid exemption declaration (Form
+    CZ-50, ``exempt=True``).
+
+    ``exempt=True`` means the declaration was filed with the bank at least 30
+    days before the valuation date, sworn before a magistrate, oath
+    commissioner, notary public or other person authorised to administer
+    oaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980,
+    s. 1(3), proviso (a)). The library does not check the declaration.
+
+    A balance exactly equal to the nisab is deducted, as the notifications
+    say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
+    says no deduction where the balance "does not exceed" the nisab, which
+    would not deduct it; the library follows the notifications, which banks
+    apply.
 
     ``balance`` is the account balance in rupees at the start of the
     valuation date (0 to 1 trillion, at most 2 decimals count). The year is
@@ -259,7 +310,7 @@ def zakat_deduction(
     ambiguous date. Never raises.
 
     >>> zakat_deduction(balance=600000, zakat_year=1447).zakat
-    15000.0
+    15000
     >>> zakat_deduction(balance=600000, zakat_year=1447, exempt=True).reason
     'exempt'
     """
@@ -284,6 +335,16 @@ def zakat_deduction(
         deductible=deductible,
         reason="exempt" if is_exempt else ("below-nisab" if below else None),
         rate=2.5,
-        zakat=from_paisa(divide_half_up(paisa * 25, 1000)) if deductible else 0,
+        zakat=_zakat_rupees(paisa) if deductible else 0,
         source=_source(row),
     )
+
+
+def _zakat_rupees(balance_paisa: int) -> int:
+    """2.5% of a balance in paisa, as the First Schedule's Note 2 rounds it:
+    less than a rupee is not charged; otherwise 50 paisa or more counts as a
+    rupee and less than 50 paisa is dropped."""
+    exact = balance_paisa * 25  # thousandths of a paisa
+    if exact < 100_000:
+        return 0
+    return divide_half_up(exact, 100_000)

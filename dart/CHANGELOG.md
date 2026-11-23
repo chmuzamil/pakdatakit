@@ -19,11 +19,15 @@ vectors.
   `calculateSalesTax()` when the rate was looked up.
 - Zakat deduction at source (`package:pakdatakit/zakat.dart`):
   `getZakatNisab()`, `getZakatYears()` and `zakatDeduction()`, Zakat years
-  1433-1447 (#93).
+  1433-1447 (#93). `zakat` is in whole rupees (First Schedule, Note 2), and
+  a year's confirmed date of 1 Ramazan (`valuationDate`, with its
+  `valuationDateSource`) is used for lookups by date where known.
 - Withholding tax (`package:pakdatakit/withholding.dart`):
   `calculateWithholding()` and `getWithholdingRates()` for sections 231AB,
   236C, 236K, 151, 150, 153, 154B and 149, ATL and non-ATL, tax years
-  2025-2027 (#92).
+  2025-2027 (#92). `tax` is in whole rupees (section 219).
+  `returnOnInvestment` decides the 151 sukuk case (exactly Rs 1 million
+  gives `null`), and `resident` gives 154B's `taxNature` (minimum or final).
 - 2023 census population (`package:pakdatakit/population.dart`):
   `getDistrictPopulation()` and `getTehsilPopulation()` (#95).
 - FBR Digital Invoicing: `getSaleTypes()`, and

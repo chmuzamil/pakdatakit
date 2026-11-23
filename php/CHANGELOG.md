@@ -22,15 +22,25 @@ results on the shared test vectors. The new datasets load on first use.
   `toArray()`, when you pass `rate`).
 - **Zakat** (`Zakat`): `getNisab(zakatYear: 1447)` (also `'1447'` or the
   notification's `'1446-47'`) or `getNisab(date: ...)` returns a
-  `ZakatNisab` for Zakat years 1433-1447; `getYears()`;
+  `ZakatNisab` for Zakat years 1433-1447, with `valuationDate` and
+  `valuationDateSource` where 1 Ramazan is confirmed (1447: 19 February
+  2026; date lookups and the source's dates use it); `getYears()`;
   `deduction($balance, zakatYear: ..., exempt: ...)` returns a
-  `ZakatDeduction` (2.5% at or above the nisab) (#93).
+  `ZakatDeduction`: 2.5% at or above the nisab, in whole rupees (First
+  Schedule, Note 2) (#93).
 - **Withholding tax** (`Withholding`): `calculate($section, $amount, atl: ...,
-subType: ..., taxYear: ..., date: ..., lateFiler: ...)` returns a
-  `WithholdingTax` for persons on and not on the Active Taxpayers List
-  (231AB, 236C, 236K, 151, 150, 153, 154B, 149) from FBR's rate cards for
-  tax years 2025-2027; `getRates($taxYear, $section)` lists the cases as
-  `WithholdingRate` (#92).
+subType: ..., taxYear: ..., date: ..., lateFiler: ..., returnOnInvestment: ...,
+resident: ...)` returns a `WithholdingTax` for persons on and not on the
+  Active Taxpayers List (231AB, 236C, 236K, 151, 150, 153, 154B, 149) from
+  FBR's rate cards for tax years 2025-2027; `getRates($taxYear, $section)`
+  lists the cases as `WithholdingRate` (#92). The tax is in whole rupees
+  (section 219), computed exactly and rounded once (149 too, from the
+  salaried rate table). 151 sukuk held by an individual or AOP must fit the
+  return on investment (`returnOnInvestment`, default the amount): more
+  than Rs 1 million is `sukuk-individual-above-1m`, less is
+  `sukuk-individual-below-1m`, exactly Rs 1 million gives null. 150 has the
+  company case `mutual-fund-debt-part-company` (29%). For 154B,
+  `resident: true|false` sets `taxNature` (`minimum` or `final`).
 - **Census 2023 population** (`Population`): `getDistrict($district)` returns a
   `DistrictPopulation` and `getTehsil($tehsil, $district)` a
   `TehsilPopulation` (population, households, urban, rural, census

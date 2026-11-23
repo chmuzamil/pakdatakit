@@ -40,6 +40,34 @@ class ZakatDocument {
   String toString() => 'ZakatDocument${toJson()}';
 }
 
+/// The source that confirms the Gregorian date of 1 Ramazan. See
+/// [ZakatNisab.valuationDateSource].
+class ZakatValuationDateSource {
+  /// Creates a valuation date source value.
+  const ZakatValuationDateSource({required this.reference, required this.url});
+
+  /// What the source says and who published it.
+  final String reference;
+
+  /// The source.
+  final String url;
+
+  /// JSON form, with the same keys as the npm package.
+  Map<String, Object?> toJson() => {'reference': reference, 'url': url};
+
+  @override
+  bool operator ==(Object other) =>
+      other is ZakatValuationDateSource &&
+      other.reference == reference &&
+      other.url == url;
+
+  @override
+  int get hashCode => Object.hash(reference, url);
+
+  @override
+  String toString() => 'ZakatValuationDateSource${toJson()}';
+}
+
 /// One Zakat year's nisab for deduction at source, as notified. Result of
 /// [getZakatNisab].
 class ZakatNisab {
@@ -50,6 +78,8 @@ class ZakatNisab {
     required this.nisab,
     required this.valuationDateHijri,
     required this.expectedValuationDates,
+    required this.valuationDate,
+    required this.valuationDateSource,
     required this.bankHolidayDate,
     required this.notification,
     required this.sbpCircular,
@@ -73,6 +103,13 @@ class ZakatNisab {
   /// fall on (`YYYY-MM-DD`). The day itself depends on the moon sighting.
   final List<String> expectedValuationDates;
 
+  /// The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a source
+  /// states it; otherwise `null`.
+  final String? valuationDate;
+
+  /// The source of [valuationDate], or `null` when there is none.
+  final ZakatValuationDateSource? valuationDateSource;
+
   /// The bank holiday for the deduction, when SBP's circular names a
   /// Gregorian date (`YYYY-MM-DD`); otherwise `null`.
   final String? bankHolidayDate;
@@ -94,6 +131,8 @@ class ZakatNisab {
         'nisab': nisab,
         'valuationDateHijri': valuationDateHijri,
         'expectedValuationDates': [...expectedValuationDates],
+        'valuationDate': valuationDate,
+        'valuationDateSource': valuationDateSource?.toJson(),
         'bankHolidayDate': bankHolidayDate,
         'notification': notification.toJson(),
         'sbpCircular': sbpCircular.toJson(),
@@ -108,6 +147,8 @@ class ZakatNisab {
       other.nisab == nisab &&
       other.valuationDateHijri == valuationDateHijri &&
       listEquals(other.expectedValuationDates, expectedValuationDates) &&
+      other.valuationDate == valuationDate &&
+      other.valuationDateSource == valuationDateSource &&
       other.bankHolidayDate == bankHolidayDate &&
       other.notification == notification &&
       other.sbpCircular == sbpCircular &&
@@ -120,6 +161,8 @@ class ZakatNisab {
         nisab,
         valuationDateHijri,
         listHash(expectedValuationDates),
+        valuationDate,
+        valuationDateSource,
         bankHolidayDate,
         notification,
         sbpCircular,
@@ -132,7 +175,7 @@ class ZakatNisab {
 
 /// Why [zakatDeduction] deducts nothing. See [ZakatDeduction.reason].
 enum ZakatExemptReason {
-  /// The holder filed the exemption declaration (Form CZ-50).
+  /// The holder has a valid exemption declaration (Form CZ-50).
   exempt('exempt'),
 
   /// The balance is below the year's nisab.
@@ -179,9 +222,10 @@ class ZakatDeduction {
   /// Percent of the whole balance: `2.5`.
   final double rate;
 
-  /// The amount deducted, rounded half up to the paisa; `0` if not
+  /// The amount deducted, in whole rupees (First Schedule, Note 2: less than
+  /// a rupee is not charged, 50 paisa or more counts as a rupee); `0` if not
   /// deductible.
-  final double zakat;
+  final int zakat;
 
   /// The year's notification and SBP circular (dataset `zakat-nisab`).
   final DataSource source;
@@ -239,8 +283,10 @@ String _addDays(String iso, int days) {
       '${date.day.toString().padLeft(2, '0')}';
 }
 
-/// The first of the two likely days of 1 Ramazan in a row of the data.
+/// The start of a year in the data: the confirmed date of 1 Ramazan, or
+/// else the first of its two likely days.
 String _firstDay(Map<String, Object?> row) =>
+    row['valuationDate'] as String? ??
     (row['expectedValuationDates']! as List<Object?>).first! as String;
 
 ZakatNisab _toNisab(Map<String, Object?> e, List<Map<String, Object?>> rows) {
@@ -256,6 +302,14 @@ ZakatNisab _toNisab(Map<String, Object?> e, List<Map<String, Object?>> rows) {
     expectedValuationDates: List.unmodifiable(
       (e['expectedValuationDates']! as List<Object?>).cast<String>(),
     ),
+    valuationDate: e['valuationDate'] as String?,
+    valuationDateSource: switch (e['valuationDateSource']) {
+      final Map<String, Object?> v => ZakatValuationDateSource(
+          reference: v['reference']! as String,
+          url: v['url']! as String,
+        ),
+      _ => null,
+    },
     bankHolidayDate: e['bankHolidayDate'] as String?,
     notification: notification,
     sbpCircular: sbpCircular,
@@ -307,16 +361,25 @@ ZakatNisab? _byYear(Object? value) {
   return null;
 }
 
-/// The Zakat year a date falls in. A year starts on 1 Ramazan, which the
-/// notification gives only as one of two likely days; a date on the earlier
-/// of the two is ambiguous and gives `null`, as does a date past the last
-/// notified year.
+/// The Zakat year a date falls in. A year starts on 1 Ramazan: its
+/// confirmed date where known, else one of the two likely days the
+/// notification gives, where a date on the earlier of the two is ambiguous
+/// and gives `null`. A date past the last notified year gives `null` too.
 ZakatNisab? _byDate(Object? value) {
   final date = isoDate(value);
   if (date == null) return null;
   for (var i = _years.length - 1; i >= 0; i--) {
     final row = _years[i];
     final [first, second] = row.expectedValuationDates;
+    final confirmed = row.valuationDate;
+    if (confirmed != null) {
+      if (date.compareTo(confirmed) < 0) continue;
+      if (i == _years.length - 1 &&
+          date.compareTo(_addDays(confirmed, _lunarYearDays)) >= 0) {
+        return null;
+      }
+      return row;
+    }
     if (date.compareTo(second) >= 0) {
       if (i == _years.length - 1 &&
           date.compareTo(_addDays(first, _lunarYearDays)) >= 0) {
@@ -343,9 +406,11 @@ ZakatNisab? _find(Object? zakatYear, Object? date) {
 /// Give [zakatYear], an [int] (`1447`) or a [String] (`'1447'`, or the
 /// notification's `'1446-47'`), or [date], a `YYYY-MM-DD` [String] or a
 /// [DateTime] (its local calendar date); [zakatYear] takes precedence. A
-/// Zakat year starts on 1 Ramazan; for a date on the first of the two days
-/// the notification gives for it, the year is unknown and the result is
-/// `null`. The npm `ZakatYearQuery` object is these named parameters.
+/// Zakat year starts on 1 Ramazan. Where its Gregorian date is confirmed
+/// ([ZakatNisab.valuationDate], 2026 so far), that date is used. Otherwise
+/// only the two likely days the notification gives are known, and for a
+/// date on the first of them the year is unknown and the result is `null`.
+/// The npm `ZakatYearQuery` object is these named parameters.
 ///
 /// This is the nisab for deduction from savings and similar bank accounts
 /// under the Zakat and Ushr Ordinance 1980, not a religious ruling on
@@ -370,9 +435,23 @@ ZakatNisab? getZakatNisab({Object? zakatYear, Object? date}) =>
 List<int> getZakatYears() => [for (final y in _years) y.zakatYear];
 
 /// Zakat deducted at source from one account on the valuation date (1
-/// Ramazan): 2.5% of the whole balance when it is at or above that year's
-/// nisab, and nothing when it is below or the holder filed the exemption
-/// declaration (Form CZ-50, [exempt]).
+/// Ramazan): 2.5% of the whole balance, rounded to the nearest rupee (First
+/// Schedule, Note 2: less than a rupee is not charged), when it is at or
+/// above that year's nisab, and nothing when it is below or the holder has a
+/// valid exemption declaration (Form CZ-50, [exempt]).
+///
+/// Set [exempt] to `true` if the holder has a valid Form CZ-50 with the bank:
+/// filed at least 30 days before the valuation date, sworn before a
+/// magistrate, oath commissioner, notary public or other person authorised
+/// to administer oaths, in the presence of two witnesses (Zakat and Ushr
+/// Ordinance 1980, s. 1(3), proviso (a)). The library does not check the
+/// declaration.
+///
+/// A balance exactly equal to the nisab is deducted, as the notifications
+/// say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
+/// says no deduction where the balance "does not exceed" the nisab, which
+/// would not deduct it; the library follows the notifications, which banks
+/// apply.
 ///
 /// [balance] is the account balance in rupees at the start of the valuation
 /// date, 0 to 1 trillion (at most 2 decimals count). The year is chosen by
@@ -390,7 +469,7 @@ List<int> getZakatYears() => [for (final y in _years) y.zakatYear];
 /// ```dart
 /// zakatDeduction(balance: 600000, zakatYear: 1447);
 /// // ZakatDeduction{zakatYear: 1447, nisab: 503529, balance: 600000.0,
-/// //   deductible: true, reason: null, rate: 2.5, zakat: 15000.0, ...}
+/// //   deductible: true, reason: null, rate: 2.5, zakat: 15000, ...}
 /// zakatDeduction(balance: 600000, zakatYear: 1447, exempt: true)?.zakat; // 0
 /// ```
 ZakatDeduction? zakatDeduction({
@@ -416,12 +495,17 @@ ZakatDeduction? zakatDeduction({
             ? ZakatExemptReason.belowNisab
             : null,
     rate: 2.5,
-    zakat: deductible
-        ? fromPaisa(
-            divideHalfUp(
-                BigInt.from(paisa) * BigInt.from(25), BigInt.from(1000)),
-          )
-        : 0,
+    zakat: deductible ? _zakatRupees(paisa) : 0,
     source: row.source,
   );
+}
+
+/// 2.5% of a balance in paisa, as the First Schedule's Note 2 rounds it:
+/// less than a rupee is not charged; otherwise 50 paisa or more counts as a
+/// rupee and less than 50 paisa is dropped.
+int _zakatRupees(int balancePaisa) {
+  // Thousandths of a paisa.
+  final exact = BigInt.from(balancePaisa) * BigInt.from(25);
+  if (exact < BigInt.from(100000)) return 0;
+  return divideHalfUp(exact, BigInt.from(100000));
 }

@@ -4801,9 +4801,9 @@
             },
             {
               "name": "tax",
-              "type": "float",
+              "type": "int",
               "default": null,
-              "doc": "Tax to withhold or collect, rounded half up to the paisa.",
+              "doc": "Tax to withhold or collect, in whole rupees: section 219 of the\nOrdinance disregards fractions under 50 paisa and counts 50 paisa\nor more as a rupee.",
               "static": false,
               "readonly": true
             },
@@ -4852,6 +4852,14 @@
               "type": "?string",
               "default": null,
               "doc": "Where the statute differs from the card and the statute is used, why; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "taxNature",
+              "type": "?string",
+              "default": null,
+              "doc": "154B with `resident` given: `minimum` for a resident, `final` for a\nnon-resident without a permanent establishment in Pakistan;\notherwise null.",
               "static": false,
               "readonly": true
             },
@@ -5009,7 +5017,7 @@
           "kind": "class",
           "name": "Withholding",
           "signature": "final class Withholding",
-          "doc": "Withholding income tax for persons on and not on FBR's Active Taxpayers\nList (ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to\n2027: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary. Amounts\nare computed exactly in whole paisa.",
+          "doc": "Withholding income tax for persons on and not on FBR's Active Taxpayers\nList (ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to\n2027: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary. Amounts\nare computed exactly from whole paisa, and the tax is rounded once to the\nnearest rupee (section 219).",
           "fields": [],
           "methods": [
             {
@@ -5039,8 +5047,8 @@
             {
               "kind": "method",
               "name": "calculate",
-              "signature": "public static function calculate(\n    mixed $section,\n    mixed $amount,\n    mixed $atl,\n    mixed $subType = null,\n    mixed $taxYear = null,\n    mixed $date = null,\n    bool $lateFiler = false,\n): ?WithholdingTax",
-              "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of\nimmovable property, 151 profit on debt, 150 dividends, 153 goods,\nservices and contracts, 154B social media income (from 2027) and 149\nsalary (the salaried rate table, as IncomeTax::calculateSalary()).\n\nThe rate for a person not on the list follows each case's own rule in\nthe Tenth Schedule: usually double, but a fixed rate (236C, and 151 in\n2025), its own value bands (236K), or none (149; 231AB applies only to\nthem). The rate applies to the whole amount. Where FBR's card and the\nOrdinance differ, the Ordinance is used and `statuteOverride` says so.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many\ncases not listed here are not applied.\n\n```php\nWithholding::calculate('236K', 60_000_000, atl: false, taxYear: 2027);\n// WithholdingTax(rate: 14.5, tax: 8700000.0, nonAtlRule: 'slabs', …)\nWithholding::calculate('231AB', 80_000, atl: false, taxYear: 2027)?->tax; // 640.0\nWithholding::calculate('151', 10_000, atl: true, subType: 'bank-deposit', taxYear: 2027)?->tax; // 2000.0\n```",
+              "signature": "public static function calculate(\n    mixed $section,\n    mixed $amount,\n    mixed $atl,\n    mixed $subType = null,\n    mixed $taxYear = null,\n    mixed $date = null,\n    bool $lateFiler = false,\n    mixed $returnOnInvestment = null,\n    ?bool $resident = null,\n): ?WithholdingTax",
+              "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of\nimmovable property, 151 profit on debt, 150 dividends, 153 goods,\nservices and contracts, 154B social media income (from 2027) and 149\nsalary (the salaried rate table, as IncomeTax::calculateSalary()).\n\nThe rate for a person not on the list follows each case's own rule in\nthe Tenth Schedule: usually double, but a fixed rate (236C, and 151 in\n2025), its own value bands (236K), or none (149; 231AB applies only to\nthem). The rate applies to the whole amount (236C and 236K value bands\nare not marginal), and the tax is rounded to the nearest rupee:\nsection 219 disregards fractions under 50 paisa and counts 50 paisa or\nmore as a rupee. For 149 the salaried rate table is applied exactly\nand rounded once, and `rate` is the effective rate. Where FBR's card\nand the Ordinance differ, the Ordinance is used and `statuteOverride`\nsays so.\n\n- 231AB: pass the day's total of all cash withdrawals; nothing is\n  collected up to Rs 50,000.\n- 150: for mutual fund dividends received by a company, the debt part\n  is `mutual-fund-debt-part-company` (29%).\n- 151 sukuk held by an individual or AOP: the case must fit the return\n  on investment (`$returnOnInvestment`, by default `$amount`): more\n  than Rs 1 million is `sukuk-individual-above-1m`, less than Rs 1\n  million `sukuk-individual-below-1m`. The law gives no rate for\n  exactly Rs 1 million, so that, or a case that does not fit, gives\n  null.\n- 154B: the rate is the same for residents and non-residents; with\n  `$resident`, `taxNature` says whether the tax is a minimum tax\n  (resident) or a final tax (non-resident without a permanent\n  establishment in Pakistan).\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many\ncases not listed here are not applied.\n\n```php\nWithholding::calculate('236K', 60_000_000, atl: false, taxYear: 2027);\n// WithholdingTax(rate: 14.5, tax: 8700000, nonAtlRule: 'slabs', …)\nWithholding::calculate('231AB', 80_000, atl: false, taxYear: 2027)?->tax; // 640\nWithholding::calculate('151', 10_000, atl: true, subType: 'bank-deposit', taxYear: 2027)?->tax; // 2000\n```",
               "params": [
                 {
                   "name": "$section",
@@ -5083,11 +5091,23 @@
                   "type": "bool",
                   "default": "false",
                   "doc": "True for a person on the list who filed the return late. Changes the rate only where the year has a late-filer rate (236C and 236K in tax years 2025 and 2026). Default false."
+                },
+                {
+                  "name": "$returnOnInvestment",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "151 sukuk, individual or AOP: the holder's return on investment in rupees (int|float, at most 2 decimals), which decides the case; null (the default) uses `$amount`. Ignored for other cases."
+                },
+                {
+                  "name": "$resident",
+                  "type": "?bool",
+                  "default": "null",
+                  "doc": "154B: whether the recipient is resident, which sets `taxNature`; null (the default) leaves it null."
                 }
               ],
               "returns": {
                 "type": "WithholdingTax|null",
-                "doc": "The rate, tax and references, or null for an unknown section, case or tax year, an invalid amount, no tax year or date, or an `$atl` that is not a bool. Never throws."
+                "doc": "The rate, tax and references, or null for an unknown section, case or tax year, an invalid amount or return on investment, a sukuk case that does not fit the return, no tax year or date, or an `$atl` that is not a bool. Never throws."
               }
             }
           ],
@@ -5237,7 +5257,7 @@
     {
       "id": "zakat",
       "name": "PakDataKit",
-      "import": "use PakDataKit\\ZakatDocument;\nuse PakDataKit\\ZakatNisab;\nuse PakDataKit\\ZakatDeduction;\n// ...",
+      "import": "use PakDataKit\\ZakatDocument;\nuse PakDataKit\\ZakatValuationDateSource;\nuse PakDataKit\\ZakatNisab;\n// ...",
       "source": "php/src",
       "doc": "",
       "entries": [
@@ -5274,6 +5294,32 @@
           ],
           "methods": [],
           "source": "php/src/ZakatDocument.php"
+        },
+        {
+          "kind": "class",
+          "name": "ZakatValuationDateSource",
+          "signature": "final readonly class ZakatValuationDateSource",
+          "doc": "The source that confirms the Gregorian date of 1 Ramazan for a Zakat year\n(ZakatNisab::$valuationDate).",
+          "fields": [
+            {
+              "name": "reference",
+              "type": "string",
+              "default": null,
+              "doc": "What the source says and who published it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "default": null,
+              "doc": "Where it was published.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ZakatValuationDateSource.php"
         },
         {
           "kind": "class",
@@ -5318,6 +5364,22 @@
               "type": "array",
               "default": null,
               "doc": "",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "valuationDate",
+              "type": "?string",
+              "default": null,
+              "doc": "The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a\nsource states it; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "valuationDateSource",
+              "type": "?ZakatValuationDateSource",
+              "default": null,
+              "doc": "The source that confirms `valuationDate`, or null.",
               "static": false,
               "readonly": true
             },
@@ -5413,9 +5475,9 @@
             },
             {
               "name": "zakat",
-              "type": "float",
+              "type": "int",
               "default": null,
-              "doc": "The amount deducted, rounded half up to the paisa; `0` if not deductible.",
+              "doc": "The amount deducted, in whole rupees (First Schedule, Note 2: less\nthan a rupee is not charged, 50 paisa or more counts as a rupee);\n`0` if not deductible.",
               "static": false,
               "readonly": true
             },
@@ -5442,7 +5504,7 @@
               "kind": "method",
               "name": "getNisab",
               "signature": "public static function getNisab(mixed $zakatYear = null, mixed $date = null): ?ZakatNisab",
-              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year.\n\nGive the year (`1447`, `'1447'`, or the notification's `'1446-47'`) or\na date; `$zakatYear` takes precedence. A Zakat year starts on 1\nRamazan; for a date on the first of the two days the notification\ngives for it, the year is unknown and the result is null.\n\n```php\nZakat::getNisab(zakatYear: 1447)?->nisab; // 503529\nZakat::getNisab(zakatYear: '1445-46')?->zakatYear; // 1446\nZakat::getNisab(date: '2025-06-01')?->nisab; // 179689\n```",
+              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year.\n\nGive the year (`1447`, `'1447'`, or the notification's `'1446-47'`) or\na date; `$zakatYear` takes precedence. A Zakat year starts on 1\nRamazan. Where its Gregorian date is confirmed (`valuationDate`, 2026\nso far), that date is used. Otherwise only the two likely days the\nnotification gives are known, and for a date on the first of them the\nyear is unknown and the result is null.\n\n```php\nZakat::getNisab(zakatYear: 1447)?->nisab; // 503529\nZakat::getNisab(zakatYear: '1445-46')?->zakatYear; // 1446\nZakat::getNisab(date: '2025-06-01')?->nisab; // 179689\n```",
               "params": [
                 {
                   "name": "$zakatYear",
@@ -5477,7 +5539,7 @@
               "kind": "method",
               "name": "deduction",
               "signature": "public static function deduction(\n    mixed $balance,\n    mixed $zakatYear = null,\n    mixed $date = null,\n    bool $exempt = false,\n): ?ZakatDeduction",
-              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance when it is at or above that year's\nnisab, and nothing when it is below or the holder filed the exemption\ndeclaration (Form CZ-50). Give the year or a date as for getNisab().\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```php\nZakat::deduction(600000, zakatYear: 1447);\n// ZakatDeduction(zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000.0, source: …)\nZakat::deduction(600000, zakatYear: 1447, exempt: true)?->zakat; // 0.0\n```",
+              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee\n(First Schedule, Note 2: less than a rupee is not charged, 50 paisa or\nmore counts as a rupee), when it is at or above that year's nisab, and\nnothing when it is below or the holder has a valid exemption\ndeclaration (Form CZ-50). Give the year or a date as for getNisab().\n\nA balance exactly equal to the nisab is deducted, as the notifications\nsay (\"Rs. 503,529/- or above\" in 2026). The Ordinance's First Schedule\nsays no deduction where the balance \"does not exceed\" the nisab, which\nwould not deduct it; this follows the notifications, which banks apply.\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```php\nZakat::deduction(600000, zakatYear: 1447);\n// ZakatDeduction(zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000, source: …)\nZakat::deduction(600000, zakatYear: 1447, exempt: true)?->zakat; // 0\n```",
               "params": [
                 {
                   "name": "$balance",
@@ -5501,7 +5563,7 @@
                   "name": "$exempt",
                   "type": "bool",
                   "default": "false",
-                  "doc": "True if the holder filed the exemption declaration (Form CZ-50). Default false."
+                  "doc": "True if the holder has a valid exemption declaration (Form CZ-50) with the bank: filed at least 30 days before the valuation date, sworn before a magistrate, oath commissioner, notary public or other person authorised to administer oaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980, s. 1(3), proviso (a)). The declaration is not checked. Default false."
                 }
               ],
               "returns": {

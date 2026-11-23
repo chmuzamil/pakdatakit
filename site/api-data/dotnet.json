@@ -6025,6 +6025,24 @@
               "accessors": "get; init"
             },
             {
+              "name": "ReturnOnInvestment",
+              "type": "double?",
+              "default": null,
+              "doc": "151 sukuk, individual or AOP: the holder's return on investment in\nrupees, which decides the case (more than Rs 1 million:\n`sukuk-individual-above-1m`; less than Rs 1 million:\n`sukuk-individual-below-1m`). Defaults to {@link WithholdingInput.Amount}.\nThe law gives no rate for exactly Rs 1 million, so that, or a case that\ndoes not fit the return, gives `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Resident",
+              "type": "bool?",
+              "default": null,
+              "doc": "154B: whether the recipient is resident. The rate is the same; it\ndecides whether the tax is a minimum tax (resident) or a final tax\n(non-resident without a permanent establishment in Pakistan), given in\n{@link WithholdingTax.TaxNature}.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
               "name": "TaxYear",
               "type": "int?",
               "default": null,
@@ -6057,7 +6075,7 @@
         {
           "kind": "record",
           "name": "WithholdingTax",
-          "signature": "public sealed record WithholdingTax(string Section, string SubType, string Description, int TaxYear, bool Atl, bool LateFiler, double Rate, double Tax, WithholdingNonAtlRule NonAtlRule, WithholdingSlab? Slab, WithholdingThresholdCheck? Threshold, string CardRef, string LawRef, string? StatuteOverride, DataSource Source)",
+          "signature": "public sealed record WithholdingTax(string Section, string SubType, string Description, int TaxYear, bool Atl, bool LateFiler, double Rate, double Tax, WithholdingNonAtlRule NonAtlRule, WithholdingSlab? Slab, WithholdingThresholdCheck? Threshold, string CardRef, string LawRef, string? StatuteOverride, string? TaxNature, DataSource Source)",
           "doc": "Result of {@link Withholding.Calculate}.",
           "fields": [
             {
@@ -6127,7 +6145,7 @@
               "name": "Tax",
               "type": "double",
               "default": null,
-              "doc": "Tax to withhold or collect, rounded half up to the paisa.",
+              "doc": "Tax to withhold or collect, in whole rupees: section 219 of the Ordinance\ndisregards fractions under 50 paisa and counts 50 paisa or more as a rupee.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6182,6 +6200,15 @@
               "type": "string?",
               "default": null,
               "doc": "Where the statute differs from the card and the statute is used, why; otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "TaxNature",
+              "type": "string?",
+              "default": null,
+              "doc": "154B with {@link WithholdingInput.Resident} given: `minimum` for\na resident, `final` for a non-resident without a permanent\nestablishment in Pakistan; otherwise `null`.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6386,7 +6413,7 @@
               "kind": "method",
               "name": "Calculate",
               "signature": "public static WithholdingTax? Calculate(WithholdingInput? input)",
-              "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List,\nfrom FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of\nimmovable property, 151 profit on debt, 150 dividends, 153 goods,\nservices and contracts, 154B social media income (from 2027) and 149\nsalary (the salaried rate table, as {@link IncomeTax.CalculateSalaryTax}).\n\nThe rate for a person not on the list follows each case's own rule in\nthe Tenth Schedule: usually double, but a fixed rate (236C, and 151 in\n2025), its own value bands (236K), or none (149; 231AB applies only to\nthem). The rate applies to the whole amount. Where FBR's card and the\nOrdinance differ, the Ordinance is used and\n{@link WithholdingTax.StatuteOverride} says so.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many\ncases not listed here are not applied.\n\n```csharp\nWithholding.Calculate(new WithholdingInput { Section = \"236K\", Amount = 60_000_000, Atl = false, TaxYear = 2027 });\n// Rate = 14.5, Tax = 8700000, NonAtlRule = Slabs, …\nWithholding.Calculate(new WithholdingInput { Section = \"231AB\", Amount = 80_000, Atl = false, TaxYear = 2027 })?.Tax; // 640\n```",
+              "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List,\nfrom FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of\nimmovable property, 151 profit on debt, 150 dividends, 153 goods,\nservices and contracts, 154B social media income (from 2027) and 149\nsalary (the salaried rate table, as {@link IncomeTax.CalculateSalaryTax}).\n\nThe rate for a person not on the list follows each case's own rule in\nthe Tenth Schedule: usually double, but a fixed rate (236C, and 151 in\n2025), its own value bands (236K), or none (149; 231AB applies only to\nthem). The rate applies to the whole amount (236C and 236K value bands\nare not marginal), and the tax is rounded to the nearest rupee (section\n219). Where FBR's card and the Ordinance differ, the Ordinance is used\nand {@link WithholdingTax.StatuteOverride} says so.\n\nFor 231AB, pass the day's total of all cash withdrawals: nothing is\ncollected up to Rs 50,000. For 150 mutual fund dividends received by a\ncompany, the debt part is `mutual-fund-debt-part-company` (29%).\nFor 151 sukuk held by an individual or AOP, the case must fit the\nreturn on investment ({@link WithholdingInput.ReturnOnInvestment}),\nand exactly Rs 1 million gives `null`. For 154B, give\n{@link WithholdingInput.Resident} to get\n{@link WithholdingTax.TaxNature}.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many\ncases not listed here are not applied.\n\n```csharp\nWithholding.Calculate(new WithholdingInput { Section = \"236K\", Amount = 60_000_000, Atl = false, TaxYear = 2027 });\n// Rate = 14.5, Tax = 8700000, NonAtlRule = Slabs, …\nWithholding.Calculate(new WithholdingInput { Section = \"231AB\", Amount = 80_000, Atl = false, TaxYear = 2027 })?.Tax; // 640\n```",
               "params": [
                 {
                   "name": "input",
@@ -6551,8 +6578,35 @@
         },
         {
           "kind": "record",
+          "name": "ZakatValuationDateSource",
+          "signature": "public sealed record ZakatValuationDateSource(string Reference, string Url)",
+          "doc": "The source that confirms the Gregorian date of 1 Ramazan.",
+          "fields": [
+            {
+              "name": "Reference",
+              "type": "string",
+              "default": null,
+              "doc": "What the source says, and who published it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Url",
+              "type": "string",
+              "default": null,
+              "doc": "Where it is published.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
           "name": "ZakatNisab",
-          "signature": "public sealed record ZakatNisab(int ZakatYear, string Label, long Nisab, string ValuationDateHijri, IReadOnlyList<string> ExpectedValuationDates, string? BankHolidayDate, ZakatDocument Notification, ZakatDocument SbpCircular, DataSource Source)",
+          "signature": "public sealed record ZakatNisab(int ZakatYear, string Label, long Nisab, string ValuationDateHijri, IReadOnlyList<string> ExpectedValuationDates, string? BankHolidayDate, string? ValuationDate, ZakatValuationDateSource? ValuationDateSource, ZakatDocument Notification, ZakatDocument SbpCircular, DataSource Source)",
           "doc": "One Zakat year's nisab for deduction at source, as notified.",
           "fields": [
             {
@@ -6605,6 +6659,24 @@
               "type": "string?",
               "default": null,
               "doc": "The bank holiday for the deduction, when SBP's circular names a Gregorian\ndate (`YYYY-MM-DD`); otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "ValuationDate",
+              "type": "string?",
+              "default": null,
+              "doc": "The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a\nsource states it; otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "ValuationDateSource",
+              "type": "ZakatValuationDateSource?",
+              "default": null,
+              "doc": "The source of `ValuationDate`, or `null`.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6766,7 +6838,7 @@
               "name": "Zakat",
               "type": "double",
               "default": null,
-              "doc": "The amount deducted, rounded half up to the paisa; `0` if not deductible.",
+              "doc": "The amount deducted, in whole rupees (First Schedule, Note 2: less than a\nrupee is not charged, 50 paisa or more counts as a rupee); `0` if\nnot deductible.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6794,7 +6866,7 @@
               "kind": "method",
               "name": "GetNisab",
               "signature": "public static ZakatNisab? GetNisab(ZakatYearQuery? query)",
-              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year,\ngiven by its Hijri year or a date in it.\n\nA Zakat year starts on 1 Ramazan; for a date on the first of the two\ndays the notification gives for it, the year is unknown and the result\nis `null`, as it is for a date past the last notified year.\n\n```csharp\nZakat.GetNisab(new ZakatYearQuery { ZakatYear = 1447 })?.Nisab;    // 503529\nZakat.GetNisab(new ZakatYearQuery { Label = \"1445-46\" })?.ZakatYear; // 1446\nZakat.GetNisab(new ZakatYearQuery { Date = \"2025-06-01\" })?.Nisab;  // 179689\n```",
+              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year,\ngiven by its Hijri year or a date in it.\n\nA Zakat year starts on 1 Ramazan. Where its Gregorian date is confirmed\n({@link ZakatNisab.ValuationDate}, 2026 so far), that date is\nused. Otherwise only the two likely days the notification gives are\nknown, and for a date on the first of them the year is unknown and the\nresult is `null`, as it is for a date past the last notified year.\n\n```csharp\nZakat.GetNisab(new ZakatYearQuery { ZakatYear = 1447 })?.Nisab;    // 503529\nZakat.GetNisab(new ZakatYearQuery { Label = \"1445-46\" })?.ZakatYear; // 1446\nZakat.GetNisab(new ZakatYearQuery { Date = \"2025-06-01\" })?.Nisab;  // 179689\n```",
               "params": [
                 {
                   "name": "query",
@@ -6841,7 +6913,7 @@
               "kind": "method",
               "name": "CalculateDeduction",
               "signature": "public static ZakatDeduction? CalculateDeduction(\n    double balance,\n    ZakatYearQuery? query,\n    bool exempt = false)",
-              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance when it is at or above that year's\nnisab, and nothing when it is below or the holder filed the exemption\ndeclaration (Form CZ-50).\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```csharp\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 });\n// ZakatYear = 1447, Nisab = 503529, Balance = 600000, Deductible = true,\n// Reason = null, Rate = 2.5, Zakat = 15000, Source = { … }\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 }, exempt: true)?.Zakat; // 0\n```",
+              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee\n(First Schedule, Note 2), when it is at or above that year's nisab, and\nnothing when it is below or the holder has a valid exemption\ndeclaration (Form CZ-50).\n\nA balance exactly equal to the nisab is deducted, as the notifications\nsay (\"Rs. 503,529/- or above\" in 2026). The Ordinance's First Schedule\nsays no deduction where the balance \"does not exceed\" the nisab, which\nwould not deduct it; the library follows the notifications, which banks\napply.\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```csharp\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 });\n// ZakatYear = 1447, Nisab = 503529, Balance = 600000, Deductible = true,\n// Reason = null, Rate = 2.5, Zakat = 15000, Source = { … }\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 }, exempt: true)?.Zakat; // 0\n```",
               "params": [
                 {
                   "name": "balance",
@@ -6859,7 +6931,7 @@
                   "name": "exempt",
                   "type": "bool",
                   "default": "false",
-                  "doc": "`true` if the holder filed the exemption declaration (Form CZ-50)."
+                  "doc": "`true` if the holder has a valid exemption declaration (Form CZ-50) with the bank: filed at least 30 days before the valuation date, sworn before a magistrate, oath commissioner, notary public or other person authorised to administer oaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980, s. 1(3), proviso (a)). The library does not check the declaration."
                 }
               ],
               "returns": {

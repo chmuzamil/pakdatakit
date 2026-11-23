@@ -15,7 +15,8 @@ use PakDataKit\Internal\Unicode;
  * 2027: 231AB cash withdrawal, 236C sale and 236K purchase of immovable
  * property, 151 profit on debt, 150 dividends, 153 goods, services and
  * contracts, 154B social media income (from 2027) and 149 salary. Amounts
- * are computed exactly in whole paisa.
+ * are computed exactly from whole paisa, and the tax is rounded once to the
+ * nearest rupee (section 219).
  */
 final class Withholding
 {
@@ -94,8 +95,28 @@ final class Withholding
      * The rate for a person not on the list follows each case's own rule in
      * the Tenth Schedule: usually double, but a fixed rate (236C, and 151 in
      * 2025), its own value bands (236K), or none (149; 231AB applies only to
-     * them). The rate applies to the whole amount. Where FBR's card and the
-     * Ordinance differ, the Ordinance is used and `statuteOverride` says so.
+     * them). The rate applies to the whole amount (236C and 236K value bands
+     * are not marginal), and the tax is rounded to the nearest rupee:
+     * section 219 disregards fractions under 50 paisa and counts 50 paisa or
+     * more as a rupee. For 149 the salaried rate table is applied exactly
+     * and rounded once, and `rate` is the effective rate. Where FBR's card
+     * and the Ordinance differ, the Ordinance is used and `statuteOverride`
+     * says so.
+     *
+     * - 231AB: pass the day's total of all cash withdrawals; nothing is
+     *   collected up to Rs 50,000.
+     * - 150: for mutual fund dividends received by a company, the debt part
+     *   is `mutual-fund-debt-part-company` (29%).
+     * - 151 sukuk held by an individual or AOP: the case must fit the return
+     *   on investment (`$returnOnInvestment`, by default `$amount`): more
+     *   than Rs 1 million is `sukuk-individual-above-1m`, less than Rs 1
+     *   million `sukuk-individual-below-1m`. The law gives no rate for
+     *   exactly Rs 1 million, so that, or a case that does not fit, gives
+     *   null.
+     * - 154B: the rate is the same for residents and non-residents; with
+     *   `$resident`, `taxNature` says whether the tax is a minimum tax
+     *   (resident) or a final tax (non-resident without a permanent
+     *   establishment in Pakistan).
      *
      * This is an estimate from the rate card, not tax advice: exemptions,
      * reduced-rate certificates, adjustable or final status and the many
@@ -103,9 +124,9 @@ final class Withholding
      *
      * ```php
      * Withholding::calculate('236K', 60_000_000, atl: false, taxYear: 2027);
-     * // WithholdingTax(rate: 14.5, tax: 8700000.0, nonAtlRule: 'slabs', …)
-     * Withholding::calculate('231AB', 80_000, atl: false, taxYear: 2027)?->tax; // 640.0
-     * Withholding::calculate('151', 10_000, atl: true, subType: 'bank-deposit', taxYear: 2027)?->tax; // 2000.0
+     * // WithholdingTax(rate: 14.5, tax: 8700000, nonAtlRule: 'slabs', …)
+     * Withholding::calculate('231AB', 80_000, atl: false, taxYear: 2027)?->tax; // 640
+     * Withholding::calculate('151', 10_000, atl: true, subType: 'bank-deposit', taxYear: 2027)?->tax; // 2000
      * ```
      *
      * @param mixed $section Section of the Ordinance: `'231AB'`, `'236C'`,
@@ -126,8 +147,15 @@ final class Withholding
      * @param bool $lateFiler True for a person on the list who filed the
      *   return late. Changes the rate only where the year has a late-filer
      *   rate (236C and 236K in tax years 2025 and 2026). Default false.
+     * @param mixed $returnOnInvestment 151 sukuk, individual or AOP: the
+     *   holder's return on investment in rupees (int|float, at most 2
+     *   decimals), which decides the case; null (the default) uses
+     *   `$amount`. Ignored for other cases.
+     * @param bool|null $resident 154B: whether the recipient is resident,
+     *   which sets `taxNature`; null (the default) leaves it null.
      * @return WithholdingTax|null The rate, tax and references, or null for
-     *   an unknown section, case or tax year, an invalid amount, no tax year
+     *   an unknown section, case or tax year, an invalid amount or return on
+     *   investment, a sukuk case that does not fit the return, no tax year
      *   or date, or an `$atl` that is not a bool. Never throws.
      */
     public static function calculate(
@@ -138,6 +166,8 @@ final class Withholding
         mixed $taxYear = null,
         mixed $date = null,
         bool $lateFiler = false,
+        mixed $returnOnInvestment = null,
+        ?bool $resident = null,
     ): ?WithholdingTax {
         if (!is_bool($atl) || !is_string($section)) {
             return null;
@@ -178,16 +208,41 @@ final class Withholding
             return null;
         }
 
+        // 151 sukuk (individual or AOP): the case must fit the return; the
+        // law says "more than" and "less than" Rs 1 million, so exactly Rs 1
+        // million fits neither.
+        if (isset($row['returnBand'])) {
+            $return = $returnOnInvestment === null ? $paisa : Money::toUnits($returnOnInvestment, 2);
+            if ($return === null) {
+                return null;
+            }
+            $over = $row['returnBand']['over'] ?? null;
+            $under = $row['returnBand']['under'] ?? null;
+            if (($over !== null && !($return > $over * 100)) || ($under !== null && !($return < $under * 100))) {
+                return null;
+            }
+        }
+
         $lateFiler = $atl && $lateFiler;
         $slab = null;
         $threshold = null;
         if (isset($row['atl']['salarySlabs'])) {
-            $salary = IncomeTax::calculateSalary(Money::fromPaisa($paisa), ['taxYear' => $year]);
-            if ($salary === null) {
+            // The salaried rate table, computed exactly and rounded once.
+            $table = IncomeTax::getSalarySlabs($year);
+            if ($table === null) {
                 return null;
             }
-            $rate = $salary->effectiveRate;
-            $taxPaisa = (int) round($salary->tax * 100);
+            $band = $table->slabs[0];
+            foreach ($table->slabs as $candidate) {
+                if ($paisa > $candidate->over * 100) {
+                    $band = $candidate;
+                }
+            }
+            $above = $paisa > $band->over * 100 ? $paisa - $band->over * 100 : 0;
+            // `above` is at most 10^14 paisa and the rate at most 35% (3500
+            // basis points), so the product stays below 3.5 × 10^17.
+            $taxRupees = $band->fixed + Money::divideHalfUp($above * self::basisPoints($band->rate), 1_000_000);
+            $rate = $paisa === 0 ? 0 : Money::divideHalfUp($taxRupees * 1_000_000, $paisa) / 100;
         } else {
             if (!$atl) {
                 $spec = $row['nonAtl'];
@@ -202,7 +257,8 @@ final class Withholding
             } else {
                 $rate = is_int($spec['rate'] ?? null) || is_float($spec['rate'] ?? null) ? $spec['rate'] : 0;
             }
-            $taxPaisa = Money::divideHalfUp($paisa * (int) round($rate * 100), 10_000);
+            // Rupees from paisa × basis points: divided by 100 × 10,000.
+            $taxRupees = Money::divideHalfUp($paisa * self::basisPoints($rate), 1_000_000);
             if (isset($row['threshold'])) {
                 $within = $paisa <= $row['threshold']['amount'] * 100;
                 $threshold = new WithholdingThresholdCheck(
@@ -211,7 +267,7 @@ final class Withholding
                     withinThreshold: $within,
                 );
                 if ($within) {
-                    $taxPaisa = 0;
+                    $taxRupees = 0;
                 }
             }
         }
@@ -224,15 +280,24 @@ final class Withholding
             atl: $atl,
             lateFiler: $lateFiler,
             rate: $rate,
-            tax: Money::fromPaisa($taxPaisa),
+            tax: $taxRupees,
             nonAtlRule: $row['nonAtl']['rule'],
             slab: $slab,
             threshold: $threshold,
             cardRef: $row['cardRef'],
             lawRef: $row['lawRef'],
             statuteOverride: $row['statuteOverride'] ?? null,
+            taxNature: isset($row['taxNature']) && $resident !== null
+                ? ($resident ? $row['taxNature']['resident'] : $row['taxNature']['nonResident'])
+                : null,
             source: self::source($row),
         );
+    }
+
+    /** Percent as hundredths (basis points), exact for rates with up to 2 decimals. */
+    private static function basisPoints(int|float $rate): int
+    {
+        return (int) round($rate * 100);
     }
 
     /** An integer (an int, or a float with no fraction, as Number.isInteger), or null. */

@@ -4477,9 +4477,9 @@
             },
             {
               "name": "tax",
-              "type": "float",
+              "type": "int",
               "default": null,
-              "doc": "Tax to withhold or collect, rounded half up to the paisa."
+              "doc": "Tax to withhold or collect, in whole rupees: section 219 of the Ordinance disregards fractions under 50 paisa and counts 50 paisa or more as a rupee."
             },
             {
               "name": "non_atl_rule",
@@ -4518,6 +4518,12 @@
               "doc": "Where the statute differs from the card and the statute is used, why."
             },
             {
+              "name": "tax_nature",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "154B with `resident` given: `\"minimum\"` for a resident, `\"final\"` for a non-resident without a permanent establishment in Pakistan; otherwise `None`."
+            },
+            {
               "name": "source",
               "type": "DataSource",
               "default": null,
@@ -4552,8 +4558,8 @@
         {
           "kind": "function",
           "name": "calculate_withholding",
-          "signature": "def calculate_withholding(\n    input: Any = None,\n    *,\n    section: Any = None,\n    sub_type: Any = None,\n    amount: Any = None,\n    atl: Any = None,\n    late_filer: Any = False,\n    tax_year: Any = None,\n    date: Any = None,\n) -> Optional[Withholding]",
-          "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary (the\nsalaried rate table, as {@link calculate_salary_tax}).\n\n`section` is the section (`\"231AB\"`, `\"236C\"`, `\"236K\"`,\n`\"151\"`, `\"150\"`, `\"153\"`, `\"154B\"` or `\"149\"`, in any case);\n`sub_type` the case, e.g. `\"bank-deposit\"` (151) or\n`\"goods-company\"` (153), optional for sections with one case (see\n{@link get_withholding_rates}). `amount` is the payment (for 236C and\n236K the value; for 149 the year's taxable salary) in rupees. `atl` is\n`True` if the person is on the list and is required. `late_filer=True`\nis for a person on the list who filed late; it changes the rate only\nwhere the year has a late-filer rate (236C and 236K in 2025 and 2026).\n`tax_year` (e.g. `2027`) takes precedence over `date`. All of them\nmay also be passed as one `dict` with the npm package's camelCase keys.\n\nThe rate for a person not on the list follows each case's own rule in the\nTenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),\nits own value bands (236K), or none (149; 231AB applies only to them).\nThe rate applies to the whole amount. Where FBR's card and the Ordinance\ndiffer, the Ordinance is used and `statute_override` says so.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many cases\nnot listed here are not applied. Returns the rate, tax and references\n({@link Withholding}), or `None` for an unknown section, case or tax\nyear, an invalid amount, or a missing `atl`. Never raises.\n\n```python\n>>> calculate_withholding(section=\"236K\", amount=60_000_000, atl=False, tax_year=2027).rate\n14.5\n>>> calculate_withholding(section=\"231AB\", amount=80_000, atl=False, tax_year=2027).tax\n640.0\n>>> calculate_withholding(\n...     section=\"151\", sub_type=\"bank-deposit\", amount=10_000, atl=True, tax_year=2027\n... ).tax\n2000.0\n```",
+          "signature": "def calculate_withholding(\n    input: Any = None,\n    *,\n    section: Any = None,\n    sub_type: Any = None,\n    amount: Any = None,\n    atl: Any = None,\n    late_filer: Any = False,\n    return_on_investment: Any = None,\n    resident: Any = None,\n    tax_year: Any = None,\n    date: Any = None,\n) -> Optional[Withholding]",
+          "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary (the\nsalaried rate table, as {@link calculate_salary_tax}).\n\n`section` is the section (`\"231AB\"`, `\"236C\"`, `\"236K\"`,\n`\"151\"`, `\"150\"`, `\"153\"`, `\"154B\"` or `\"149\"`, in any case);\n`sub_type` the case, e.g. `\"bank-deposit\"` (151) or\n`\"goods-company\"` (153), optional for sections with one case (see\n{@link get_withholding_rates}). `amount` is the payment (for 236C and\n236K the value; for 149 the year's taxable salary) in rupees. `atl` is\n`True` if the person is on the list and is required. `late_filer=True`\nis for a person on the list who filed late; it changes the rate only\nwhere the year has a late-filer rate (236C and 236K in 2025 and 2026).\n`return_on_investment` is for 151 sukuk held by an individual or AOP:\nthe holder's return on investment, which decides the case (more than Rs 1\nmillion: `sukuk-individual-above-1m`; less than Rs 1 million:\n`sukuk-individual-below-1m`); it defaults to `amount`. The law gives\nno rate for exactly Rs 1 million, so that, or a case that does not fit\nthe return, gives `None`. `resident` is for 154B: the rate is the\nsame, but it decides whether the tax is a minimum tax (resident) or a\nfinal tax (non-resident without a permanent establishment in Pakistan),\ngiven in `tax_nature`.\n`tax_year` (e.g. `2027`) takes precedence over `date`. All of them\nmay also be passed as one `dict` with the npm package's camelCase keys.\n\nThe rate for a person not on the list follows each case's own rule in the\nTenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),\nits own value bands (236K), or none (149; 231AB applies only to them).\nThe rate applies to the whole amount (236C and 236K value bands are not\nmarginal), and the tax is rounded to the nearest rupee (section 219; for\n149, the salaried rate table is computed exactly and rounded once).\nWhere FBR's card and the Ordinance differ, the Ordinance is used and\n`statute_override` says so. For 231AB, pass the day's total of all cash\nwithdrawals: nothing is collected up to Rs 50,000. For 150 mutual fund\ndividends received by a company, the debt part is\n`mutual-fund-debt-part-company` (29%).\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many cases\nnot listed here are not applied. Returns the rate, tax and references\n({@link Withholding}), or `None` for an unknown section, case or tax\nyear, an invalid amount, or a missing `atl`. Never raises.\n\n```python\n>>> calculate_withholding(section=\"236K\", amount=60_000_000, atl=False, tax_year=2027).rate\n14.5\n>>> calculate_withholding(section=\"231AB\", amount=80_000, atl=False, tax_year=2027).tax\n640\n>>> calculate_withholding(\n...     section=\"151\", sub_type=\"bank-deposit\", amount=10_000, atl=True, tax_year=2027\n... ).tax\n2000\n```",
           "params": [
             {
               "name": "input",
@@ -4589,6 +4595,18 @@
               "name": "late_filer",
               "type": "Any",
               "default": "False",
+              "keywordOnly": true
+            },
+            {
+              "name": "return_on_investment",
+              "type": "Any",
+              "default": "None",
+              "keywordOnly": true
+            },
+            {
+              "name": "resident",
+              "type": "Any",
+              "default": "None",
               "keywordOnly": true
             },
             {
@@ -4707,6 +4725,27 @@
         },
         {
           "kind": "class",
+          "name": "ZakatValuationDateSource",
+          "signature": "@dataclass(frozen=True)\nclass ZakatValuationDateSource",
+          "doc": "The source that confirms the Gregorian date of a Zakat year's 1\nRamazan (`ZakatNisab.valuation_date`).",
+          "fields": [
+            {
+              "name": "reference",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "url",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "ZakatNisab",
           "signature": "@dataclass(frozen=True)\nclass ZakatNisab",
           "doc": "One Zakat year's nisab for deduction at source, as notified. Returned\nby {@link get_zakat_nisab}.",
@@ -4740,6 +4779,18 @@
               "type": "Tuple[str, str]",
               "default": null,
               "doc": "The two Gregorian dates the notification says 1 Ramazan is likely to fall on (`YYYY-MM-DD`). The day itself depends on the moon sighting."
+            },
+            {
+              "name": "valuation_date",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a source states it; otherwise `None`."
+            },
+            {
+              "name": "valuation_date_source",
+              "type": "Optional[ZakatValuationDateSource]",
+              "default": null,
+              "doc": "The source of `valuation_date`, or `None` with it."
             },
             {
               "name": "bank_holiday_date",
@@ -4812,9 +4863,9 @@
             },
             {
               "name": "zakat",
-              "type": "float",
+              "type": "int",
               "default": null,
-              "doc": "The amount deducted, rounded half up to the paisa; `0` if not deductible."
+              "doc": "The amount deducted, in whole rupees (First Schedule, Note 2: less than a rupee is not charged, 50 paisa or more counts as a rupee); `0` if not deductible."
             },
             {
               "name": "source",
@@ -4829,7 +4880,7 @@
           "kind": "function",
           "name": "get_zakat_nisab",
           "signature": "def get_zakat_nisab(\n    query: Any = None,\n    *,\n    zakat_year: Any = None,\n    date: Any = None,\n) -> Optional[ZakatNisab]",
-          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive the year with `zakat_year` (`1447`, `\"1447\"` or the\nnotification's `\"1446-47\"`) or a `date` (`YYYY-MM-DD` or a\n`datetime.date`); `zakat_year` takes precedence. They may also be\npassed as a `dict`, `{\"zakatYear\": 1447}` or `{\"date\": ...}`, as in\nthe npm package. A Zakat year starts on 1 Ramazan; for a date on the\nfirst of the two days the notification gives for it, the year is unknown\nand the result is `None`.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources ({@link ZakatNisab}), or\n`None` for a year that is not covered, an invalid query or an\nambiguous date. Never raises.\n\n```python\n>>> get_zakat_nisab(zakat_year=1447).nisab\n503529\n>>> get_zakat_nisab(zakat_year=\"1445-46\").zakat_year\n1446\n>>> get_zakat_nisab(date=\"2025-06-01\").nisab\n179689\n```",
+          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive the year with `zakat_year` (`1447`, `\"1447\"` or the\nnotification's `\"1446-47\"`) or a `date` (`YYYY-MM-DD` or a\n`datetime.date`); `zakat_year` takes precedence. They may also be\npassed as a `dict`, `{\"zakatYear\": 1447}` or `{\"date\": ...}`, as in\nthe npm package. A Zakat year starts on 1 Ramazan. Where its Gregorian\ndate is confirmed (`valuation_date`, 2026 so far), that date is used.\nOtherwise only the two likely days the notification gives are known, and\nfor a date on the first of them the year is unknown and the result is\n`None`.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources ({@link ZakatNisab}), or\n`None` for a year that is not covered, an invalid query or an\nambiguous date. Never raises.\n\n```python\n>>> get_zakat_nisab(zakat_year=1447).nisab\n503529\n>>> get_zakat_nisab(zakat_year=\"1445-46\").zakat_year\n1446\n>>> get_zakat_nisab(date=\"2025-06-01\").nisab\n179689\n```",
           "params": [
             {
               "name": "query",
@@ -4868,7 +4919,7 @@
           "kind": "function",
           "name": "zakat_deduction",
           "signature": "def zakat_deduction(\n    input: Any = None,\n    *,\n    balance: Any = None,\n    zakat_year: Any = None,\n    date: Any = None,\n    exempt: Any = False,\n) -> Optional[ZakatDeduction]",
-          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance when it is at or above that year's\nnisab, and nothing when it is below or the holder filed the exemption\ndeclaration (Form CZ-50, `exempt=True`).\n\n`balance` is the account balance in rupees at the start of the\nvaluation date (0 to 1 trillion, at most 2 decimals count). The year is\ngiven by `zakat_year` or `date`, as in {@link get_zakat_nisab}. All of\nthem may also be passed as one `dict` with the npm package's keys:\n`{\"balance\": 600000, \"zakatYear\": 1447, \"exempt\": True}`.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source ({@link ZakatDeduction}), or\n`None` for an invalid balance, a year that is not covered, or an\nambiguous date. Never raises.\n\n```python\n>>> zakat_deduction(balance=600000, zakat_year=1447).zakat\n15000.0\n>>> zakat_deduction(balance=600000, zakat_year=1447, exempt=True).reason\n'exempt'\n```",
+          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee (First\nSchedule, Note 2), when it is at or above that year's nisab, and nothing\nwhen it is below or the holder has a valid exemption declaration (Form\nCZ-50, `exempt=True`).\n\n`exempt=True` means the declaration was filed with the bank at least 30\ndays before the valuation date, sworn before a magistrate, oath\ncommissioner, notary public or other person authorised to administer\noaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980,\ns. 1(3), proviso (a)). The library does not check the declaration.\n\nA balance exactly equal to the nisab is deducted, as the notifications\nsay (\"Rs. 503,529/- or above\" in 2026). The Ordinance's First Schedule\nsays no deduction where the balance \"does not exceed\" the nisab, which\nwould not deduct it; the library follows the notifications, which banks\napply.\n\n`balance` is the account balance in rupees at the start of the\nvaluation date (0 to 1 trillion, at most 2 decimals count). The year is\ngiven by `zakat_year` or `date`, as in {@link get_zakat_nisab}. All of\nthem may also be passed as one `dict` with the npm package's keys:\n`{\"balance\": 600000, \"zakatYear\": 1447, \"exempt\": True}`.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source ({@link ZakatDeduction}), or\n`None` for an invalid balance, a year that is not covered, or an\nambiguous date. Never raises.\n\n```python\n>>> zakat_deduction(balance=600000, zakat_year=1447).zakat\n15000\n>>> zakat_deduction(balance=600000, zakat_year=1447, exempt=True).reason\n'exempt'\n```",
           "params": [
             {
               "name": "input",

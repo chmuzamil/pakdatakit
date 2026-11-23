@@ -78,6 +78,24 @@ public sealed record WithholdingInput
     /// </summary>
     public bool LateFiler { get; init; }
 
+    /// <summary>
+    /// 151 sukuk, individual or AOP: the holder's return on investment in
+    /// rupees, which decides the case (more than Rs 1 million:
+    /// <c>sukuk-individual-above-1m</c>; less than Rs 1 million:
+    /// <c>sukuk-individual-below-1m</c>). Defaults to <see cref="Amount"/>.
+    /// The law gives no rate for exactly Rs 1 million, so that, or a case that
+    /// does not fit the return, gives <c>null</c>.
+    /// </summary>
+    public double? ReturnOnInvestment { get; init; }
+
+    /// <summary>
+    /// 154B: whether the recipient is resident. The rate is the same; it
+    /// decides whether the tax is a minimum tax (resident) or a final tax
+    /// (non-resident without a permanent establishment in Pakistan), given in
+    /// <see cref="WithholdingTax.TaxNature"/>.
+    /// </summary>
+    public bool? Resident { get; init; }
+
     /// <summary>Tax year (July to June), e.g. <c>2027</c>. Takes precedence over <see cref="Date"/> and <see cref="OnDate"/>.</summary>
     public int? TaxYear { get; init; }
 
@@ -96,13 +114,21 @@ public sealed record WithholdingInput
 /// <param name="Atl">Whether the person is on the Active Taxpayers List.</param>
 /// <param name="LateFiler">Whether a late filer's rate was asked for (only for a person on the list).</param>
 /// <param name="Rate">Percent applied to the whole amount (for 149, the effective rate).</param>
-/// <param name="Tax">Tax to withhold or collect, rounded half up to the paisa.</param>
+/// <param name="Tax">
+/// Tax to withhold or collect, in whole rupees: section 219 of the Ordinance
+/// disregards fractions under 50 paisa and counts 50 paisa or more as a rupee.
+/// </param>
 /// <param name="NonAtlRule">How the rate for a person not on the list is set for this case.</param>
 /// <param name="Slab">The value band used (236C, 236K), or <c>null</c>.</param>
 /// <param name="Threshold">The amount at or below which nothing is collected, and whether this amount was within it; <c>null</c> where there is none.</param>
 /// <param name="CardRef">Where the case is on FBR's rate card.</param>
 /// <param name="LawRef">The law, as printed on the card.</param>
 /// <param name="StatuteOverride">Where the statute differs from the card and the statute is used, why; otherwise <c>null</c>.</param>
+/// <param name="TaxNature">
+/// 154B with <see cref="WithholdingInput.Resident"/> given: <c>minimum</c> for
+/// a resident, <c>final</c> for a non-resident without a permanent
+/// establishment in Pakistan; otherwise <c>null</c>.
+/// </param>
 /// <param name="Source">The rate card and law (dataset <c>withholding-rates</c>).</param>
 public sealed record WithholdingTax(
     string Section,
@@ -119,6 +145,7 @@ public sealed record WithholdingTax(
     string CardRef,
     string LawRef,
     string? StatuteOverride,
+    string? TaxNature,
     DataSource Source);
 
 /// <summary>One case of a section in a tax year, as in FBR's rate card. See <see cref="Withholding.GetRates"/>.</summary>
@@ -213,9 +240,20 @@ public static class Withholding
     /// The rate for a person not on the list follows each case's own rule in
     /// the Tenth Schedule: usually double, but a fixed rate (236C, and 151 in
     /// 2025), its own value bands (236K), or none (149; 231AB applies only to
-    /// them). The rate applies to the whole amount. Where FBR's card and the
-    /// Ordinance differ, the Ordinance is used and
-    /// <see cref="WithholdingTax.StatuteOverride"/> says so.
+    /// them). The rate applies to the whole amount (236C and 236K value bands
+    /// are not marginal), and the tax is rounded to the nearest rupee (section
+    /// 219). Where FBR's card and the Ordinance differ, the Ordinance is used
+    /// and <see cref="WithholdingTax.StatuteOverride"/> says so.
+    /// </para>
+    /// <para>
+    /// For 231AB, pass the day's total of all cash withdrawals: nothing is
+    /// collected up to Rs 50,000. For 150 mutual fund dividends received by a
+    /// company, the debt part is <c>mutual-fund-debt-part-company</c> (29%).
+    /// For 151 sukuk held by an individual or AOP, the case must fit the
+    /// return on investment (<see cref="WithholdingInput.ReturnOnInvestment"/>),
+    /// and exactly Rs 1 million gives <c>null</c>. For 154B, give
+    /// <see cref="WithholdingInput.Resident"/> to get
+    /// <see cref="WithholdingTax.TaxNature"/>.
     /// </para>
     /// <para>
     /// This is an estimate from the rate card, not tax advice: exemptions,
@@ -254,19 +292,39 @@ public static class Withholding
             : cases.FirstOrDefault(r => r.SubType == input.SubType);
         if (row is null) return null;
 
+        // 151 sukuk (individual or AOP): the case must fit the return; the law
+        // says "more than" and "less than" Rs 1 million, so exactly Rs 1
+        // million fits neither.
+        if (row.ReturnOver is not null || row.ReturnUnder is not null)
+        {
+            var ret = input.ReturnOnInvestment is { } given2 ? Money.ToUnits(given2, 2) : paisa;
+            if (ret is not { } r) return null;
+            if (row.ReturnOver is { } over && !(r > over * 100)) return null;
+            if (row.ReturnUnder is { } under && !(r < under * 100)) return null;
+        }
+
         var atl = input.Atl;
         var lateFiler = atl && input.LateFiler;
         double rate;
-        long taxPaisa;
+        long taxRupees; // whole rupees (section 219)
         WithholdingSlab? slab = null;
         WithholdingThresholdCheck? threshold = null;
 
         if (row.Atl.SalarySlabs)
         {
-            var salary = IncomeTax.CalculateSalaryTax(Money.FromPaisa(paisa), new SalaryTaxOptions { TaxYear = year });
-            if (salary is null) return null;
-            rate = salary.EffectiveRate;
-            taxPaisa = (long)Js.Round(salary.Tax * 100);
+            // The salaried rate table, computed exactly and rounded once.
+            if (IncomeTax.GetSalaryTaxSlabs(year) is not { } table) return null;
+            var band = table.Slabs[0];
+            foreach (var candidate in table.Slabs)
+            {
+                if (paisa > candidate.Over * 100) band = candidate;
+            }
+            var above = paisa > band.Over * 100 ? paisa - band.Over * 100 : 0;
+            taxRupees = band.Fixed
+                + Money.DivideHalfUp(new BigInteger(above) * (long)Js.Round(band.Rate * 100), 1_000_000);
+            rate = paisa == 0
+                ? 0
+                : (double)Money.DivideHalfUp(new BigInteger(taxRupees) * 1_000_000, paisa) / 100;
         }
         else
         {
@@ -280,12 +338,12 @@ public static class Withholding
             {
                 rate = spec.Rate ?? 0;
             }
-            taxPaisa = Money.DivideHalfUp(new BigInteger(paisa) * (long)Js.Round(rate * 100), 10_000);
+            taxRupees = Money.DivideHalfUp(new BigInteger(paisa) * (long)Js.Round(rate * 100), 1_000_000);
             if (row.Threshold is { } t)
             {
                 var within = paisa <= t.Amount * 100;
                 threshold = new WithholdingThresholdCheck(t.Amount, t.Per, within);
-                if (within) taxPaisa = 0;
+                if (within) taxRupees = 0;
             }
         }
 
@@ -297,13 +355,14 @@ public static class Withholding
             atl,
             lateFiler,
             rate,
-            Money.FromPaisa(taxPaisa),
+            taxRupees,
             row.NonAtlRule,
             slab,
             threshold,
             row.CardRef,
             row.LawRef,
             row.StatuteOverride,
+            input.Resident is { } resident ? (resident ? row.ResidentNature : row.NonResidentNature) : null,
             Source(row));
     }
 

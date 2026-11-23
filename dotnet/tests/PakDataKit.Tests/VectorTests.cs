@@ -499,6 +499,9 @@ public sealed class VectorTests(ITestOutputHelper output)
             Amount = Number(w.GetValueOrDefault("amount")),
             Atl = w.GetValueOrDefault("atl") as bool? ?? throw new Unrepresentable("atl is not a bool"),
             LateFiler = w.GetValueOrDefault("lateFiler") is true,
+            ReturnOnInvestment = w.TryGetValue("returnOnInvestment", out var ret) ? Number(ret) : null,
+            // TypeScript reads a resident that is not a boolean as not given.
+            Resident = w.GetValueOrDefault("resident") as bool?,
             TaxYear = w.GetValueOrDefault("taxYear") is { } year ? Integer(year) : null,
             Date = date is DateTime ? null : OptStr(date),
             OnDate = date is DateTime dt ? DateOnly.FromDateTime(dt) : null,

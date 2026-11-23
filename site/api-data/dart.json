@@ -7558,6 +7558,44 @@
           ]
         },
         {
+          "kind": "enum",
+          "name": "WithholdingTaxNature",
+          "signature": "enum WithholdingTaxNature",
+          "doc": "Whether a 154B tax is a minimum or a final tax. See\n{@link Withholding.taxNature}.",
+          "fields": [
+            {
+              "name": "value",
+              "type": "String",
+              "default": null,
+              "doc": "The value used by the npm package, e.g. `\"final\"`.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "values": [
+            {
+              "name": "minimum",
+              "doc": "A minimum tax: the recipient is resident."
+            },
+            {
+              "name": "finalTax",
+              "doc": "A final tax: the recipient is a non-resident without a permanent\nestablishment in Pakistan."
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "String toJson()",
+              "doc": "Returns {@link value}.",
+              "params": [],
+              "returns": {
+                "type": "String"
+              }
+            }
+          ]
+        },
+        {
           "kind": "class",
           "name": "WithholdingThreshold",
           "signature": "class WithholdingThreshold",
@@ -7695,9 +7733,9 @@
             },
             {
               "name": "tax",
-              "type": "double",
+              "type": "int",
               "default": null,
-              "doc": "Tax to withhold or collect, rounded half up to the paisa.",
+              "doc": "Tax to withhold or collect, in whole rupees: section 219 of the\nOrdinance disregards fractions under 50 paisa and counts 50 paisa or\nmore as a rupee.",
               "static": false,
               "readonly": true
             },
@@ -7750,6 +7788,14 @@
               "readonly": true
             },
             {
+              "name": "taxNature",
+              "type": "WithholdingTaxNature?",
+              "default": null,
+              "doc": "154B with `resident` given: {@link WithholdingTaxNature.minimum} for a\nresident, {@link WithholdingTaxNature.finalTax} for a non-resident without a\npermanent establishment in Pakistan; otherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
               "name": "source",
               "type": "DataSource",
               "default": null,
@@ -7762,7 +7808,7 @@
             {
               "kind": "constructor",
               "name": "Withholding",
-              "signature": "const Withholding({\n  required String section,\n  required String subType,\n  required String description,\n  required int taxYear,\n  required bool atl,\n  required bool lateFiler,\n  required double rate,\n  required double tax,\n  required WithholdingNonAtlRule nonAtlRule,\n  required WithholdingSlab? slab,\n  required WithholdingThreshold? threshold,\n  required String cardRef,\n  required String lawRef,\n  required String? statuteOverride,\n  required DataSource source,\n})",
+              "signature": "const Withholding({\n  required String section,\n  required String subType,\n  required String description,\n  required int taxYear,\n  required bool atl,\n  required bool lateFiler,\n  required double rate,\n  required int tax,\n  required WithholdingNonAtlRule nonAtlRule,\n  required WithholdingSlab? slab,\n  required WithholdingThreshold? threshold,\n  required String cardRef,\n  required String lawRef,\n  required String? statuteOverride,\n  WithholdingTaxNature? taxNature,\n  required DataSource source,\n})",
               "doc": "Creates a withholding value.",
               "params": [
                 {
@@ -7816,7 +7862,7 @@
                 },
                 {
                   "name": "tax",
-                  "type": "double",
+                  "type": "int",
                   "default": null,
                   "named": true,
                   "required": true
@@ -7862,6 +7908,13 @@
                   "default": null,
                   "named": true,
                   "required": true
+                },
+                {
+                  "name": "taxNature",
+                  "type": "WithholdingTaxNature?",
+                  "default": null,
+                  "named": true,
+                  "required": false
                 },
                 {
                   "name": "source",
@@ -8182,8 +8235,8 @@
         {
           "kind": "function",
           "name": "calculateWithholding",
-          "signature": "Withholding? calculateWithholding({\n  required String section,\n  String? subType,\n  required num amount,\n  required bool atl,\n  bool lateFiler = false,\n  int? taxYear,\n  Object? date,\n})",
-          "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary (the\nsalaried rate table, as {@link calculateSalaryTax}).\n\n- [section]: `'231AB'`, `'236C'`, `'236K'`, `'151'`, `'150'`, `'153'`,\n  `'154B'` or `'149'` (in any case, surrounding spaces ignored).\n- [subType]: which case of the section, e.g. `'bank-deposit'` (151) or\n  `'goods-company'` (153); see {@link getWithholdingRates}. May be left out for\n  sections with one case.\n- [amount]: the payment (for 236C/236K, the value; for 149, the year's\n  taxable salary) in rupees, 0 to 1 trillion (at most 2 decimals count).\n- [atl]: `true` if the person is on FBR's Active Taxpayers List.\n- [lateFiler]: `true` for a person on the list who filed the return\n  late. Changes the rate only where the year has a late-filer rate (236C\n  and 236K in tax years 2025 and 2026).\n- {@link taxYear} (July to June, e.g. `2027`), or {@link date}, a `YYYY-MM-DD`\n  {@link String} or a {@link DateTime} in the tax year. {@link taxYear} takes precedence;\n  one of them is required.\n\nThe npm `WithholdingInput` object is these named parameters.\n\nThe rate for a person not on the list follows each case's own rule in the\nTenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),\nits own value bands (236K), or none (149; 231AB applies only to them).\nThe rate applies to the whole amount. Where FBR's card and the Ordinance\ndiffer, the Ordinance is used and {@link Withholding.statuteOverride} says so.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many cases\nnot listed here are not applied.\n\nReturns the rate, tax and references, or `null` for an unknown section,\ncase or tax year, an invalid amount or date, or neither {@link taxYear} nor\n{@link date}. Never throws.\n\n```dart\ncalculateWithholding(\n    section: '236K', amount: 60000000, atl: false, taxYear: 2027);\n// Withholding{..., rate: 14.5, tax: 8700000.0, nonAtlRule: slabs, ...}\ncalculateWithholding(\n    section: '231AB', amount: 80000, atl: false, taxYear: 2027)?.tax; // 640\ncalculateWithholding(\n  section: '151',\n  subType: 'bank-deposit',\n  amount: 10000,\n  atl: true,\n  taxYear: 2027,\n)?.tax; // 2000\n```",
+          "signature": "Withholding? calculateWithholding({\n  required String section,\n  String? subType,\n  required num amount,\n  required bool atl,\n  bool lateFiler = false,\n  int? taxYear,\n  Object? date,\n  num? returnOnInvestment,\n  bool? resident,\n})",
+          "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary (the\nsalaried rate table, as {@link calculateSalaryTax}).\n\n- [section]: `'231AB'`, `'236C'`, `'236K'`, `'151'`, `'150'`, `'153'`,\n  `'154B'` or `'149'` (in any case, surrounding spaces ignored).\n- [subType]: which case of the section, e.g. `'bank-deposit'` (151) or\n  `'goods-company'` (153); see {@link getWithholdingRates}. May be left out for\n  sections with one case.\n- [amount]: the payment (for 236C/236K, the value; for 149, the year's\n  taxable salary) in rupees, 0 to 1 trillion (at most 2 decimals count).\n- [atl]: `true` if the person is on FBR's Active Taxpayers List.\n- [lateFiler]: `true` for a person on the list who filed the return\n  late. Changes the rate only where the year has a late-filer rate (236C\n  and 236K in tax years 2025 and 2026).\n- {@link taxYear} (July to June, e.g. `2027`), or {@link date}, a `YYYY-MM-DD`\n  {@link String} or a {@link DateTime} in the tax year. {@link taxYear} takes precedence;\n  one of them is required.\n- [returnOnInvestment]: 151 sukuk, individual or AOP: the holder's return\n  on investment in rupees, which decides the case (more than Rs 1\n  million: `sukuk-individual-above-1m`; less than Rs 1 million:\n  `sukuk-individual-below-1m`). Defaults to {@link amount}. The law gives no\n  rate for exactly Rs 1 million, so that, an invalid value, or a case\n  that does not fit the return gives `null`.\n- [resident]: 154B: whether the recipient is resident. The rate is the\n  same; it decides [Withholding.taxNature]: a minimum tax (resident) or\n  a final tax (non-resident without a permanent establishment in\n  Pakistan).\n\nThe npm `WithholdingInput` object is these named parameters.\n\nThe rate for a person not on the list follows each case's own rule in the\nTenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),\nits own value bands (236K), or none (149; 231AB applies only to them).\nThe rate applies to the whole amount (236C and 236K value bands are not\nmarginal), and the tax is rounded to the nearest rupee (section 219).\nWhere FBR's card and the Ordinance differ, the Ordinance is used and\n{@link Withholding.statuteOverride} says so. For 231AB, pass the day's total of\nall cash withdrawals: nothing is collected up to Rs 50,000. For 150\nmutual fund dividends received by a company, the debt part is\n`mutual-fund-debt-part-company` (29%). For 151 sukuk held by an\nindividual or AOP, the case must fit the return on investment, and\nexactly Rs 1 million gives `null`.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many cases\nnot listed here are not applied.\n\nReturns the rate, tax and references, or `null` for an unknown section,\ncase or tax year, an invalid amount or date, or neither {@link taxYear} nor\n{@link date}. Never throws.\n\n```dart\ncalculateWithholding(\n    section: '236K', amount: 60000000, atl: false, taxYear: 2027);\n// Withholding{..., rate: 14.5, tax: 8700000, nonAtlRule: slabs, ...}\ncalculateWithholding(\n    section: '231AB', amount: 80000, atl: false, taxYear: 2027)?.tax; // 640\ncalculateWithholding(\n  section: '151',\n  subType: 'bank-deposit',\n  amount: 10000,\n  atl: true,\n  taxYear: 2027,\n)?.tax; // 2000\n```",
           "params": [
             {
               "name": "section",
@@ -8230,6 +8283,20 @@
             {
               "name": "date",
               "type": "Object?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "returnOnInvestment",
+              "type": "num?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "resident",
+              "type": "bool?",
               "default": null,
               "named": true,
               "required": false
@@ -8428,6 +8495,65 @@
         },
         {
           "kind": "class",
+          "name": "ZakatValuationDateSource",
+          "signature": "class ZakatValuationDateSource",
+          "doc": "The source that confirms the Gregorian date of 1 Ramazan. See\n{@link ZakatNisab.valuationDateSource}.",
+          "fields": [
+            {
+              "name": "reference",
+              "type": "String",
+              "default": null,
+              "doc": "What the source says and who published it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "String",
+              "default": null,
+              "doc": "The source.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "ZakatValuationDateSource",
+              "signature": "const ZakatValuationDateSource({required String reference, required String url})",
+              "doc": "Creates a valuation date source value.",
+              "params": [
+                {
+                  "name": "reference",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "url",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
           "name": "ZakatNisab",
           "signature": "class ZakatNisab",
           "doc": "One Zakat year's nisab for deduction at source, as notified. Result of\n{@link getZakatNisab}.",
@@ -8473,6 +8599,22 @@
               "readonly": true
             },
             {
+              "name": "valuationDate",
+              "type": "String?",
+              "default": null,
+              "doc": "The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a source\nstates it; otherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "valuationDateSource",
+              "type": "ZakatValuationDateSource?",
+              "default": null,
+              "doc": "The source of {@link valuationDate}, or `null` when there is none.",
+              "static": false,
+              "readonly": true
+            },
+            {
               "name": "bankHolidayDate",
               "type": "String?",
               "default": null,
@@ -8509,7 +8651,7 @@
             {
               "kind": "constructor",
               "name": "ZakatNisab",
-              "signature": "const ZakatNisab({\n  required int zakatYear,\n  required String label,\n  required int nisab,\n  required String valuationDateHijri,\n  required List<String> expectedValuationDates,\n  required String? bankHolidayDate,\n  required ZakatDocument notification,\n  required ZakatDocument sbpCircular,\n  required DataSource source,\n})",
+              "signature": "const ZakatNisab({\n  required int zakatYear,\n  required String label,\n  required int nisab,\n  required String valuationDateHijri,\n  required List<String> expectedValuationDates,\n  required String? valuationDate,\n  required ZakatValuationDateSource? valuationDateSource,\n  required String? bankHolidayDate,\n  required ZakatDocument notification,\n  required ZakatDocument sbpCircular,\n  required DataSource source,\n})",
               "doc": "Creates a Zakat nisab value.",
               "params": [
                 {
@@ -8543,6 +8685,20 @@
                 {
                   "name": "expectedValuationDates",
                   "type": "List<String>",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "valuationDate",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "valuationDateSource",
+                  "type": "ZakatValuationDateSource?",
                   "default": null,
                   "named": true,
                   "required": true
@@ -8608,7 +8764,7 @@
           "values": [
             {
               "name": "exempt",
-              "doc": "The holder filed the exemption declaration (Form CZ-50)."
+              "doc": "The holder has a valid exemption declaration (Form CZ-50)."
             },
             {
               "name": "belowNisab",
@@ -8684,9 +8840,9 @@
             },
             {
               "name": "zakat",
-              "type": "double",
+              "type": "int",
               "default": null,
-              "doc": "The amount deducted, rounded half up to the paisa; `0` if not\ndeductible.",
+              "doc": "The amount deducted, in whole rupees (First Schedule, Note 2: less than\na rupee is not charged, 50 paisa or more counts as a rupee); `0` if not\ndeductible.",
               "static": false,
               "readonly": true
             },
@@ -8703,7 +8859,7 @@
             {
               "kind": "constructor",
               "name": "ZakatDeduction",
-              "signature": "const ZakatDeduction({\n  required int zakatYear,\n  required int nisab,\n  required double balance,\n  required bool deductible,\n  required ZakatExemptReason? reason,\n  required double rate,\n  required double zakat,\n  required DataSource source,\n})",
+              "signature": "const ZakatDeduction({\n  required int zakatYear,\n  required int nisab,\n  required double balance,\n  required bool deductible,\n  required ZakatExemptReason? reason,\n  required double rate,\n  required int zakat,\n  required DataSource source,\n})",
               "doc": "Creates a Zakat deduction value.",
               "params": [
                 {
@@ -8750,7 +8906,7 @@
                 },
                 {
                   "name": "zakat",
-                  "type": "double",
+                  "type": "int",
                   "default": null,
                   "named": true,
                   "required": true
@@ -8781,7 +8937,7 @@
           "kind": "function",
           "name": "getZakatNisab",
           "signature": "ZakatNisab? getZakatNisab({Object? zakatYear, Object? date})",
-          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive {@link zakatYear}, an {@link int} (`1447`) or a {@link String} (`'1447'`, or the\nnotification's `'1446-47'`), or {@link date}, a `YYYY-MM-DD` {@link String} or a\n{@link DateTime} (its local calendar date); {@link zakatYear} takes precedence. A\nZakat year starts on 1 Ramazan; for a date on the first of the two days\nthe notification gives for it, the year is unknown and the result is\n`null`. The npm `ZakatYearQuery` object is these named parameters.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources, or `null` for a year that is\nnot covered, an invalid query, or an ambiguous date. Never throws.\n\n```dart\ngetZakatNisab(zakatYear: 1447)?.nisab; // 503529\ngetZakatNisab(zakatYear: '1445-46')?.zakatYear; // 1446\ngetZakatNisab(date: '2025-06-01')?.nisab; // 179689\n```",
+          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive {@link zakatYear}, an {@link int} (`1447`) or a {@link String} (`'1447'`, or the\nnotification's `'1446-47'`), or {@link date}, a `YYYY-MM-DD` {@link String} or a\n{@link DateTime} (its local calendar date); {@link zakatYear} takes precedence. A\nZakat year starts on 1 Ramazan. Where its Gregorian date is confirmed\n({@link ZakatNisab.valuationDate}, 2026 so far), that date is used. Otherwise\nonly the two likely days the notification gives are known, and for a\ndate on the first of them the year is unknown and the result is `null`.\nThe npm `ZakatYearQuery` object is these named parameters.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources, or `null` for a year that is\nnot covered, an invalid query, or an ambiguous date. Never throws.\n\n```dart\ngetZakatNisab(zakatYear: 1447)?.nisab; // 503529\ngetZakatNisab(zakatYear: '1445-46')?.zakatYear; // 1446\ngetZakatNisab(date: '2025-06-01')?.nisab; // 179689\n```",
           "params": [
             {
               "name": "zakatYear",
@@ -8816,7 +8972,7 @@
           "kind": "function",
           "name": "zakatDeduction",
           "signature": "ZakatDeduction? zakatDeduction({\n  required num balance,\n  Object? zakatYear,\n  Object? date,\n  bool exempt = false,\n})",
-          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance when it is at or above that year's\nnisab, and nothing when it is below or the holder filed the exemption\ndeclaration (Form CZ-50, {@link exempt}).\n\n{@link balance} is the account balance in rupees at the start of the valuation\ndate, 0 to 1 trillion (at most 2 decimals count). The year is chosen by\n{@link zakatYear} or {@link date}, as in {@link getZakatNisab}. The npm\n`ZakatDeductionInput` object is these named parameters.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source, or `null` for an invalid balance, a\nyear that is not covered, or an ambiguous date. Never throws.\n\n```dart\nzakatDeduction(balance: 600000, zakatYear: 1447);\n// ZakatDeduction{zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000.0, ...}\nzakatDeduction(balance: 600000, zakatYear: 1447, exempt: true)?.zakat; // 0\n```",
+          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee (First\nSchedule, Note 2: less than a rupee is not charged), when it is at or\nabove that year's nisab, and nothing when it is below or the holder has a\nvalid exemption declaration (Form CZ-50, {@link exempt}).\n\nSet {@link exempt} to `true` if the holder has a valid Form CZ-50 with the bank:\nfiled at least 30 days before the valuation date, sworn before a\nmagistrate, oath commissioner, notary public or other person authorised\nto administer oaths, in the presence of two witnesses (Zakat and Ushr\nOrdinance 1980, s. 1(3), proviso (a)). The library does not check the\ndeclaration.\n\nA balance exactly equal to the nisab is deducted, as the notifications\nsay (\"Rs. 503,529/- or above\" in 2026). The Ordinance's First Schedule\nsays no deduction where the balance \"does not exceed\" the nisab, which\nwould not deduct it; the library follows the notifications, which banks\napply.\n\n{@link balance} is the account balance in rupees at the start of the valuation\ndate, 0 to 1 trillion (at most 2 decimals count). The year is chosen by\n{@link zakatYear} or {@link date}, as in {@link getZakatNisab}. The npm\n`ZakatDeductionInput` object is these named parameters.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source, or `null` for an invalid balance, a\nyear that is not covered, or an ambiguous date. Never throws.\n\n```dart\nzakatDeduction(balance: 600000, zakatYear: 1447);\n// ZakatDeduction{zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000, ...}\nzakatDeduction(balance: 600000, zakatYear: 1447, exempt: true)?.zakat; // 0\n```",
           "params": [
             {
               "name": "balance",

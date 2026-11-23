@@ -569,6 +569,8 @@ final class VectorTest extends TestCase
                     taxYear: $q['taxYear'] ?? null,
                     date: $q['date'] ?? null,
                     lateFiler: ($q['lateFiler'] ?? null) === true,
+                    returnOnInvestment: $q['returnOnInvestment'] ?? null,
+                    resident: is_bool($q['resident'] ?? null) ? $q['resident'] : null,
                 );
             },
             'getWithholdingRates' => static fn (array $a, array $k): mixed => count($a) > 1

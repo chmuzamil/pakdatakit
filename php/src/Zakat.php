@@ -34,8 +34,10 @@ final class Zakat
      *
      * Give the year (`1447`, `'1447'`, or the notification's `'1446-47'`) or
      * a date; `$zakatYear` takes precedence. A Zakat year starts on 1
-     * Ramazan; for a date on the first of the two days the notification
-     * gives for it, the year is unknown and the result is null.
+     * Ramazan. Where its Gregorian date is confirmed (`valuationDate`, 2026
+     * so far), that date is used. Otherwise only the two likely days the
+     * notification gives are known, and for a date on the first of them the
+     * year is unknown and the result is null.
      *
      * ```php
      * Zakat::getNisab(zakatYear: 1447)?->nisab; // 503529
@@ -68,9 +70,16 @@ final class Zakat
 
     /**
      * Zakat deducted at source from one account on the valuation date (1
-     * Ramazan): 2.5% of the whole balance when it is at or above that year's
-     * nisab, and nothing when it is below or the holder filed the exemption
+     * Ramazan): 2.5% of the whole balance, rounded to the nearest rupee
+     * (First Schedule, Note 2: less than a rupee is not charged, 50 paisa or
+     * more counts as a rupee), when it is at or above that year's nisab, and
+     * nothing when it is below or the holder has a valid exemption
      * declaration (Form CZ-50). Give the year or a date as for getNisab().
+     *
+     * A balance exactly equal to the nisab is deducted, as the notifications
+     * say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
+     * says no deduction where the balance "does not exceed" the nisab, which
+     * would not deduct it; this follows the notifications, which banks apply.
      *
      * It applies to the accounts the Ordinance subjects to deduction at
      * source: savings, profit-and-loss sharing and similar accounts (asset
@@ -80,16 +89,20 @@ final class Zakat
      * ```php
      * Zakat::deduction(600000, zakatYear: 1447);
      * // ZakatDeduction(zakatYear: 1447, nisab: 503529, balance: 600000.0,
-     * //   deductible: true, reason: null, rate: 2.5, zakat: 15000.0, source: …)
-     * Zakat::deduction(600000, zakatYear: 1447, exempt: true)?->zakat; // 0.0
+     * //   deductible: true, reason: null, rate: 2.5, zakat: 15000, source: …)
+     * Zakat::deduction(600000, zakatYear: 1447, exempt: true)?->zakat; // 0
      * ```
      *
      * @param mixed $balance The account balance in rupees (int|float) at the
      *   start of the valuation date, 0 to one trillion
      * @param mixed $zakatYear As for getNisab()
      * @param mixed $date As for getNisab()
-     * @param bool $exempt True if the holder filed the exemption declaration
-     *   (Form CZ-50). Default false.
+     * @param bool $exempt True if the holder has a valid exemption
+     *   declaration (Form CZ-50) with the bank: filed at least 30 days before
+     *   the valuation date, sworn before a magistrate, oath commissioner,
+     *   notary public or other person authorised to administer oaths, in the
+     *   presence of two witnesses (Zakat and Ushr Ordinance 1980, s. 1(3),
+     *   proviso (a)). The declaration is not checked. Default false.
      * @return ZakatDeduction|null The deduction and its source, or null for
      *   an invalid balance, a year that is not covered, or an ambiguous date.
      *   Never throws.
@@ -117,9 +130,21 @@ final class Zakat
             deductible: $deductible,
             reason: $exempt ? 'exempt' : ($below ? 'below-nisab' : null),
             rate: 2.5,
-            zakat: $deductible ? Money::fromPaisa(Money::divideHalfUp($paisa * 25, 1000)) : 0.0,
+            zakat: $deductible ? self::zakatRupees($paisa) : 0,
             source: $year->source,
         );
+    }
+
+    /**
+     * 2.5% of a balance in paisa, as the First Schedule's Note 2 rounds it:
+     * less than a rupee is not charged; otherwise 50 paisa or more counts as
+     * a rupee and less than 50 paisa is dropped. Exact: the balance is at
+     * most 10^14 paisa, so the product stays below 2.5 × 10^15.
+     */
+    private static function zakatRupees(int $balancePaisa): int
+    {
+        $exact = $balancePaisa * 25; // thousandths of a paisa
+        return $exact < 100_000 ? 0 : Money::divideHalfUp($exact, 100_000);
     }
 
     private static function find(mixed $zakatYear, mixed $date): ?ZakatNisab
@@ -163,10 +188,10 @@ final class Zakat
     }
 
     /**
-     * The Zakat year a date falls in. A year starts on 1 Ramazan, which the
-     * notification gives only as one of two likely days; a date on the
-     * earlier of the two is ambiguous and gives null, as does a date past
-     * the last notified year.
+     * The Zakat year a date falls in. A year starts on 1 Ramazan: on its
+     * confirmed date where there is one, otherwise on one of the two likely
+     * days the notification gives, so a date on the earlier of the two is
+     * ambiguous and gives null, as does a date past the last notified year.
      */
     private static function byDate(mixed $value): ?ZakatNisab
     {
@@ -177,6 +202,16 @@ final class Zakat
         $years = self::years();
         for ($i = count($years) - 1; $i >= 0; $i--) {
             [$first, $second] = $years[$i]->expectedValuationDates;
+            $confirmed = $years[$i]->valuationDate;
+            if ($confirmed !== null) {
+                if (strcmp($date, $confirmed) < 0) {
+                    continue;
+                }
+                if ($i === count($years) - 1 && strcmp($date, self::addDays($confirmed, self::LUNAR_YEAR_DAYS)) >= 0) {
+                    return null;
+                }
+                return $years[$i];
+            }
             if (strcmp($date, $second) >= 0) {
                 if ($i === count($years) - 1 && strcmp($date, self::addDays($first, self::LUNAR_YEAR_DAYS)) >= 0) {
                     return null;
@@ -206,7 +241,7 @@ final class Zakat
             $rows = Data::load('zakat-nisab');
             $starts = [];
             foreach ($rows as $row) {
-                $starts[$row['zakatYear']] = $row['expectedValuationDates'][0];
+                $starts[$row['zakatYear']] = $row['valuationDate'] ?? $row['expectedValuationDates'][0];
             }
             $document = static fn (array $doc): ZakatDocument => new ZakatDocument(
                 number: $doc['number'],
@@ -222,14 +257,22 @@ final class Zakat
                     nisab: $row['nisab'],
                     valuationDateHijri: $row['valuationDateHijri'],
                     expectedValuationDates: [$row['expectedValuationDates'][0], $row['expectedValuationDates'][1]],
+                    valuationDate: $row['valuationDate'] ?? null,
+                    valuationDateSource: isset($row['valuationDateSource'])
+                        ? new ZakatValuationDateSource(
+                            reference: $row['valuationDateSource']['reference'],
+                            url: $row['valuationDateSource']['url'],
+                        )
+                        : null,
                     bankHolidayDate: $row['bankHolidayDate'],
                     notification: $document($row['notification']),
                     sbpCircular: $document($row['sbpCircular']),
                     source: new DataSource(
                         id: 'zakat-nisab',
-                        // From the earlier of the two likely days of 1 Ramazan, to the
-                        // day before the next year's; open while it is the latest year.
-                        effectiveFrom: $row['expectedValuationDates'][0],
+                        // From 1 Ramazan (confirmed, or the earlier of the two likely
+                        // days), to the day before the next year's; open while it is
+                        // the latest year.
+                        effectiveFrom: $row['valuationDate'] ?? $row['expectedValuationDates'][0],
                         effectiveTo: $next === null ? null : self::addDays($next, -1),
                         sourceReference: 'Notification No. ' . $row['notification']['number']
                             . ' (' . $row['notification']['date'] . '); SBP ' . $row['sbpCircular']['number']

@@ -83,6 +83,7 @@
     "zakat": [
       "ZakatExemption",
       "ZakatDocument",
+      "ZakatValuationDateSource",
       "ZakatNisab",
       "ZakatYearQuery",
       "ZakatDeduction",
@@ -139,7 +140,13 @@
       "Withholding"
     ],
     "words": ["Words"],
-    "zakat": ["ZakatDocument", "ZakatNisab", "ZakatDeduction", "Zakat"],
+    "zakat": [
+      "ZakatDocument",
+      "ZakatValuationDateSource",
+      "ZakatNisab",
+      "ZakatDeduction",
+      "Zakat"
+    ],
     "laravel": ["PakDataKit\\Laravel\\*"]
   }
 }

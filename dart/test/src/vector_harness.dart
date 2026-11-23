@@ -609,15 +609,23 @@ final Map<String, Call> functions = {
     final q = object(a[0]);
     final atl = q['atl'];
     if (atl is! bool) throw Unrepresentable('$atl is not a bool');
-    return calculateWithholding(
-      section: str(q['section']),
-      subType: optStr(q['subType']),
-      amount: number(q['amount']),
-      atl: atl,
-      lateFiler: optBool(q['lateFiler']) ?? false,
-      taxYear: optInteger(q['taxYear']),
-      date: q['date'],
-    );
+    Withholding? call(bool? resident) => calculateWithholding(
+          section: str(q['section']),
+          subType: optStr(q['subType']),
+          amount: number(q['amount']),
+          atl: atl,
+          lateFiler: optBool(q['lateFiler']) ?? false,
+          taxYear: optInteger(q['taxYear']),
+          date: q['date'],
+          returnOnInvestment: optNumber(q['returnOnInvestment']),
+          resident: resident,
+        );
+    final resident = q['resident'];
+    if (resident != null && resident is! bool) {
+      // TypeScript ignores a `resident` that is not a boolean.
+      throw Unrepresentable.withFallback('$resident is not a bool', call(null));
+    }
+    return call(resident as bool?);
   },
   'getWithholdingRates': (a, k) => a.length > 1
       ? getWithholdingRates(integer(a[0]), optStr(a[1]))

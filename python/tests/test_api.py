@@ -719,9 +719,15 @@ def test_zakat() -> None:
     assert pdk.get_zakat_nisab(zakat_year=1447) == pdk.get_zakat_nisab({"zakatYear": 1447})
     nisab = pdk.get_zakat_nisab(zakat_year="1446-47")
     assert nisab is not None and nisab.zakat_year == 1447 and len(nisab.expected_valuation_dates) == 2
-    first, second = nisab.expected_valuation_dates
+    assert nisab.valuation_date == "2026-02-19" and nisab.valuation_date_source is not None
+    assert pdk.get_zakat_nisab(date="2026-02-19") == nisab  # confirmed 1 Ramazan 1447
+    assert pdk.get_zakat_nisab(date="2026-02-18").zakat_year == 1446  # type: ignore[union-attr]
+    older = pdk.get_zakat_nisab(zakat_year=1446)
+    assert older is not None and older.valuation_date is None
+    first, second = older.expected_valuation_dates
     assert pdk.get_zakat_nisab(date=first) is None  # ambiguous: 1 Ramazan may be either day
-    assert pdk.get_zakat_nisab(date=dt.date.fromisoformat(second)) == nisab
+    assert pdk.get_zakat_nisab(date=dt.date.fromisoformat(second)) == older
+    assert pdk.zakat_deduction(balance=600_000.2, zakat_year=1447).zakat == 15_000  # whole rupees
     years = pdk.get_zakat_years()
     assert years == sorted(years) and years[-1] == 1447
     deduction = pdk.zakat_deduction(balance=600_000, zakat_year=1447)
@@ -750,6 +756,15 @@ def test_withholding() -> None:
     assert pdk.calculate_withholding(section="236K", amount=1000, tax_year=2027) is None  # needs atl
     by_date = pdk.calculate_withholding(section="236K", amount=1000, atl=True, date=dt.date(2026, 7, 1))
     assert by_date is not None and by_date.tax_year == 2027
+    sukuk = {"section": "151", "amount": 2_000_000, "atl": True, "taxYear": 2027}
+    assert pdk.calculate_withholding({**sukuk, "subType": "sukuk-individual-above-1m"}) is not None
+    assert pdk.calculate_withholding({**sukuk, "subType": "sukuk-individual-below-1m"}) is None
+    assert pdk.calculate_withholding(
+        section="151", sub_type="sukuk-individual-above-1m", amount=1_000_000, atl=True, tax_year=2027
+    ) is None  # exactly Rs 1 million fits neither case
+    social = pdk.calculate_withholding(section="154B", amount=1000, atl=True, tax_year=2027, resident=False)
+    assert social is not None and social.tax_nature == "final"
+    assert result.tax_nature is None and isinstance(result.tax, int)
     rates = pdk.get_withholding_rates(2027)
     assert rates and all(isinstance(r, pdk.WithholdingRate) for r in rates)
     assert [r.section for r in pdk.get_withholding_rates(2027, "154b")] == ["154B"]

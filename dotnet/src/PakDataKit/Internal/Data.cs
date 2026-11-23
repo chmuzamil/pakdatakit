@@ -34,6 +34,8 @@ internal static class Data
         string ValuationDateHijri,
         IReadOnlyList<string> ExpectedValuationDates,
         string? BankHolidayDate,
+        string? ValuationDate,
+        ZakatValuationDateSource? ValuationDateSource,
         ZakatDocument Notification,
         ZakatDocument SbpCircular);
 
@@ -52,6 +54,10 @@ internal static class Data
         WithholdingSpec NonAtl,
         WithholdingSpec? LateFiler,
         WithholdingThreshold? Threshold,
+        long? ReturnOver,
+        long? ReturnUnder,
+        string? ResidentNature,
+        string? NonResidentNature,
         string CardRef,
         string LawRef,
         string Card,
@@ -163,13 +169,23 @@ internal static class Data
         Array("zakat-nisab.json", e => new ZakatRow(
             e.GetProperty("zakatYear").GetInt32(), Str(e, "label")!, e.GetProperty("nisab").GetInt64(),
             Str(e, "valuationDateHijri")!, Strings(e.GetProperty("expectedValuationDates")),
-            Str(e, "bankHolidayDate"), Document(e.GetProperty("notification")),
+            Str(e, "bankHolidayDate"), Str(e, "valuationDate"),
+            e.TryGetProperty("valuationDateSource", out var vs) && vs.ValueKind == JsonValueKind.Object
+                ? new ZakatValuationDateSource(Str(vs, "reference")!, Str(vs, "url")!)
+                : null,
+            Document(e.GetProperty("notification")),
             Document(e.GetProperty("sbpCircular")))));
 
     private static readonly Lazy<IReadOnlyList<WithholdingRow>> WithholdingRatesLazy = new(() =>
         Array("withholding-rates.json", e =>
         {
             var nonAtl = e.GetProperty("nonAtl");
+            var band = e.TryGetProperty("returnBand", out var rb) && rb.ValueKind == JsonValueKind.Object
+                ? rb
+                : (JsonElement?)null;
+            var nature = e.TryGetProperty("taxNature", out var tn) && tn.ValueKind == JsonValueKind.Object
+                ? tn
+                : (JsonElement?)null;
             return new WithholdingRow(
                 e.GetProperty("taxYear").GetInt32(), Str(e, "from")!, Str(e, "to")!, Str(e, "section")!,
                 Str(e, "subType")!, Str(e, "description")!, Spec(e.GetProperty("atl")),
@@ -186,6 +202,10 @@ internal static class Data
                 e.TryGetProperty("threshold", out var t) && t.ValueKind == JsonValueKind.Object
                     ? new WithholdingThreshold(t.GetProperty("amount").GetInt64(), Str(t, "per")!)
                     : null,
+                band is { } b1 ? Long(b1, "over") : null,
+                band is { } b2 ? Long(b2, "under") : null,
+                nature is { } n1 ? Str(n1, "resident") : null,
+                nature is { } n2 ? Str(n2, "nonResident") : null,
                 Str(e, "cardRef")!, Str(e, "lawRef")!, Str(e, "card")!, Str(e, "statuteOverride"), Str(e, "note"));
         }));
 

@@ -167,6 +167,7 @@ from .zakat import (
     ZakatDeduction,
     ZakatDocument,
     ZakatNisab,
+    ZakatValuationDateSource,
     get_zakat_nisab,
     get_zakat_years,
     zakat_deduction,
@@ -304,6 +305,7 @@ __all__ = [
     "calculate_withholding",
     # zakat
     "ZakatDocument",
+    "ZakatValuationDateSource",
     "ZakatNisab",
     "ZakatDeduction",
     "get_zakat_nisab",

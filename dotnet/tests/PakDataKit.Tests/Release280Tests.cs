@@ -56,7 +56,11 @@ public sealed class Release280Tests
         Assert.Equal(503529, Zakat.GetNisab(1447)?.Nisab);
         Assert.Equal(1446, Zakat.GetNisab(new ZakatYearQuery { Label = "1445-46" })?.ZakatYear);
         Assert.Equal(179689, Zakat.GetNisab(new ZakatYearQuery { Date = "2025-06-01" })?.Nisab);
-        Assert.Null(Zakat.GetNisab(new ZakatYearQuery { OnDate = new DateOnly(2026, 2, 19) }));
+        // 1 Ramazan 1447 is confirmed as 19 February 2026; earlier years keep the two likely days.
+        Assert.Equal(1447, Zakat.GetNisab(new ZakatYearQuery { OnDate = new DateOnly(2026, 2, 19) })?.ZakatYear);
+        Assert.Equal(1446, Zakat.GetNisab(new ZakatYearQuery { OnDate = new DateOnly(2026, 2, 18) })?.ZakatYear);
+        Assert.Null(Zakat.GetNisab(new ZakatYearQuery { Date = "2025-03-01" }));
+        Assert.Equal("2026-02-19", Zakat.GetNisab(1447)?.ValuationDate);
         Assert.Null(Zakat.GetNisab(new ZakatYearQuery()));
         Assert.Equal(15, Zakat.GetYears().Count);
     }
@@ -89,6 +93,14 @@ public sealed class Release280Tests
             Section = "151", SubType = "bank-deposit", Amount = 10_000, Atl = true, TaxYear = 2027,
         })?.Tax);
         Assert.Null(Withholding.Calculate(new WithholdingInput { Section = "151", Amount = 10_000, Atl = true }));
+        Assert.Null(Withholding.Calculate(new WithholdingInput
+        {
+            Section = "151", SubType = "sukuk-individual-below-1m", Amount = 1_000_000, Atl = true, TaxYear = 2027,
+        }));
+        Assert.Equal("final", Withholding.Calculate(new WithholdingInput
+        {
+            Section = "154B", Amount = 100_000, Atl = true, TaxYear = 2027, Resident = false,
+        })?.TaxNature);
         Assert.Empty(Withholding.GetRates(2024));
         Assert.NotEmpty(Withholding.GetRates(2027, "154b"));
     }

@@ -68,6 +68,25 @@ enum WithholdingNonAtlRule {
       values.firstWhere((rule) => rule.value == value);
 }
 
+/// Whether a 154B tax is a minimum or a final tax. See
+/// [Withholding.taxNature].
+enum WithholdingTaxNature {
+  /// A minimum tax: the recipient is resident.
+  minimum('minimum'),
+
+  /// A final tax: the recipient is a non-resident without a permanent
+  /// establishment in Pakistan.
+  finalTax('final');
+
+  const WithholdingTaxNature(this.value);
+
+  /// The value used by the npm package, e.g. `"final"`.
+  final String value;
+
+  /// Returns [value].
+  String toJson() => value;
+}
+
 /// The amount at or below which nothing is collected (231AB: Rs 50,000 of
 /// cash withdrawn in a day, all withdrawals added up).
 class WithholdingThreshold {
@@ -128,6 +147,7 @@ class Withholding {
     required this.cardRef,
     required this.lawRef,
     required this.statuteOverride,
+    this.taxNature,
     required this.source,
   });
 
@@ -153,8 +173,10 @@ class Withholding {
   /// Percent applied to the whole amount (for 149, the effective rate).
   final double rate;
 
-  /// Tax to withhold or collect, rounded half up to the paisa.
-  final double tax;
+  /// Tax to withhold or collect, in whole rupees: section 219 of the
+  /// Ordinance disregards fractions under 50 paisa and counts 50 paisa or
+  /// more as a rupee.
+  final int tax;
 
   /// How the rate for a person not on the list is set for this case.
   final WithholdingNonAtlRule nonAtlRule;
@@ -176,6 +198,11 @@ class Withholding {
   /// otherwise `null`.
   final String? statuteOverride;
 
+  /// 154B with `resident` given: [WithholdingTaxNature.minimum] for a
+  /// resident, [WithholdingTaxNature.finalTax] for a non-resident without a
+  /// permanent establishment in Pakistan; otherwise `null`.
+  final WithholdingTaxNature? taxNature;
+
   /// The rate card and law (dataset `withholding-rates`).
   final DataSource source;
 
@@ -195,6 +222,7 @@ class Withholding {
         'cardRef': cardRef,
         'lawRef': lawRef,
         'statuteOverride': statuteOverride,
+        'taxNature': taxNature?.value,
         'source': source.toJson(),
       };
 
@@ -215,6 +243,7 @@ class Withholding {
       other.cardRef == cardRef &&
       other.lawRef == lawRef &&
       other.statuteOverride == statuteOverride &&
+      other.taxNature == taxNature &&
       other.source == source;
 
   @override
@@ -233,6 +262,7 @@ class Withholding {
         cardRef,
         lawRef,
         statuteOverride,
+        taxNature,
         source,
       );
 
@@ -391,6 +421,8 @@ typedef _Row = ({
   WithholdingNonAtlRule nonAtlRule,
   _Spec? lateFiler,
   WithholdingThreshold? threshold,
+  ({int? over, int? under})? returnBand,
+  bool hasTaxNature,
   String? note,
   String cardRef,
   String lawRef,
@@ -439,6 +471,14 @@ final List<_Row> _rows = List.unmodifiable([
           ),
         _ => null,
       },
+      returnBand: switch (e['returnBand']) {
+        final Map<String, Object?> b => (
+            over: b['over'] as int?,
+            under: b['under'] as int?,
+          ),
+        _ => null,
+      },
+      hasTaxNature: e['taxNature'] != null,
       note: e['note'] as String?,
       cardRef: e['cardRef']! as String,
       lawRef: e['lawRef']! as String,
@@ -526,14 +566,31 @@ WithholdingSlab _inSlab(int paisa, List<WithholdingSlab> slabs) {
 /// - [taxYear] (July to June, e.g. `2027`), or [date], a `YYYY-MM-DD`
 ///   [String] or a [DateTime] in the tax year. [taxYear] takes precedence;
 ///   one of them is required.
+/// - [returnOnInvestment]: 151 sukuk, individual or AOP: the holder's return
+///   on investment in rupees, which decides the case (more than Rs 1
+///   million: `sukuk-individual-above-1m`; less than Rs 1 million:
+///   `sukuk-individual-below-1m`). Defaults to [amount]. The law gives no
+///   rate for exactly Rs 1 million, so that, an invalid value, or a case
+///   that does not fit the return gives `null`.
+/// - [resident]: 154B: whether the recipient is resident. The rate is the
+///   same; it decides [Withholding.taxNature]: a minimum tax (resident) or
+///   a final tax (non-resident without a permanent establishment in
+///   Pakistan).
 ///
 /// The npm `WithholdingInput` object is these named parameters.
 ///
 /// The rate for a person not on the list follows each case's own rule in the
 /// Tenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),
 /// its own value bands (236K), or none (149; 231AB applies only to them).
-/// The rate applies to the whole amount. Where FBR's card and the Ordinance
-/// differ, the Ordinance is used and [Withholding.statuteOverride] says so.
+/// The rate applies to the whole amount (236C and 236K value bands are not
+/// marginal), and the tax is rounded to the nearest rupee (section 219).
+/// Where FBR's card and the Ordinance differ, the Ordinance is used and
+/// [Withholding.statuteOverride] says so. For 231AB, pass the day's total of
+/// all cash withdrawals: nothing is collected up to Rs 50,000. For 150
+/// mutual fund dividends received by a company, the debt part is
+/// `mutual-fund-debt-part-company` (29%). For 151 sukuk held by an
+/// individual or AOP, the case must fit the return on investment, and
+/// exactly Rs 1 million gives `null`.
 ///
 /// This is an estimate from the rate card, not tax advice: exemptions,
 /// reduced-rate certificates, adjustable or final status and the many cases
@@ -546,7 +603,7 @@ WithholdingSlab _inSlab(int paisa, List<WithholdingSlab> slabs) {
 /// ```dart
 /// calculateWithholding(
 ///     section: '236K', amount: 60000000, atl: false, taxYear: 2027);
-/// // Withholding{..., rate: 14.5, tax: 8700000.0, nonAtlRule: slabs, ...}
+/// // Withholding{..., rate: 14.5, tax: 8700000, nonAtlRule: slabs, ...}
 /// calculateWithholding(
 ///     section: '231AB', amount: 80000, atl: false, taxYear: 2027)?.tax; // 640
 /// calculateWithholding(
@@ -565,6 +622,8 @@ Withholding? calculateWithholding({
   bool lateFiler = false,
   int? taxYear,
   Object? date,
+  num? returnOnInvestment,
+  bool? resident,
 }) {
   final paisa = toUnits(amount, 2);
   if (paisa == null) return null;
@@ -589,17 +648,46 @@ Withholding? calculateWithholding({
   }
   if (row == null) return null;
 
+  // 151 sukuk (individual or AOP): the case must fit the return; the law
+  // says "more than" and "less than" Rs 1 million, so exactly Rs 1 million
+  // fits neither.
+  final band = row.returnBand;
+  if (band != null) {
+    final ret =
+        returnOnInvestment == null ? paisa : toUnits(returnOnInvestment, 2);
+    if (ret == null) return null;
+    if (band.over != null && !(ret > band.over! * 100)) return null;
+    if (band.under != null && !(ret < band.under! * 100)) return null;
+  }
+
   final late = atl && lateFiler;
   double rate;
-  int taxPaisa;
+  // Tax in whole rupees (section 219).
+  int taxRupees;
   WithholdingSlab? slab;
   WithholdingThreshold? threshold;
 
   if (row.atl.salary) {
-    final salary = calculateSalaryTax(fromPaisa(paisa), taxYear: year);
-    if (salary == null) return null;
-    rate = salary.effectiveRate;
-    taxPaisa = (salary.tax * 100).round();
+    // The salaried rate table, computed exactly and rounded once.
+    final table = getSalaryTaxSlabs(year);
+    if (table == null) return null;
+    var slab = table.slabs.first;
+    for (final candidate in table.slabs) {
+      if (paisa > candidate.over * 100) slab = candidate;
+    }
+    final above = paisa > slab.over * 100 ? paisa - slab.over * 100 : 0;
+    taxRupees = slab.fixed +
+        divideHalfUp(
+          BigInt.from(above) * BigInt.from((slab.rate * 100).round()),
+          BigInt.from(1000000),
+        );
+    rate = paisa == 0
+        ? 0
+        : divideHalfUp(
+              BigInt.from(taxRupees) * BigInt.from(1000000),
+              BigInt.from(paisa),
+            ) /
+            100;
   } else {
     final _Spec spec;
     if (!atl) {
@@ -617,9 +705,9 @@ Withholding? calculateWithholding({
     }
     // Percent as hundredths (basis points), exact for rates with up to 2
     // decimals.
-    taxPaisa = divideHalfUp(
+    taxRupees = divideHalfUp(
       BigInt.from(paisa) * BigInt.from((rate * 100).round()),
-      BigInt.from(10000),
+      BigInt.from(1000000),
     );
     final limit = row.threshold;
     if (limit != null) {
@@ -629,7 +717,7 @@ Withholding? calculateWithholding({
         per: limit.per,
         withinThreshold: within,
       );
-      if (within) taxPaisa = 0;
+      if (within) taxRupees = 0;
     }
   }
 
@@ -641,13 +729,18 @@ Withholding? calculateWithholding({
     atl: atl,
     lateFiler: late,
     rate: rate,
-    tax: fromPaisa(taxPaisa),
+    tax: taxRupees,
     nonAtlRule: row.nonAtlRule,
     slab: slab,
     threshold: threshold,
     cardRef: row.cardRef,
     lawRef: row.lawRef,
     statuteOverride: row.statuteOverride,
+    taxNature: row.hasTaxNature && resident != null
+        ? (resident
+            ? WithholdingTaxNature.minimum
+            : WithholdingTaxNature.finalTax)
+        : null,
     source: row.source,
   );
 }

@@ -109,17 +109,26 @@ final class DataReleaseTest extends TestCase
         self::assertSame(179689, Zakat::getNisab(date: '2025-06-01')?->nisab);
         self::assertSame(179689, Zakat::getNisab(date: new DateTimeImmutable('2025-06-01'))?->nisab);
         // The first of the two likely days of 1 Ramazan is ambiguous.
-        self::assertNull(Zakat::getNisab(date: '2026-02-19'));
-        self::assertSame(1447, Zakat::getNisab(date: '2026-02-20')?->zakatYear);
+        self::assertNull(Zakat::getNisab(date: '2025-03-01'));
+        self::assertSame(1446, Zakat::getNisab(date: '2025-03-02')?->zakatYear);
+        // 1 Ramazan 1447 is confirmed as 19 February 2026.
+        self::assertSame('2026-02-19', Zakat::getNisab(zakatYear: 1447)?->valuationDate);
+        self::assertSame(1446, Zakat::getNisab(date: '2026-02-18')?->zakatYear);
+        self::assertSame(1447, Zakat::getNisab(date: '2026-02-19')?->zakatYear);
+        self::assertSame('2026-02-18', Zakat::getNisab(zakatYear: 1446)?->source->effectiveTo);
+        self::assertNull(Zakat::getNisab(zakatYear: 1446)?->valuationDateSource);
         self::assertNull(Zakat::getNisab());
         self::assertSame(range(1433, 1447), Zakat::getYears());
 
         $deduction = Zakat::deduction(600000, zakatYear: 1447);
-        self::assertSame([true, null, 15000.0], [$deduction?->deductible, $deduction?->reason, $deduction?->zakat]);
+        self::assertSame([true, null, 15000], [$deduction?->deductible, $deduction?->reason, $deduction?->zakat]);
         self::assertSame('exempt', Zakat::deduction(600000, zakatYear: 1447, exempt: true)?->reason);
         self::assertSame('below-nisab', Zakat::deduction(503528.99, zakatYear: 1447)?->reason);
         self::assertNull(Zakat::deduction('600000', zakatYear: 1447));
         self::assertNull(Zakat::deduction(600000));
+        // Whole rupees (First Schedule, Note 2): 2.5% of Rs 503,549.99 is Rs 12,588.75; of Rs 503,529, Rs 12,588.225.
+        self::assertSame(12589, Zakat::deduction(503549.99, zakatYear: 1447)?->zakat);
+        self::assertSame(12588, Zakat::deduction(503529, zakatYear: 1447)?->zakat);
     }
 
     // ----------------------------------------------------------- withholding
@@ -128,11 +137,11 @@ final class DataReleaseTest extends TestCase
     {
         $nonAtl = Withholding::calculate('236K', 60_000_000, atl: false, taxYear: 2027);
         self::assertInstanceOf(WithholdingTax::class, $nonAtl);
-        self::assertSame([14.5, 8700000.0, 'slabs'], [$nonAtl->rate, $nonAtl->tax, $nonAtl->nonAtlRule]);
-        self::assertSame(640.0, Withholding::calculate(' 231ab ', 80_000, atl: false, taxYear: 2027)?->tax);
+        self::assertSame([14.5, 8700000, 'slabs'], [$nonAtl->rate, $nonAtl->tax, $nonAtl->nonAtlRule]);
+        self::assertSame(640, Withholding::calculate(' 231ab ', 80_000, atl: false, taxYear: 2027)?->tax);
         self::assertTrue(Withholding::calculate('231AB', 50_000, atl: false, taxYear: 2027)?->threshold?->withinThreshold);
         self::assertSame(
-            2000.0,
+            2000,
             Withholding::calculate('151', 10_000, atl: true, subType: 'bank-deposit', taxYear: 2027)?->tax,
         );
         // 151 has several cases, so the case is needed.
@@ -143,6 +152,32 @@ final class DataReleaseTest extends TestCase
         self::assertSame([], Withholding::getRates(2024));
         self::assertCount(1, Withholding::getRates(2027, '154b'));
         self::assertEquals(Withholding::getRates(2027, '153'), Withholding::getRates(2027, 153));
+        // Whole rupees (section 219): 20% of Rs 12.47 is Rs 2.494, of Rs 12.50 Rs 2.50.
+        $deposit = static fn (float $amount): ?int => Withholding::calculate(
+            '151', $amount, atl: true, subType: 'bank-deposit', taxYear: 2027,
+        )?->tax;
+        self::assertSame([2, 3], [$deposit(12.47), $deposit(12.5)]);
+        // Sukuk: the case must fit the return; exactly Rs 1 million fits neither.
+        $above = static fn (mixed $return): ?int => Withholding::calculate(
+            '151', 2_000_000, atl: true, subType: 'sukuk-individual-above-1m', taxYear: 2027, returnOnInvestment: $return,
+        )?->tax;
+        self::assertSame(250000, $above(null));
+        self::assertNull($above(1_000_000));
+        self::assertSame(250000, $above(1_000_000.01));
+        self::assertNull($above(-1));
+        self::assertNull(Withholding::calculate(
+            '151', 1_000_000, atl: true, subType: 'sukuk-individual-below-1m', taxYear: 2027,
+        ));
+        // 154B: the tax nature only when residence is given.
+        self::assertNull(Withholding::calculate('154B', 1000, atl: true, taxYear: 2027)?->taxNature);
+        self::assertSame('minimum', Withholding::calculate('154B', 1000, atl: true, taxYear: 2027, resident: true)?->taxNature);
+        self::assertSame('final', Withholding::calculate('154B', 1000, atl: true, taxYear: 2027, resident: false)?->taxNature);
+        self::assertNull(Withholding::calculate('236K', 1000, atl: true, taxYear: 2027, resident: true)?->taxNature);
+        $keys = array_keys(Withholding::calculate('154B', 1000, atl: true, taxYear: 2027)->toArray());
+        self::assertSame(['statuteOverride', 'taxNature', 'source'], array_slice($keys, -3));
+        // 149: the salaried rate table, rounded once to the rupee.
+        $salary = Withholding::calculate('149', 1_800_000, atl: true, taxYear: 2026);
+        self::assertSame([72000, 4], [$salary?->tax, $salary?->rate]);
     }
 
     public function testWithholdingAndZakatNeverThrow(): void
@@ -153,6 +188,7 @@ final class DataReleaseTest extends TestCase
                 Withholding::calculate('153', $value, atl: true, subType: 'goods-company', taxYear: 2027);
                 Withholding::calculate('153', 1000, atl: $value, subType: $value, taxYear: $value, date: $value);
                 Withholding::calculate('236C', 1000, atl: true, date: $value, lateFiler: true);
+                Withholding::calculate('151', 1000, atl: true, subType: 'sukuk-individual-below-1m', taxYear: 2027, returnOnInvestment: $value);
                 Withholding::getRates($value, $value);
                 Zakat::getNisab(zakatYear: $value, date: $value);
                 Zakat::getNisab(date: $value);

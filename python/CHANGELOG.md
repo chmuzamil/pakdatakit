@@ -17,10 +17,18 @@ vectors.
 - **Withholding tax, ATL and non-ATL.** `calculate_withholding()` returns a
   `Withholding`; `get_withholding_rates(tax_year, section=None)` returns
   `WithholdingRate` objects. Sections 149, 150, 151, 153, 154B, 231AB, 236C
-  and 236K, tax years 2025 to 2027.
+  and 236K, tax years 2025 to 2027. `tax` is in whole rupees (section 219),
+  computed exactly and rounded once, 149 included. `return_on_investment`
+  picks the 151 sukuk case for an individual or AOP (more or less than Rs 1
+  million; exactly Rs 1 million gives `None`), and `resident` gives 154B's
+  `tax_nature` (`"minimum"` or `"final"`). 150 has the company case
+  `mutual-fund-debt-part-company`.
 - **Zakat.** `get_zakat_nisab(zakat_year=... | date=...)`, `get_zakat_years()`
   and `zakat_deduction(balance=..., zakat_year=... | date=..., exempt=False)`:
-  the nisab for deduction at source, Zakat years 1433 to 1447 AH.
+  the nisab for deduction at source, Zakat years 1433 to 1447 AH. `zakat` is
+  in whole rupees (First Schedule, Note 2). `valuation_date` and
+  `valuation_date_source` give the confirmed 1 Ramazan where known (1447),
+  and date lookups use it.
 - **Population.** `get_district_population(district)` and
   `get_tehsil_population(tehsil, district=None)` from the 2023 census, with
   `census_district`.

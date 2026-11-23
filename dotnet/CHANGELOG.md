@@ -18,10 +18,17 @@ used.
 - **Withholding tax, ATL and non-ATL (#92).** `Withholding.Calculate(new
   WithholdingInput { … })` and `Withholding.GetRates(taxYear, section)` for
   sections 149, 150, 151, 153, 154B, 231AB, 236C and 236K, tax years 2025 to
-  2027.
+  2027. `Tax` is in whole rupees (ITO section 219), computed exactly and
+  rounded once (149 from the salaried rate table). `ReturnOnInvestment`
+  picks the 151 sukuk case (`sukuk-individual-above-1m` /
+  `sukuk-individual-below-1m`; exactly Rs 1 million gives `null`), and
+  `Resident` gives 154B's `TaxNature` (`minimum` or `final`).
 - **Zakat (#93).** `Zakat.GetNisab()` (by year, `"1446-47"` label or date
   via `ZakatYearQuery`), `Zakat.GetYears()` and `Zakat.CalculateDeduction()`,
-  Zakat years 1433 to 1447 AH.
+  Zakat years 1433 to 1447 AH. The deduction is in whole rupees (First
+  Schedule, Note 2). `ZakatNisab.ValuationDate` and `ValuationDateSource`
+  give the confirmed date of 1 Ramazan where a source states it (1447 so
+  far); date lookups and the source's dates use it.
 - **Population (#95).** `Population.GetDistrict()` and
   `Population.GetTehsil()` from the 2023 census.
 - **FBR Digital Invoicing reference lists (#91).** New overloads

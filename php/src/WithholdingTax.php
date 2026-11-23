@@ -27,8 +27,12 @@ final readonly class WithholdingTax
         public bool $lateFiler,
         /** Percent applied to the whole amount (for 149, the effective rate). */
         public int|float $rate,
-        /** Tax to withhold or collect, rounded half up to the paisa. */
-        public float $tax,
+        /**
+         * Tax to withhold or collect, in whole rupees: section 219 of the
+         * Ordinance disregards fractions under 50 paisa and counts 50 paisa
+         * or more as a rupee.
+         */
+        public int $tax,
         /**
          * How the rate for a person not on the list is set for this case:
          * `double` (the Tenth Schedule's 100% increase), `fixed` (its own
@@ -47,6 +51,12 @@ final readonly class WithholdingTax
         public string $lawRef,
         /** Where the statute differs from the card and the statute is used, why; otherwise null. */
         public ?string $statuteOverride,
+        /**
+         * 154B with `resident` given: `minimum` for a resident, `final` for a
+         * non-resident without a permanent establishment in Pakistan;
+         * otherwise null.
+         */
+        public ?string $taxNature,
         /** The rate card and law, with the tax year's dates. */
         public DataSource $source,
     ) {

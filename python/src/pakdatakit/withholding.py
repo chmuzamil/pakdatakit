@@ -7,9 +7,9 @@ from typing import Any, List, Literal, Mapping, Optional
 
 from ._data import load
 from ._internal.js import is_integer, is_number, js_round, number_to_string, trim
-from ._internal.money import divide_half_up, from_paisa, to_units
+from ._internal.money import divide_half_up, to_units
 from .data_info import DataSource
-from .incometax import calculate_salary_tax, get_tax_year
+from .incometax import get_salary_tax_slabs, get_tax_year
 
 __all__ = [
     "WithholdingNonAtlRule",
@@ -96,8 +96,10 @@ class Withholding:
     late_filer: bool
     #: Percent applied to the whole amount (for 149, the effective rate).
     rate: float
-    #: Tax to withhold or collect, rounded half up to the paisa.
-    tax: float
+    #: Tax to withhold or collect, in whole rupees: section 219 of the
+    #: Ordinance disregards fractions under 50 paisa and counts 50 paisa or
+    #: more as a rupee.
+    tax: int
     #: How the rate for a person not on the list is set for this case:
     #: ``double`` (the Tenth Schedule's 100% increase), ``fixed`` (its own
     #: rate, as for 236C, or 231AB, which applies only to them), ``slabs``
@@ -114,6 +116,10 @@ class Withholding:
     law_ref: str
     #: Where the statute differs from the card and the statute is used, why.
     statute_override: Optional[str]
+    #: 154B with ``resident`` given: ``"minimum"`` for a resident, ``"final"``
+    #: for a non-resident without a permanent establishment in Pakistan;
+    #: otherwise ``None``.
+    tax_nature: Optional[str]
     source: DataSource
 
 
@@ -216,6 +222,8 @@ def calculate_withholding(
     amount: Any = None,
     atl: Any = None,
     late_filer: Any = False,
+    return_on_investment: Any = None,
+    resident: Any = None,
     tax_year: Any = None,
     date: Any = None,
 ) -> Optional[Withholding]:
@@ -237,14 +245,29 @@ def calculate_withholding(
     ``True`` if the person is on the list and is required. ``late_filer=True``
     is for a person on the list who filed late; it changes the rate only
     where the year has a late-filer rate (236C and 236K in 2025 and 2026).
+    ``return_on_investment`` is for 151 sukuk held by an individual or AOP:
+    the holder's return on investment, which decides the case (more than Rs 1
+    million: ``sukuk-individual-above-1m``; less than Rs 1 million:
+    ``sukuk-individual-below-1m``); it defaults to ``amount``. The law gives
+    no rate for exactly Rs 1 million, so that, or a case that does not fit
+    the return, gives ``None``. ``resident`` is for 154B: the rate is the
+    same, but it decides whether the tax is a minimum tax (resident) or a
+    final tax (non-resident without a permanent establishment in Pakistan),
+    given in ``tax_nature``.
     ``tax_year`` (e.g. ``2027``) takes precedence over ``date``. All of them
     may also be passed as one ``dict`` with the npm package's camelCase keys.
 
     The rate for a person not on the list follows each case's own rule in the
     Tenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),
     its own value bands (236K), or none (149; 231AB applies only to them).
-    The rate applies to the whole amount. Where FBR's card and the Ordinance
-    differ, the Ordinance is used and ``statute_override`` says so.
+    The rate applies to the whole amount (236C and 236K value bands are not
+    marginal), and the tax is rounded to the nearest rupee (section 219; for
+    149, the salaried rate table is computed exactly and rounded once).
+    Where FBR's card and the Ordinance differ, the Ordinance is used and
+    ``statute_override`` says so. For 231AB, pass the day's total of all cash
+    withdrawals: nothing is collected up to Rs 50,000. For 150 mutual fund
+    dividends received by a company, the debt part is
+    ``mutual-fund-debt-part-company`` (29%).
 
     This is an estimate from the rate card, not tax advice: exemptions,
     reduced-rate certificates, adjustable or final status and the many cases
@@ -255,11 +278,11 @@ def calculate_withholding(
     >>> calculate_withholding(section="236K", amount=60_000_000, atl=False, tax_year=2027).rate
     14.5
     >>> calculate_withholding(section="231AB", amount=80_000, atl=False, tax_year=2027).tax
-    640.0
+    640
     >>> calculate_withholding(
     ...     section="151", sub_type="bank-deposit", amount=10_000, atl=True, tax_year=2027
     ... ).tax
-    2000.0
+    2000
     """
     if input is not None:
         if not isinstance(input, Mapping):
@@ -273,10 +296,13 @@ def calculate_withholding(
         amount = get("amount", "amount")
         atl = get("atl", "atl")
         late_filer = get("lateFiler", "late_filer")
+        return_on_investment = get("returnOnInvestment", "return_on_investment")
+        resident = get("resident", "resident")
         tax_year = get("taxYear", "tax_year")
         date = get("date", "date")
     else:
         sub_type = _MISSING if sub_type is None else sub_type
+        return_on_investment = _MISSING if return_on_investment is None else return_on_investment
         tax_year = _MISSING if tax_year is None else tax_year
         date = _MISSING if date is None else date
 
@@ -307,16 +333,36 @@ def calculate_withholding(
     if row is None:
         return None
 
+    # 151 sukuk (individual or AOP): the case must fit the return; the law
+    # says "more than" and "less than" Rs 1 million, so exactly Rs 1 million
+    # fits neither.
+    band = row.get("returnBand")
+    if band is not None:
+        ret = paisa if return_on_investment is _MISSING else to_units(return_on_investment, 2)
+        if ret is None:
+            return None
+        if "over" in band and not ret > band["over"] * 100:
+            return None
+        if "under" in band and not ret < band["under"] * 100:
+            return None
+
     is_late = atl and late_filer is True
     slab: Optional[WithholdingSlab] = None
     threshold: Optional[WithholdingThreshold] = None
 
     if row["atl"].get("salarySlabs"):
-        salary = calculate_salary_tax(from_paisa(paisa), tax_year=year)
-        if salary is None:
+        # The salaried rate table, computed exactly and rounded once.
+        table = get_salary_tax_slabs(year)
+        if table is None:
             return None
-        rate = salary.effective_rate
-        tax_paisa = js_round(salary.tax * 100)
+        salary_band = table.slabs[0]
+        for candidate in table.slabs:
+            if paisa > candidate.over * 100:
+                salary_band = candidate
+        over_paisa = int(salary_band.over * 100)
+        above = paisa - over_paisa if paisa > over_paisa else 0
+        tax_rupees = salary_band.fixed + divide_half_up(above * js_round(salary_band.rate * 100), 1_000_000)
+        rate = 0 if paisa == 0 else divide_half_up(int(tax_rupees) * 1_000_000, paisa) / 100
     else:
         if not atl:
             spec = row["nonAtl"]
@@ -330,7 +376,7 @@ def calculate_withholding(
         else:
             spec_rate = spec.get("rate")
             rate = spec_rate if is_number(spec_rate) else 0
-        tax_paisa = divide_half_up(paisa * js_round(rate * 100), 10000)
+        tax_rupees = divide_half_up(paisa * js_round(rate * 100), 1_000_000)
         raw_threshold = row.get("threshold")
         if raw_threshold is not None:
             within = paisa <= raw_threshold["amount"] * 100
@@ -338,7 +384,7 @@ def calculate_withholding(
                 amount=raw_threshold["amount"], per=raw_threshold["per"], within_threshold=within
             )
             if within:
-                tax_paisa = 0
+                tax_rupees = 0
 
     return Withholding(
         section=row["section"],
@@ -348,12 +394,17 @@ def calculate_withholding(
         atl=atl,
         late_filer=is_late,
         rate=rate,
-        tax=from_paisa(tax_paisa),
+        tax=tax_rupees,
         non_atl_rule=row["nonAtl"]["rule"],
         slab=slab,
         threshold=threshold,
         card_ref=row["cardRef"],
         law_ref=row["lawRef"],
         statute_override=row.get("statuteOverride"),
+        tax_nature=(
+            (nature["resident"] if resident else nature["nonResident"])
+            if (nature := row.get("taxNature")) is not None and isinstance(resident, bool)
+            else None
+        ),
         source=_source(row),
     )

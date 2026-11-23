@@ -11,6 +11,18 @@ export interface ZakatDocument {
   url: string;
 }
 
+/** Who announced 1 Ramazan, and where the announcement was reported. */
+export interface ZakatRamazan1Source {
+  /** `Central Ruet-e-Hilal Committee`. */
+  authority: string;
+  /** The outlet that reported the announcement, e.g. `Dawn`. */
+  reportedBy: string;
+  /** The report's date (YYYY-MM-DD), or `null` if not recorded. */
+  reportedOn: string | null;
+  /** The report's URL, where recorded. */
+  url?: string;
+}
+
 /** One Zakat year's nisab for deduction at source, as notified. */
 export interface ZakatNisab {
   /** The Hijri year of the valuation date (1 Ramazan), e.g. `1447`. */
@@ -19,28 +31,28 @@ export interface ZakatNisab {
   label: string;
   /** Nisab in rupees: accounts with a lower balance are not deducted. */
   nisab: number;
-  /** The valuation (deduction) date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`. */
+  /** The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`. */
   valuationDateHijri: string;
   /**
-   * The two Gregorian dates the notification says 1 Ramazan is likely to
-   * fall on (YYYY-MM-DD). The day itself depends on the moon sighting.
+   * The valuation date: 1 Ramazan in the Gregorian calendar (YYYY-MM-DD), as
+   * announced by the Central Ruet-e-Hilal Committee. Zakat years are
+   * assigned to dates by it.
    */
-  expectedValuationDates: [string, string];
+  ramazan1: string;
+  ramazan1Source: ZakatRamazan1Source;
   /**
-   * The bank holiday for the deduction, when SBP's circular names a
-   * Gregorian date (YYYY-MM-DD); otherwise `null`.
+   * The deduction day: the bank holiday SBP declares for it (YYYY-MM-DD).
+   * It is `ramazan1`, or the next working day when 1 Ramazan falls on a
+   * weekend or public holiday (for example 24 March 2023, after Pakistan
+   * Day). `null` where no SBP holiday circular was found.
    */
   bankHolidayDate: string | null;
-  /**
-   * The confirmed Gregorian date of 1 Ramazan (YYYY-MM-DD), where a source
-   * states it, with that source; otherwise `null` and `null`.
-   */
-  valuationDate: string | null;
-  valuationDateSource: { reference: string; url: string } | null;
   /** The Ministry of Poverty Alleviation & Social Safety notification. */
   notification: ZakatDocument;
   /** The SBP BPRD circular letter that conveys it to banks. */
   sbpCircular: ZakatDocument;
+  /** Notes on the documents, including the notification's "likely to fall on" text. */
+  note: string | null;
   /** The notification and SBP circular, as a {@link DataSource}. */
   source: DataSource;
 }
@@ -89,16 +101,16 @@ interface Row {
   label: string;
   nisab: number;
   valuationDateHijri: string;
-  expectedValuationDates: [string, string];
+  ramazan1: string;
+  ramazan1Source: ZakatRamazan1Source;
   bankHolidayDate: string | null;
-  valuationDate: string | null;
-  valuationDateSource: { reference: string; url: string } | null;
   notification: ZakatDocument;
   sbpCircular: ZakatDocument;
+  note?: string;
 }
 
 const YEARS = nisabData as unknown as Row[];
-/** Days after the last notified year's first possible start that it still certainly covers. */
+/** Days after the last notified year's 1 Ramazan that it still certainly covers. */
 const LUNAR_YEAR_DAYS = 353;
 
 function addDays(iso: string, days: number): string {
@@ -114,22 +126,18 @@ function toNisab(row: Row): ZakatNisab {
     label: row.label,
     nisab: row.nisab,
     valuationDateHijri: row.valuationDateHijri,
-    expectedValuationDates: [...row.expectedValuationDates],
-    valuationDate: row.valuationDate,
-    valuationDateSource: row.valuationDateSource
-      ? { ...row.valuationDateSource }
-      : null,
+    ramazan1: row.ramazan1,
+    ramazan1Source: { ...row.ramazan1Source },
     bankHolidayDate: row.bankHolidayDate,
     notification: { ...row.notification },
     sbpCircular: { ...row.sbpCircular },
+    note: row.note ?? null,
     source: {
       id: 'zakat-nisab',
-      // From the earlier of the two likely days of 1 Ramazan, to the day
-      // before the next year's; open while it is the latest year.
-      effectiveFrom: row.valuationDate ?? row.expectedValuationDates[0],
-      effectiveTo: next
-        ? addDays(next.valuationDate ?? next.expectedValuationDates[0], -1)
-        : null,
+      // From 1 Ramazan to the day before the next year's; open while it is
+      // the latest year.
+      effectiveFrom: row.ramazan1,
+      effectiveTo: next ? addDays(next.ramazan1, -1) : null,
       sourceReference: `Notification No. ${row.notification.number} (${row.notification.date}); SBP ${row.sbpCircular.number} (${row.sbpCircular.date})`,
       sourceUrl: row.notification.url,
     },
@@ -148,32 +156,23 @@ function byYear(value: unknown): Row | undefined {
 }
 
 /**
- * The Zakat year a date falls in. A year starts on 1 Ramazan, which the
- * notification gives only as one of two likely days; a date on the earlier
- * of the two is ambiguous and gives `undefined`, as does a date past the
- * last notified year.
+ * The Zakat year a date falls in: the last year whose 1 Ramazan is on or
+ * before it. A date before the first covered year, or 353 days or more
+ * after the last year's 1 Ramazan (next year not yet notified), gives
+ * `undefined`.
  */
 function byDate(value: unknown): Row | undefined {
   const date = isoDate(value as string | Date);
   if (date === null) return undefined;
   for (let i = YEARS.length - 1; i >= 0; i -= 1) {
     const row = YEARS[i] as Row;
-    const [first, second] = row.expectedValuationDates;
-    if (row.valuationDate !== null) {
-      if (date < row.valuationDate) continue;
-      if (
-        i === YEARS.length - 1 &&
-        date >= addDays(row.valuationDate, LUNAR_YEAR_DAYS)
-      )
-        return undefined;
-      return row;
-    }
-    if (date >= second) {
-      if (i === YEARS.length - 1 && date >= addDays(first, LUNAR_YEAR_DAYS))
-        return undefined;
-      return row;
-    }
-    if (date >= first) return undefined;
+    if (date < row.ramazan1) continue;
+    if (
+      i === YEARS.length - 1 &&
+      date >= addDays(row.ramazan1, LUNAR_YEAR_DAYS)
+    )
+      return undefined;
+    return row;
   }
   return undefined;
 }
@@ -193,17 +192,16 @@ function find(query: unknown): Row | undefined {
  * 1433 to 1447 AH (2012-2026).
  *
  * Give the year (`1447`, or the notification's `'1446-47'`) or a date. A
- * Zakat year starts on 1 Ramazan. Where its Gregorian date is confirmed
- * (`valuationDate`, 2026 so far), that date is used. Otherwise only the two
- * likely days the notification gives are known, and for a date on the first
- * of them the year is unknown and the result is `null`.
+ * Zakat year starts on 1 Ramazan (`ramazan1`, as the Central Ruet-e-Hilal
+ * Committee announced it), and a date belongs to the last year whose 1
+ * Ramazan is on or before it.
  *
  * This is the nisab for deduction from savings and similar bank accounts
  * under the Zakat and Ushr Ordinance 1980, not a religious ruling on
  * personal Zakat.
  *
  * @returns The year's nisab, dates and sources, or `null` for a year that
- *   is not covered, an invalid query, or an ambiguous date. Never throws.
+ *   is not covered or an invalid query. Never throws.
  *
  * @example
  * getZakatNisab({ zakatYear: 1447 })?.nisab; // 503529
@@ -227,11 +225,12 @@ export function getZakatYears(): number[] {
  * nothing when it is below or the holder has a valid exemption declaration
  * (Form CZ-50).
  *
- * A balance exactly equal to the nisab is deducted, as the notifications
- * say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
- * says no deduction where the balance "does not exceed" the nisab, which
- * would not deduct it; the library follows the notifications, which banks
- * apply.
+ * A balance exactly equal to the nisab is deducted: every notification
+ * says no deduction where the balance is "less than" the nisab, and the
+ * Ordinance (s. 2(xxiii)) defines a sahib-e-nisab as owning "not less than
+ * nisab". The First Schedule's own wording ("does not exceed") would not
+ * deduct it. In Punjab the Punjab Zakat and Ushr Act 2018 replaced the
+ * Ordinance, with the same First Schedule wording.
  *
  * It applies to the accounts the Ordinance subjects to deduction at source:
  * savings, profit-and-loss sharing and similar accounts (asset code 101).
@@ -239,7 +238,7 @@ export function getZakatYears(): number[] {
  * not a religious ruling on how much Zakat a person owes.
  *
  * @returns The deduction and its source, or `null` for an invalid balance,
- *   a year that is not covered, or an ambiguous date. Never throws.
+ *   a year that is not covered. Never throws.
  *
  * @example
  * zakatDeduction({ balance: 600000, zakatYear: 1447 });

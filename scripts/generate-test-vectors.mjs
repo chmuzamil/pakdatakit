@@ -3365,8 +3365,13 @@ vectors.set('data-version', [
     call('zakat', 'getZakatNisab', [{ zakatYear: year.zakatYear }]);
     call('zakat', 'getZakatNisab', [{ zakatYear: String(year.zakatYear) }]);
     call('zakat', 'getZakatNisab', [{ zakatYear: year.label }]);
-    const [first, second] = year.expectedValuationDates;
-    for (const date of [first, second]) {
+    // Dates are assigned to Zakat years by 1 Ramazan (ramazan1).
+    const dayBefore = new RealDate(`${year.ramazan1}T00:00:00Z`);
+    dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+    const before = dayBefore.toISOString().slice(0, 10);
+    for (const date of [before, year.ramazan1, year.bankHolidayDate].filter(
+      Boolean,
+    )) {
       call('zakat', 'getZakatNisab', [{ date: D(date) }]);
       call('zakat', 'getZakatNisab', [{ date }]);
     }
@@ -3387,7 +3392,7 @@ vectors.set('data-version', [
       { balance: year.nisab * 2, zakatYear: year.zakatYear, exempt: true },
     ]);
     call('zakat', 'zakatDeduction', [
-      { balance: year.nisab * 3, date: second },
+      { balance: year.nisab * 3, date: year.ramazan1 },
     ]);
   }
   for (const date of [

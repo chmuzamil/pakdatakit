@@ -130,6 +130,7 @@ interface Row {
   card: string;
   statuteOverride?: string;
   note?: string;
+  circular?: { reference: string; url: string };
 }
 
 const ROWS = ratesData as unknown as Row[];
@@ -154,6 +155,8 @@ export interface WithholdingRate {
   lawRef: string;
   statuteOverride: string | null;
   note: string | null;
+  /** FBR's circular explaining the rate, where one is recorded. */
+  circular: { reference: string; url: string } | null;
   source: DataSource;
 }
 
@@ -205,6 +208,7 @@ export function getWithholdingRates(
     lawRef: r.lawRef,
     statuteOverride: r.statuteOverride ?? null,
     note: r.note ?? null,
+    circular: r.circular ? { ...r.circular } : null,
     source: source(r),
   }));
 }

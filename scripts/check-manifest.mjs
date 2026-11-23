@@ -46,6 +46,7 @@ const FIELDS = [
   'sourceReference',
   'sourceDate',
   'retrievedAt',
+  'checkedAt',
   'effectiveFrom',
   'effectiveTo',
   'coverage',
@@ -61,6 +62,7 @@ const FULL_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_FIELDS = [
   'sourceDate',
   'retrievedAt',
+  'checkedAt',
   'effectiveFrom',
   'effectiveTo',
   'nextExpectedUpdate',
@@ -98,7 +100,7 @@ for (const entry of manifest) {
     if (value !== null && value !== undefined && !DATE.test(value))
       fail(`${label}: "${field}" is not YYYY, YYYY-MM or YYYY-MM-DD: ${value}`);
   }
-  for (const field of ['retrievedAt', 'nextExpectedUpdate'])
+  for (const field of ['retrievedAt', 'checkedAt', 'nextExpectedUpdate'])
     if (entry[field] && !FULL_DATE.test(entry[field]))
       fail(`${label}: "${field}" must be a full date`);
   if (

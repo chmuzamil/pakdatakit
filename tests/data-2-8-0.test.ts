@@ -36,8 +36,13 @@ describe('zakat', () => {
     // 1 Ramazan 1447 is confirmed as 19 February 2026.
     expect(getZakatNisab({ date: '2026-02-18' })?.zakatYear).toBe(1446);
     expect(getZakatNisab({ date: '2026-02-19' })?.zakatYear).toBe(1447);
-    // Unconfirmed years: the first of the two likely days is ambiguous.
-    expect(getZakatNisab({ date: '2025-03-01' })).toBeNull();
+    // Every year starts on its announced 1 Ramazan.
+    expect(getZakatNisab({ date: '2025-03-01' })?.zakatYear).toBe(1445);
+    expect(getZakatNisab({ date: '2025-03-02' })?.zakatYear).toBe(1446);
+    expect(getZakatNisab({ zakatYear: 1433 })?.bankHolidayDate).toBe(
+      '2012-07-23',
+    );
+    expect(getZakatNisab({ date: '2012-07-20' })).toBeNull();
     expect(getZakatNisab({ date: '2026-02-20' })?.zakatYear).toBe(1447);
     expect(getZakatNisab({ zakatYear: 1432 })).toBeNull();
   });

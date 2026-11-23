@@ -182,10 +182,12 @@ circular letter.
    check that they agree.
 2. Add a new record to `data/zakat-nisab.json` for the new Zakat year (the
    Hijri year of 1 Ramazan): `label` as the notification writes it, the
-   two likely Gregorian dates, the notification and circular numbers, dates
-   and URLs. Add `bankHolidayDate` if SBP's bank holiday circular names a
-   Gregorian date. Once 1 Ramazan is announced, set `valuationDate` and
-   `valuationDateSource` (the Central Ruet-e-Hilal Committee's announcement).
+   notification and circular numbers, dates and URLs, and the notification's
+   "likely to fall on" text in `note`. Once the Central Ruet-e-Hilal
+   Committee announces the moon, set `ramazan1` and `ramazan1Source`
+   (authority, the outlet that reported it, its date and URL), and
+   `bankHolidayDate`: the deduction day in SBP's bank holiday circular (1
+   Ramazan, or the next working day if it is a weekend or public holiday).
    Never change a past year.
 3. Update the `zakat-nisab` entry in `data/manifest.json` (`recordCount`,
    `coverage`, `sourceUrl`, `sourceReference`, `sourceDate`,

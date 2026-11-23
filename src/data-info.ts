@@ -18,8 +18,10 @@ export interface DataInfo {
   sourceReference: string;
   /** When the source was issued (YYYY, YYYY-MM or YYYY-MM-DD), or `null` if it is undated. */
   sourceDate: string | null;
-  /** When the source was last downloaded and checked (YYYY-MM-DD). */
+  /** When the source was last downloaded (YYYY-MM-DD). */
   retrievedAt: string;
+  /** When the data was last checked against the source (YYYY-MM-DD). */
+  checkedAt: string;
   /** First date the data applies to (YYYY, YYYY-MM or YYYY-MM-DD). */
   effectiveFrom: string;
   /** Last date it applies to, or `null` while it is current. */

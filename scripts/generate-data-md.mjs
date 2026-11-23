@@ -38,7 +38,7 @@ const period = (e) => `${e.effectiveFrom} to ${e.effectiveTo ?? 'now'}`;
 function facts(e) {
   return [
     `- **Dataset:** \`${e.file}\` (id \`${e.id}\`), ${e.recordCount.toLocaleString('en-US')} records. ${e.coverage}.`,
-    `- **Source:** ${e.issuer}, ${e.sourceReference} (${e.sourceUrl}), ${e.sourceDate ? `dated ${e.sourceDate}` : 'undated'}; retrieved ${e.retrievedAt}.`,
+    `- **Source:** ${e.issuer}, ${e.sourceReference} (${e.sourceUrl}), ${e.sourceDate ? `dated ${e.sourceDate}` : 'undated'}; retrieved ${e.retrievedAt}, checked ${e.checkedAt}.`,
     `- **Applies:** ${period(e)}.`,
     `- **Next expected update:** ${e.nextExpectedUpdate} (${e.updateCadence.charAt(0).toLowerCase()}${e.updateCadence.slice(1)}).`,
   ].join('\n');

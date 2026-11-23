@@ -217,6 +217,7 @@ export {
   getZakatYears,
   zakatDeduction,
   type ZakatNisab,
+  type ZakatRamazan1Source,
   type ZakatDocument,
   type ZakatYearQuery,
   type ZakatDeduction,

@@ -67,11 +67,13 @@ multiplier:
 - **Late filers** (R.1A, 2025 and 2026 only; omitted by Finance Act 2026):
   236C and 236K have their own value bands.
 
-**Thresholds:** 231AB applies only when cash withdrawn in a day, all
-withdrawals added up, exceeds Rs 50,000. That is in the section's text in
-all three years, though no card shows it. 236C and 236K bands are by the
-gross consideration or fair market value: up to Rs 50 million, up to Rs 100
-million, and above.
+**Thresholds (settled):** 231AB is on the day's aggregate cash
+withdrawals. Once it exceeds Rs 50,000, the tax is on the whole sum; Rs
+50,000 itself is not taxed. The threshold is in the section's text in all
+three years, though no card shows it. 236C and 236K bands are chosen by the
+whole gross consideration or fair market value, not applied in slices:
+up to Rs 50 million, up to Rs 100 million, and above. Rs 50 million and Rs
+100 million fall in the lower band (FBR's wording is "does not exceed").
 
 **Rounding:** the tax is rounded to the nearest rupee, as section 219 of
 the Ordinance requires for "any amount of tax or refund payable under this
@@ -84,10 +86,15 @@ than one million". A return of exactly Rs 1 million is in neither, so the
 library returns no rate for it, and a case that does not fit the return
 (`returnOnInvestment`, default the amount) is rejected.
 
-**154B:** 5% for every recipient; section 154B(3) makes it a minimum tax
-for a resident and a final tax for a non-resident without a permanent
-establishment in Pakistan. Tenth Schedule R.1 applies to persons not on the
-ATL whether resident or not (R.10 does not exclude 154B).
+**154B (settled):** 5% for persons on the ATL and 10% for persons not on
+it, residents and non-residents alike (TY2027 card; Tenth Schedule R.10
+does not exclude 154B). Section 154B(3) makes it a minimum tax for a
+resident and a final tax for a non-resident without a permanent
+establishment in Pakistan.
+
+**FBR's explanation:** Circular No. 02 of 2026-27 (8 September 2026)
+confirms the 2027 service rates (paragraph 22: 7%, 15%, 12% and 14%) and
+the 1.25% export rate (paragraph 30); those records cite it in `circular`.
 
 **153(2A):** the e-commerce cases name section 153(2A) in their law
 reference.

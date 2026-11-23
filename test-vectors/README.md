@@ -9,7 +9,7 @@ port replays them and fails on any difference.
 
 <!-- vectors:count -->
 
-42,373 vectors in 31 files:
+42,399 vectors in 31 files:
 
 - `address.json`: 870
 - `bills.json`: 354
@@ -41,7 +41,7 @@ port replays them and fails on any difference.
 - `whatsapp.json`: 45
 - `withholding.json`: 4,280
 - `words.json`: 478
-- `zakat.json`: 300
+- `zakat.json`: 326
 
 <!-- /vectors:count -->
 

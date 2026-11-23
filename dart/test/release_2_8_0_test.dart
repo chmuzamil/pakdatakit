@@ -95,7 +95,8 @@ void main() {
     expect(scb.status, BankStatus.active);
     expect(scb.swift, 'SCBLPKKX');
     expect(scb.swiftSource?.bicSource, BankBicSource.bankSite);
-    expect(getBankInfo('FAYS')?.swiftSource?.bicSource, BankBicSource.directory);
+    expect(
+        getBankInfo('FAYS')?.swiftSource?.bicSource, BankBicSource.directory);
     expect(scb.toJson().keys.skip(6).first, 'status');
     expect(getDataInfo('banks')?.checkedAt, isNotNull);
   });

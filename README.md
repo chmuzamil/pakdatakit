@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./banner.png" alt="PakDataKit Banner" />
+  <a href="https://pakdatakit.dev/"><img src="./banner.png" alt="PakDataKit: Pakistani data for developers, the same answer in five languages. pakdatakit.dev" /></a>
 </p>
 
 <h1 align="center">🇵🇰 PakDataKit</h1>

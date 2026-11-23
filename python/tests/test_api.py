@@ -147,6 +147,13 @@ def test_bank_info() -> None:
     assert inactive and all(b.merged_into or b.code == "SMES" for b in inactive)
     smes = pdk.get_bank_info("SMES")
     assert smes is not None and not smes.active and smes.merged_into is None
+    assert {b.status for b in pdk.get_banks()} <= {"active", "merged", "liquidated"}
+    abl = pdk.get_bank_info("ABPA")
+    assert abl is not None and abl.swift == "ABPAPKKA" and abl.swift_reason is None
+    assert isinstance(abl.swift_source, pdk.BankSwiftSource) and abl.swift_source.bic_source == "bank-site"
+    assert all((b.swift is None) == (b.swift_source is None) for b in pdk.get_banks())
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        abl.swift = "X"  # type: ignore[misc]
     with pytest.raises(ValueError):
         pdk.number_to_words(5, language="fr")
 
@@ -704,6 +711,7 @@ def test_cnics_across_lines() -> None:
 def test_data_info() -> None:
     info = pdk.get_data_info("income-tax-slabs")
     assert isinstance(info, pdk.DataInfo) and info.file == "income-tax-slabs.json"
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", info.checked_at)
     assert not hasattr(info, "series")
     ids = [d.id for d in pdk.list_data_info()]
     assert ids == sorted(ids) and "banks" in ids
@@ -718,15 +726,18 @@ def test_data_info() -> None:
 def test_zakat() -> None:
     assert pdk.get_zakat_nisab(zakat_year=1447) == pdk.get_zakat_nisab({"zakatYear": 1447})
     nisab = pdk.get_zakat_nisab(zakat_year="1446-47")
-    assert nisab is not None and nisab.zakat_year == 1447 and len(nisab.expected_valuation_dates) == 2
-    assert nisab.valuation_date == "2026-02-19" and nisab.valuation_date_source is not None
-    assert pdk.get_zakat_nisab(date="2026-02-19") == nisab  # confirmed 1 Ramazan 1447
-    assert pdk.get_zakat_nisab(date="2026-02-18").zakat_year == 1446  # type: ignore[union-attr]
-    older = pdk.get_zakat_nisab(zakat_year=1446)
-    assert older is not None and older.valuation_date is None
-    first, second = older.expected_valuation_dates
-    assert pdk.get_zakat_nisab(date=first) is None  # ambiguous: 1 Ramazan may be either day
-    assert pdk.get_zakat_nisab(date=dt.date.fromisoformat(second)) == older
+    assert nisab is not None and nisab.zakat_year == 1447 and nisab.ramazan1 == "2026-02-19"
+    assert isinstance(nisab.ramazan1_source, pdk.ZakatRamazan1Source)
+    assert nisab.ramazan1_source.announced_by == "Central Ruet-e-Hilal Committee"
+    assert nisab.source.effective_from == "2026-02-19" and nisab.source.effective_to is None
+    assert pdk.get_zakat_nisab(date="2026-02-19") == nisab  # 1 Ramazan 1447
+    assert pdk.get_zakat_nisab(date=dt.date(2026, 2, 18)).zakat_year == 1446  # type: ignore[union-attr]
+    assert pdk.get_zakat_nisab(date="2026-02-18").source.effective_to == "2026-02-18"  # type: ignore[union-attr]
+    first = pdk.get_zakat_nisab(zakat_year=1433)
+    assert first is not None and pdk.get_zakat_nisab(date=first.ramazan1) == first
+    assert first.ramazan1_source.url is None  # not recorded for 1433
+    assert pdk.get_zakat_nisab(date=pdk.get_zakat_nisab(zakat_year=1433).source.effective_from) == first  # type: ignore[union-attr]
+    assert pdk.get_zakat_nisab(date="2011-01-01") is None  # before the first covered year
     assert pdk.zakat_deduction(balance=600_000.2, zakat_year=1447).zakat == 15_000  # whole rupees
     years = pdk.get_zakat_years()
     assert years == sorted(years) and years[-1] == 1447
@@ -767,6 +778,7 @@ def test_withholding() -> None:
     assert result.tax_nature is None and isinstance(result.tax, int)
     rates = pdk.get_withholding_rates(2027)
     assert rates and all(isinstance(r, pdk.WithholdingRate) for r in rates)
+    assert any(isinstance(r.circular, pdk.WithholdingCircular) for r in rates)
     assert [r.section for r in pdk.get_withholding_rates(2027, "154b")] == ["154B"]
     assert pdk.get_withholding_rates(2020) == [] and pdk.get_withholding_rates("2027") == []
     for value in HOSTILE_INPUTS + [[], {}, True, float("nan")]:

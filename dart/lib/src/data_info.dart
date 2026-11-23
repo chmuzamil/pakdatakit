@@ -13,6 +13,7 @@ class DataInfo {
     required this.sourceReference,
     required this.sourceDate,
     required this.retrievedAt,
+    required this.checkedAt,
     required this.effectiveFrom,
     required this.effectiveTo,
     required this.coverage,
@@ -45,8 +46,11 @@ class DataInfo {
   /// `null` if it is undated.
   final String? sourceDate;
 
-  /// When the source was last downloaded and checked (`YYYY-MM-DD`).
+  /// When the source was last downloaded (`YYYY-MM-DD`).
   final String retrievedAt;
+
+  /// When the data was last checked against the source (`YYYY-MM-DD`).
+  final String checkedAt;
 
   /// First date the data applies to (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`).
   final String effectiveFrom;
@@ -79,6 +83,7 @@ class DataInfo {
         'sourceReference': sourceReference,
         'sourceDate': sourceDate,
         'retrievedAt': retrievedAt,
+        'checkedAt': checkedAt,
         'effectiveFrom': effectiveFrom,
         'effectiveTo': effectiveTo,
         'coverage': coverage,
@@ -99,6 +104,7 @@ class DataInfo {
       other.sourceReference == sourceReference &&
       other.sourceDate == sourceDate &&
       other.retrievedAt == retrievedAt &&
+      other.checkedAt == checkedAt &&
       other.effectiveFrom == effectiveFrom &&
       other.effectiveTo == effectiveTo &&
       other.coverage == coverage &&
@@ -117,6 +123,7 @@ class DataInfo {
         sourceReference,
         sourceDate,
         retrievedAt,
+        checkedAt,
         effectiveFrom,
         effectiveTo,
         coverage,
@@ -198,6 +205,7 @@ final List<DataInfo> _manifest = List.unmodifiable([
       sourceReference: e['sourceReference']! as String,
       sourceDate: e['sourceDate'] as String?,
       retrievedAt: e['retrievedAt']! as String,
+      checkedAt: e['checkedAt']! as String,
       effectiveFrom: e['effectiveFrom']! as String,
       effectiveTo: e['effectiveTo'] as String?,
       coverage: e['coverage']! as String,

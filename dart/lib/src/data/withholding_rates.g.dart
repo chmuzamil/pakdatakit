@@ -1862,6 +1862,12 @@ const List<Object?> withholdingRatesJson = <Object?>[
         'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
+    'circular': <String, Object?>{
+      'reference':
+          'FBR Circular No. 02 of 2026-27 (Income Tax), C. No. 1(50)S(ITP)/2026, 8 September 2026, paragraph 22',
+      'url':
+          'https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf',
+    },
   },
   <String, Object?>{
     'taxYear': 2027,
@@ -1900,6 +1906,12 @@ const List<Object?> withholdingRatesJson = <Object?>[
         'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
+    'circular': <String, Object?>{
+      'reference':
+          'FBR Circular No. 02 of 2026-27 (Income Tax), C. No. 1(50)S(ITP)/2026, 8 September 2026, paragraph 22',
+      'url':
+          'https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf',
+    },
   },
   <String, Object?>{
     'taxYear': 2027,
@@ -1919,6 +1931,12 @@ const List<Object?> withholdingRatesJson = <Object?>[
         'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
+    'circular': <String, Object?>{
+      'reference':
+          'FBR Circular No. 02 of 2026-27 (Income Tax), C. No. 1(50)S(ITP)/2026, 8 September 2026, paragraph 22',
+      'url':
+          'https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf',
+    },
   },
   <String, Object?>{
     'taxYear': 2027,
@@ -1938,6 +1956,12 @@ const List<Object?> withholdingRatesJson = <Object?>[
         'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
+    'circular': <String, Object?>{
+      'reference':
+          'FBR Circular No. 02 of 2026-27 (Income Tax), C. No. 1(50)S(ITP)/2026, 8 September 2026, paragraph 22',
+      'url':
+          'https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf',
+    },
   },
   <String, Object?>{
     'taxYear': 2027,
@@ -2032,6 +2056,12 @@ const List<Object?> withholdingRatesJson = <Object?>[
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
     'statuteOverride':
         'The card shows 1% (non-ATL 2%). The Finance Act 2026 as enacted (Gazette of Pakistan, Extraordinary, Part I, 26 June 2026, pp. 583-584), s. 5(44)(b)(v)(B), substitutes 1.25% for 1% in paragraph (3) of Division IV, Part III of the First Schedule (s. 6(44)(b)(v)(B) in the Finance Bill); the card says the Ordinance prevails.',
+    'circular': <String, Object?>{
+      'reference':
+          'FBR Circular No. 02 of 2026-27 (Income Tax), C. No. 1(50)S(ITP)/2026, 8 September 2026, paragraph 30',
+      'url':
+          'https://download1.fbr.gov.pk/Docs/202698139527880CircularNo.2of2026-27.pdf',
+    },
   },
   <String, Object?>{
     'taxYear': 2027,

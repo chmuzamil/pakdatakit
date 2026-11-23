@@ -13,7 +13,18 @@ internal static class Data
     internal sealed record AreaCodeEntry(string Code, IReadOnlyList<string> Cities);
 
     internal sealed record BankEntry(
-        string Code, string Name, string Type, string? MergedInto, string? AliasOf, bool Active);
+        string Code,
+        string Name,
+        string Type,
+        string? MergedInto,
+        string? AliasOf,
+        bool Active,
+        string Status,
+        string? Website,
+        string? WebsiteSbpListed,
+        string? Swift,
+        BankSwiftSource? SwiftSource,
+        string? SwiftReason);
 
     internal sealed record CityEntry(string City, string Province);
 
@@ -32,12 +43,12 @@ internal static class Data
         string Label,
         long Nisab,
         string ValuationDateHijri,
-        IReadOnlyList<string> ExpectedValuationDates,
+        string Ramazan1,
+        ZakatRamazan1Source Ramazan1Source,
         string? BankHolidayDate,
-        string? ValuationDate,
-        ZakatValuationDateSource? ValuationDateSource,
         ZakatDocument Notification,
-        ZakatDocument SbpCircular);
+        ZakatDocument SbpCircular,
+        string? Note);
 
     /// <summary>A rate for one kind of person: a rate, value bands, or the salaried rate table.</summary>
     internal sealed record WithholdingSpec(double? Rate, IReadOnlyList<WithholdingSlab>? Slabs, bool SalarySlabs);
@@ -62,7 +73,8 @@ internal static class Data
         string LawRef,
         string Card,
         string? StatuteOverride,
-        string? Note);
+        string? Note,
+        WithholdingCircular? Circular);
 
     internal sealed record DistrictPopulationRow(
         string District,
@@ -95,7 +107,18 @@ internal static class Data
     private static readonly Lazy<IReadOnlyList<BankEntry>> BanksLazy = new(() =>
         Array("banks.json", e => new BankEntry(
             Str(e, "code")!, Str(e, "name")!, Str(e, "type")!, Str(e, "mergedInto"), Str(e, "aliasOf"),
-            !(e.TryGetProperty("active", out var a) && a.ValueKind == JsonValueKind.False))));
+            !(e.TryGetProperty("active", out var a) && a.ValueKind == JsonValueKind.False),
+            Str(e, "status")!, Str(e, "website"), Str(e, "websiteSbpListed"), Str(e, "swift"),
+            e.TryGetProperty("swiftSource", out var ss) && ss.ValueKind == JsonValueKind.Object
+                ? new BankSwiftSource(
+                    Str(ss, "bicSource") == "sbp" ? BankBicSource.Sbp : BankBicSource.BankSite,
+                    Str(ss, "printed")!, Str(ss, "sourceUrl")!,
+                    ss.TryGetProperty("page", out var page) && page.ValueKind == JsonValueKind.Number
+                        ? page.GetInt32()
+                        : null,
+                    Str(ss, "checkedAt")!)
+                : null,
+            Str(e, "swiftReason"))));
 
     private static readonly Lazy<IReadOnlyList<CityEntry>> CitiesLazy = new(() =>
         Array("cities.json", e => new CityEntry(Str(e, "city")!, Str(e, "province")!)));
@@ -161,20 +184,20 @@ internal static class Data
     private static readonly Lazy<IReadOnlyList<DataInfo>> ManifestLazy = new(() =>
         Array("manifest.json", e => new DataInfo(
             Str(e, "id")!, Str(e, "file")!, Str(e, "title")!, Str(e, "issuer")!, Str(e, "sourceUrl")!,
-            Str(e, "sourceReference")!, Str(e, "sourceDate"), Str(e, "retrievedAt")!, Str(e, "effectiveFrom")!,
+            Str(e, "sourceReference")!, Str(e, "sourceDate"), Str(e, "retrievedAt")!, Str(e, "checkedAt")!,
+            Str(e, "effectiveFrom")!,
             Str(e, "effectiveTo"), Str(e, "coverage")!, e.GetProperty("recordCount").GetInt32(),
             Str(e, "nextExpectedUpdate")!, Str(e, "updateCadence")!, Str(e, "notes")!)));
 
     private static readonly Lazy<IReadOnlyList<ZakatRow>> ZakatNisabLazy = new(() =>
         Array("zakat-nisab.json", e => new ZakatRow(
             e.GetProperty("zakatYear").GetInt32(), Str(e, "label")!, e.GetProperty("nisab").GetInt64(),
-            Str(e, "valuationDateHijri")!, Strings(e.GetProperty("expectedValuationDates")),
-            Str(e, "bankHolidayDate"), Str(e, "valuationDate"),
-            e.TryGetProperty("valuationDateSource", out var vs) && vs.ValueKind == JsonValueKind.Object
-                ? new ZakatValuationDateSource(Str(vs, "reference")!, Str(vs, "url")!)
-                : null,
+            Str(e, "valuationDateHijri")!, Str(e, "ramazan1")!,
+            Ramazan1Source(e.GetProperty("ramazan1Source")),
+            Str(e, "bankHolidayDate"),
             Document(e.GetProperty("notification")),
-            Document(e.GetProperty("sbpCircular")))));
+            Document(e.GetProperty("sbpCircular")),
+            Str(e, "note"))));
 
     private static readonly Lazy<IReadOnlyList<WithholdingRow>> WithholdingRatesLazy = new(() =>
         Array("withholding-rates.json", e =>
@@ -206,7 +229,10 @@ internal static class Data
                 band is { } b2 ? Long(b2, "under") : null,
                 nature is { } n1 ? Str(n1, "resident") : null,
                 nature is { } n2 ? Str(n2, "nonResident") : null,
-                Str(e, "cardRef")!, Str(e, "lawRef")!, Str(e, "card")!, Str(e, "statuteOverride"), Str(e, "note"));
+                Str(e, "cardRef")!, Str(e, "lawRef")!, Str(e, "card")!, Str(e, "statuteOverride"), Str(e, "note"),
+                e.TryGetProperty("circular", out var c) && c.ValueKind == JsonValueKind.Object
+                    ? new WithholdingCircular(Str(c, "reference")!, Str(c, "url")!)
+                    : null);
         }));
 
     private static readonly Lazy<IReadOnlyList<DistrictPopulationRow>> DistrictPopulationLazy = new(() =>
@@ -292,6 +318,9 @@ internal static class Data
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number
             ? value.GetInt64()
             : null;
+
+    private static ZakatRamazan1Source Ramazan1Source(JsonElement e) =>
+        new(Str(e, "announcedBy")!, Str(e, "reportedBy")!, Str(e, "reportedOn"), Str(e, "url"));
 
     private static ZakatDocument Document(JsonElement e) =>
         new(Str(e, "number")!, Str(e, "date")!, Str(e, "url")!);

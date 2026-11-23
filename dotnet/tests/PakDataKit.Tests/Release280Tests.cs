@@ -37,6 +37,21 @@ public sealed class Release280Tests
         var ids = PakData.ListDataInfo().Select(d => d.Id).ToArray();
         Assert.Equal(ids.Order(StringComparer.Ordinal), ids);
         Assert.Contains("zakat-nisab", ids);
+        Assert.Matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", PakData.GetDataInfo("banks")!.CheckedAt);
+    }
+
+    [Fact]
+    public void DescribesBankWebsitesAndSwiftCodes()
+    {
+        var bank = Iban.GetBankInfo("ABPA");
+        Assert.Equal(BankStatus.Active, bank?.Status);
+        Assert.Equal("ABPAPKKA", bank?.Swift);
+        Assert.Equal(BankBicSource.BankSite, bank?.SwiftSource?.BicSource);
+        Assert.NotNull(Iban.GetBankInfo("AIIN")?.SwiftReason);
+        // The 2.7 constructor still binds; the new members default.
+        var built = new BankInfo("TEST", "Test", BankType.Commercial, true, null, null);
+        Assert.Equal(BankStatus.Active, built.Status);
+        Assert.Null(built.Swift);
     }
 
     [Fact]
@@ -56,11 +71,16 @@ public sealed class Release280Tests
         Assert.Equal(503529, Zakat.GetNisab(1447)?.Nisab);
         Assert.Equal(1446, Zakat.GetNisab(new ZakatYearQuery { Label = "1445-46" })?.ZakatYear);
         Assert.Equal(179689, Zakat.GetNisab(new ZakatYearQuery { Date = "2025-06-01" })?.Nisab);
-        // 1 Ramazan 1447 is confirmed as 19 February 2026; earlier years keep the two likely days.
+        // A date belongs to the last year whose 1 Ramazan is on or before it.
         Assert.Equal(1447, Zakat.GetNisab(new ZakatYearQuery { OnDate = new DateOnly(2026, 2, 19) })?.ZakatYear);
         Assert.Equal(1446, Zakat.GetNisab(new ZakatYearQuery { OnDate = new DateOnly(2026, 2, 18) })?.ZakatYear);
-        Assert.Null(Zakat.GetNisab(new ZakatYearQuery { Date = "2025-03-01" }));
-        Assert.Equal("2026-02-19", Zakat.GetNisab(1447)?.ValuationDate);
+        Assert.Equal(1445, Zakat.GetNisab(new ZakatYearQuery { Date = "2025-03-01" })?.ZakatYear);
+        Assert.Null(Zakat.GetNisab(new ZakatYearQuery { Date = "2012-07-20" }));
+        var nisab = Zakat.GetNisab(1447);
+        Assert.Equal("2026-02-19", nisab?.Ramazan1);
+        Assert.Equal("Central Ruet-e-Hilal Committee", nisab?.Ramazan1Source.AnnouncedBy);
+        Assert.Equal("2026-02-19", nisab?.Source.EffectiveFrom);
+        Assert.Equal("2026-02-18", Zakat.GetNisab(1446)?.Source.EffectiveTo);
         Assert.Null(Zakat.GetNisab(new ZakatYearQuery()));
         Assert.Equal(15, Zakat.GetYears().Count);
     }
@@ -101,6 +121,7 @@ public sealed class Release280Tests
         {
             Section = "154B", Amount = 100_000, Atl = true, TaxYear = 2027, Resident = false,
         })?.TaxNature);
+        Assert.Contains(Withholding.GetRates(2027), r => r.Circular is not null);
         Assert.Empty(Withholding.GetRates(2024));
         Assert.NotEmpty(Withholding.GetRates(2027, "154b"));
     }

@@ -11,7 +11,8 @@ vectors.
 
 - **Dated sources.** `get_data_info(id)` and `list_data_info()` return each
   dataset's `DataInfo` (issuer, official source and reference, dates, coverage,
-  record count, next expected update). `calculate_salary_tax()` and
+  record count, next expected update, and `checked_at`, when the data was
+  last checked against the source). `calculate_salary_tax()` and
   `calculate_monthly_salary_tax()` results, and `calculate_sales_tax()` results
   when the rate is looked up, carry a `source` (`DataSource`).
 - **Withholding tax, ATL and non-ATL.** `calculate_withholding()` returns a
@@ -22,13 +23,21 @@ vectors.
   picks the 151 sukuk case for an individual or AOP (more or less than Rs 1
   million; exactly Rs 1 million gives `None`), and `resident` gives 154B's
   `tax_nature` (`"minimum"` or `"final"`). 150 has the company case
-  `mutual-fund-debt-part-company`.
+  `mutual-fund-debt-part-company`. `WithholdingRate.circular`
+  (`WithholdingCircular`) cites FBR's circular where one explains the rate.
+- **Banks.** `BankInfo` adds `status` (`active`, `merged` or `liquidated`),
+  the official `website` (and `website_sbp_listed` where SBP lists an older
+  domain), and `swift` with `swift_source` (`BankSwiftSource`): the SWIFT/BIC
+  code only where SBP or the bank's own website prints it, otherwise
+  `swift_reason` says why it is `None`.
 - **Zakat.** `get_zakat_nisab(zakat_year=... | date=...)`, `get_zakat_years()`
   and `zakat_deduction(balance=..., zakat_year=... | date=..., exempt=False)`:
   the nisab for deduction at source, Zakat years 1433 to 1447 AH. `zakat` is
-  in whole rupees (First Schedule, Note 2). `valuation_date` and
-  `valuation_date_source` give the confirmed 1 Ramazan where known (1447),
-  and date lookups use it.
+  in whole rupees (First Schedule, Note 2). Each year gives `ramazan1`, the
+  valuation date as the Central Ruet-e-Hilal Committee announced it, with its
+  `ramazan1_source` (`ZakatRamazan1Source`), the deduction day
+  (`bank_holiday_date`) and a `note`; a date belongs to the last year whose
+  1 Ramazan is on or before it.
 - **Population.** `get_district_population(district)` and
   `get_tehsil_population(tehsil, district=None)` from the 2023 census, with
   `census_district`.

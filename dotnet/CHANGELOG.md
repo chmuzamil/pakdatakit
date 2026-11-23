@@ -10,8 +10,8 @@ used.
 
 - **Dated sources (#90).** `PakData.GetDataInfo(id)` and
   `PakData.ListDataInfo()` return each dataset's manifest entry (`DataInfo`:
-  issuer, source, reference and dates, coverage, record count, next expected
-  update). `SalaryTax.Source` and, when the rate was looked up,
+  issuer, source, reference, issue, retrieval and check dates, coverage,
+  record count, next expected update). `SalaryTax.Source` and, when the rate was looked up,
   `SalesTaxAmounts.Source` give the `DataSource` a result was calculated
   from. Both are init-only properties, so the records' constructors are
   unchanged (record equality now includes them).
@@ -26,9 +26,14 @@ used.
 - **Zakat (#93).** `Zakat.GetNisab()` (by year, `"1446-47"` label or date
   via `ZakatYearQuery`), `Zakat.GetYears()` and `Zakat.CalculateDeduction()`,
   Zakat years 1433 to 1447 AH. The deduction is in whole rupees (First
-  Schedule, Note 2). `ZakatNisab.ValuationDate` and `ValuationDateSource`
-  give the confirmed date of 1 Ramazan where a source states it (1447 so
-  far); date lookups and the source's dates use it.
+  Schedule, Note 2). `ZakatNisab.Ramazan1` is each year's 1 Ramazan as the
+  Central Ruet-e-Hilal Committee announced it (`Ramazan1Source`); a date
+  belongs to the last year whose 1 Ramazan is on or before it.
+  `WithholdingRate.Circular` cites FBR's circular where one is recorded.
+- **Banks (#94).** `BankInfo` gains `Status`, `Website`, `WebsiteSbpListed`,
+  `Swift` (only where SBP or the bank's own domain prints it),
+  `SwiftSource` and `SwiftReason`, as init-only properties so the 2.7
+  constructor still binds.
 - **Population (#95).** `Population.GetDistrict()` and
   `Population.GetTehsil()` from the 2023 census.
 - **FBR Digital Invoicing reference lists (#91).** New overloads

@@ -7,13 +7,13 @@ const List<Object?> zakatNisabJson = <Object?>[
     'label': '1432-33',
     'nisab': 51086,
     'valuationDateHijri': '1 Ramazan 1433 AH',
-    'expectedValuationDates': <Object?>[
-      '2012-07-20',
-      '2012-07-21',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
-    'bankHolidayDate': null,
+    'ramazan1': '2012-07-21',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2012-07-20',
+    },
+    'bankHolidayDate': '2012-07-23',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1432-33/2012',
       'date': '2012-07-18',
@@ -32,19 +32,19 @@ const List<Object?> zakatNisabJson = <Object?>[
       'url': 'https://www.sbp.org.pk/bprd/2012/CL17.htm',
     },
     'note':
-        'SBP circular text prints the notification number as \'CE-100(36)/NISAB/1432-33/2012\'; the Ministry letter itself reads \'CE-1001(36)/NISAB/1432-33/2012\'.',
+        'The notification says 1 Ramazan is "likely to fall on" 2012-07-20 or 2012-07-21. SBP circular text prints the notification number as \'CE-100(36)/NISAB/1432-33/2012\'; the Ministry letter itself reads \'CE-1001(36)/NISAB/1432-33/2012\'.',
   },
   <String, Object?>{
     'zakatYear': 1434,
     'label': '1433-34',
     'nisab': 41872,
     'valuationDateHijri': '1 Ramazan 1434 AH',
-    'expectedValuationDates': <Object?>[
-      '2013-07-10',
-      '2013-07-11',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
+    'ramazan1': '2013-07-11',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2013-07-09',
+    },
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE3 1001(36)/NISAB/1433-34/2013',
@@ -57,18 +57,20 @@ const List<Object?> zakatNisabJson = <Object?>[
       'url': 'https://www.sbp.org.pk/bprd/2013/CL17.htm',
     },
     'bankHolidayCircular': null,
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2013-07-10 or 2013-07-11.',
   },
   <String, Object?>{
     'zakatYear': 1435,
     'label': '1434-35',
     'nisab': 38810,
     'valuationDateHijri': '1 Ramazan 1435 AH',
-    'expectedValuationDates': <Object?>[
-      '2014-06-29',
-      '2014-06-30',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
+    'ramazan1': '2014-06-30',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'The Express Tribune',
+      'reportedOn': '2014-06-28',
+    },
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1434-35/2014/3494',
@@ -81,19 +83,21 @@ const List<Object?> zakatNisabJson = <Object?>[
       'url': 'https://www.sbp.org.pk/bprd/2014/CL20.htm',
     },
     'bankHolidayCircular': null,
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2014-06-29 or 2014-06-30.',
   },
   <String, Object?>{
     'zakatYear': 1436,
     'label': '1435-36',
     'nisab': 33641,
     'valuationDateHijri': '1 Ramazan 1436 AH',
-    'expectedValuationDates': <Object?>[
-      '2015-06-18',
-      '2015-06-19',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
-    'bankHolidayDate': null,
+    'ramazan1': '2015-06-19',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'The Express Tribune',
+      'reportedOn': '2015-06-17',
+    },
+    'bankHolidayDate': '2015-06-19',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1435-36/2015/',
       'date': '2015-06-16',
@@ -111,20 +115,20 @@ const List<Object?> zakatNisabJson = <Object?>[
       'url': 'https://www.sbp.org.pk/bprd/2015/CL16.htm',
     },
     'note':
-        'Notification number ends with trailing slash and no serial as printed. Addressed to SBP Banking Services Corporation.',
+        'The notification says 1 Ramazan is "likely to fall on" 2015-06-18 or 2015-06-19. The notification number ends "/2015/" with the serial blank in the original; SBP BPRD Circular Letter No. 14 of 2015 prints it the same way.',
   },
   <String, Object?>{
     'zakatYear': 1437,
     'label': '1436-37',
     'nisab': 35557,
     'valuationDateHijri': '1 Ramazan 1437 AH',
-    'expectedValuationDates': <Object?>[
-      '2016-06-07',
-      '2016-06-08',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
-    'bankHolidayDate': null,
+    'ramazan1': '2016-06-07',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2016-06-06',
+    },
+    'bankHolidayDate': '2016-06-07',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1436-37/2016',
       'date': '2016-06-03',
@@ -141,18 +145,20 @@ const List<Object?> zakatNisabJson = <Object?>[
       'closedOn': '1st Ramzan-ul-Mubarak 1437 A.H.',
       'url': 'https://www.sbp.org.pk/bprd/2016/CL16.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2016-06-07 or 2016-06-08.',
   },
   <String, Object?>{
     'zakatYear': 1438,
     'label': '1437-38',
     'nisab': 38406,
     'valuationDateHijri': '1 Ramazan 1438 AH',
-    'expectedValuationDates': <Object?>[
-      '2017-05-27',
-      '2017-05-28',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
+    'ramazan1': '2017-05-28',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': null,
+    },
     'bankHolidayDate': '2017-05-29',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1437-38/2017',
@@ -170,19 +176,21 @@ const List<Object?> zakatNisabJson = <Object?>[
       'closedOn': 'May 29, 2017',
       'url': 'https://www.sbp.org.pk/bprd/2017/CL17.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2017-05-27 or 2017-05-28.',
   },
   <String, Object?>{
     'zakatYear': 1439,
     'label': '1438-39',
     'nisab': 39198,
     'valuationDateHijri': '1 Ramazan 1439 AH',
-    'expectedValuationDates': <Object?>[
-      '2018-05-17',
-      '2018-05-18',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
-    'bankHolidayDate': null,
+    'ramazan1': '2018-05-17',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'The Express Tribune',
+      'reportedOn': '2018-05-16',
+    },
+    'bankHolidayDate': '2018-05-17',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1438-39/2018/304',
       'date': '2018-05-14',
@@ -199,19 +207,21 @@ const List<Object?> zakatNisabJson = <Object?>[
       'closedOn': '1st Ramadan-ul-Mubarak 1439 A.H.',
       'url': 'https://www.sbp.org.pk/bprd/2018/CL7.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2018-05-17 or 2018-05-18.',
   },
   <String, Object?>{
     'zakatYear': 1440,
     'label': '1439-40',
     'nisab': 44415,
     'valuationDateHijri': '1 Ramazan 1440 AH',
-    'expectedValuationDates': <Object?>[
-      '2019-05-06',
-      '2019-05-07',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
-    'bankHolidayDate': null,
+    'ramazan1': '2019-05-07',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2019-05-05',
+    },
+    'bankHolidayDate': '2019-05-07',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1439-40/2019/226',
       'date': '2019-05-03',
@@ -229,19 +239,19 @@ const List<Object?> zakatNisabJson = <Object?>[
       'url': 'https://www.sbp.org.pk/bprd/2019/CL10.htm',
     },
     'note':
-        'SBP circular page links annex as CL9_Annex.PDF (403 on archive); same file served at CL9_Annex.pdf.',
+        'The notification says 1 Ramazan is "likely to fall on" 2019-05-06 or 2019-05-07. SBP circular page links annex as CL9_Annex.PDF (403 on archive); same file served at CL9_Annex.pdf.',
   },
   <String, Object?>{
     'zakatYear': 1441,
     'label': '1440-41',
     'nisab': 46329,
     'valuationDateHijri': '1 Ramazan 1441 AH',
-    'expectedValuationDates': <Object?>[
-      '2020-04-24',
-      '2020-04-25',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
+    'ramazan1': '2020-04-25',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2020-04-23',
+    },
     'bankHolidayDate': '2020-04-27',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1440-41/2020',
@@ -260,20 +270,20 @@ const List<Object?> zakatNisabJson = <Object?>[
       'url': 'https://www.sbp.org.pk/bprd/2020/CL21.htm',
     },
     'note':
-        'Notification is a JPG image (CL-19-Annex-A.jpg); date digits \'20\' handwritten, SBP circular confirms April 20, 2020.',
+        'The notification says 1 Ramazan is "likely to fall on" 2020-04-24 or 2020-04-25. Notification is a JPG image (CL-19-Annex-A.jpg); date digits \'20\' handwritten, SBP circular confirms April 20, 2020.',
   },
   <String, Object?>{
     'zakatYear': 1442,
     'label': '1441-42',
     'nisab': 80933,
     'valuationDateHijri': '1 Ramazan 1442 AH',
-    'expectedValuationDates': <Object?>[
-      '2021-04-14',
-      '2021-04-15',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
-    'bankHolidayDate': null,
+    'ramazan1': '2021-04-14',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2021-04-13',
+    },
+    'bankHolidayDate': '2021-04-14',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1441-42/2021/83',
       'date': '2021-04-08',
@@ -291,19 +301,19 @@ const List<Object?> zakatNisabJson = <Object?>[
       'url': 'https://www.sbp.org.pk/bprd/2021/CL8.htm',
     },
     'note':
-        'Ministry letter text says deduction date \'likely to fall on 14th or 15th April, 2020\' - the year 2020 is as printed (evidently a typo for 2021; letter dated April 2021). Date on letter partly handwritten (\'8\'); SBP circular gives April 8, 2021.',
+        'The notification says 1 Ramazan is "likely to fall on" 2021-04-14 or 2021-04-15. Ministry letter text says deduction date \'likely to fall on 14th or 15th April, 2020\' - the year 2020 is as printed (evidently a typo for 2021; letter dated April 2021). Date on letter partly handwritten (\'8\'); SBP circular gives April 8, 2021.',
   },
   <String, Object?>{
     'zakatYear': 1443,
     'label': '1442-43',
     'nisab': 88927,
     'valuationDateHijri': '1 Ramazan 1443 AH',
-    'expectedValuationDates': <Object?>[
-      '2022-04-03',
-      '2022-04-04',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
+    'ramazan1': '2022-04-03',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2022-04-02',
+    },
     'bankHolidayDate': '2022-04-04',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1442-43/2022',
@@ -321,18 +331,20 @@ const List<Object?> zakatNisabJson = <Object?>[
       'closedOn': 'Monday, April 4, 2022',
       'url': 'https://www.sbp.org.pk/bprd/2022/CL6.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2022-04-03 or 2022-04-04.',
   },
   <String, Object?>{
     'zakatYear': 1444,
     'label': '1443-44',
     'nisab': 103159,
     'valuationDateHijri': '1 Ramazan 1444 AH',
-    'expectedValuationDates': <Object?>[
-      '2023-03-23',
-      '2023-03-24',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
+    'ramazan1': '2023-03-23',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2023-03-22',
+    },
     'bankHolidayDate': '2023-03-24',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1443-44/2023-140',
@@ -351,19 +363,21 @@ const List<Object?> zakatNisabJson = <Object?>[
           'Friday, March 24, 2023 (1st Ramadan 1444 \'likely to fall on Thursday, March 23, 2023\', already a public holiday)',
       'url': 'https://www.sbp.org.pk/bprd/2023/CL4.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2023-03-23 or 2023-03-24.',
   },
   <String, Object?>{
     'zakatYear': 1445,
     'label': '1444-45',
     'nisab': 135179,
     'valuationDateHijri': '1 Ramazan 1445 AH',
-    'expectedValuationDates': <Object?>[
-      '2024-03-12',
-      '2024-03-13',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
-    'bankHolidayDate': null,
+    'ramazan1': '2024-03-12',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2024-03-11',
+    },
+    'bankHolidayDate': '2024-03-12',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1444-45/2024/612',
       'date': '2024-03-06',
@@ -380,18 +394,20 @@ const List<Object?> zakatNisabJson = <Object?>[
       'closedOn': '1st Ramadan-ul-Mubarak, 1445 A.H.',
       'url': 'https://www.sbp.org.pk/bprd/2024/CL4.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2024-03-12 or 2024-03-13.',
   },
   <String, Object?>{
     'zakatYear': 1446,
     'label': '1445-46',
     'nisab': 179689,
     'valuationDateHijri': '1 Ramazan 1446 AH',
-    'expectedValuationDates': <Object?>[
-      '2025-03-01',
-      '2025-03-02',
-    ],
-    'valuationDate': null,
-    'valuationDateSource': null,
+    'ramazan1': '2025-03-02',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Dawn',
+      'reportedOn': '2025-02-28',
+    },
     'bankHolidayDate': '2025-03-03',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1445-46/2025-76',
@@ -409,24 +425,23 @@ const List<Object?> zakatNisabJson = <Object?>[
       'closedOn': 'Monday, March 3, 2025',
       'url': 'https://www.sbp.org.pk/bprd/2025/CL5.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2025-03-01 or 2025-03-02.',
   },
   <String, Object?>{
     'zakatYear': 1447,
     'label': '1446-47',
     'nisab': 503529,
     'valuationDateHijri': '1 Ramazan 1447 AH',
-    'expectedValuationDates': <Object?>[
-      '2026-02-19',
-      '2026-02-20',
-    ],
-    'valuationDate': '2026-02-19',
-    'valuationDateSource': <String, Object?>{
-      'reference':
-          'Central Ruet-e-Hilal Committee: Ramazan moon sighted on 18 February 2026, 1 Ramazan 1447 on Thursday 19 February 2026, as reported by the Associated Press of Pakistan (state news agency)',
+    'ramazan1': '2026-02-19',
+    'ramazan1Source': <String, Object?>{
+      'announcedBy': 'Central Ruet-e-Hilal Committee',
+      'reportedBy': 'Associated Press of Pakistan',
+      'reportedOn': '2026-02-18',
       'url':
           'https://www.app.com.pk/national/ramazan-moon-sighted-ist-fast-on-february-19-in-pakistan-khabeer-azad/',
     },
-    'bankHolidayDate': null,
+    'bankHolidayDate': '2026-02-19',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1446-47/2026-48',
       'date': '2026-02-16',
@@ -443,5 +458,7 @@ const List<Object?> zakatNisabJson = <Object?>[
       'closedOn': '1st Ramadan-ul-Mubarak, 1447 A.H.',
       'url': 'https://www.sbp.org.pk/bprd/2026/CL4.htm',
     },
+    'note':
+        'The notification says 1 Ramazan is "likely to fall on" 2026-02-19 or 2026-02-20.',
   },
 ];

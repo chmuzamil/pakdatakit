@@ -23,7 +23,7 @@ use PakDataKit\Internal\Money;
  */
 final class Zakat
 {
-    /** Days after the last notified year's first possible start that it still certainly covers. */
+    /** Days after the last notified year's 1 Ramazan that it still certainly covers. */
     private const LUNAR_YEAR_DAYS = 353;
 
     /** @var list<ZakatNisab>|null */
@@ -34,10 +34,9 @@ final class Zakat
      *
      * Give the year (`1447`, `'1447'`, or the notification's `'1446-47'`) or
      * a date; `$zakatYear` takes precedence. A Zakat year starts on 1
-     * Ramazan. Where its Gregorian date is confirmed (`valuationDate`, 2026
-     * so far), that date is used. Otherwise only the two likely days the
-     * notification gives are known, and for a date on the first of them the
-     * year is unknown and the result is null.
+     * Ramazan (`ramazan1`, as the Central Ruet-e-Hilal Committee announced
+     * it), and a date belongs to the last year whose 1 Ramazan is on or
+     * before it.
      *
      * ```php
      * Zakat::getNisab(zakatYear: 1447)?->nisab; // 503529
@@ -50,8 +49,9 @@ final class Zakat
      * @param mixed $date A day in the Zakat year: `YYYY-MM-DD` or a
      *   DateTimeInterface (its own calendar date)
      * @return ZakatNisab|null The year's nisab, dates and sources, or null
-     *   for a year that is not covered, an invalid or missing year or date,
-     *   or an ambiguous date. Never throws.
+     *   for a year that is not covered (a date before 1 Ramazan 1433, or 353
+     *   days or more after the last year's 1 Ramazan), or an invalid or
+     *   missing year or date. Never throws.
      */
     public static function getNisab(mixed $zakatYear = null, mixed $date = null): ?ZakatNisab
     {
@@ -76,10 +76,12 @@ final class Zakat
      * nothing when it is below or the holder has a valid exemption
      * declaration (Form CZ-50). Give the year or a date as for getNisab().
      *
-     * A balance exactly equal to the nisab is deducted, as the notifications
-     * say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
-     * says no deduction where the balance "does not exceed" the nisab, which
-     * would not deduct it; this follows the notifications, which banks apply.
+     * A balance exactly equal to the nisab is deducted: every notification
+     * says no deduction where the balance is "less than" the nisab, and the
+     * Ordinance (s. 2(xxiii)) defines a sahib-e-nisab as owning "not less
+     * than nisab". The First Schedule's own wording ("does not exceed")
+     * would not deduct it. In Punjab the Punjab Zakat and Ushr Act 2018
+     * replaced the Ordinance, with the same First Schedule wording.
      *
      * It applies to the accounts the Ordinance subjects to deduction at
      * source: savings, profit-and-loss sharing and similar accounts (asset
@@ -104,8 +106,7 @@ final class Zakat
      *   presence of two witnesses (Zakat and Ushr Ordinance 1980, s. 1(3),
      *   proviso (a)). The declaration is not checked. Default false.
      * @return ZakatDeduction|null The deduction and its source, or null for
-     *   an invalid balance, a year that is not covered, or an ambiguous date.
-     *   Never throws.
+     *   an invalid balance or a year that is not covered. Never throws.
      */
     public static function deduction(
         mixed $balance,
@@ -188,10 +189,10 @@ final class Zakat
     }
 
     /**
-     * The Zakat year a date falls in. A year starts on 1 Ramazan: on its
-     * confirmed date where there is one, otherwise on one of the two likely
-     * days the notification gives, so a date on the earlier of the two is
-     * ambiguous and gives null, as does a date past the last notified year.
+     * The Zakat year a date falls in: the last year whose 1 Ramazan is on or
+     * before it. A date before the first covered year, or 353 days or more
+     * after the last year's 1 Ramazan (next year not yet notified), gives
+     * null.
      */
     private static function byDate(mixed $value): ?ZakatNisab
     {
@@ -201,26 +202,13 @@ final class Zakat
         }
         $years = self::years();
         for ($i = count($years) - 1; $i >= 0; $i--) {
-            [$first, $second] = $years[$i]->expectedValuationDates;
-            $confirmed = $years[$i]->valuationDate;
-            if ($confirmed !== null) {
-                if (strcmp($date, $confirmed) < 0) {
-                    continue;
-                }
-                if ($i === count($years) - 1 && strcmp($date, self::addDays($confirmed, self::LUNAR_YEAR_DAYS)) >= 0) {
-                    return null;
-                }
-                return $years[$i];
+            if (strcmp($date, $years[$i]->ramazan1) < 0) {
+                continue;
             }
-            if (strcmp($date, $second) >= 0) {
-                if ($i === count($years) - 1 && strcmp($date, self::addDays($first, self::LUNAR_YEAR_DAYS)) >= 0) {
-                    return null;
-                }
-                return $years[$i];
-            }
-            if (strcmp($date, $first) >= 0) {
+            if ($i === count($years) - 1 && strcmp($date, self::addDays($years[$i]->ramazan1, self::LUNAR_YEAR_DAYS)) >= 0) {
                 return null;
             }
+            return $years[$i];
         }
         return null;
     }
@@ -241,7 +229,7 @@ final class Zakat
             $rows = Data::load('zakat-nisab');
             $starts = [];
             foreach ($rows as $row) {
-                $starts[$row['zakatYear']] = $row['valuationDate'] ?? $row['expectedValuationDates'][0];
+                $starts[$row['zakatYear']] = $row['ramazan1'];
             }
             $document = static fn (array $doc): ZakatDocument => new ZakatDocument(
                 number: $doc['number'],
@@ -256,23 +244,22 @@ final class Zakat
                     label: $row['label'],
                     nisab: $row['nisab'],
                     valuationDateHijri: $row['valuationDateHijri'],
-                    expectedValuationDates: [$row['expectedValuationDates'][0], $row['expectedValuationDates'][1]],
-                    valuationDate: $row['valuationDate'] ?? null,
-                    valuationDateSource: isset($row['valuationDateSource'])
-                        ? new ZakatValuationDateSource(
-                            reference: $row['valuationDateSource']['reference'],
-                            url: $row['valuationDateSource']['url'],
-                        )
-                        : null,
+                    ramazan1: $row['ramazan1'],
+                    ramazan1Source: new ZakatRamazan1Source(
+                        announcedBy: $row['ramazan1Source']['announcedBy'],
+                        reportedBy: $row['ramazan1Source']['reportedBy'],
+                        reportedOn: $row['ramazan1Source']['reportedOn'] ?? null,
+                        url: $row['ramazan1Source']['url'] ?? null,
+                    ),
                     bankHolidayDate: $row['bankHolidayDate'],
                     notification: $document($row['notification']),
                     sbpCircular: $document($row['sbpCircular']),
+                    note: $row['note'] ?? null,
                     source: new DataSource(
                         id: 'zakat-nisab',
-                        // From 1 Ramazan (confirmed, or the earlier of the two likely
-                        // days), to the day before the next year's; open while it is
-                        // the latest year.
-                        effectiveFrom: $row['valuationDate'] ?? $row['expectedValuationDates'][0],
+                        // From 1 Ramazan to the day before the next year's; open while
+                        // it is the latest year.
+                        effectiveFrom: $row['ramazan1'],
                         effectiveTo: $next === null ? null : self::addDays($next, -1),
                         sourceReference: 'Notification No. ' . $row['notification']['number']
                             . ' (' . $row['notification']['date'] . '); SBP ' . $row['sbpCircular']['number']

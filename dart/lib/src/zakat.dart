@@ -1,7 +1,6 @@
 import 'data/zakat_nisab.g.dart';
 import 'data_info.dart';
 import 'internal/date.dart';
-import 'internal/equality.dart';
 import 'internal/js.dart';
 import 'internal/money.dart';
 
@@ -40,32 +39,51 @@ class ZakatDocument {
   String toString() => 'ZakatDocument${toJson()}';
 }
 
-/// The source that confirms the Gregorian date of 1 Ramazan. See
-/// [ZakatNisab.valuationDateSource].
-class ZakatValuationDateSource {
-  /// Creates a valuation date source value.
-  const ZakatValuationDateSource({required this.reference, required this.url});
+/// Who announced 1 Ramazan, and where the announcement was reported. See
+/// [ZakatNisab.ramazan1Source].
+class ZakatRamazan1Source {
+  /// Creates a 1 Ramazan source value.
+  const ZakatRamazan1Source({
+    required this.announcedBy,
+    required this.reportedBy,
+    this.reportedOn,
+    this.url,
+  });
 
-  /// What the source says and who published it.
-  final String reference;
+  /// Who announced it: `Central Ruet-e-Hilal Committee`.
+  final String announcedBy;
 
-  /// The source.
-  final String url;
+  /// The outlet that reported the announcement, e.g. `Dawn`.
+  final String reportedBy;
 
-  /// JSON form, with the same keys as the npm package.
-  Map<String, Object?> toJson() => {'reference': reference, 'url': url};
+  /// The report's date (`YYYY-MM-DD`), or `null` if not recorded.
+  final String? reportedOn;
+
+  /// The report's URL, or `null` if not recorded.
+  final String? url;
+
+  /// JSON form, with the same keys as the npm package. `url` is left out
+  /// when it is `null`.
+  Map<String, Object?> toJson() => {
+        'announcedBy': announcedBy,
+        'reportedBy': reportedBy,
+        'reportedOn': reportedOn,
+        if (url != null) 'url': url,
+      };
 
   @override
   bool operator ==(Object other) =>
-      other is ZakatValuationDateSource &&
-      other.reference == reference &&
+      other is ZakatRamazan1Source &&
+      other.announcedBy == announcedBy &&
+      other.reportedBy == reportedBy &&
+      other.reportedOn == reportedOn &&
       other.url == url;
 
   @override
-  int get hashCode => Object.hash(reference, url);
+  int get hashCode => Object.hash(announcedBy, reportedBy, reportedOn, url);
 
   @override
-  String toString() => 'ZakatValuationDateSource${toJson()}';
+  String toString() => 'ZakatRamazan1Source${toJson()}';
 }
 
 /// One Zakat year's nisab for deduction at source, as notified. Result of
@@ -77,12 +95,12 @@ class ZakatNisab {
     required this.label,
     required this.nisab,
     required this.valuationDateHijri,
-    required this.expectedValuationDates,
-    required this.valuationDate,
-    required this.valuationDateSource,
+    required this.ramazan1,
+    required this.ramazan1Source,
     required this.bankHolidayDate,
     required this.notification,
     required this.sbpCircular,
+    this.note,
     required this.source,
   });
 
@@ -95,23 +113,22 @@ class ZakatNisab {
   /// Nisab in rupees: accounts with a lower balance are not deducted.
   final int nisab;
 
-  /// The valuation (deduction) date in the Hijri calendar, e.g.
-  /// `1 Ramazan 1447 AH`.
+  /// The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.
   final String valuationDateHijri;
 
-  /// The two Gregorian dates the notification says 1 Ramazan is likely to
-  /// fall on (`YYYY-MM-DD`). The day itself depends on the moon sighting.
-  final List<String> expectedValuationDates;
+  /// The valuation date: 1 Ramazan in the Gregorian calendar
+  /// (`YYYY-MM-DD`), as announced by the Central Ruet-e-Hilal Committee.
+  /// Zakat years are assigned to dates by it.
+  final String ramazan1;
 
-  /// The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a source
-  /// states it; otherwise `null`.
-  final String? valuationDate;
+  /// Who announced [ramazan1], and where it was reported.
+  final ZakatRamazan1Source ramazan1Source;
 
-  /// The source of [valuationDate], or `null` when there is none.
-  final ZakatValuationDateSource? valuationDateSource;
-
-  /// The bank holiday for the deduction, when SBP's circular names a
-  /// Gregorian date (`YYYY-MM-DD`); otherwise `null`.
+  /// The deduction day: the bank holiday SBP declares for it
+  /// (`YYYY-MM-DD`). It is [ramazan1], or the next working day when 1
+  /// Ramazan falls on a weekend or public holiday (for example 24 March
+  /// 2023, after Pakistan Day). `null` where no SBP holiday circular was
+  /// found.
   final String? bankHolidayDate;
 
   /// The Ministry of Poverty Alleviation & Social Safety notification.
@@ -119,6 +136,10 @@ class ZakatNisab {
 
   /// The SBP BPRD circular letter that conveys it to banks.
   final ZakatDocument sbpCircular;
+
+  /// Notes on the documents, including the notification's "likely to fall
+  /// on" text, or `null`.
+  final String? note;
 
   /// The notification and SBP circular, as a [DataSource] (dataset
   /// `zakat-nisab`).
@@ -130,12 +151,12 @@ class ZakatNisab {
         'label': label,
         'nisab': nisab,
         'valuationDateHijri': valuationDateHijri,
-        'expectedValuationDates': [...expectedValuationDates],
-        'valuationDate': valuationDate,
-        'valuationDateSource': valuationDateSource?.toJson(),
+        'ramazan1': ramazan1,
+        'ramazan1Source': ramazan1Source.toJson(),
         'bankHolidayDate': bankHolidayDate,
         'notification': notification.toJson(),
         'sbpCircular': sbpCircular.toJson(),
+        'note': note,
         'source': source.toJson(),
       };
 
@@ -146,12 +167,12 @@ class ZakatNisab {
       other.label == label &&
       other.nisab == nisab &&
       other.valuationDateHijri == valuationDateHijri &&
-      listEquals(other.expectedValuationDates, expectedValuationDates) &&
-      other.valuationDate == valuationDate &&
-      other.valuationDateSource == valuationDateSource &&
+      other.ramazan1 == ramazan1 &&
+      other.ramazan1Source == ramazan1Source &&
       other.bankHolidayDate == bankHolidayDate &&
       other.notification == notification &&
       other.sbpCircular == sbpCircular &&
+      other.note == note &&
       other.source == source;
 
   @override
@@ -160,12 +181,12 @@ class ZakatNisab {
         label,
         nisab,
         valuationDateHijri,
-        listHash(expectedValuationDates),
-        valuationDate,
-        valuationDateSource,
+        ramazan1,
+        ramazan1Source,
         bankHolidayDate,
         notification,
         sbpCircular,
+        note,
         source,
       );
 
@@ -271,8 +292,8 @@ ZakatDocument _document(Object? value) {
   );
 }
 
-/// Days after the last notified year's first possible start that it still
-/// certainly covers.
+/// Days after the last notified year's 1 Ramazan that it still certainly
+/// covers.
 const int _lunarYearDays = 353;
 
 String _addDays(String iso, int days) {
@@ -283,14 +304,10 @@ String _addDays(String iso, int days) {
       '${date.day.toString().padLeft(2, '0')}';
 }
 
-/// The start of a year in the data: the confirmed date of 1 Ramazan, or
-/// else the first of its two likely days.
-String _firstDay(Map<String, Object?> row) =>
-    row['valuationDate'] as String? ??
-    (row['expectedValuationDates']! as List<Object?>).first! as String;
-
 ZakatNisab _toNisab(Map<String, Object?> e, List<Map<String, Object?>> rows) {
   final zakatYear = e['zakatYear']! as int;
+  final ramazan1 = e['ramazan1']! as String;
+  final announced = e['ramazan1Source']! as Map<String, Object?>;
   final notification = _document(e['notification']);
   final sbpCircular = _document(e['sbpCircular']);
   final next = rows.where((r) => r['zakatYear'] == zakatYear + 1);
@@ -299,26 +316,24 @@ ZakatNisab _toNisab(Map<String, Object?> e, List<Map<String, Object?>> rows) {
     label: e['label']! as String,
     nisab: e['nisab']! as int,
     valuationDateHijri: e['valuationDateHijri']! as String,
-    expectedValuationDates: List.unmodifiable(
-      (e['expectedValuationDates']! as List<Object?>).cast<String>(),
+    ramazan1: ramazan1,
+    ramazan1Source: ZakatRamazan1Source(
+      announcedBy: announced['announcedBy']! as String,
+      reportedBy: announced['reportedBy']! as String,
+      reportedOn: announced['reportedOn'] as String?,
+      url: announced['url'] as String?,
     ),
-    valuationDate: e['valuationDate'] as String?,
-    valuationDateSource: switch (e['valuationDateSource']) {
-      final Map<String, Object?> v => ZakatValuationDateSource(
-          reference: v['reference']! as String,
-          url: v['url']! as String,
-        ),
-      _ => null,
-    },
     bankHolidayDate: e['bankHolidayDate'] as String?,
     notification: notification,
     sbpCircular: sbpCircular,
+    note: e['note'] as String?,
     source: DataSource(
       id: 'zakat-nisab',
-      // From the earlier of the two likely days of 1 Ramazan, to the day
-      // before the next year's; open while it is the latest year.
-      effectiveFrom: _firstDay(e),
-      effectiveTo: next.isEmpty ? null : _addDays(_firstDay(next.first), -1),
+      // From 1 Ramazan to the day before the next year's; open while it is
+      // the latest year.
+      effectiveFrom: ramazan1,
+      effectiveTo:
+          next.isEmpty ? null : _addDays(next.first['ramazan1']! as String, -1),
       sourceReference: 'Notification No. ${notification.number} '
           '(${notification.date}); '
           'SBP ${sbpCircular.number} (${sbpCircular.date})',
@@ -361,33 +376,21 @@ ZakatNisab? _byYear(Object? value) {
   return null;
 }
 
-/// The Zakat year a date falls in. A year starts on 1 Ramazan: its
-/// confirmed date where known, else one of the two likely days the
-/// notification gives, where a date on the earlier of the two is ambiguous
-/// and gives `null`. A date past the last notified year gives `null` too.
+/// The Zakat year a date falls in: the last year whose 1 Ramazan is on or
+/// before it. A date before the first covered year, or 353 days or more
+/// after the last year's 1 Ramazan (next year not yet notified), gives
+/// `null`.
 ZakatNisab? _byDate(Object? value) {
   final date = isoDate(value);
   if (date == null) return null;
   for (var i = _years.length - 1; i >= 0; i--) {
     final row = _years[i];
-    final [first, second] = row.expectedValuationDates;
-    final confirmed = row.valuationDate;
-    if (confirmed != null) {
-      if (date.compareTo(confirmed) < 0) continue;
-      if (i == _years.length - 1 &&
-          date.compareTo(_addDays(confirmed, _lunarYearDays)) >= 0) {
-        return null;
-      }
-      return row;
+    if (date.compareTo(row.ramazan1) < 0) continue;
+    if (i == _years.length - 1 &&
+        date.compareTo(_addDays(row.ramazan1, _lunarYearDays)) >= 0) {
+      return null;
     }
-    if (date.compareTo(second) >= 0) {
-      if (i == _years.length - 1 &&
-          date.compareTo(_addDays(first, _lunarYearDays)) >= 0) {
-        return null;
-      }
-      return row;
-    }
-    if (date.compareTo(first) >= 0) return null;
+    return row;
   }
   return null;
 }
@@ -406,18 +409,17 @@ ZakatNisab? _find(Object? zakatYear, Object? date) {
 /// Give [zakatYear], an [int] (`1447`) or a [String] (`'1447'`, or the
 /// notification's `'1446-47'`), or [date], a `YYYY-MM-DD` [String] or a
 /// [DateTime] (its local calendar date); [zakatYear] takes precedence. A
-/// Zakat year starts on 1 Ramazan. Where its Gregorian date is confirmed
-/// ([ZakatNisab.valuationDate], 2026 so far), that date is used. Otherwise
-/// only the two likely days the notification gives are known, and for a
-/// date on the first of them the year is unknown and the result is `null`.
-/// The npm `ZakatYearQuery` object is these named parameters.
+/// Zakat year starts on 1 Ramazan ([ZakatNisab.ramazan1], as the Central
+/// Ruet-e-Hilal Committee announced it), and a date belongs to the last year
+/// whose 1 Ramazan is on or before it. The npm `ZakatYearQuery` object is
+/// these named parameters.
 ///
 /// This is the nisab for deduction from savings and similar bank accounts
 /// under the Zakat and Ushr Ordinance 1980, not a religious ruling on
 /// personal Zakat.
 ///
 /// Returns the year's nisab, dates and sources, or `null` for a year that is
-/// not covered, an invalid query, or an ambiguous date. Never throws.
+/// not covered or an invalid query. Never throws.
 ///
 /// ```dart
 /// getZakatNisab(zakatYear: 1447)?.nisab; // 503529
@@ -447,11 +449,12 @@ List<int> getZakatYears() => [for (final y in _years) y.zakatYear];
 /// Ordinance 1980, s. 1(3), proviso (a)). The library does not check the
 /// declaration.
 ///
-/// A balance exactly equal to the nisab is deducted, as the notifications
-/// say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
-/// says no deduction where the balance "does not exceed" the nisab, which
-/// would not deduct it; the library follows the notifications, which banks
-/// apply.
+/// A balance exactly equal to the nisab is deducted: every notification
+/// says no deduction where the balance is "less than" the nisab, and the
+/// Ordinance (s. 2(xxiii)) defines a sahib-e-nisab as owning "not less than
+/// nisab". The First Schedule's own wording ("does not exceed") would not
+/// deduct it. In Punjab the Punjab Zakat and Ushr Act 2018 replaced the
+/// Ordinance, with the same First Schedule wording.
 ///
 /// [balance] is the account balance in rupees at the start of the valuation
 /// date, 0 to 1 trillion (at most 2 decimals count). The year is chosen by
@@ -463,8 +466,8 @@ List<int> getZakatYears() => [for (final y in _years) y.zakatYear];
 /// Current accounts and foreign currency accounts are not deducted. It is
 /// not a religious ruling on how much Zakat a person owes.
 ///
-/// Returns the deduction and its source, or `null` for an invalid balance, a
-/// year that is not covered, or an ambiguous date. Never throws.
+/// Returns the deduction and its source, or `null` for an invalid balance
+/// or a year that is not covered. Never throws.
 ///
 /// ```dart
 /// zakatDeduction(balance: 600000, zakatYear: 1447);

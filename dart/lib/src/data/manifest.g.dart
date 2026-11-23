@@ -13,6 +13,7 @@ const List<Object?> manifestJson = <Object?>[
         'Pakistan\'s national numbering plan as communicated by PTA to the ITU',
     'sourceDate': '2021-11-09',
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2021-11-09',
     'effectiveTo': null,
     'coverage': 'Fixed-line area codes in every province and territory',
@@ -26,23 +27,25 @@ const List<Object?> manifestJson = <Object?>[
   <String, Object?>{
     'id': 'banks',
     'file': 'banks.json',
-    'title': 'Banks and IBAN bank codes',
+    'title': 'Banks: IBAN codes, websites and SWIFT/BIC',
     'issuer': 'State Bank of Pakistan (SBP)',
     'sourceUrl':
         'https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks',
     'sourceReference':
-        'SBP lists of regulated institutions (commercial, Islamic, microfinance banks); IBANs printed by SBP',
+        'SBP lists of regulated institutions (names, types, websites); IBANs printed by SBP (codes); SWIFT/BIC codes only as printed by SBP or on each institution\'s own domain, each with its URL',
     'sourceDate': null,
-    'retrievedAt': '2026-11-16',
+    'retrievedAt': '2026-11-23',
+    'checkedAt': '2026-11-23',
     'effectiveFrom': '2026-11-16',
     'effectiveTo': null,
-    'coverage': 'Scheduled banks and microfinance banks operating in Pakistan',
+    'coverage':
+        'Scheduled banks, microfinance banks and EMIs in Pakistan: 50 IBAN codes, 47 websites, 16 SWIFT/BIC codes',
     'recordCount': 50,
     'nextExpectedUpdate': '2027-02-16',
     'updateCadence':
         'Quarterly, and after any SBP merger or licence notification',
     'notes':
-        'SBP\'s lists are undated web pages. SBP publishes no list of IBAN bank codes, so each code is confirmed from IBANs SBP itself printed.',
+        'SBP\'s lists are undated web pages. SBP publishes no list of IBAN bank codes, so each code is confirmed from IBANs SBP itself printed. SWIFT/BIC codes are shipped only where SBP or the institution\'s own domain prints them; 1LINK IMD codes are not included (no official public source).',
   },
   <String, Object?>{
     'id': 'cities',
@@ -55,6 +58,7 @@ const List<Object?> manifestJson = <Object?>[
         'Derived: district headquarters and every city in Pakistan Post\'s post code directory',
     'sourceDate': '2021-02',
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2026-11-16',
     'effectiveTo': null,
     'coverage':
@@ -79,6 +83,7 @@ const List<Object?> manifestJson = <Object?>[
     'sourceUrl': 'https://www.pbs.gov.pk/result-excel/',
     'sourceDate': '2025-08-25',
     'retrievedAt': '2026-11-23',
+    'checkedAt': '2026-11-23',
     'effectiveFrom': '2023-03-01',
     'effectiveTo': null,
     'nextExpectedUpdate': '2027-11-23',
@@ -96,6 +101,7 @@ const List<Object?> manifestJson = <Object?>[
         '7th Population and Housing Census 2023, Table 1 by province; later provincial notifications',
     'sourceDate': null,
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2026-10-01',
     'effectiveTo': null,
     'coverage':
@@ -118,6 +124,7 @@ const List<Object?> manifestJson = <Object?>[
         '7th Population and Housing Census 2023, Table 1 by province',
     'sourceDate': null,
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2023-03-01',
     'effectiveTo': null,
     'coverage': '30 divisions at the 2023 census',
@@ -140,6 +147,7 @@ const List<Object?> manifestJson = <Object?>[
         'Technical Specification for DI API, version 1.12, section 9 \'Scenarios for Sandbox Testing\', column \'Sale Type\'',
     'sourceDate': '2025-07-24',
     'retrievedAt': '2026-11-23',
+    'checkedAt': '2026-11-23',
     'effectiveFrom': '2025-07-24',
     'effectiveTo': null,
     'coverage':
@@ -161,6 +169,7 @@ const List<Object?> manifestJson = <Object?>[
         'Cabinet Division holiday notifications and SBP circular letters; each date has its own source URL',
     'sourceDate': null,
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2020-01-01',
     'effectiveTo': null,
     'coverage':
@@ -183,6 +192,7 @@ const List<Object?> manifestJson = <Object?>[
         'Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2), as substituted by the Finance Act 2026, s. 5(44)(a)(i)',
     'sourceDate': '2026-06-26',
     'retrievedAt': '2026-11-18',
+    'checkedAt': '2026-11-18',
     'effectiveFrom': '2019-07-01',
     'effectiveTo': '2027-06-30',
     'coverage': 'Tax years 2020-2027',
@@ -206,6 +216,7 @@ const List<Object?> manifestJson = <Object?>[
     'sourceReference': 'PTA National Numbering Plan 2008',
     'sourceDate': '2008',
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2008',
     'effectiveTo': null,
     'coverage': 'Every 03XX mobile prefix and the operator it was allocated to',
@@ -225,6 +236,7 @@ const List<Object?> manifestJson = <Object?>[
     'sourceReference': 'Post Code Directory of Delivery Post Offices, Part I',
     'sourceDate': '2021-02',
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2021-02',
     'effectiveTo': null,
     'coverage': 'Delivery post offices in every province',
@@ -244,6 +256,7 @@ const List<Object?> manifestJson = <Object?>[
     'sourceReference': 'Post Code Directory of Delivery Post Offices, Part I',
     'sourceDate': '2021-02',
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2021-02',
     'effectiveTo': null,
     'coverage': 'Postal codes with their delivery area, city and province',
@@ -265,6 +278,7 @@ const List<Object?> manifestJson = <Object?>[
         'Sales Tax Act 1990, s. 3(1); provincial sales tax on services Acts; each period has its own law and source',
     'sourceDate': '2026-06-30',
     'retrievedAt': '2026-11-18',
+    'checkedAt': '2026-11-18',
     'effectiveFrom': '2019-07-01',
     'effectiveTo': null,
     'coverage':
@@ -299,6 +313,7 @@ const List<Object?> manifestJson = <Object?>[
     'sourceUrl': 'https://www.pbs.gov.pk/result-excel/',
     'sourceDate': '2025-08-25',
     'retrievedAt': '2026-11-23',
+    'checkedAt': '2026-11-23',
     'effectiveFrom': '2023-03-01',
     'effectiveTo': null,
     'nextExpectedUpdate': '2027-11-23',
@@ -316,6 +331,7 @@ const List<Object?> manifestJson = <Object?>[
         '7th Population and Housing Census 2023, Table 1 by district',
     'sourceDate': null,
     'retrievedAt': '2026-11-16',
+    'checkedAt': '2026-11-16',
     'effectiveFrom': '2023-03-01',
     'effectiveTo': null,
     'coverage':
@@ -337,6 +353,7 @@ const List<Object?> manifestJson = <Object?>[
         'Withholding Income Tax Rate Card, tax year 2027, updated up to 30 June 2026 as per Finance Act 2026; checked against the Income Tax Ordinance 2001 as amended by Finance Act 2026. Each tax year has its own card.',
     'sourceDate': '2026-08-11',
     'retrievedAt': '2026-11-23',
+    'checkedAt': '2026-11-23',
     'effectiveFrom': '2024-07-01',
     'effectiveTo': '2027-06-30',
     'coverage':
@@ -367,7 +384,8 @@ const List<Object?> manifestJson = <Object?>[
         'Notification No. CE-1001(36)/NISAB/1446-47/2026-48, conveyed by SBP BPRD Circular Letter No. 03 of 2026; each year has its own notification and circular',
     'sourceDate': '2026-02-16',
     'retrievedAt': '2026-11-23',
-    'effectiveFrom': '2012-07-20',
+    'checkedAt': '2026-11-23',
+    'effectiveFrom': '2012-07-21',
     'effectiveTo': null,
     'coverage':
         'Zakat years 1433-1447 AH (1432-33 to 1446-47 in the notifications; 2012-2026)',
@@ -376,7 +394,7 @@ const List<Object?> manifestJson = <Object?>[
     'updateCadence':
         'Each year shortly before 1 Ramazan, when the Ministry notifies the next nisab and SBP circulates it',
     'notes':
-        'One record per Zakat year with its own notification, SBP circular and dates; past years are never changed. The notifications give two likely Gregorian dates for 1 Ramazan; the confirmed date is recorded where a source states it (1447: 19 February 2026, the Central Ruet-e-Hilal Committee\'s announcement as reported by APP). SBP\'s www site blocks automated downloads; the same files were read from archive.sbp.org.pk.',
+        'One record per Zakat year with its own notification, SBP circular and dates; past years are never changed. ramazan1 is 1 Ramazan as announced by the Central Ruet-e-Hilal Committee, with the outlet that reported it; bankHolidayDate is SBP\'s deduction day. SBP\'s www site blocks automated downloads; the same files were read from archive.sbp.org.pk.',
     'series': <String, Object?>{'sequence': 'zakatYear'},
   },
 ];

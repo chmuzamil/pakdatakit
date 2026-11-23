@@ -39,6 +39,11 @@ public sealed record WithholdingSlab(long Over, long? UpTo, double Rate);
 /// <param name="Per">The period it applies to, e.g. <c>day</c>.</param>
 public sealed record WithholdingThreshold(long Amount, string Per);
 
+/// <summary>An FBR circular explaining a withholding rate.</summary>
+/// <param name="Reference">The circular's number, date and paragraph, as cited.</param>
+/// <param name="Url">The official copy.</param>
+public sealed record WithholdingCircular(string Reference, string Url);
+
 /// <summary>A case's threshold and whether the amount was within it.</summary>
 /// <param name="Amount">The threshold in rupees.</param>
 /// <param name="Per">The period it applies to, e.g. <c>day</c>.</param>
@@ -164,6 +169,7 @@ public sealed record WithholdingTax(
 /// <param name="LawRef">The law, as printed on the card.</param>
 /// <param name="StatuteOverride">Where the statute differs from the card and the statute is used, why; otherwise <c>null</c>.</param>
 /// <param name="Note">More about the case, or <c>null</c>.</param>
+/// <param name="Circular">FBR's circular explaining the rate, where one is recorded; otherwise <c>null</c>.</param>
 /// <param name="Source">The rate card and law (dataset <c>withholding-rates</c>).</param>
 public sealed record WithholdingRate(
     int TaxYear,
@@ -181,6 +187,7 @@ public sealed record WithholdingRate(
     string LawRef,
     string? StatuteOverride,
     string? Note,
+    WithholdingCircular? Circular,
     DataSource Source);
 
 /// <summary>
@@ -222,6 +229,7 @@ public static class Withholding
                 r.LawRef,
                 r.StatuteOverride,
                 r.Note,
+                r.Circular,
                 Source(r)))
             .ToArray();
     }

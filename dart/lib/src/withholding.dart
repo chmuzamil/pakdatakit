@@ -270,6 +270,34 @@ class Withholding {
   String toString() => 'Withholding${toJson()}';
 }
 
+/// FBR's circular explaining a rate. See [WithholdingRate.circular].
+class WithholdingCircular {
+  /// Creates a withholding circular value.
+  const WithholdingCircular({required this.reference, required this.url});
+
+  /// The circular as cited, e.g. `FBR Circular No. 02 of 2026-27 (Income
+  /// Tax), ...`.
+  final String reference;
+
+  /// The official document.
+  final String url;
+
+  /// JSON form, with the same keys as the npm package.
+  Map<String, Object?> toJson() => {'reference': reference, 'url': url};
+
+  @override
+  bool operator ==(Object other) =>
+      other is WithholdingCircular &&
+      other.reference == reference &&
+      other.url == url;
+
+  @override
+  int get hashCode => Object.hash(reference, url);
+
+  @override
+  String toString() => 'WithholdingCircular${toJson()}';
+}
+
 /// One case of a section in a tax year, as in the rate card. Result of
 /// [getWithholdingRates].
 class WithholdingRate {
@@ -290,6 +318,7 @@ class WithholdingRate {
     required this.lawRef,
     required this.statuteOverride,
     required this.note,
+    this.circular,
     required this.source,
   });
 
@@ -340,6 +369,10 @@ class WithholdingRate {
   /// A note on the case, or `null`.
   final String? note;
 
+  /// FBR's circular explaining the rate, where one is recorded; otherwise
+  /// `null`.
+  final WithholdingCircular? circular;
+
   /// The rate card and law (dataset `withholding-rates`).
   final DataSource source;
 
@@ -360,6 +393,7 @@ class WithholdingRate {
         'lawRef': lawRef,
         'statuteOverride': statuteOverride,
         'note': note,
+        'circular': circular?.toJson(),
         'source': source.toJson(),
       };
 
@@ -381,6 +415,7 @@ class WithholdingRate {
       other.lawRef == lawRef &&
       other.statuteOverride == statuteOverride &&
       other.note == note &&
+      other.circular == circular &&
       other.source == source;
 
   @override
@@ -400,6 +435,7 @@ class WithholdingRate {
         lawRef,
         statuteOverride,
         note,
+        circular,
         source,
       );
 
@@ -424,6 +460,7 @@ typedef _Row = ({
   ({int? over, int? under})? returnBand,
   bool hasTaxNature,
   String? note,
+  WithholdingCircular? circular,
   String cardRef,
   String lawRef,
   String? statuteOverride,
@@ -480,6 +517,13 @@ final List<_Row> _rows = List.unmodifiable([
       },
       hasTaxNature: e['taxNature'] != null,
       note: e['note'] as String?,
+      circular: switch (e['circular']) {
+        final Map<String, Object?> c => WithholdingCircular(
+            reference: c['reference']! as String,
+            url: c['url']! as String,
+          ),
+        _ => null,
+      },
       cardRef: e['cardRef']! as String,
       lawRef: e['lawRef']! as String,
       statuteOverride: e['statuteOverride'] as String?,
@@ -529,6 +573,7 @@ List<WithholdingRate> getWithholdingRates(int taxYear, [String? section]) {
           lawRef: r.lawRef,
           statuteOverride: r.statuteOverride,
           note: r.note,
+          circular: r.circular,
           source: r.source,
         ),
   ];

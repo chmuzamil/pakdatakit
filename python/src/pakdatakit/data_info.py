@@ -28,8 +28,10 @@ class DataInfo:
     source_reference: str
     #: When the source was issued (YYYY, YYYY-MM or YYYY-MM-DD), or ``None`` if it is undated.
     source_date: Optional[str]
-    #: When the source was last downloaded and checked (YYYY-MM-DD).
+    #: When the source was last downloaded (YYYY-MM-DD).
     retrieved_at: str
+    #: When the data was last checked against the source (YYYY-MM-DD).
+    checked_at: str
     #: First date the data applies to (YYYY, YYYY-MM or YYYY-MM-DD).
     effective_from: str
     #: Last date it applies to, or ``None`` while it is current.
@@ -74,6 +76,7 @@ def _info(raw: Any) -> DataInfo:
         source_reference=raw["sourceReference"],
         source_date=raw["sourceDate"],
         retrieved_at=raw["retrievedAt"],
+        checked_at=raw["checkedAt"],
         effective_from=raw["effectiveFrom"],
         effective_to=raw["effectiveTo"],
         coverage=raw["coverage"],

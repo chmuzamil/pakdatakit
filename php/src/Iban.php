@@ -99,6 +99,18 @@ final class Iban
                     active: !isset($entry['mergedInto']) && ($entry['active'] ?? true) !== false,
                     mergedInto: $entry['mergedInto'] ?? null,
                     aliasOf: $entry['aliasOf'] ?? null,
+                    status: $entry['status'],
+                    website: $entry['website'] ?? null,
+                    websiteSbpListed: $entry['websiteSbpListed'] ?? null,
+                    swift: $entry['swift'] ?? null,
+                    swiftSource: isset($entry['swiftSource']) ? new BankSwiftSource(
+                        bicSource: $entry['swiftSource']['bicSource'],
+                        printed: $entry['swiftSource']['printed'],
+                        sourceUrl: $entry['swiftSource']['sourceUrl'],
+                        page: $entry['swiftSource']['page'] ?? null,
+                        checkedAt: $entry['swiftSource']['checkedAt'],
+                    ) : null,
+                    swiftReason: $entry['swiftReason'] ?? null,
                 );
             }
         }

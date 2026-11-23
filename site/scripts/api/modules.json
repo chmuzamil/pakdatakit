@@ -28,7 +28,14 @@
       "HolidayOptions",
       "Holidays"
     ],
-    "iban": ["BankType", "BankInfo", "Iban"],
+    "iban": [
+      "BankType",
+      "BankStatus",
+      "BankBicSource",
+      "BankSwiftSource",
+      "BankInfo",
+      "Iban"
+    ],
     "incometax": [
       "SalaryTaxSlab",
       "SalaryTaxSurcharge",
@@ -76,6 +83,7 @@
       "WithholdingThresholdCheck",
       "WithholdingInput",
       "WithholdingTax",
+      "WithholdingCircular",
       "WithholdingRate",
       "Withholding"
     ],
@@ -83,7 +91,7 @@
     "zakat": [
       "ZakatExemption",
       "ZakatDocument",
-      "ZakatValuationDateSource",
+      "ZakatRamazan1Source",
       "ZakatNisab",
       "ZakatYearQuery",
       "ZakatDeduction",
@@ -109,7 +117,7 @@
     "geo": ["Geo"],
     "hijri": ["HijriDate", "Hijri"],
     "holidays": ["Holiday", "Holidays"],
-    "iban": ["BankInfo", "Iban"],
+    "iban": ["BankSwiftSource", "BankInfo", "Iban"],
     "incometax": [
       "SalaryTaxSlab",
       "SalaryTaxSurcharge",
@@ -136,13 +144,14 @@
       "WithholdingThreshold",
       "WithholdingThresholdCheck",
       "WithholdingTax",
+      "WithholdingCircular",
       "WithholdingRate",
       "Withholding"
     ],
     "words": ["Words"],
     "zakat": [
       "ZakatDocument",
-      "ZakatValuationDateSource",
+      "ZakatRamazan1Source",
       "ZakatNisab",
       "ZakatDeduction",
       "Zakat"

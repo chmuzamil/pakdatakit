@@ -10,43 +10,45 @@ namespace PakDataKit;
 /// <param name="Url">The official copy.</param>
 public sealed record ZakatDocument(string Number, string Date, string Url);
 
-/// <summary>The source that confirms the Gregorian date of 1 Ramazan.</summary>
-/// <param name="Reference">What the source says, and who published it.</param>
-/// <param name="Url">Where it is published.</param>
-public sealed record ZakatValuationDateSource(string Reference, string Url);
+/// <summary>Who announced 1 Ramazan, and where the announcement was reported.</summary>
+/// <param name="AnnouncedBy">Who announced it: <c>Central Ruet-e-Hilal Committee</c>.</param>
+/// <param name="ReportedBy">The outlet that reported the announcement, e.g. <c>Dawn</c>.</param>
+/// <param name="ReportedOn">The report's date (<c>YYYY-MM-DD</c>), or <c>null</c> if not recorded.</param>
+/// <param name="Url">The report's URL, or <c>null</c> where none is recorded.</param>
+public sealed record ZakatRamazan1Source(string AnnouncedBy, string ReportedBy, string? ReportedOn, string? Url);
 
 /// <summary>One Zakat year's nisab for deduction at source, as notified.</summary>
 /// <param name="ZakatYear">The Hijri year of the valuation date (1 Ramazan), e.g. <c>1447</c>.</param>
 /// <param name="Label">The year as the Ministry's notification writes it, e.g. <c>1446-47</c>.</param>
 /// <param name="Nisab">Nisab in rupees: accounts with a lower balance are not deducted.</param>
-/// <param name="ValuationDateHijri">The valuation (deduction) date in the Hijri calendar, e.g. <c>1 Ramazan 1447 AH</c>.</param>
-/// <param name="ExpectedValuationDates">
-/// The two Gregorian dates the notification says 1 Ramazan is likely to fall
-/// on (<c>YYYY-MM-DD</c>). The day itself depends on the moon sighting.
+/// <param name="ValuationDateHijri">The valuation date in the Hijri calendar, e.g. <c>1 Ramazan 1447 AH</c>.</param>
+/// <param name="Ramazan1">
+/// The valuation date: 1 Ramazan in the Gregorian calendar (<c>YYYY-MM-DD</c>),
+/// as announced by the Central Ruet-e-Hilal Committee. Zakat years are
+/// assigned to dates by it.
 /// </param>
+/// <param name="Ramazan1Source">Who announced <paramref name="Ramazan1"/>, and where it was reported.</param>
 /// <param name="BankHolidayDate">
-/// The bank holiday for the deduction, when SBP's circular names a Gregorian
-/// date (<c>YYYY-MM-DD</c>); otherwise <c>null</c>.
+/// The deduction day: the bank holiday SBP declares for it (<c>YYYY-MM-DD</c>).
+/// It is <paramref name="Ramazan1"/>, or the next working day when 1 Ramazan
+/// falls on a weekend or public holiday (for example 24 March 2023, after
+/// Pakistan Day). <c>null</c> where no SBP holiday circular was found.
 /// </param>
-/// <param name="ValuationDate">
-/// The confirmed Gregorian date of 1 Ramazan (<c>YYYY-MM-DD</c>), where a
-/// source states it; otherwise <c>null</c>.
-/// </param>
-/// <param name="ValuationDateSource">The source of <paramref name="ValuationDate"/>, or <c>null</c>.</param>
 /// <param name="Notification">The Ministry of Poverty Alleviation &amp; Social Safety notification.</param>
 /// <param name="SbpCircular">The SBP BPRD circular letter that conveys it to banks.</param>
+/// <param name="Note">Notes on the documents, including the notification's "likely to fall on" text; or <c>null</c>.</param>
 /// <param name="Source">The notification and SBP circular, as a <see cref="DataSource"/> (dataset <c>zakat-nisab</c>).</param>
 public sealed record ZakatNisab(
     int ZakatYear,
     string Label,
     long Nisab,
     string ValuationDateHijri,
-    IReadOnlyList<string> ExpectedValuationDates,
+    string Ramazan1,
+    ZakatRamazan1Source Ramazan1Source,
     string? BankHolidayDate,
-    string? ValuationDate,
-    ZakatValuationDateSource? ValuationDateSource,
     ZakatDocument Notification,
     ZakatDocument SbpCircular,
+    string? Note,
     DataSource Source);
 
 /// <summary>
@@ -128,11 +130,11 @@ public static class Zakat
     /// given by its Hijri year or a date in it.
     /// </summary>
     /// <remarks>
-    /// A Zakat year starts on 1 Ramazan. Where its Gregorian date is confirmed
-    /// (<see cref="ZakatNisab.ValuationDate"/>, 2026 so far), that date is
-    /// used. Otherwise only the two likely days the notification gives are
-    /// known, and for a date on the first of them the year is unknown and the
-    /// result is <c>null</c>, as it is for a date past the last notified year.
+    /// A Zakat year starts on 1 Ramazan (<see cref="ZakatNisab.Ramazan1"/>, as
+    /// the Central Ruet-e-Hilal Committee announced it), and a date belongs to
+    /// the last year whose 1 Ramazan is on or before it. A date before the
+    /// first covered year, or 353 days or more after the last year's 1 Ramazan
+    /// (the next year not yet notified), gives <c>null</c>.
     /// <code>
     /// Zakat.GetNisab(new ZakatYearQuery { ZakatYear = 1447 })?.Nisab;    // 503529
     /// Zakat.GetNisab(new ZakatYearQuery { Label = "1445-46" })?.ZakatYear; // 1446
@@ -142,7 +144,7 @@ public static class Zakat
     /// <param name="query">The year or a date.</param>
     /// <returns>
     /// The year's nisab, dates and sources, or <c>null</c> for a year that is
-    /// not covered, an invalid query, or an ambiguous date. Never throws.
+    /// not covered or an invalid query. Never throws.
     /// </returns>
     public static ZakatNisab? GetNisab(ZakatYearQuery? query) => Find(query) is { } row ? ToNisab(row) : null;
 
@@ -166,11 +168,12 @@ public static class Zakat
     /// declaration (Form CZ-50).
     /// </summary>
     /// <remarks>
-    /// A balance exactly equal to the nisab is deducted, as the notifications
-    /// say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
-    /// says no deduction where the balance "does not exceed" the nisab, which
-    /// would not deduct it; the library follows the notifications, which banks
-    /// apply.
+    /// A balance exactly equal to the nisab is deducted: every notification
+    /// says no deduction where the balance is "less than" the nisab, and the
+    /// Ordinance (s. 2(xxiii)) defines a sahib-e-nisab as owning "not less
+    /// than nisab". The First Schedule's own wording ("does not exceed") would
+    /// not deduct it. In Punjab the Punjab Zakat and Ushr Act 2018 replaced
+    /// the Ordinance, with the same First Schedule wording.
     /// <para>
     /// It applies to the accounts the Ordinance subjects to deduction at
     /// source: savings, profit-and-loss sharing and similar accounts (asset
@@ -195,8 +198,8 @@ public static class Zakat
     /// check the declaration.
     /// </param>
     /// <returns>
-    /// The deduction and its source, or <c>null</c> for an invalid balance, a
-    /// year that is not covered, or an ambiguous date. Never throws.
+    /// The deduction and its source, or <c>null</c> for an invalid balance or
+    /// a year that is not covered. Never throws.
     /// </returns>
     public static ZakatDeduction? CalculateDeduction(double balance, ZakatYearQuery? query, bool exempt = false)
     {
@@ -261,22 +264,10 @@ public static class Zakat
         for (var i = years.Count - 1; i >= 0; i--)
         {
             var row = years[i];
-            if (row.ValuationDate is { } confirmed)
-            {
-                if (string.CompareOrdinal(date, confirmed) < 0) continue;
-                if (i == years.Count - 1 && string.CompareOrdinal(date, AddDays(confirmed, LunarYearDays)) >= 0)
-                    return null;
-                return row;
-            }
-            var first = row.ExpectedValuationDates[0];
-            var second = row.ExpectedValuationDates[1];
-            if (string.CompareOrdinal(date, second) >= 0)
-            {
-                if (i == years.Count - 1 && string.CompareOrdinal(date, AddDays(first, LunarYearDays)) >= 0)
-                    return null;
-                return row;
-            }
-            if (string.CompareOrdinal(date, first) >= 0) return null;
+            if (string.CompareOrdinal(date, row.Ramazan1) < 0) continue;
+            if (i == years.Count - 1 && string.CompareOrdinal(date, AddDays(row.Ramazan1, LunarYearDays)) >= 0)
+                return null;
+            return row;
         }
         return null;
     }
@@ -287,13 +278,12 @@ public static class Zakat
     private static DataSource Source(Data.ZakatRow row)
     {
         var next = Data.ZakatNisab.FirstOrDefault(r => r.ZakatYear == row.ZakatYear + 1);
-        // From the confirmed 1 Ramazan, or else the earlier of the two likely
-        // days, to the day before the next year's; open while it is the
-        // latest year.
+        // From 1 Ramazan to the day before the next year's; open while it is
+        // the latest year.
         return new DataSource(
             "zakat-nisab",
-            row.ValuationDate ?? row.ExpectedValuationDates[0],
-            next is null ? null : AddDays(next.ValuationDate ?? next.ExpectedValuationDates[0], -1),
+            row.Ramazan1,
+            next is null ? null : AddDays(next.Ramazan1, -1),
             $"Notification No. {row.Notification.Number} ({row.Notification.Date}); "
                 + $"SBP {row.SbpCircular.Number} ({row.SbpCircular.Date})",
             row.Notification.Url);
@@ -304,11 +294,11 @@ public static class Zakat
         row.Label,
         row.Nisab,
         row.ValuationDateHijri,
-        row.ExpectedValuationDates.ToArray(),
+        row.Ramazan1,
+        row.Ramazan1Source,
         row.BankHolidayDate,
-        row.ValuationDate,
-        row.ValuationDateSource,
         row.Notification,
         row.SbpCircular,
+        row.Note,
         Source(row));
 }

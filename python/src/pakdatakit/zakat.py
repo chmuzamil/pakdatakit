@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as _dt
 import re
 from dataclasses import dataclass
-from typing import Any, List, Mapping, Optional, Tuple
+from typing import Any, List, Mapping, Optional
 
 from ._data import load
 from ._internal.date import iso_date
@@ -15,7 +15,7 @@ from .data_info import DataSource
 
 __all__ = [
     "ZakatDocument",
-    "ZakatValuationDateSource",
+    "ZakatRamazan1Source",
     "ZakatNisab",
     "ZakatDeduction",
     "get_zakat_nisab",
@@ -23,7 +23,7 @@ __all__ = [
     "zakat_deduction",
 ]
 
-# Days after the last notified year's first possible start that it still certainly covers.
+# Days after the last notified year's 1 Ramazan that it still certainly covers.
 _LUNAR_YEAR_DAYS = 353
 _FOUR_DIGITS = re.compile(r"[0-9]{4}\Z")
 
@@ -39,12 +39,18 @@ class ZakatDocument:
 
 
 @dataclass(frozen=True)
-class ZakatValuationDateSource:
-    """The source that confirms the Gregorian date of a Zakat year's 1
-    Ramazan (``ZakatNisab.valuation_date``)."""
+class ZakatRamazan1Source:
+    """Who announced a Zakat year's 1 Ramazan, and where the announcement was
+    reported (``ZakatNisab.ramazan1_source``)."""
 
-    reference: str
-    url: str
+    #: Who announced it: ``Central Ruet-e-Hilal Committee``.
+    announced_by: str
+    #: The outlet that reported the announcement, e.g. ``Dawn``.
+    reported_by: str
+    #: The report's date (``YYYY-MM-DD``), or ``None`` if not recorded.
+    reported_on: Optional[str]
+    #: The report's URL, or ``None`` where none is recorded.
+    url: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -58,23 +64,25 @@ class ZakatNisab:
     label: str
     #: Nisab in rupees: accounts with a lower balance are not deducted.
     nisab: float
-    #: The valuation (deduction) date in the Hijri calendar, e.g. ``1 Ramazan 1447 AH``.
+    #: The valuation date in the Hijri calendar, e.g. ``1 Ramazan 1447 AH``.
     valuation_date_hijri: str
-    #: The two Gregorian dates the notification says 1 Ramazan is likely to
-    #: fall on (``YYYY-MM-DD``). The day itself depends on the moon sighting.
-    expected_valuation_dates: Tuple[str, str]
-    #: The confirmed Gregorian date of 1 Ramazan (``YYYY-MM-DD``), where a
-    #: source states it; otherwise ``None``.
-    valuation_date: Optional[str]
-    #: The source of ``valuation_date``, or ``None`` with it.
-    valuation_date_source: Optional[ZakatValuationDateSource]
-    #: The bank holiday for the deduction, when SBP's circular names a
-    #: Gregorian date (``YYYY-MM-DD``); otherwise ``None``.
+    #: The valuation date: 1 Ramazan in the Gregorian calendar
+    #: (``YYYY-MM-DD``), as announced by the Central Ruet-e-Hilal Committee.
+    #: Zakat years are assigned to dates by it.
+    ramazan1: str
+    ramazan1_source: ZakatRamazan1Source
+    #: The deduction day: the bank holiday SBP declares for it
+    #: (``YYYY-MM-DD``). It is ``ramazan1``, or the next working day when 1
+    #: Ramazan falls on a weekend or public holiday (for example 24 March
+    #: 2023, after Pakistan Day). ``None`` where no SBP holiday circular was found.
     bank_holiday_date: Optional[str]
     #: The Ministry of Poverty Alleviation & Social Safety notification.
     notification: ZakatDocument
     #: The SBP BPRD circular letter that conveys it to banks.
     sbp_circular: ZakatDocument
+    #: Notes on the documents, including the notification's "likely to fall
+    #: on" text, or ``None``.
+    note: Optional[str]
     #: The notification and SBP circular, as a :class:`DataSource`.
     source: DataSource
 
@@ -112,22 +120,16 @@ def _document(raw: Any) -> ZakatDocument:
     return ZakatDocument(number=raw["number"], date=raw["date"], url=raw["url"])
 
 
-def _start(row: Any) -> str:
-    """The confirmed 1 Ramazan, or the earlier of the two likely days."""
-    confirmed = row.get("valuationDate")
-    return confirmed if confirmed is not None else row["expectedValuationDates"][0]  # type: ignore[no-any-return]
-
-
 def _source(row: Any) -> DataSource:
     following = next((r for r in _rows() if r["zakatYear"] == row["zakatYear"] + 1), None)
     notification = row["notification"]
     circular = row["sbpCircular"]
     return DataSource(
         id="zakat-nisab",
-        # From the earlier of the two likely days of 1 Ramazan, to the day
-        # before the next year's; open while it is the latest year.
-        effective_from=_start(row),
-        effective_to=None if following is None else _add_days(_start(following), -1),
+        # From 1 Ramazan to the day before the next year's; open while it is
+        # the latest year.
+        effective_from=row["ramazan1"],
+        effective_to=None if following is None else _add_days(following["ramazan1"], -1),
         source_reference=(
             f"Notification No. {notification['number']} ({notification['date']}); "
             f"SBP {circular['number']} ({circular['date']})"
@@ -137,24 +139,23 @@ def _source(row: Any) -> DataSource:
 
 
 def _nisab(row: Any) -> ZakatNisab:
-    first, second = row["expectedValuationDates"]
+    announced = row["ramazan1Source"]
     return ZakatNisab(
         zakat_year=row["zakatYear"],
         label=row["label"],
         nisab=row["nisab"],
         valuation_date_hijri=row["valuationDateHijri"],
-        expected_valuation_dates=(first, second),
-        valuation_date=row.get("valuationDate"),
-        valuation_date_source=(
-            None
-            if row.get("valuationDateSource") is None
-            else ZakatValuationDateSource(
-                reference=row["valuationDateSource"]["reference"], url=row["valuationDateSource"]["url"]
-            )
+        ramazan1=row["ramazan1"],
+        ramazan1_source=ZakatRamazan1Source(
+            announced_by=announced["announcedBy"],
+            reported_by=announced["reportedBy"],
+            reported_on=announced.get("reportedOn"),
+            url=announced.get("url"),
         ),
         bank_holiday_date=row["bankHolidayDate"],
         notification=_document(row["notification"]),
         sbp_circular=_document(row["sbpCircular"]),
+        note=row.get("note"),
         source=_source(row),
     )
 
@@ -175,30 +176,21 @@ def _by_year(value: Any) -> Optional[Any]:
 
 
 def _by_date(value: Any) -> Optional[Any]:
-    """The Zakat year a date falls in. A year starts on 1 Ramazan: its
-    confirmed date where known, otherwise one of the notification's two
-    likely days, and a date on the earlier of the two is ambiguous and gives
-    ``None``, as does a date past the last notified year."""
+    """The Zakat year a date falls in: the last year whose 1 Ramazan is on or
+    before it. A date before the first covered year, or 353 days or more
+    after the last year's 1 Ramazan (next year not yet notified), gives
+    ``None``."""
     date = iso_date(value)
     if date is None:
         return None
     rows = _rows()
     for i in range(len(rows) - 1, -1, -1):
         row = rows[i]
-        confirmed = row.get("valuationDate")
-        if confirmed is not None:
-            if date < confirmed:
-                continue
-            if i == len(rows) - 1 and date >= _add_days(confirmed, _LUNAR_YEAR_DAYS):
-                return None
-            return row
-        first, second = row["expectedValuationDates"]
-        if date >= second:
-            if i == len(rows) - 1 and date >= _add_days(first, _LUNAR_YEAR_DAYS):
-                return None
-            return row
-        if date >= first:
+        if date < row["ramazan1"]:
+            continue
+        if i == len(rows) - 1 and date >= _add_days(row["ramazan1"], _LUNAR_YEAR_DAYS):
             return None
+        return row
     return None
 
 
@@ -233,19 +225,16 @@ def get_zakat_nisab(
     notification's ``"1446-47"``) or a ``date`` (``YYYY-MM-DD`` or a
     ``datetime.date``); ``zakat_year`` takes precedence. They may also be
     passed as a ``dict``, ``{"zakatYear": 1447}`` or ``{"date": ...}``, as in
-    the npm package. A Zakat year starts on 1 Ramazan. Where its Gregorian
-    date is confirmed (``valuation_date``, 2026 so far), that date is used.
-    Otherwise only the two likely days the notification gives are known, and
-    for a date on the first of them the year is unknown and the result is
-    ``None``.
+    the npm package. A Zakat year starts on 1 Ramazan (``ramazan1``, as the
+    Central Ruet-e-Hilal Committee announced it), and a date belongs to the
+    last year whose 1 Ramazan is on or before it.
 
     This is the nisab for deduction from savings and similar bank accounts
     under the Zakat and Ushr Ordinance 1980, not a religious ruling on
     personal Zakat.
 
     Returns the year's nisab, dates and sources (:class:`ZakatNisab`), or
-    ``None`` for a year that is not covered, an invalid query or an
-    ambiguous date. Never raises.
+    ``None`` for a year that is not covered or an invalid query. Never raises.
 
     >>> get_zakat_nisab(zakat_year=1447).nisab
     503529
@@ -288,11 +277,12 @@ def zakat_deduction(
     oaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980,
     s. 1(3), proviso (a)). The library does not check the declaration.
 
-    A balance exactly equal to the nisab is deducted, as the notifications
-    say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
-    says no deduction where the balance "does not exceed" the nisab, which
-    would not deduct it; the library follows the notifications, which banks
-    apply.
+    A balance exactly equal to the nisab is deducted: every notification
+    says no deduction where the balance is "less than" the nisab, and the
+    Ordinance (s. 2(xxiii)) defines a sahib-e-nisab as owning "not less than
+    nisab". The First Schedule's own wording ("does not exceed") would not
+    deduct it. In Punjab the Punjab Zakat and Ushr Act 2018 replaced the
+    Ordinance, with the same First Schedule wording.
 
     ``balance`` is the account balance in rupees at the start of the
     valuation date (0 to 1 trillion, at most 2 decimals count). The year is
@@ -306,8 +296,7 @@ def zakat_deduction(
     not a religious ruling on how much Zakat a person owes.
 
     Returns the deduction and its source (:class:`ZakatDeduction`), or
-    ``None`` for an invalid balance, a year that is not covered, or an
-    ambiguous date. Never raises.
+    ``None`` for an invalid balance or a year that is not covered. Never raises.
 
     >>> zakat_deduction(balance=600000, zakat_year=1447).zakat
     15000

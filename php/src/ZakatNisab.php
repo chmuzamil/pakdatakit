@@ -19,30 +19,30 @@ final readonly class ZakatNisab
         public string $label,
         /** Nisab in rupees: accounts with a lower balance are not deducted. */
         public int $nisab,
-        /** The valuation (deduction) date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`. */
+        /** The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`. */
         public string $valuationDateHijri,
         /**
-         * @var array{string, string} The two Gregorian dates the notification
-         * says 1 Ramazan is likely to fall on (`YYYY-MM-DD`). The day itself
-         * depends on the moon sighting.
+         * The valuation date: 1 Ramazan in the Gregorian calendar
+         * (`YYYY-MM-DD`), as announced by the Central Ruet-e-Hilal Committee.
+         * Zakat years are assigned to dates by it.
          */
-        public array $expectedValuationDates,
+        public string $ramazan1,
+        /** Who announced 1 Ramazan, and where the announcement was reported. */
+        public ZakatRamazan1Source $ramazan1Source,
         /**
-         * The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a
-         * source states it; otherwise null.
-         */
-        public ?string $valuationDate,
-        /** The source that confirms `valuationDate`, or null. */
-        public ?ZakatValuationDateSource $valuationDateSource,
-        /**
-         * The bank holiday for the deduction (`YYYY-MM-DD`), when SBP's
-         * circular names a Gregorian date; otherwise null.
+         * The deduction day: the bank holiday SBP declares for it
+         * (`YYYY-MM-DD`). It is `ramazan1`, or the next working day when 1
+         * Ramazan falls on a weekend or public holiday (for example 24 March
+         * 2023, after Pakistan Day). Null where no SBP holiday circular was
+         * found.
          */
         public ?string $bankHolidayDate,
         /** The Ministry of Poverty Alleviation & Social Safety notification. */
         public ZakatDocument $notification,
         /** The SBP BPRD circular letter that conveys it to banks. */
         public ZakatDocument $sbpCircular,
+        /** Notes on the documents, including the notification's "likely to fall on" text, or null. */
+        public ?string $note,
         /** The notification and SBP circular, with the period the nisab applies to. */
         public DataSource $source,
     ) {

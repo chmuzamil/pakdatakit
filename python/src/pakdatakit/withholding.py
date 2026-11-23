@@ -15,6 +15,7 @@ __all__ = [
     "WithholdingNonAtlRule",
     "WithholdingSlab",
     "WithholdingThreshold",
+    "WithholdingCircular",
     "WithholdingRate",
     "Withholding",
     "get_withholding_rates",
@@ -53,6 +54,17 @@ class WithholdingThreshold:
 
 
 @dataclass(frozen=True)
+class WithholdingCircular:
+    """An FBR circular explaining a withholding rate
+    (``WithholdingRate.circular``)."""
+
+    #: Its number, date and paragraph, as FBR writes them.
+    reference: str
+    #: The official document.
+    url: str
+
+
+@dataclass(frozen=True)
 class WithholdingRate:
     """One case of a section in a tax year, as in FBR's rate card. Returned by
     :func:`get_withholding_rates`."""
@@ -80,6 +92,8 @@ class WithholdingRate:
     #: Where the statute differs from the card and the statute is used, why.
     statute_override: Optional[str]
     note: Optional[str]
+    #: FBR's circular explaining the rate, where one is recorded; otherwise ``None``.
+    circular: Optional[WithholdingCircular]
     source: DataSource
 
 
@@ -198,6 +212,11 @@ def get_withholding_rates(tax_year: Any, section: Any = None) -> List[Withholdin
                 law_ref=r["lawRef"],
                 statute_override=r.get("statuteOverride"),
                 note=r.get("note"),
+                circular=(
+                    None
+                    if r.get("circular") is None
+                    else WithholdingCircular(reference=r["circular"]["reference"], url=r["circular"]["url"])
+                ),
                 source=_source(r),
             )
         )

@@ -27,8 +27,10 @@ final readonly class DataInfo
         public string $sourceReference,
         /** When the source was issued (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`), or null if it is undated. */
         public ?string $sourceDate,
-        /** When the source was last downloaded and checked (`YYYY-MM-DD`). */
+        /** When the source was last downloaded (`YYYY-MM-DD`). */
         public string $retrievedAt,
+        /** When the data was last checked against the source (`YYYY-MM-DD`). */
+        public string $checkedAt,
         /** First date the data applies to (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`). */
         public string $effectiveFrom,
         /** Last date it applies to, or null while it is current. */

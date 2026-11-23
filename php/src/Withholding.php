@@ -76,6 +76,9 @@ final class Withholding
                 lawRef: $row['lawRef'],
                 statuteOverride: $row['statuteOverride'] ?? null,
                 note: $row['note'] ?? null,
+                circular: isset($row['circular'])
+                    ? new WithholdingCircular($row['circular']['reference'], $row['circular']['url'])
+                    : null,
                 source: self::source($row),
             );
         }

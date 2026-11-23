@@ -80,6 +80,7 @@ final class PakData
                     sourceReference: $entry['sourceReference'],
                     sourceDate: $entry['sourceDate'],
                     retrievedAt: $entry['retrievedAt'],
+                    checkedAt: $entry['checkedAt'],
                     effectiveFrom: $entry['effectiveFrom'],
                     effectiveTo: $entry['effectiveTo'],
                     coverage: $entry['coverage'],

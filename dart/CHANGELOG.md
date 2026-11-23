@@ -19,9 +19,16 @@ vectors.
   `calculateSalesTax()` when the rate was looked up.
 - Zakat deduction at source (`package:pakdatakit/zakat.dart`):
   `getZakatNisab()`, `getZakatYears()` and `zakatDeduction()`, Zakat years
-  1433-1447 (#93). `zakat` is in whole rupees (First Schedule, Note 2), and
-  a year's confirmed date of 1 Ramazan (`valuationDate`, with its
-  `valuationDateSource`) is used for lookups by date where known.
+  1433-1447 (#93). `zakat` is in whole rupees (First Schedule, Note 2). Each
+  year carries `ramazan1`, the 1 Ramazan the Central Ruet-e-Hilal Committee
+  announced (with `ramazan1Source`), which assigns dates to Zakat years, the
+  SBP deduction day (`bankHolidayDate`) and a `note`.
+- `BankInfo` gains `status` (`BankStatus`), `website`, `websiteSbpListed`,
+  and `swift` with `swiftSource` (`BankSwiftSource`) or `swiftReason`: the
+  SWIFT/BIC code only where SBP or the bank's own website prints it (#94).
+- `DataInfo.checkedAt`: when the data was last checked against its source.
+- `WithholdingRate.circular`: FBR's circular explaining the rate, where
+  recorded.
 - Withholding tax (`package:pakdatakit/withholding.dart`):
   `calculateWithholding()` and `getWithholdingRates()` for sections 231AB,
   236C, 236K, 151, 150, 153, 154B and 149, ATL and non-ATL, tax years

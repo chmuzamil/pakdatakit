@@ -2,7 +2,6 @@
 library;
 
 import '../data/area_codes.g.dart';
-import '../data/banks.g.dart';
 import '../data/cities.g.dart';
 import '../data/districts.g.dart';
 import '../data/divisions.g.dart';
@@ -72,27 +71,6 @@ final List<({String city, String postalCode, String? area, bool primary})>
 final List<({String prefix, String network})> networks = List.unmodifiable([
   for (final e in networksJson.map(_map))
     (prefix: e['prefix']! as String, network: e['network']! as String),
-]);
-
-/// `data/banks.json`.
-final List<
-    ({
-      String code,
-      String name,
-      String type,
-      String? mergedInto,
-      bool active,
-      String? aliasOf
-    })> banks = List.unmodifiable([
-  for (final e in banksJson.map(_map))
-    (
-      code: e['code']! as String,
-      name: e['name']! as String,
-      type: e['type']! as String,
-      mergedInto: e['mergedInto'] as String?,
-      active: e['active'] != false,
-      aliasOf: e['aliasOf'] as String?,
-    ),
 ]);
 
 /// `data/area-codes.json`.

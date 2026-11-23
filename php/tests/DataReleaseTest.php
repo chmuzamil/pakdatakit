@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace PakDataKit\Tests;
 
 use DateTimeImmutable;
+use PakDataKit\BankInfo;
+use PakDataKit\BankSwiftSource;
 use PakDataKit\Cnic;
 use PakDataKit\DataInfo;
 use PakDataKit\DataSource;
 use PakDataKit\FbrInvoice;
 use PakDataKit\FbrSaleType;
+use PakDataKit\Iban;
 use PakDataKit\IncomeTax;
 use PakDataKit\Internal\Data;
 use PakDataKit\PakData;
@@ -108,15 +111,22 @@ final class DataReleaseTest extends TestCase
         self::assertSame(1446, Zakat::getNisab(zakatYear: ' 1446 ')?->zakatYear);
         self::assertSame(179689, Zakat::getNisab(date: '2025-06-01')?->nisab);
         self::assertSame(179689, Zakat::getNisab(date: new DateTimeImmutable('2025-06-01'))?->nisab);
-        // The first of the two likely days of 1 Ramazan is ambiguous.
-        self::assertNull(Zakat::getNisab(date: '2025-03-01'));
-        self::assertSame(1446, Zakat::getNisab(date: '2025-03-02')?->zakatYear);
-        // 1 Ramazan 1447 is confirmed as 19 February 2026.
-        self::assertSame('2026-02-19', Zakat::getNisab(zakatYear: 1447)?->valuationDate);
+        // A date belongs to the last year whose 1 Ramazan is on or before it.
+        $year1447 = Zakat::getNisab(zakatYear: 1447);
+        self::assertSame('2026-02-19', $year1447?->ramazan1);
+        self::assertSame('Central Ruet-e-Hilal Committee', $year1447?->ramazan1Source->announcedBy);
         self::assertSame(1446, Zakat::getNisab(date: '2026-02-18')?->zakatYear);
         self::assertSame(1447, Zakat::getNisab(date: '2026-02-19')?->zakatYear);
         self::assertSame('2026-02-18', Zakat::getNisab(zakatYear: 1446)?->source->effectiveTo);
-        self::assertNull(Zakat::getNisab(zakatYear: 1446)?->valuationDateSource);
+        self::assertSame('2026-02-19', $year1447?->source->effectiveFrom);
+        self::assertNull(Zakat::getNisab(date: '2012-07-20'));
+        self::assertSame(1433, Zakat::getNisab(date: '2012-07-21')?->zakatYear);
+        self::assertNull(Zakat::getNisab(date: '2027-02-07'));
+        self::assertSame(
+            ['zakatYear', 'label', 'nisab', 'valuationDateHijri', 'ramazan1', 'ramazan1Source', 'bankHolidayDate',
+                'notification', 'sbpCircular', 'note', 'source'],
+            array_keys($year1447->toArray()),
+        );
         self::assertNull(Zakat::getNisab());
         self::assertSame(range(1433, 1447), Zakat::getYears());
 
@@ -258,6 +268,46 @@ final class DataReleaseTest extends TestCase
         foreach ([null, 'x', 42, [], ['provinces' => 'PUNJAB'], ['hsUom' => ['a', 'b']], new stdClass()] as $ignored) {
             self::assertSame([], self::codes(FbrInvoice::validate($invoice, ['reference' => $ignored])));
         }
+    }
+
+    // ----------------------------------------------------------------- banks
+
+    public function testBanksHaveWebsitesAndPrintedSwiftCodes(): void
+    {
+        $scbl = Iban::getBankInfo('PK36SCBL0000001123456702');
+        self::assertSame(['active', 'https://www.sc.com/pk/', 'standardchartered.com.pk', 'SCBLPKKX', null], [
+            $scbl?->status, $scbl?->website, $scbl?->websiteSbpListed, $scbl?->swift, $scbl?->swiftReason,
+        ]);
+        self::assertInstanceOf(BankSwiftSource::class, $scbl->swiftSource);
+        self::assertSame('bank-site', $scbl->swiftSource->bicSource);
+        self::assertSame(1, Iban::getBankInfo('DEUT')?->swiftSource?->page);
+        $none = Iban::getBankInfo('AIIN');
+        self::assertNull($none?->swift);
+        self::assertNull($none?->swiftSource);
+        self::assertIsString($none?->swiftReason);
+        self::assertSame(
+            ['code', 'name', 'type', 'active', 'mergedInto', 'aliasOf', 'status', 'website', 'websiteSbpListed', 'swift',
+                'swiftSource', 'swiftReason'],
+            array_keys($scbl->toArray()),
+        );
+        // The 2.7 constructor still works.
+        $old = new BankInfo('TEST', 'Test Bank', 'commercial', true);
+        self::assertSame(['active', null, null], [$old->status, $old->swift, $old->swiftSource]);
+    }
+
+    public function testWithholdingRatesNameTheirCircular(): void
+    {
+        $rates = Withholding::getRates(2027, '153');
+        $withCircular = array_values(array_filter($rates, static fn ($rate): bool => $rate->circular !== null));
+        self::assertNotSame([], $withCircular);
+        self::assertStringStartsWith('FBR Circular No. 02 of 2026-27', $withCircular[0]->circular->reference);
+        self::assertSame(['note', 'circular', 'source'], array_slice(array_keys($rates[0]->toArray()), -3));
+    }
+
+    public function testDataInfoHasCheckedAt(): void
+    {
+        $keys = array_keys(PakData::getDataInfo('banks')->toArray());
+        self::assertSame('checkedAt', $keys[array_search('retrievedAt', $keys, true) + 1]);
     }
 
     // --------------------------------------------------------- lazy loading

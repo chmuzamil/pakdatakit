@@ -4,15 +4,30 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from ._data import load
 from ._internal.normalize import strip_separators
 
-__all__ = ["BankInfo", "validate_iban", "get_bank_from_iban", "get_bank_info", "get_banks"]
+__all__ = ["BankInfo", "BankSwiftSource", "validate_iban", "get_bank_from_iban", "get_bank_info", "get_banks"]
 
 _PK_IBAN_PATTERN = re.compile(r"PK[0-9]{2}[A-Z]{4}[A-Z0-9]{16}\Z")
 _BANK_CODE = re.compile(r"[A-Z]{4}\Z")
+
+
+@dataclass(frozen=True)
+class BankSwiftSource:
+    """Where a bank's SWIFT/BIC code is printed (``BankInfo.swift_source``)."""
+
+    #: ``sbp`` (State Bank of Pakistan) or ``bank-site`` (the institution's own domain).
+    bic_source: str
+    #: The code as printed, e.g. ``HABBPKKAXXX`` or ``MEZN PK KA``.
+    printed: str
+    source_url: str
+    #: The PDF page, or ``None`` for a web page.
+    page: Optional[int]
+    #: When the source was checked (YYYY-MM-DD).
+    checked_at: str
 
 
 @dataclass(frozen=True)
@@ -34,6 +49,21 @@ class BankInfo:
     merged_into: Optional[str] = None
     #: Main code of the same bank, when this is an older code still in use.
     alias_of: Optional[str] = None
+    #: ``active``, ``merged`` (see ``merged_into``) or ``liquidated``.
+    status: str = "active"
+    #: The institution's official website (from SBP's lists of regulated
+    #: institutions, or its own site where SBP lists none or an old domain),
+    #: or ``None`` for a bank that no longer exists.
+    website: Optional[str] = None
+    #: What SBP's list gives, where it differs from ``website`` (an older domain).
+    website_sbp_listed: Optional[str] = None
+    #: The 8-character SWIFT/BIC code, only where SBP or the institution's own
+    #: website prints it; otherwise ``None`` (see ``swift_reason``).
+    swift: Optional[str] = None
+    #: Where ``swift`` is printed, and when it was checked.
+    swift_source: Optional[BankSwiftSource] = None
+    #: Why ``swift`` is ``None``, or ``None`` when it is set.
+    swift_reason: Optional[str] = None
 
 
 _bank_list: Optional[List[BankInfo]] = None
@@ -51,10 +81,28 @@ def _banks() -> List[BankInfo]:
                 active="mergedInto" not in entry and entry.get("active") is not False,
                 merged_into=entry.get("mergedInto"),
                 alias_of=entry.get("aliasOf"),
+                status=entry["status"],
+                website=entry["website"],
+                website_sbp_listed=entry["websiteSbpListed"],
+                swift=entry["swift"],
+                swift_source=_swift_source(entry["swiftSource"]),
+                swift_reason=entry["swiftReason"],
             )
             for entry in load("banks.json")
         ]
     return _bank_list
+
+
+def _swift_source(raw: Any) -> Optional[BankSwiftSource]:
+    if raw is None:
+        return None
+    return BankSwiftSource(
+        bic_source=raw["bicSource"],
+        printed=raw["printed"],
+        source_url=raw["sourceUrl"],
+        page=raw["page"],
+        checked_at=raw["checkedAt"],
+    )
 
 
 def _bank_by_code() -> Dict[str, BankInfo]:
@@ -97,8 +145,9 @@ def get_bank_from_iban(iban: str) -> Optional[str]:
 
 
 def get_bank_info(iban_or_code: str) -> Optional[BankInfo]:
-    """Returns details of the bank that issued an IBAN: name, type and whether
-    it still exists. Also accepts a 4-letter bank code such as ``"MEZN"``.
+    """Returns details of the bank that issued an IBAN: name, type, status,
+    official website and, where SBP or the bank itself prints it, the
+    SWIFT/BIC code. Also accepts a 4-letter bank code such as ``"MEZN"``.
 
     Returns ``None`` if the IBAN is invalid or the code unknown.
     """

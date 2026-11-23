@@ -81,6 +81,24 @@ void main() {
     expect(getTehsilPopulation('Dasht', 'Mastung')?.censusDistrict, 'Mastung');
   });
 
+  test('Zakat years start on the announced 1 Ramazan', () {
+    final y = getZakatNisab(zakatYear: 1447)!;
+    expect(y.ramazan1, '2026-02-19');
+    expect(y.source.effectiveFrom, '2026-02-19');
+    expect(getZakatNisab(date: '2026-02-18')?.zakatYear, 1446);
+    expect(getZakatNisab(date: '2026-02-19')?.zakatYear, 1447);
+    expect(getZakatNisab(date: '2011-01-01'), isNull);
+  });
+
+  test('bank websites and SWIFT codes', () {
+    final scb = getBankInfo('SCBL')!;
+    expect(scb.status, BankStatus.active);
+    expect(scb.swift, 'SCBLPKKX');
+    expect(scb.swiftSource?.bicSource, BankBicSource.bankSite);
+    expect(scb.toJson().keys.skip(6).first, 'status');
+    expect(getDataInfo('banks')?.checkedAt, isNotNull);
+  });
+
   test('FBR sale types', () {
     expect(getSaleTypes().first.saleType, 'Goods at Standard Rate (default)');
   });

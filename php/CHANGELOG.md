@@ -14,20 +14,27 @@ results on the shared test vectors. The new datasets load on first use.
   mask the line breaks stay. Off by default (#88).
 - **Data manifest.** `PakData::getDataInfo($id)` returns a `DataInfo` (issuer,
   source URL and reference, dates, coverage, record count, next expected
-  update) for each bundled dataset; `PakData::listDataInfo()` lists them in
+  update, and `checkedAt`: when the data was last checked against the
+  source) for each bundled dataset; `PakData::listDataInfo()` lists them in
   id order.
+- **Banks** (#94): `BankInfo` has `status` (`active`, `merged` or
+  `liquidated`), `website` and `websiteSbpListed`, and `swift` (SWIFT/BIC)
+  only where SBP or the bank's own domain prints it, with `swiftSource` (a
+  `BankSwiftSource`) or `swiftReason`. The new constructor parameters are
+  optional, so code that builds a `BankInfo` still works.
 - **Dated sources in results.** `SalaryTax` has `source` (a `DataSource`: the
   rate table's dates, law and document), and `SalesTaxAmounts` has `source`
   when `SalesTax::calculate()` looked the rate up (null, and left out of
   `toArray()`, when you pass `rate`).
 - **Zakat** (`Zakat`): `getNisab(zakatYear: 1447)` (also `'1447'` or the
   notification's `'1446-47'`) or `getNisab(date: ...)` returns a
-  `ZakatNisab` for Zakat years 1433-1447, with `valuationDate` and
-  `valuationDateSource` where 1 Ramazan is confirmed (1447: 19 February
-  2026; date lookups and the source's dates use it); `getYears()`;
+  `ZakatNisab` for Zakat years 1433-1447, with `ramazan1` (1 Ramazan as the
+  Central Ruet-e-Hilal Committee announced it, which assigns dates to years
+  and starts the source's period), `ramazan1Source` (a
+  `ZakatRamazan1Source`), `bankHolidayDate` and `note`; `getYears()`;
   `deduction($balance, zakatYear: ..., exempt: ...)` returns a
-  `ZakatDeduction`: 2.5% at or above the nisab, in whole rupees (First
-  Schedule, Note 2) (#93).
+  `ZakatDeduction`: 2.5% at or above the nisab (a balance equal to it is
+  deducted), in whole rupees (First Schedule, Note 2) (#93).
 - **Withholding tax** (`Withholding`): `calculate($section, $amount, atl: ...,
 subType: ..., taxYear: ..., date: ..., lateFiler: ..., returnOnInvestment: ...,
 resident: ...)` returns a `WithholdingTax` for persons on and not on the
@@ -41,6 +48,8 @@ resident: ...)` returns a `WithholdingTax` for persons on and not on the
   `sukuk-individual-below-1m`, exactly Rs 1 million gives null. 150 has the
   company case `mutual-fund-debt-part-company` (29%). For 154B,
   `resident: true|false` sets `taxNature` (`minimum` or `final`).
+  `WithholdingRate` has `circular` (a `WithholdingCircular`) where an FBR
+  circular explains the rate.
 - **Census 2023 population** (`Population`): `getDistrict($district)` returns a
   `DistrictPopulation` and `getTehsil($tehsil, $district)` a
   `TehsilPopulation` (population, households, urban, rural, census

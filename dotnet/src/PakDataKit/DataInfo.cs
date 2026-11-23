@@ -11,7 +11,8 @@ namespace PakDataKit;
 /// <param name="SourceUrl">The official document or page the data is taken from.</param>
 /// <param name="SourceReference">Its number or title: an SRO, circular, notification or table.</param>
 /// <param name="SourceDate">When the source was issued (<c>YYYY</c>, <c>YYYY-MM</c> or <c>YYYY-MM-DD</c>), or <c>null</c> if it is undated.</param>
-/// <param name="RetrievedAt">When the source was last downloaded and checked (<c>YYYY-MM-DD</c>).</param>
+/// <param name="RetrievedAt">When the source was last downloaded (<c>YYYY-MM-DD</c>).</param>
+/// <param name="CheckedAt">When the data was last checked against the source (<c>YYYY-MM-DD</c>).</param>
 /// <param name="EffectiveFrom">First date the data applies to (<c>YYYY</c>, <c>YYYY-MM</c> or <c>YYYY-MM-DD</c>).</param>
 /// <param name="EffectiveTo">Last date it applies to, or <c>null</c> while it is current.</param>
 /// <param name="Coverage">What it covers, e.g. <c>Tax years 2020-2027</c>.</param>
@@ -28,6 +29,7 @@ public sealed record DataInfo(
     string SourceReference,
     string? SourceDate,
     string RetrievedAt,
+    string CheckedAt,
     string EffectiveFrom,
     string? EffectiveTo,
     string Coverage,

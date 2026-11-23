@@ -49,6 +49,8 @@ final readonly class WithholdingRate
         public ?string $statuteOverride,
         /** A note on the case, or null. */
         public ?string $note,
+        /** FBR's circular explaining the rate, where one is recorded; otherwise null. */
+        public ?WithholdingCircular $circular,
         /** The rate card and law, with the tax year's dates. */
         public DataSource $source,
     ) {

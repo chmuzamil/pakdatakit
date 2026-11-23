@@ -2520,6 +2520,10 @@
             {
               "name": "BankSite",
               "doc": "The institution's own domain (`bank-site`)."
+            },
+            {
+              "name": "Directory",
+              "doc": "A SWIFT code directory such as Wise (`directory`); not confirmed by SBP or the\nbank, so confirm with the bank before sending money."
             }
           ],
           "fields": [],
@@ -2535,7 +2539,7 @@
               "name": "BicSource",
               "type": "BankBicSource",
               "default": null,
-              "doc": "SBP or the institution's own domain.",
+              "doc": "SBP, the institution's own domain, or a SWIFT code directory.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"

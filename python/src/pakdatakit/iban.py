@@ -19,7 +19,8 @@ _BANK_CODE = re.compile(r"[A-Z]{4}\Z")
 class BankSwiftSource:
     """Where a bank's SWIFT/BIC code is printed (``BankInfo.swift_source``)."""
 
-    #: ``sbp`` (State Bank of Pakistan) or ``bank-site`` (the institution's own domain).
+    #: ``sbp`` (State Bank of Pakistan), ``bank-site`` (the institution's own domain) or
+    #: ``directory`` (a SWIFT code directory, not confirmed by SBP or the bank).
     bic_source: str
     #: The code as printed, e.g. ``HABBPKKAXXX`` or ``MEZN PK KA``.
     printed: str

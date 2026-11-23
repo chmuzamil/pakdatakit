@@ -78,7 +78,11 @@ enum BankBicSource {
   sbp('sbp'),
 
   /// The institution's own website (its own domain).
-  bankSite('bank-site');
+  bankSite('bank-site'),
+
+  /// A SWIFT code directory such as Wise; not confirmed by SBP or the bank,
+  /// so confirm with the bank before sending money.
+  directory('directory');
 
   const BankBicSource(this.value);
 

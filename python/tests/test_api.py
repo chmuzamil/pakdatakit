@@ -152,6 +152,9 @@ def test_bank_info() -> None:
     assert abl is not None and abl.swift == "ABPAPKKA" and abl.swift_reason is None
     assert isinstance(abl.swift_source, pdk.BankSwiftSource) and abl.swift_source.bic_source == "bank-site"
     assert all((b.swift is None) == (b.swift_source is None) for b in pdk.get_banks())
+    fays = pdk.get_bank_info("FAYS")
+    assert fays is not None and fays.swift == "FAYSPKKA" and fays.swift_source is not None
+    assert fays.swift_source.bic_source == "directory"
     with pytest.raises(dataclasses.FrozenInstanceError):
         abl.swift = "X"  # type: ignore[misc]
     with pytest.raises(ValueError):

@@ -47,7 +47,8 @@ public sealed class Release280Tests
         Assert.Equal(BankStatus.Active, bank?.Status);
         Assert.Equal("ABPAPKKA", bank?.Swift);
         Assert.Equal(BankBicSource.BankSite, bank?.SwiftSource?.BicSource);
-        Assert.NotNull(Iban.GetBankInfo("AIIN")?.SwiftReason);
+        Assert.Equal(BankBicSource.Directory, Iban.GetBankInfo("FAYS")?.SwiftSource?.BicSource);
+        Assert.NotNull(Iban.GetBankInfo("APNA")?.SwiftReason);
         // The 2.7 constructor still binds; the new members default.
         var built = new BankInfo("TEST", "Test", BankType.Commercial, true, null, null);
         Assert.Equal(BankStatus.Active, built.Status);

@@ -281,7 +281,8 @@ final class DataReleaseTest extends TestCase
         self::assertInstanceOf(BankSwiftSource::class, $scbl->swiftSource);
         self::assertSame('bank-site', $scbl->swiftSource->bicSource);
         self::assertSame(1, Iban::getBankInfo('DEUT')?->swiftSource?->page);
-        $none = Iban::getBankInfo('AIIN');
+        self::assertSame('directory', Iban::getBankInfo('FAYS')?->swiftSource?->bicSource);
+        $none = Iban::getBankInfo('APNA');
         self::assertNull($none?->swift);
         self::assertNull($none?->swiftSource);
         self::assertIsString($none?->swiftReason);

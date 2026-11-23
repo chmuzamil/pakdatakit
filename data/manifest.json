@@ -23,17 +23,17 @@
     "title": "Banks: IBAN codes, websites and SWIFT/BIC",
     "issuer": "State Bank of Pakistan (SBP)",
     "sourceUrl": "https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks",
-    "sourceReference": "SBP lists of regulated institutions (names, types, websites); IBANs printed by SBP (codes); SWIFT/BIC codes only as printed by SBP or on each institution's own domain, each with its URL",
+    "sourceReference": "SBP lists of regulated institutions (names, types, websites); IBANs printed by SBP (codes); SWIFT/BIC codes as printed by SBP or on each institution's own domain, or listed in a SWIFT code directory (Wise, marked bicSource 'directory'), each with its URL",
     "sourceDate": null,
     "retrievedAt": "2026-11-23",
-    "checkedAt": "2026-11-23",
+    "checkedAt": "2026-11-24",
     "effectiveFrom": "2026-11-16",
     "effectiveTo": null,
-    "coverage": "Scheduled banks, microfinance banks and EMIs in Pakistan: 50 IBAN codes, 47 websites, 16 SWIFT/BIC codes",
+    "coverage": "Scheduled banks, microfinance banks and EMIs in Pakistan: 50 IBAN codes, 47 websites, 33 SWIFT/BIC codes (16 official, 17 from a directory)",
     "recordCount": 50,
     "nextExpectedUpdate": "2027-02-16",
     "updateCadence": "Quarterly, and after any SBP merger or licence notification",
-    "notes": "SBP's lists are undated web pages. SBP publishes no list of IBAN bank codes, so each code is confirmed from IBANs SBP itself printed. SWIFT/BIC codes are shipped only where SBP or the institution's own domain prints them; 1LINK IMD codes are not included (no official public source)."
+    "notes": "SBP's lists are undated web pages. SBP publishes no list of IBAN bank codes, so each code is confirmed from IBANs SBP itself printed. SWIFT/BIC codes printed by SBP or the institution's own domain are marked sbp or bank-site; codes found only in a SWIFT code directory (Wise) are marked directory and should be confirmed with the bank. 1LINK IMD codes are not included (no official public source)."
   },
   {
     "id": "cities",

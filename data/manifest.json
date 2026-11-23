@@ -276,10 +276,10 @@
     "effectiveFrom": "2024-07-01",
     "effectiveTo": "2027-06-30",
     "coverage": "Tax years 2025-2027: sections 149, 150, 151, 153, 154B (2027), 231AB, 236C and 236K",
-    "recordCount": 96,
+    "recordCount": 98,
     "nextExpectedUpdate": "2027-08-15",
     "updateCadence": "After the Finance Act each July, when FBR publishes the next tax year's rate card",
-    "notes": "FBR's cards print no publication date; sourceDate is the PDF's creation date. One record per section, case and tax year; past years are never changed. Two TY2027 card values differ from the statute and the statute is used (see DATA.md).",
+    "notes": "FBR's cards print no publication date; sourceDate is the PDF's creation date. One record per section, case and tax year; past years are never changed. Where the card and the statute differ the statute is used (statuteOverride): 153(2) in 2027, and the clause (ba) company proviso, which no card shows.",
     "series": {
       "from": "from",
       "to": "to",
@@ -301,7 +301,7 @@
     "recordCount": 15,
     "nextExpectedUpdate": "2027-02-15",
     "updateCadence": "Each year shortly before 1 Ramazan, when the Ministry notifies the next nisab and SBP circulates it",
-    "notes": "One record per Zakat year with its own notification, SBP circular and dates; past years are never changed. The notifications give two likely Gregorian dates for 1 Ramazan, not the confirmed day. SBP's www site blocks automated downloads; the same files were read from archive.sbp.org.pk.",
+    "notes": "One record per Zakat year with its own notification, SBP circular and dates; past years are never changed. The notifications give two likely Gregorian dates for 1 Ramazan; the confirmed date is recorded where a source states it (1447: 19 February 2026, the Central Ruet-e-Hilal Committee's announcement as reported by APP). SBP's www site blocks automated downloads; the same files were read from archive.sbp.org.pk.",
     "series": {
       "sequence": "zakatYear"
     }

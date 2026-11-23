@@ -1,7 +1,7 @@
 import ratesData from '../data/withholding-rates.json';
 import type { DataSource } from './data-info.js';
-import { calculateSalaryTax, getTaxYear } from './incometax.js';
-import { divideHalfUp, fromPaisa, toUnits } from './internal/money.js';
+import { getSalaryTaxSlabs, getTaxYear } from './incometax.js';
+import { divideHalfUp, toUnits } from './internal/money.js';
 
 /** A value band: the rate for amounts over `over` up to `upTo` (inclusive; `null` = no limit). */
 export interface WithholdingSlab {
@@ -30,6 +30,21 @@ export interface WithholdingInput {
    * years 2025 and 2026).
    */
   lateFiler?: boolean;
+  /**
+   * 151 sukuk, individual or AOP: the holder's return on investment, which
+   * decides the case (more than Rs 1 million: `sukuk-individual-above-1m`;
+   * less than Rs 1 million: `sukuk-individual-below-1m`). Defaults to
+   * `amount`. The law gives no rate for exactly Rs 1 million, so that, or a
+   * case that does not fit the return, gives `null`.
+   */
+  returnOnInvestment?: number;
+  /**
+   * 154B: whether the recipient is resident. The rate is the same; it
+   * decides whether the tax is a minimum tax (resident) or a final tax
+   * (non-resident without a permanent establishment in Pakistan), given in
+   * `taxNature`.
+   */
+  resident?: boolean;
   /** Tax year (July to June), e.g. `2027`. Or give `date`. */
   taxYear?: number;
   /** A date in the tax year, instead of `taxYear`. */
@@ -47,7 +62,11 @@ export interface Withholding {
   lateFiler: boolean;
   /** Percent applied to the whole amount (for 149, the effective rate). */
   rate: number;
-  /** Tax to withhold or collect, rounded half up to the paisa. */
+  /**
+   * Tax to withhold or collect, in whole rupees: section 219 of the
+   * Ordinance disregards fractions under 50 paisa and counts 50 paisa or
+   * more as a rupee.
+   */
   tax: number;
   /**
    * How the rate for a person not on the list is set for this case:
@@ -69,6 +88,12 @@ export interface Withholding {
   lawRef: string;
   /** Where the statute differs from the card and the statute is used, why. */
   statuteOverride: string | null;
+  /**
+   * 154B with `resident` given: `'minimum'` for a resident, `'final'` for a
+   * non-resident without a permanent establishment in Pakistan; otherwise
+   * `null`.
+   */
+  taxNature: 'minimum' | 'final' | null;
   source: DataSource;
 }
 
@@ -97,6 +122,9 @@ interface Row {
   nonAtl: NonAtlSpec;
   lateFiler?: RateSpec;
   threshold?: { amount: number; per: string; aggregate: boolean; law: string };
+  /** The return on investment the case is for: more than `over`, or less than `under`. */
+  returnBand?: { over?: number; under?: number };
+  taxNature?: { resident: 'minimum'; nonResident: 'final' };
   cardRef: string;
   lawRef: string;
   card: string;
@@ -203,8 +231,15 @@ const bp = (rate: number) => Math.round(rate * 100);
  * The rate for a person not on the list follows each case's own rule in the
  * Tenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),
  * its own value bands (236K), or none (149; 231AB applies only to them).
- * The rate applies to the whole amount. Where FBR's card and the Ordinance
- * differ, the Ordinance is used and `statuteOverride` says so.
+ * The rate applies to the whole amount (236C and 236K value bands are not
+ * marginal), and the tax is rounded to the nearest rupee (section 219).
+ * Where FBR's card and the Ordinance differ, the Ordinance is used and
+ * `statuteOverride` says so. For 231AB, pass the day's total of all cash
+ * withdrawals: nothing is collected up to Rs 50,000. For 150 mutual fund
+ * dividends received by a company, the debt part is
+ * `mutual-fund-debt-part-company` (29%). For 151 sukuk held by an
+ * individual or AOP, the case must fit the return on investment, and
+ * exactly Rs 1 million gives `null`.
  *
  * This is an estimate from the rate card, not tax advice: exemptions,
  * reduced-rate certificates, adjustable or final status and the many cases
@@ -247,18 +282,43 @@ export function calculateWithholding(
   }
   if (!row) return null;
 
+  // 151 sukuk (individual or AOP): the case must fit the return; the law
+  // says "more than" and "less than" Rs 1 million, so exactly Rs 1 million
+  // fits neither.
+  if (row.returnBand) {
+    const ret =
+      input.returnOnInvestment === undefined
+        ? paisa
+        : toUnits(input.returnOnInvestment, 2);
+    if (ret === null) return null;
+    const { over, under } = row.returnBand;
+    if (over !== undefined && !(ret > over * 100)) return null;
+    if (under !== undefined && !(ret < under * 100)) return null;
+  }
+
   const atl = input.atl;
   const lateFiler = atl && input.lateFiler === true;
   let rate: number;
-  let taxPaisa: number;
+  /** Tax in whole rupees (section 219). */
+  let taxRupees: number;
   let slab: WithholdingSlab | null = null;
   let threshold: Withholding['threshold'] = null;
 
   if (row.atl.salarySlabs) {
-    const salary = calculateSalaryTax(fromPaisa(paisa), { taxYear });
-    if (salary === null) return null;
-    rate = salary.effectiveRate;
-    taxPaisa = Math.round(salary.tax * 100);
+    // The salaried rate table, computed exactly and rounded once.
+    const table = getSalaryTaxSlabs(taxYear);
+    if (table === null) return null;
+    let band = table.slabs[0] as SalaryBand;
+    for (const candidate of table.slabs)
+      if (paisa > candidate.over * 100) band = candidate as SalaryBand;
+    const above = paisa > band.over * 100 ? paisa - band.over * 100 : 0;
+    taxRupees =
+      band.fixed +
+      divideHalfUp(BigInt(above) * BigInt(bp(band.rate)), 1000000n);
+    rate =
+      paisa === 0
+        ? 0
+        : divideHalfUp(BigInt(taxRupees) * 1000000n, BigInt(paisa)) / 100;
   } else {
     let spec: RateSpec | NonAtlSpec;
     if (!atl) spec = row.nonAtl;
@@ -270,7 +330,7 @@ export function calculateWithholding(
     } else {
       rate = typeof spec.rate === 'number' ? spec.rate : 0;
     }
-    taxPaisa = divideHalfUp(BigInt(paisa) * BigInt(bp(rate)), 10000n);
+    taxRupees = divideHalfUp(BigInt(paisa) * BigInt(bp(rate)), 1000000n);
     if (row.threshold) {
       const within = paisa <= row.threshold.amount * 100;
       threshold = {
@@ -278,7 +338,7 @@ export function calculateWithholding(
         per: row.threshold.per,
         withinThreshold: within,
       };
-      if (within) taxPaisa = 0;
+      if (within) taxRupees = 0;
     }
   }
 
@@ -290,13 +350,25 @@ export function calculateWithholding(
     atl,
     lateFiler,
     rate,
-    tax: fromPaisa(taxPaisa),
+    tax: taxRupees,
     nonAtlRule: row.nonAtl.rule,
     slab,
     threshold,
     cardRef: row.cardRef,
     lawRef: row.lawRef,
     statuteOverride: row.statuteOverride ?? null,
+    taxNature:
+      row.taxNature && typeof input.resident === 'boolean'
+        ? input.resident
+          ? row.taxNature.resident
+          : row.taxNature.nonResident
+        : null,
     source: source(row),
   };
+}
+
+interface SalaryBand {
+  over: number;
+  fixed: number;
+  rate: number;
 }

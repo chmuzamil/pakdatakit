@@ -17,6 +17,11 @@
         "nisab": 503529,
         "valuationDateHijri": "1 Ramazan 1447 AH",
         "expectedValuationDates": ["2026-02-19", "2026-02-20"],
+        "valuationDate": "2026-02-19",
+        "valuationDateSource": {
+          "reference": "Central Ruet-e-Hilal Committee: Ramazan moon sighted on 18 February 2026, 1 Ramazan 1447 on Thursday 19 February 2026, as reported by the Associated Press of Pakistan (state news agency)",
+          "url": "https://www.app.com.pk/national/ramazan-moon-sighted-ist-fast-on-february-19-in-pakistan-khabeer-azad/"
+        },
         "bankHolidayDate": null,
         "notification": {
           "number": "CE-1001(36)/NISAB/1446-47/2026-48",

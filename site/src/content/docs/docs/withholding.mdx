@@ -26,6 +26,8 @@ function calculateWithholding(input: {
   amount: number;
   atl: boolean;
   lateFiler?: boolean; // 236C and 236K in 2025 and 2026
+  returnOnInvestment?: number; // 151 sukuk: decides the case
+  resident?: boolean; // 154B: minimum or final tax
   taxYear?: number; // or date
   date?: string | Date;
 }): Withholding | null;
@@ -33,11 +35,14 @@ function calculateWithholding(input: {
 //   statuteOverride, source, … }
 ```
 
-**Returns** the rate and tax on the whole amount, rounded half up to the paisa, with the card's and the law's references. `nonAtlRule` says how the non-ATL rate is set: `double`, `fixed`, `slabs` or `not-applicable`.
+**Returns** the rate and tax on the whole amount, rounded to the nearest rupee (section 219), with the card's and the law's references. `nonAtlRule` says how the non-ATL rate is set: `double`, `fixed`, `slabs` or `not-applicable`.
 
 **Caveats.**
 
-- **Cash withdrawal (231AB):** nothing is collected until the day's withdrawals, added up, exceed Rs 50,000.
+- **Cash withdrawal (231AB):** pass the day's total of all withdrawals. Nothing is collected up to Rs 50,000.
+- **Mutual fund dividends (150):** a company receiving one uses `mutual-fund-debt-part-company` for the debt part (29%, from the statute; not on the card).
+- **Sukuk (151):** for an individual or AOP, the case must fit the return on investment (`returnOnInvestment`, default the amount). The law covers "more than" and "less than" Rs 1 million, so exactly Rs 1 million gives `null`.
+- **Social media income (154B):** pass `resident` to get `taxNature`: a minimum tax for a resident, a final tax for a non-resident without a permanent establishment.
 - **Card and statute disagree:** the statute wins and `statuteOverride` says why. In 2027, 153(2) is 1.25% (the card shows 1%).
 - **Not applied:** exemptions, reduced-rate certificates, and whether the tax is adjustable, minimum or final. This is an estimate, not tax advice.
 

@@ -33,6 +33,7 @@
         "cardRef": "TY2027 PDF p.17; xlsx row No.150; TY2027 PDF p.17; xlsx row No.151; TY2027 PDF p.17; xlsx row No.152",
         "lawRef": "Division-XVIII of Part-IV of First Schedule read with R.1 of Tenth Schedule",
         "statuteOverride": null,
+        "taxNature": null,
         "source": {
           "id": "withholding-rates",
           "effectiveFrom": "2026-07-01",
@@ -73,6 +74,7 @@
         "cardRef": "TY2027 PDF p.10; xlsx row No.89",
         "lawRef": "Section 231AB",
         "statuteOverride": null,
+        "taxNature": null,
         "source": {
           "id": "withholding-rates",
           "effectiveFrom": "2026-07-01",
@@ -110,6 +112,7 @@
         "cardRef": "TY2027 PDF p.4; xlsx row No.29",
         "lawRef": "Division-IA, Part-III of First Schedule read with R.1 of Tenth Schedule",
         "statuteOverride": null,
+        "taxNature": null,
         "source": {
           "id": "withholding-rates",
           "effectiveFrom": "2026-07-01",

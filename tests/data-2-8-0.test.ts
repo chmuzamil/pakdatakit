@@ -33,8 +33,11 @@ describe('zakat', () => {
     expect(getZakatNisab({ zakatYear: '1446-47' })?.zakatYear).toBe(1447);
     expect(getZakatNisab({ zakatYear: 1433 })?.nisab).toBe(51086);
     expect(getZakatNisab({ date: '2025-06-01' })?.nisab).toBe(179689);
-    // 1 Ramazan 1447 was "likely" 19 or 20 February 2026.
-    expect(getZakatNisab({ date: '2026-02-19' })).toBeNull();
+    // 1 Ramazan 1447 is confirmed as 19 February 2026.
+    expect(getZakatNisab({ date: '2026-02-18' })?.zakatYear).toBe(1446);
+    expect(getZakatNisab({ date: '2026-02-19' })?.zakatYear).toBe(1447);
+    // Unconfirmed years: the first of the two likely days is ambiguous.
+    expect(getZakatNisab({ date: '2025-03-01' })).toBeNull();
     expect(getZakatNisab({ date: '2026-02-20' })?.zakatYear).toBe(1447);
     expect(getZakatNisab({ zakatYear: 1432 })).toBeNull();
   });
@@ -190,6 +193,89 @@ describe('withholding', () => {
         taxYear: 2027,
       })?.tax,
     ).toBe(156000);
+  });
+});
+
+describe('2.8.0 review findings', () => {
+  it('rounds Zakat to the rupee (First Schedule, Note 2)', () => {
+    expect(zakatDeduction({ balance: 600019.99, zakatYear: 1447 })?.zakat).toBe(
+      15000,
+    );
+    expect(zakatDeduction({ balance: 600020, zakatYear: 1447 })?.zakat).toBe(
+      15001,
+    );
+  });
+
+  it('rounds withholding to the rupee (section 219)', () => {
+    expect(
+      calculateWithholding({
+        section: '151',
+        subType: 'bank-deposit',
+        amount: 1234.56,
+        atl: true,
+        taxYear: 2027,
+      })?.tax,
+    ).toBe(247);
+  });
+
+  it('gives no sukuk rate for a return of exactly Rs 1 million', () => {
+    for (const subType of [
+      'sukuk-individual-above-1m',
+      'sukuk-individual-below-1m',
+    ])
+      expect(
+        calculateWithholding({
+          section: '151',
+          subType,
+          amount: 1_000_000,
+          atl: true,
+          taxYear: 2027,
+        }),
+      ).toBeNull();
+    expect(
+      calculateWithholding({
+        section: '151',
+        subType: 'sukuk-individual-below-1m',
+        amount: 20_000,
+        returnOnInvestment: 900_000,
+        atl: true,
+        taxYear: 2027,
+      })?.rate,
+    ).toBe(10);
+  });
+
+  it('taxes a company’s mutual fund debt part at 29% (clause (ba) proviso)', () => {
+    expect(
+      calculateWithholding({
+        section: '150',
+        subType: 'mutual-fund-debt-part-company',
+        amount: 100,
+        atl: true,
+        taxYear: 2027,
+      })?.rate,
+    ).toBe(29);
+    expect(
+      calculateWithholding({
+        section: '150',
+        subType: 'mutual-fund-debt-part-company',
+        amount: 100,
+        atl: true,
+        taxYear: 2025,
+      }),
+    ).toBeNull();
+  });
+
+  it('gives 154B’s tax nature by residency', () => {
+    const r = (resident: boolean) =>
+      calculateWithholding({
+        section: '154B',
+        amount: 1000,
+        atl: true,
+        taxYear: 2027,
+        resident,
+      })?.taxNature;
+    expect(r(true)).toBe('minimum');
+    expect(r(false)).toBe('final');
   });
 });
 

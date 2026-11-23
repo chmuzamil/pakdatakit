@@ -40,6 +40,18 @@ Of 124 card rows, 121 match. The card says the Ordinance prevails, so:
   by the fund's income from profit on debt). The row is left out for 2026
   and 2027 and kept for 2025, when it applied.
 
+- **150, clause (ba), a company receiving the dividend (2026, 2027):** the
+  proviso taxes the part derived from debt securities at 29% (FBR's
+  Ordinance amended up to 31.07.2025 and up to 30 June 2026). No card shows
+  it. It is its own case, `mutual-fund-debt-part-company`, at 29% (58% for a
+  company not on the ATL: Tenth Schedule R.1; section 150 is not excluded
+  by R.10).
+
+The 153(2) citation was checked against the enacted Finance Act 2026
+(Gazette of Pakistan, Extraordinary, Part I, 26 June 2026, pp. 583-584),
+where the Income Tax Ordinance amendments are section 5; the Finance Bill
+numbered them section 6.
+
 **The non-ATL rule is each case's own** (Tenth Schedule), not one
 multiplier:
 
@@ -60,6 +72,25 @@ withdrawals added up, exceeds Rs 50,000. That is in the section's text in
 all three years, though no card shows it. 236C and 236K bands are by the
 gross consideration or fair market value: up to Rs 50 million, up to Rs 100
 million, and above.
+
+**Rounding:** the tax is rounded to the nearest rupee, as section 219 of
+the Ordinance requires for "any amount of tax or refund payable under this
+Ordinance" (under 50 paisa dropped, 50 paisa or more counted as a rupee).
+It is computed exactly and rounded once.
+
+**Sukuk (151, individual or AOP):** the statute gives 12.5% where the
+return on investment is "more than one million" and 10% where it is "less
+than one million". A return of exactly Rs 1 million is in neither, so the
+library returns no rate for it, and a case that does not fit the return
+(`returnOnInvestment`, default the amount) is rejected.
+
+**154B:** 5% for every recipient; section 154B(3) makes it a minimum tax
+for a resident and a final tax for a non-resident without a permanent
+establishment in Pakistan. Tenth Schedule R.1 applies to persons not on the
+ATL whether resident or not (R.10 does not exclude 154B).
+
+**153(2A):** the e-commerce cases name section 153(2A) in their law
+reference.
 
 Other notes: the 2025 card cites Division X for 236K, where the statute
 has Division XVIII; the cards say "Independent Power Purchasers" where the

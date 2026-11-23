@@ -265,6 +265,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'cardRef': 'TY2025 PDF (scanned) p.4; docx T1 R28',
     'lawRef':
         'Division-IB, Part-III of First Schedule, Read with R.1 of 10th Schedule',
+    'returnBand': <String, Object?>{'over': 1000000},
     'card':
         'http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf',
   },
@@ -273,7 +274,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'from': '2024-07-01',
     'to': '2025-06-30',
     'section': '151',
-    'subType': 'sukuk-individual-up-to-1m',
+    'subType': 'sukuk-individual-below-1m',
     'description': 'Individual, AOP return below 1 Million',
     'atl': <String, Object?>{'rate': 10},
     'nonAtl': <String, Object?>{
@@ -284,6 +285,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'cardRef': 'TY2025 PDF (scanned) p.4; docx T1 R29',
     'lawRef':
         'Division-IB, Part-III of First Schedule, Read with R.1 of 10th Schedule',
+    'returnBand': <String, Object?>{'under': 1000000},
     'card':
         'http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf',
   },
@@ -914,6 +916,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'cardRef': 'TY2026 PDF p.3; xlsx row No.32',
     'lawRef':
         'Division-IB, Part-III of First Schedule read with R.1 of Tenth Schedule',
+    'returnBand': <String, Object?>{'over': 1000000},
     'card':
         'http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf',
   },
@@ -922,7 +925,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'from': '2025-07-01',
     'to': '2026-06-30',
     'section': '151',
-    'subType': 'sukuk-individual-up-to-1m',
+    'subType': 'sukuk-individual-below-1m',
     'description':
         'When sukuk-holder is an individual or AOP with return on investment less than Rs. 1 million',
     'atl': <String, Object?>{'rate': 10},
@@ -933,6 +936,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'cardRef': 'TY2026 PDF p.3; xlsx row No.33',
     'lawRef':
         'Division-IB, Part-III of First Schedule read with R.1 of Tenth Schedule',
+    'returnBand': <String, Object?>{'under': 1000000},
     'card':
         'http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf',
   },
@@ -992,7 +996,28 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'card':
         'http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf',
     'note':
-        'Clause (ba): 25% on the part of the dividend matching the fund\'s income from profit on debt, 15% on the rest. Where a company receives it, the statute taxes the debt part at 29% (proviso; not on the card).',
+        'Clause (ba): 25% on the part of the dividend matching the fund\'s income from profit on debt, 15% on the rest. Not for a company recipient: use mutual-fund-debt-part-company (29%).',
+  },
+  <String, Object?>{
+    'taxYear': 2026,
+    'from': '2025-07-01',
+    'to': '2026-06-30',
+    'section': '150',
+    'subType': 'mutual-fund-debt-part-company',
+    'description':
+        'Mutual funds, clause (ba): the part of the dividend derived from debt securities, received by a company',
+    'atl': <String, Object?>{'rate': 29},
+    'nonAtl': <String, Object?>{
+      'rule': 'double',
+      'rate': 58,
+    },
+    'cardRef': 'TY2026 PDF p.3; xlsx row No.23',
+    'lawRef':
+        'Division-I, Part-III of First Schedule read with R.1 of Tenth Schedule',
+    'card':
+        'http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf',
+    'statuteOverride':
+        'Not on the card. Clause (ba), proviso, Division I, Part III of the First Schedule (inserted by the Finance Act 2025): where a corporate entity receives the dividend, the component derived from debt securities is taxed at 29%. Non-ATL doubled under Tenth Schedule R.1 (section 150 is not excluded by R.10).',
   },
   <String, Object?>{
     'taxYear': 2026,
@@ -1326,7 +1351,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     },
     'cardRef': 'TY2026 PDF p.6; xlsx row No.67',
     'lawRef':
-        'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
+        'Section 153(2A); Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf',
   },
@@ -1344,7 +1369,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     },
     'cardRef': 'TY2026 PDF p.7; xlsx row No.68',
     'lawRef':
-        'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
+        'Section 153(2A); Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf',
   },
@@ -1548,6 +1573,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'cardRef': 'TY2027 PDF p.4; xlsx row No.33',
     'lawRef':
         'Division-IB, Part-III of First Schedule read with R.1 of Tenth Schedule',
+    'returnBand': <String, Object?>{'over': 1000000},
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
   },
@@ -1556,7 +1582,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'from': '2026-07-01',
     'to': '2027-06-30',
     'section': '151',
-    'subType': 'sukuk-individual-up-to-1m',
+    'subType': 'sukuk-individual-below-1m',
     'description':
         'When sukuk-holder is an individual or AOP with return on investment less than Rs. 1 million',
     'atl': <String, Object?>{'rate': 10},
@@ -1567,6 +1593,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'cardRef': 'TY2027 PDF p.4; xlsx row No.34',
     'lawRef':
         'Division-IB, Part-III of First Schedule read with R.1 of Tenth Schedule',
+    'returnBand': <String, Object?>{'under': 1000000},
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
   },
@@ -1626,7 +1653,28 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
     'note':
-        'Clause (ba): 25% on the part of the dividend matching the fund\'s income from profit on debt, 15% on the rest. Where a company receives it, the statute taxes the debt part at 29% (proviso; not on the card).',
+        'Clause (ba): 25% on the part of the dividend matching the fund\'s income from profit on debt, 15% on the rest. Not for a company recipient: use mutual-fund-debt-part-company (29%).',
+  },
+  <String, Object?>{
+    'taxYear': 2027,
+    'from': '2026-07-01',
+    'to': '2027-06-30',
+    'section': '150',
+    'subType': 'mutual-fund-debt-part-company',
+    'description':
+        'Mutual funds, clause (ba): the part of the dividend derived from debt securities, received by a company',
+    'atl': <String, Object?>{'rate': 29},
+    'nonAtl': <String, Object?>{
+      'rule': 'double',
+      'rate': 58,
+    },
+    'cardRef': 'TY2027 PDF p.3; xlsx row No.24',
+    'lawRef':
+        'Division-I, Part-III of First Schedule read with R.1 of Tenth Schedule',
+    'card':
+        'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
+    'statuteOverride':
+        'Not on the card. Clause (ba), proviso, Division I, Part III of the First Schedule (inserted by the Finance Act 2025): where a corporate entity receives the dividend, the component derived from debt securities is taxed at 29%. Non-ATL doubled under Tenth Schedule R.1 (section 150 is not excluded by R.10).',
   },
   <String, Object?>{
     'taxYear': 2027,
@@ -1983,7 +2031,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
     'statuteOverride':
-        'The card shows 1% (non-ATL 2%). Finance Act 2026, s. 5(44)(b)(v)(B), substitutes 1.25% in Division IV, para (3), Part III of the First Schedule; the card says the Ordinance prevails.',
+        'The card shows 1% (non-ATL 2%). The Finance Act 2026 as enacted (Gazette of Pakistan, Extraordinary, Part I, 26 June 2026, pp. 583-584), s. 5(44)(b)(v)(B), substitutes 1.25% for 1% in paragraph (3) of Division IV, Part III of the First Schedule (s. 6(44)(b)(v)(B) in the Finance Bill); the card says the Ordinance prevails.',
   },
   <String, Object?>{
     'taxYear': 2027,
@@ -2000,7 +2048,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     },
     'cardRef': 'TY2027 PDF p.9; xlsx row No.74',
     'lawRef':
-        'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
+        'Section 153(2A); Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
   },
@@ -2018,7 +2066,7 @@ const List<Object?> withholdingRatesJson = <Object?>[
     },
     'cardRef': 'TY2027 PDF p.9; xlsx row No.75',
     'lawRef':
-        'Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
+        'Section 153(2A); Division-III of Part-III of First Schedule read with R.1 of Tenth Schedule',
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
   },
@@ -2038,10 +2086,14 @@ const List<Object?> withholdingRatesJson = <Object?>[
     'cardRef': 'TY2027 PDF p.9; xlsx row No.80',
     'lawRef':
         'Division IIIAB of Part III of the First Schedule read with R.1 of Tenth Schedule',
+    'taxNature': <String, Object?>{
+      'resident': 'minimum',
+      'nonResident': 'final',
+    },
     'card':
         'https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf',
     'note':
-        'Minimum tax for residents; final tax for non-residents without a permanent establishment.',
+        'Section 154B(3): minimum tax for a resident person; final tax for a non-resident person without a permanent establishment in Pakistan. The rate is the same; Tenth Schedule R.1 applies to persons not on the ATL either way (154B is not excluded by R.10).',
   },
   <String, Object?>{
     'taxYear': 2027,

@@ -29,7 +29,7 @@ function getZakatNisab(
 
 **Returns** the year's nisab with its notification and SBP circular (number, date, URL). `zakatYear` is the Hijri year of 1 Ramazan (`1447` is February 2026). The notification's own label, such as `'1446-47'`, works too.
 
-**Caveats.** A notification gives only the two likely days of 1 Ramazan, because the day depends on the moon sighting. For a date on the first of those two days, the year is unknown and the result is `null`. Years before 1433 AH and after the last notified year are `null`.
+**Caveats.** Where 1 Ramazan's date is confirmed (`valuationDate`: 19 February 2026 for 1447), that date starts the year. For other years a notification gives only the two likely days, because the day depends on the moon sighting; for a date on the first of those two days the year is unknown and the result is `null`. Years before 1433 AH and after the last notified year are `null`.
 
 ### zakatDeduction()
 
@@ -43,9 +43,9 @@ function zakatDeduction(input: {
 // { zakatYear, nisab, balance, deductible, reason, rate, zakat, source }
 ```
 
-**Returns** 2.5% of the whole balance, rounded half up to the paisa, when the balance is at or above the nisab. `reason` is `'below-nisab'` or `'exempt'` when nothing is deducted.
+**Returns** 2.5% of the whole balance, rounded to the nearest rupee (First Schedule, Note 2), when the balance is at or above the nisab. `reason` is `'below-nisab'` or `'exempt'` when nothing is deducted.
 
-**Caveats.** A balance exactly equal to the nisab is deducted, as the notifications say ("Rs. 503,529/- or above" in 2026). The Ordinance's own wording ("does not exceed") would not deduct it.
+**Caveats.** `exempt: true` means a valid declaration on Form CZ-50 is on file: filed at least 30 days before 1 Ramazan, sworn before an authorised person with two witnesses. The library does not check it. A balance exactly equal to the nisab is deducted, as the notifications say ("Rs. 503,529/- or above" in 2026). The Ordinance's own wording ("does not exceed") would not deduct it.
 
 ### getZakatYears()
 

@@ -47,6 +47,17 @@ Refund) Rules 1981, from pakistancode.gov.pk and pass.gov.pk):
   30 days before the valuation date is not deducted (s. 1(3), proviso (a);
   rule 20).
 
+**Rounding:** Zakat is rounded to the nearest rupee, as the First
+Schedule's Note 2 says: an amount under a rupee is not charged; otherwise 50
+paisa or more counts as a rupee and less than 50 paisa is dropped.
+
+**Exemption:** the declaration (Form CZ-50) must be filed with the bank at
+least 30 days before the valuation date, sworn before a magistrate, oath
+commissioner, notary public or other person authorised to administer
+oaths, in the presence of two witnesses (s. 1(3), proviso (a)). The library
+takes `exempt: true` to mean such a declaration is on file; it does not
+check it.
+
 **Conventions and limits:**
 
 - `zakatYear` is the Hijri year of the valuation date, 1 Ramazan (`1447` is
@@ -57,6 +68,13 @@ Refund) Rules 1981, from pakistancode.gov.pk and pass.gov.pk):
   "less than" the nisab (2026: deduction on "Rs. 503,529/- or above"), so a
   balance equal to the nisab is deducted. The Ordinance's wording ("does
   not exceed") would not deduct it. The library follows the notifications.
+- **Confirmed date, 1447:** 19 February 2026, from the Central
+  Ruet-e-Hilal Committee's announcement that the Ramazan moon was sighted on
+  18 February 2026, as reported by the Associated Press of Pakistan, the
+  state news agency
+  (https://www.app.com.pk/national/ramazan-moon-sighted-ist-fast-on-february-19-in-pakistan-khabeer-azad/).
+  SBP's bank holiday circular (BPRD CL No. 04 of 2026) names 1 Ramazan
+  1447 but no Gregorian date.
 - **Dates:** each notification says 1 Ramazan is "likely to fall on" one of
   two days. The confirmed day depends on the moon sighting, which is outside
   these sources, so a date on the first of the two days gives no Zakat year.
@@ -65,6 +83,6 @@ Refund) Rules 1981, from pakistancode.gov.pk and pass.gov.pk):
 - **Not covered:** years before 1433 AH (no nisab circular in SBP's indexes
   for 2005-2011) and any later amendment to the 1981 Rules or Form CZ-50
   (the Rules were read in their 1989 consolidation).
-- Document quirks: the 1433 SBP circular prints the notification number as
+- Document quirks: the 1433 notification itself reads "No. CE-1001(36)/NISAB/1432-33/2012" (checked on the scanned letter), and SBP's circular quotes it as
   "CE-100(36)"; the 1442 notification, dated April 2021, prints the
   deduction month as "April, 2020".

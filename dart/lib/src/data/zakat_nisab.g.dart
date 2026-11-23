@@ -11,6 +11,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2012-07-20',
       '2012-07-21',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1432-33/2012',
@@ -41,6 +43,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2013-07-10',
       '2013-07-11',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE3 1001(36)/NISAB/1433-34/2013',
@@ -63,6 +67,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2014-06-29',
       '2014-06-30',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1434-35/2014/3494',
@@ -85,6 +91,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2015-06-18',
       '2015-06-19',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1435-36/2015/',
@@ -114,6 +122,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2016-06-07',
       '2016-06-08',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1436-37/2016',
@@ -141,6 +151,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2017-05-27',
       '2017-05-28',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': '2017-05-29',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1437-38/2017',
@@ -168,6 +180,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2018-05-17',
       '2018-05-18',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1438-39/2018/304',
@@ -195,6 +209,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2019-05-06',
       '2019-05-07',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1439-40/2019/226',
@@ -224,6 +240,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2020-04-24',
       '2020-04-25',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': '2020-04-27',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1440-41/2020',
@@ -253,6 +271,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2021-04-14',
       '2021-04-15',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1441-42/2021/83',
@@ -282,6 +302,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2022-04-03',
       '2022-04-04',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': '2022-04-04',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1442-43/2022',
@@ -309,6 +331,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2023-03-23',
       '2023-03-24',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': '2023-03-24',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1443-44/2023-140',
@@ -337,6 +361,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2024-03-12',
       '2024-03-13',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1444-45/2024/612',
@@ -364,6 +390,8 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2025-03-01',
       '2025-03-02',
     ],
+    'valuationDate': null,
+    'valuationDateSource': null,
     'bankHolidayDate': '2025-03-03',
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1445-46/2025-76',
@@ -391,6 +419,13 @@ const List<Object?> zakatNisabJson = <Object?>[
       '2026-02-19',
       '2026-02-20',
     ],
+    'valuationDate': '2026-02-19',
+    'valuationDateSource': <String, Object?>{
+      'reference':
+          'Central Ruet-e-Hilal Committee: Ramazan moon sighted on 18 February 2026, 1 Ramazan 1447 on Thursday 19 February 2026, as reported by the Associated Press of Pakistan (state news agency)',
+      'url':
+          'https://www.app.com.pk/national/ramazan-moon-sighted-ist-fast-on-february-19-in-pakistan-khabeer-azad/',
+    },
     'bankHolidayDate': null,
     'notification': <String, Object?>{
       'number': 'CE-1001(36)/NISAB/1446-47/2026-48',

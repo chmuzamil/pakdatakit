@@ -184,7 +184,9 @@ circular letter.
    Hijri year of 1 Ramazan): `label` as the notification writes it, the
    two likely Gregorian dates, the notification and circular numbers, dates
    and URLs. Add `bankHolidayDate` if SBP's bank holiday circular names a
-   Gregorian date. Never change a past year.
+   Gregorian date. Once 1 Ramazan is announced, set `valuationDate` and
+   `valuationDateSource` (the Central Ruet-e-Hilal Committee's announcement).
+   Never change a past year.
 3. Update the `zakat-nisab` entry in `data/manifest.json` (`recordCount`,
    `coverage`, `sourceUrl`, `sourceReference`, `sourceDate`,
    `retrievedAt`, `nextExpectedUpdate`) and the table in

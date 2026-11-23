@@ -3377,6 +3377,8 @@ vectors.set('data-version', [
       year.nisab,
       year.nisab + 0.01,
       1234567.89,
+      600019.99,
+      600020,
       1e12,
     ]) {
       call('zakat', 'zakatDeduction', [{ balance, zakatYear: year.zakatYear }]);
@@ -3389,6 +3391,11 @@ vectors.set('data-version', [
     ]);
   }
   for (const date of [
+    '2026-02-17',
+    '2026-02-18',
+    '2026-02-19',
+    '2026-02-20',
+    '2027-02-07',
     '2011-01-01',
     '2012-07-19',
     '2025-06-01',
@@ -3446,8 +3453,9 @@ vectors.set('data-version', [
 {
   const wht = readData('withholding-rates.json');
   const amounts = [
-    0, 1, 0.01, 49999.99, 50000, 50000.01, 80000, 123456.78, 1000000, 50000000,
-    50000000.01, 100000000, 100000000.01, 250000000,
+    0, 1, 0.01, 0.5, 49999, 49999.99, 50000, 50000.01, 50001, 80000, 123456.78,
+    999999.99, 1000000, 1000000.01, 49999999.99, 50000000, 50000000.01,
+    100000000, 100000000.01, 250000000,
   ];
   for (const row of wht) {
     for (const atl of [true, false]) {
@@ -3483,6 +3491,35 @@ vectors.set('data-version', [
       },
     ]);
   }
+  // Sukuk cases checked against the return on investment (exactly Rs 1m
+  // fits neither), and 154B's tax nature by residency.
+  for (const subType of [
+    'sukuk-individual-above-1m',
+    'sukuk-individual-below-1m',
+  ])
+    for (const returnOnInvestment of [
+      999999.99,
+      1000000,
+      1000000.01,
+      5000000,
+      -1,
+      NUM('NaN'),
+    ])
+      for (const taxYear of [2025, 2027])
+        call('withholding', 'calculateWithholding', [
+          {
+            section: '151',
+            subType,
+            amount: 25000,
+            atl: true,
+            taxYear,
+            returnOnInvestment,
+          },
+        ]);
+  for (const resident of [true, false, 'yes', undefined])
+    call('withholding', 'calculateWithholding', [
+      { section: '154B', amount: 100000, atl: false, taxYear: 2027, resident },
+    ]);
   for (const year of [2024, 2025, 2026, 2027, 2028]) {
     call('withholding', 'getWithholdingRates', [year]);
     for (const section of ['153', '236K', '154b', 'x'])

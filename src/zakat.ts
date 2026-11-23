@@ -31,6 +31,12 @@ export interface ZakatNisab {
    * Gregorian date (YYYY-MM-DD); otherwise `null`.
    */
   bankHolidayDate: string | null;
+  /**
+   * The confirmed Gregorian date of 1 Ramazan (YYYY-MM-DD), where a source
+   * states it, with that source; otherwise `null` and `null`.
+   */
+  valuationDate: string | null;
+  valuationDateSource: { reference: string; url: string } | null;
   /** The Ministry of Poverty Alleviation & Social Safety notification. */
   notification: ZakatDocument;
   /** The SBP BPRD circular letter that conveys it to banks. */
@@ -47,7 +53,14 @@ export type ZakatYearQuery =
 export type ZakatDeductionInput = ZakatYearQuery & {
   /** The account balance in rupees at the start of the valuation date. */
   balance: number;
-  /** `true` if the holder filed the exemption declaration (Form CZ-50). */
+  /**
+   * `true` if the holder has a valid exemption declaration (Form CZ-50) with
+   * the bank: filed at least 30 days before the valuation date, sworn before
+   * a magistrate, oath commissioner, notary public or other person
+   * authorised to administer oaths, in the presence of two witnesses (Zakat
+   * and Ushr Ordinance 1980, s. 1(3), proviso (a)). The library does not
+   * check the declaration.
+   */
   exempt?: boolean;
 };
 
@@ -62,7 +75,11 @@ export interface ZakatDeduction {
   reason: 'exempt' | 'below-nisab' | null;
   /** Percent of the whole balance: 2.5. */
   rate: number;
-  /** The amount deducted, rounded half up to the paisa; `0` if not deductible. */
+  /**
+   * The amount deducted, in whole rupees (First Schedule, Note 2: less than
+   * a rupee is not charged, 50 paisa or more counts as a rupee); `0` if not
+   * deductible.
+   */
   zakat: number;
   source: DataSource;
 }
@@ -74,6 +91,8 @@ interface Row {
   valuationDateHijri: string;
   expectedValuationDates: [string, string];
   bankHolidayDate: string | null;
+  valuationDate: string | null;
+  valuationDateSource: { reference: string; url: string } | null;
   notification: ZakatDocument;
   sbpCircular: ZakatDocument;
 }
@@ -96,6 +115,10 @@ function toNisab(row: Row): ZakatNisab {
     nisab: row.nisab,
     valuationDateHijri: row.valuationDateHijri,
     expectedValuationDates: [...row.expectedValuationDates],
+    valuationDate: row.valuationDate,
+    valuationDateSource: row.valuationDateSource
+      ? { ...row.valuationDateSource }
+      : null,
     bankHolidayDate: row.bankHolidayDate,
     notification: { ...row.notification },
     sbpCircular: { ...row.sbpCircular },
@@ -103,8 +126,10 @@ function toNisab(row: Row): ZakatNisab {
       id: 'zakat-nisab',
       // From the earlier of the two likely days of 1 Ramazan, to the day
       // before the next year's; open while it is the latest year.
-      effectiveFrom: row.expectedValuationDates[0],
-      effectiveTo: next ? addDays(next.expectedValuationDates[0], -1) : null,
+      effectiveFrom: row.valuationDate ?? row.expectedValuationDates[0],
+      effectiveTo: next
+        ? addDays(next.valuationDate ?? next.expectedValuationDates[0], -1)
+        : null,
       sourceReference: `Notification No. ${row.notification.number} (${row.notification.date}); SBP ${row.sbpCircular.number} (${row.sbpCircular.date})`,
       sourceUrl: row.notification.url,
     },
@@ -134,6 +159,15 @@ function byDate(value: unknown): Row | undefined {
   for (let i = YEARS.length - 1; i >= 0; i -= 1) {
     const row = YEARS[i] as Row;
     const [first, second] = row.expectedValuationDates;
+    if (row.valuationDate !== null) {
+      if (date < row.valuationDate) continue;
+      if (
+        i === YEARS.length - 1 &&
+        date >= addDays(row.valuationDate, LUNAR_YEAR_DAYS)
+      )
+        return undefined;
+      return row;
+    }
     if (date >= second) {
       if (i === YEARS.length - 1 && date >= addDays(first, LUNAR_YEAR_DAYS))
         return undefined;
@@ -159,9 +193,10 @@ function find(query: unknown): Row | undefined {
  * 1433 to 1447 AH (2012-2026).
  *
  * Give the year (`1447`, or the notification's `'1446-47'`) or a date. A
- * Zakat year starts on 1 Ramazan; for a date on the first of the two days
- * the notification gives for it, the year is unknown and the result is
- * `null`.
+ * Zakat year starts on 1 Ramazan. Where its Gregorian date is confirmed
+ * (`valuationDate`, 2026 so far), that date is used. Otherwise only the two
+ * likely days the notification gives are known, and for a date on the first
+ * of them the year is unknown and the result is `null`.
  *
  * This is the nisab for deduction from savings and similar bank accounts
  * under the Zakat and Ushr Ordinance 1980, not a religious ruling on
@@ -187,9 +222,16 @@ export function getZakatYears(): number[] {
 
 /**
  * Zakat deducted at source from one account on the valuation date (1
- * Ramazan): 2.5% of the whole balance when it is at or above that year's
- * nisab, and nothing when it is below or the holder filed the exemption
- * declaration (Form CZ-50).
+ * Ramazan): 2.5% of the whole balance, rounded to the nearest rupee
+ * (First Schedule, Note 2), when it is at or above that year's nisab, and
+ * nothing when it is below or the holder has a valid exemption declaration
+ * (Form CZ-50).
+ *
+ * A balance exactly equal to the nisab is deducted, as the notifications
+ * say ("Rs. 503,529/- or above" in 2026). The Ordinance's First Schedule
+ * says no deduction where the balance "does not exceed" the nisab, which
+ * would not deduct it; the library follows the notifications, which banks
+ * apply.
  *
  * It applies to the accounts the Ordinance subjects to deduction at source:
  * savings, profit-and-loss sharing and similar accounts (asset code 101).
@@ -224,7 +266,18 @@ export function zakatDeduction(
     deductible,
     reason: exempt ? 'exempt' : below ? 'below-nisab' : null,
     rate: 2.5,
-    zakat: deductible ? fromPaisa(divideHalfUp(BigInt(paisa) * 25n, 1000n)) : 0,
+    zakat: deductible ? zakatRupees(paisa) : 0,
     source,
   };
+}
+
+/**
+ * 2.5% of a balance in paisa, as the First Schedule's Note 2 rounds it:
+ * less than a rupee is not charged; otherwise 50 paisa or more counts as a
+ * rupee and less than 50 paisa is dropped.
+ */
+function zakatRupees(balancePaisa: number): number {
+  const exact = BigInt(balancePaisa) * 25n; // thousandths of a paisa
+  if (exact < 100000n) return 0;
+  return divideHalfUp(exact, 100000n);
 }

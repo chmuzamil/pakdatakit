@@ -788,7 +788,7 @@
         {
           "kind": "record",
           "name": "DataInfo",
-          "signature": "public sealed record DataInfo(string Id, string File, string Title, string Issuer, string SourceUrl, string SourceReference, string? SourceDate, string RetrievedAt, string EffectiveFrom, string? EffectiveTo, string Coverage, int RecordCount, string NextExpectedUpdate, string UpdateCadence, string Notes)",
+          "signature": "public sealed record DataInfo(string Id, string File, string Title, string Issuer, string SourceUrl, string SourceReference, string? SourceDate, string RetrievedAt, string CheckedAt, string EffectiveFrom, string? EffectiveTo, string Coverage, int RecordCount, string NextExpectedUpdate, string UpdateCadence, string Notes)",
           "doc": "Where a dataset comes from and which period it covers: one entry of\n`data/manifest.json`. See {@link PakData.GetDataInfo}.",
           "fields": [
             {
@@ -858,7 +858,16 @@
               "name": "RetrievedAt",
               "type": "string",
               "default": null,
-              "doc": "When the source was last downloaded and checked (`YYYY-MM-DD`).",
+              "doc": "When the source was last downloaded (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "CheckedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the data was last checked against the source (`YYYY-MM-DD`).",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -2477,6 +2486,100 @@
           "methods": []
         },
         {
+          "kind": "enum",
+          "name": "BankStatus",
+          "signature": "public enum BankStatus",
+          "doc": "Whether a bank still exists.",
+          "values": [
+            {
+              "name": "Active",
+              "doc": "The bank operates."
+            },
+            {
+              "name": "Merged",
+              "doc": "It merged into another bank (see {@link BankInfo.MergedInto})."
+            },
+            {
+              "name": "Liquidated",
+              "doc": "It was liquidated."
+            }
+          ],
+          "fields": [],
+          "methods": []
+        },
+        {
+          "kind": "enum",
+          "name": "BankBicSource",
+          "signature": "public enum BankBicSource",
+          "doc": "Who prints a bank's SWIFT/BIC code.",
+          "values": [
+            {
+              "name": "Sbp",
+              "doc": "The State Bank of Pakistan (`sbp`)."
+            },
+            {
+              "name": "BankSite",
+              "doc": "The institution's own domain (`bank-site`)."
+            }
+          ],
+          "fields": [],
+          "methods": []
+        },
+        {
+          "kind": "record",
+          "name": "BankSwiftSource",
+          "signature": "public sealed record BankSwiftSource(BankBicSource BicSource, string Printed, string SourceUrl, int? Page, string CheckedAt)",
+          "doc": "Where a bank's SWIFT/BIC code is printed.",
+          "fields": [
+            {
+              "name": "BicSource",
+              "type": "BankBicSource",
+              "default": null,
+              "doc": "SBP or the institution's own domain.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Printed",
+              "type": "string",
+              "default": null,
+              "doc": "The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SourceUrl",
+              "type": "string",
+              "default": null,
+              "doc": "The page or PDF that prints it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Page",
+              "type": "int?",
+              "default": null,
+              "doc": "The PDF page, or `null` for a web page.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "CheckedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the source was checked (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
           "kind": "record",
           "name": "BankInfo",
           "signature": "public sealed record BankInfo(string Code, string Name, BankType Type, bool Active, string? MergedInto, string? AliasOf)",
@@ -2532,6 +2635,60 @@
               "type": "string?",
               "default": null,
               "doc": "Main code of the same bank, when this is an older code still in use.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Status",
+              "type": "BankStatus",
+              "default": null,
+              "doc": "{@link BankStatus.Active}, {@link BankStatus.Merged} (see {@link BankInfo.MergedInto}) or {@link BankStatus.Liquidated}.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Website",
+              "type": "string?",
+              "default": null,
+              "doc": "The institution's official website (from SBP's lists of regulated\ninstitutions, or its own site where SBP lists none or an old domain),\nor `null` for a bank that no longer exists.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "WebsiteSbpListed",
+              "type": "string?",
+              "default": null,
+              "doc": "What SBP's list gives, where it differs from {@link BankInfo.Website} (an older domain); otherwise `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Swift",
+              "type": "string?",
+              "default": null,
+              "doc": "The 8-character SWIFT/BIC code, only where SBP or the institution's\nown website prints it; otherwise `null` (see {@link BankInfo.SwiftReason}).",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SwiftSource",
+              "type": "BankSwiftSource?",
+              "default": null,
+              "doc": "Where {@link BankInfo.Swift} is printed, and when it was checked; `null` when it is not set.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "SwiftReason",
+              "type": "string?",
+              "default": null,
+              "doc": "Why {@link BankInfo.Swift} is `null`, or `null` when it is set.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -5939,6 +6096,33 @@
         },
         {
           "kind": "record",
+          "name": "WithholdingCircular",
+          "signature": "public sealed record WithholdingCircular(string Reference, string Url)",
+          "doc": "An FBR circular explaining a withholding rate.",
+          "fields": [
+            {
+              "name": "Reference",
+              "type": "string",
+              "default": null,
+              "doc": "The circular's number, date and paragraph, as cited.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Url",
+              "type": "string",
+              "default": null,
+              "doc": "The official copy.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "record",
           "name": "WithholdingThresholdCheck",
           "signature": "public sealed record WithholdingThresholdCheck(long Amount, string Per, bool WithinThreshold)",
           "doc": "A case's threshold and whether the amount was within it.",
@@ -6228,7 +6412,7 @@
         {
           "kind": "record",
           "name": "WithholdingRate",
-          "signature": "public sealed record WithholdingRate(int TaxYear, string Section, string SubType, string Description, double? AtlRate, IReadOnlyList<WithholdingSlab>? AtlSlabs, WithholdingNonAtlRule NonAtlRule, double? NonAtlRate, IReadOnlyList<WithholdingSlab>? NonAtlSlabs, IReadOnlyList<WithholdingSlab>? LateFilerSlabs, WithholdingThreshold? Threshold, string CardRef, string LawRef, string? StatuteOverride, string? Note, DataSource Source)",
+          "signature": "public sealed record WithholdingRate(int TaxYear, string Section, string SubType, string Description, double? AtlRate, IReadOnlyList<WithholdingSlab>? AtlSlabs, WithholdingNonAtlRule NonAtlRule, double? NonAtlRate, IReadOnlyList<WithholdingSlab>? NonAtlSlabs, IReadOnlyList<WithholdingSlab>? LateFilerSlabs, WithholdingThreshold? Threshold, string CardRef, string LawRef, string? StatuteOverride, string? Note, WithholdingCircular? Circular, DataSource Source)",
           "doc": "One case of a section in a tax year, as in FBR's rate card. See {@link Withholding.GetRates}.",
           "fields": [
             {
@@ -6362,6 +6546,15 @@
               "type": "string?",
               "default": null,
               "doc": "More about the case, or `null`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Circular",
+              "type": "WithholdingCircular?",
+              "default": null,
+              "doc": "FBR's circular explaining the rate, where one is recorded; otherwise `null`.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6578,24 +6771,42 @@
         },
         {
           "kind": "record",
-          "name": "ZakatValuationDateSource",
-          "signature": "public sealed record ZakatValuationDateSource(string Reference, string Url)",
-          "doc": "The source that confirms the Gregorian date of 1 Ramazan.",
+          "name": "ZakatRamazan1Source",
+          "signature": "public sealed record ZakatRamazan1Source(string AnnouncedBy, string ReportedBy, string? ReportedOn, string? Url)",
+          "doc": "Who announced 1 Ramazan, and where the announcement was reported.",
           "fields": [
             {
-              "name": "Reference",
+              "name": "AnnouncedBy",
               "type": "string",
               "default": null,
-              "doc": "What the source says, and who published it.",
+              "doc": "Who announced it: `Central Ruet-e-Hilal Committee`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "ReportedBy",
+              "type": "string",
+              "default": null,
+              "doc": "The outlet that reported the announcement, e.g. `Dawn`.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "ReportedOn",
+              "type": "string?",
+              "default": null,
+              "doc": "The report's date (`YYYY-MM-DD`), or `null` if not recorded.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
             },
             {
               "name": "Url",
-              "type": "string",
+              "type": "string?",
               "default": null,
-              "doc": "Where it is published.",
+              "doc": "The report's URL, or `null` where none is recorded.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6606,7 +6817,7 @@
         {
           "kind": "record",
           "name": "ZakatNisab",
-          "signature": "public sealed record ZakatNisab(int ZakatYear, string Label, long Nisab, string ValuationDateHijri, IReadOnlyList<string> ExpectedValuationDates, string? BankHolidayDate, string? ValuationDate, ZakatValuationDateSource? ValuationDateSource, ZakatDocument Notification, ZakatDocument SbpCircular, DataSource Source)",
+          "signature": "public sealed record ZakatNisab(int ZakatYear, string Label, long Nisab, string ValuationDateHijri, string Ramazan1, ZakatRamazan1Source Ramazan1Source, string? BankHolidayDate, ZakatDocument Notification, ZakatDocument SbpCircular, string? Note, DataSource Source)",
           "doc": "One Zakat year's nisab for deduction at source, as notified.",
           "fields": [
             {
@@ -6640,16 +6851,25 @@
               "name": "ValuationDateHijri",
               "type": "string",
               "default": null,
-              "doc": "The valuation (deduction) date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.",
+              "doc": "The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
             },
             {
-              "name": "ExpectedValuationDates",
-              "type": "IReadOnlyList<string>",
+              "name": "Ramazan1",
+              "type": "string",
               "default": null,
-              "doc": "The two Gregorian dates the notification says 1 Ramazan is likely to fall\non (`YYYY-MM-DD`). The day itself depends on the moon sighting.",
+              "doc": "The valuation date: 1 Ramazan in the Gregorian calendar (`YYYY-MM-DD`),\nas announced by the Central Ruet-e-Hilal Committee. Zakat years are\nassigned to dates by it.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Ramazan1Source",
+              "type": "ZakatRamazan1Source",
+              "default": null,
+              "doc": "Who announced `Ramazan1`, and where it was reported.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6658,25 +6878,7 @@
               "name": "BankHolidayDate",
               "type": "string?",
               "default": null,
-              "doc": "The bank holiday for the deduction, when SBP's circular names a Gregorian\ndate (`YYYY-MM-DD`); otherwise `null`.",
-              "static": false,
-              "readonly": false,
-              "accessors": "get; init"
-            },
-            {
-              "name": "ValuationDate",
-              "type": "string?",
-              "default": null,
-              "doc": "The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a\nsource states it; otherwise `null`.",
-              "static": false,
-              "readonly": false,
-              "accessors": "get; init"
-            },
-            {
-              "name": "ValuationDateSource",
-              "type": "ZakatValuationDateSource?",
-              "default": null,
-              "doc": "The source of `ValuationDate`, or `null`.",
+              "doc": "The deduction day: the bank holiday SBP declares for it (`YYYY-MM-DD`).\nIt is `Ramazan1`, or the next working day when 1 Ramazan\nfalls on a weekend or public holiday (for example 24 March 2023, after\nPakistan Day). `null` where no SBP holiday circular was found.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6695,6 +6897,15 @@
               "type": "ZakatDocument",
               "default": null,
               "doc": "The SBP BPRD circular letter that conveys it to banks.",
+              "static": false,
+              "readonly": false,
+              "accessors": "get; init"
+            },
+            {
+              "name": "Note",
+              "type": "string?",
+              "default": null,
+              "doc": "Notes on the documents, including the notification's \"likely to fall on\" text; or `null`.",
               "static": false,
               "readonly": false,
               "accessors": "get; init"
@@ -6866,7 +7077,7 @@
               "kind": "method",
               "name": "GetNisab",
               "signature": "public static ZakatNisab? GetNisab(ZakatYearQuery? query)",
-              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year,\ngiven by its Hijri year or a date in it.\n\nA Zakat year starts on 1 Ramazan. Where its Gregorian date is confirmed\n({@link ZakatNisab.ValuationDate}, 2026 so far), that date is\nused. Otherwise only the two likely days the notification gives are\nknown, and for a date on the first of them the year is unknown and the\nresult is `null`, as it is for a date past the last notified year.\n\n```csharp\nZakat.GetNisab(new ZakatYearQuery { ZakatYear = 1447 })?.Nisab;    // 503529\nZakat.GetNisab(new ZakatYearQuery { Label = \"1445-46\" })?.ZakatYear; // 1446\nZakat.GetNisab(new ZakatYearQuery { Date = \"2025-06-01\" })?.Nisab;  // 179689\n```",
+              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year,\ngiven by its Hijri year or a date in it.\n\nA Zakat year starts on 1 Ramazan ({@link ZakatNisab.Ramazan1}, as\nthe Central Ruet-e-Hilal Committee announced it), and a date belongs to\nthe last year whose 1 Ramazan is on or before it. A date before the\nfirst covered year, or 353 days or more after the last year's 1 Ramazan\n(the next year not yet notified), gives `null`.\n\n```csharp\nZakat.GetNisab(new ZakatYearQuery { ZakatYear = 1447 })?.Nisab;    // 503529\nZakat.GetNisab(new ZakatYearQuery { Label = \"1445-46\" })?.ZakatYear; // 1446\nZakat.GetNisab(new ZakatYearQuery { Date = \"2025-06-01\" })?.Nisab;  // 179689\n```",
               "params": [
                 {
                   "name": "query",
@@ -6877,7 +7088,7 @@
               ],
               "returns": {
                 "type": "ZakatNisab?",
-                "doc": "The year's nisab, dates and sources, or `null` for a year that is not covered, an invalid query, or an ambiguous date. Never throws."
+                "doc": "The year's nisab, dates and sources, or `null` for a year that is not covered or an invalid query. Never throws."
               }
             },
             {
@@ -6913,7 +7124,7 @@
               "kind": "method",
               "name": "CalculateDeduction",
               "signature": "public static ZakatDeduction? CalculateDeduction(\n    double balance,\n    ZakatYearQuery? query,\n    bool exempt = false)",
-              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee\n(First Schedule, Note 2), when it is at or above that year's nisab, and\nnothing when it is below or the holder has a valid exemption\ndeclaration (Form CZ-50).\n\nA balance exactly equal to the nisab is deducted, as the notifications\nsay (\"Rs. 503,529/- or above\" in 2026). The Ordinance's First Schedule\nsays no deduction where the balance \"does not exceed\" the nisab, which\nwould not deduct it; the library follows the notifications, which banks\napply.\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```csharp\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 });\n// ZakatYear = 1447, Nisab = 503529, Balance = 600000, Deductible = true,\n// Reason = null, Rate = 2.5, Zakat = 15000, Source = { … }\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 }, exempt: true)?.Zakat; // 0\n```",
+              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee\n(First Schedule, Note 2), when it is at or above that year's nisab, and\nnothing when it is below or the holder has a valid exemption\ndeclaration (Form CZ-50).\n\nA balance exactly equal to the nisab is deducted: every notification\nsays no deduction where the balance is \"less than\" the nisab, and the\nOrdinance (s. 2(xxiii)) defines a sahib-e-nisab as owning \"not less\nthan nisab\". The First Schedule's own wording (\"does not exceed\") would\nnot deduct it. In Punjab the Punjab Zakat and Ushr Act 2018 replaced\nthe Ordinance, with the same First Schedule wording.\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```csharp\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 });\n// ZakatYear = 1447, Nisab = 503529, Balance = 600000, Deductible = true,\n// Reason = null, Rate = 2.5, Zakat = 15000, Source = { … }\nZakat.CalculateDeduction(600_000, new ZakatYearQuery { ZakatYear = 1447 }, exempt: true)?.Zakat; // 0\n```",
               "params": [
                 {
                   "name": "balance",
@@ -6936,7 +7147,7 @@
               ],
               "returns": {
                 "type": "ZakatDeduction?",
-                "doc": "The deduction and its source, or `null` for an invalid balance, a year that is not covered, or an ambiguous date. Never throws."
+                "doc": "The deduction and its source, or `null` for an invalid balance or a year that is not covered. Never throws."
               }
             }
           ]

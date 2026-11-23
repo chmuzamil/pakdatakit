@@ -582,7 +582,13 @@
               "name": "retrieved_at",
               "type": "str",
               "default": null,
-              "doc": "When the source was last downloaded and checked (YYYY-MM-DD)."
+              "doc": "When the source was last downloaded (YYYY-MM-DD)."
+            },
+            {
+              "name": "checked_at",
+              "type": "str",
+              "default": null,
+              "doc": "When the data was last checked against the source (YYYY-MM-DD)."
             },
             {
               "name": "effective_from",
@@ -1967,6 +1973,45 @@
       "entries": [
         {
           "kind": "class",
+          "name": "BankSwiftSource",
+          "signature": "@dataclass(frozen=True)\nclass BankSwiftSource",
+          "doc": "Where a bank's SWIFT/BIC code is printed (`BankInfo.swift_source`).",
+          "fields": [
+            {
+              "name": "bic_source",
+              "type": "str",
+              "default": null,
+              "doc": "`sbp` (State Bank of Pakistan) or `bank-site` (the institution's own domain)."
+            },
+            {
+              "name": "printed",
+              "type": "str",
+              "default": null,
+              "doc": "The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`."
+            },
+            {
+              "name": "source_url",
+              "type": "str",
+              "default": null,
+              "doc": ""
+            },
+            {
+              "name": "page",
+              "type": "Optional[int]",
+              "default": null,
+              "doc": "The PDF page, or `None` for a web page."
+            },
+            {
+              "name": "checked_at",
+              "type": "str",
+              "default": null,
+              "doc": "When the source was checked (YYYY-MM-DD)."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "BankInfo",
           "signature": "@dataclass(frozen=True)\nclass BankInfo",
           "doc": "A bank (or other institution) that issues Pakistani IBANs.",
@@ -2006,6 +2051,42 @@
               "type": "Optional[str]",
               "default": "None",
               "doc": "Main code of the same bank, when this is an older code still in use."
+            },
+            {
+              "name": "status",
+              "type": "str",
+              "default": "'active'",
+              "doc": "`active`, `merged` (see `merged_into`) or `liquidated`."
+            },
+            {
+              "name": "website",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "The institution's official website (from SBP's lists of regulated institutions, or its own site where SBP lists none or an old domain), or `None` for a bank that no longer exists."
+            },
+            {
+              "name": "website_sbp_listed",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "What SBP's list gives, where it differs from `website` (an older domain)."
+            },
+            {
+              "name": "swift",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "The 8-character SWIFT/BIC code, only where SBP or the institution's own website prints it; otherwise `None` (see `swift_reason`)."
+            },
+            {
+              "name": "swift_source",
+              "type": "Optional[BankSwiftSource]",
+              "default": "None",
+              "doc": "Where `swift` is printed, and when it was checked."
+            },
+            {
+              "name": "swift_reason",
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "Why `swift` is `None`, or `None` when it is set."
             }
           ],
           "methods": []
@@ -2048,7 +2129,7 @@
           "kind": "function",
           "name": "get_bank_info",
           "signature": "def get_bank_info(iban_or_code: str) -> Optional[BankInfo]",
-          "doc": "Returns details of the bank that issued an IBAN: name, type and whether\nit still exists. Also accepts a 4-letter bank code such as `\"MEZN\"`.\n\nReturns `None` if the IBAN is invalid or the code unknown.",
+          "doc": "Returns details of the bank that issued an IBAN: name, type, status,\nofficial website and, where SBP or the bank itself prints it, the\nSWIFT/BIC code. Also accepts a 4-letter bank code such as `\"MEZN\"`.\n\nReturns `None` if the IBAN is invalid or the code unknown.",
           "params": [
             {
               "name": "iban_or_code",
@@ -4324,6 +4405,27 @@
         },
         {
           "kind": "class",
+          "name": "WithholdingCircular",
+          "signature": "@dataclass(frozen=True)\nclass WithholdingCircular",
+          "doc": "An FBR circular explaining a withholding rate\n(`WithholdingRate.circular`).",
+          "fields": [
+            {
+              "name": "reference",
+              "type": "str",
+              "default": null,
+              "doc": "Its number, date and paragraph, as FBR writes them."
+            },
+            {
+              "name": "url",
+              "type": "str",
+              "default": null,
+              "doc": "The official document."
+            }
+          ],
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "WithholdingRate",
           "signature": "@dataclass(frozen=True)\nclass WithholdingRate",
           "doc": "One case of a section in a tax year, as in FBR's rate card. Returned by\n{@link get_withholding_rates}.",
@@ -4417,6 +4519,12 @@
               "type": "Optional[str]",
               "default": null,
               "doc": ""
+            },
+            {
+              "name": "circular",
+              "type": "Optional[WithholdingCircular]",
+              "default": null,
+              "doc": "FBR's circular explaining the rate, where one is recorded; otherwise `None`."
             },
             {
               "name": "source",
@@ -4725,21 +4833,33 @@
         },
         {
           "kind": "class",
-          "name": "ZakatValuationDateSource",
-          "signature": "@dataclass(frozen=True)\nclass ZakatValuationDateSource",
-          "doc": "The source that confirms the Gregorian date of a Zakat year's 1\nRamazan (`ZakatNisab.valuation_date`).",
+          "name": "ZakatRamazan1Source",
+          "signature": "@dataclass(frozen=True)\nclass ZakatRamazan1Source",
+          "doc": "Who announced a Zakat year's 1 Ramazan, and where the announcement was\nreported (`ZakatNisab.ramazan1_source`).",
           "fields": [
             {
-              "name": "reference",
+              "name": "announced_by",
               "type": "str",
               "default": null,
-              "doc": ""
+              "doc": "Who announced it: `Central Ruet-e-Hilal Committee`."
+            },
+            {
+              "name": "reported_by",
+              "type": "str",
+              "default": null,
+              "doc": "The outlet that reported the announcement, e.g. `Dawn`."
+            },
+            {
+              "name": "reported_on",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "The report's date (`YYYY-MM-DD`), or `None` if not recorded."
             },
             {
               "name": "url",
-              "type": "str",
-              "default": null,
-              "doc": ""
+              "type": "Optional[str]",
+              "default": "None",
+              "doc": "The report's URL, or `None` where none is recorded."
             }
           ],
           "methods": []
@@ -4772,31 +4892,25 @@
               "name": "valuation_date_hijri",
               "type": "str",
               "default": null,
-              "doc": "The valuation (deduction) date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`."
+              "doc": "The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`."
             },
             {
-              "name": "expected_valuation_dates",
-              "type": "Tuple[str, str]",
+              "name": "ramazan1",
+              "type": "str",
               "default": null,
-              "doc": "The two Gregorian dates the notification says 1 Ramazan is likely to fall on (`YYYY-MM-DD`). The day itself depends on the moon sighting."
+              "doc": "The valuation date: 1 Ramazan in the Gregorian calendar (`YYYY-MM-DD`), as announced by the Central Ruet-e-Hilal Committee. Zakat years are assigned to dates by it."
             },
             {
-              "name": "valuation_date",
-              "type": "Optional[str]",
+              "name": "ramazan1_source",
+              "type": "ZakatRamazan1Source",
               "default": null,
-              "doc": "The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a source states it; otherwise `None`."
-            },
-            {
-              "name": "valuation_date_source",
-              "type": "Optional[ZakatValuationDateSource]",
-              "default": null,
-              "doc": "The source of `valuation_date`, or `None` with it."
+              "doc": ""
             },
             {
               "name": "bank_holiday_date",
               "type": "Optional[str]",
               "default": null,
-              "doc": "The bank holiday for the deduction, when SBP's circular names a Gregorian date (`YYYY-MM-DD`); otherwise `None`."
+              "doc": "The deduction day: the bank holiday SBP declares for it (`YYYY-MM-DD`). It is `ramazan1`, or the next working day when 1 Ramazan falls on a weekend or public holiday (for example 24 March 2023, after Pakistan Day). `None` where no SBP holiday circular was found."
             },
             {
               "name": "notification",
@@ -4809,6 +4923,12 @@
               "type": "ZakatDocument",
               "default": null,
               "doc": "The SBP BPRD circular letter that conveys it to banks."
+            },
+            {
+              "name": "note",
+              "type": "Optional[str]",
+              "default": null,
+              "doc": "Notes on the documents, including the notification's \"likely to fall on\" text, or `None`."
             },
             {
               "name": "source",
@@ -4880,7 +5000,7 @@
           "kind": "function",
           "name": "get_zakat_nisab",
           "signature": "def get_zakat_nisab(\n    query: Any = None,\n    *,\n    zakat_year: Any = None,\n    date: Any = None,\n) -> Optional[ZakatNisab]",
-          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive the year with `zakat_year` (`1447`, `\"1447\"` or the\nnotification's `\"1446-47\"`) or a `date` (`YYYY-MM-DD` or a\n`datetime.date`); `zakat_year` takes precedence. They may also be\npassed as a `dict`, `{\"zakatYear\": 1447}` or `{\"date\": ...}`, as in\nthe npm package. A Zakat year starts on 1 Ramazan. Where its Gregorian\ndate is confirmed (`valuation_date`, 2026 so far), that date is used.\nOtherwise only the two likely days the notification gives are known, and\nfor a date on the first of them the year is unknown and the result is\n`None`.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources ({@link ZakatNisab}), or\n`None` for a year that is not covered, an invalid query or an\nambiguous date. Never raises.\n\n```python\n>>> get_zakat_nisab(zakat_year=1447).nisab\n503529\n>>> get_zakat_nisab(zakat_year=\"1445-46\").zakat_year\n1446\n>>> get_zakat_nisab(date=\"2025-06-01\").nisab\n179689\n```",
+          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive the year with `zakat_year` (`1447`, `\"1447\"` or the\nnotification's `\"1446-47\"`) or a `date` (`YYYY-MM-DD` or a\n`datetime.date`); `zakat_year` takes precedence. They may also be\npassed as a `dict`, `{\"zakatYear\": 1447}` or `{\"date\": ...}`, as in\nthe npm package. A Zakat year starts on 1 Ramazan (`ramazan1`, as the\nCentral Ruet-e-Hilal Committee announced it), and a date belongs to the\nlast year whose 1 Ramazan is on or before it.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources ({@link ZakatNisab}), or\n`None` for a year that is not covered or an invalid query. Never raises.\n\n```python\n>>> get_zakat_nisab(zakat_year=1447).nisab\n503529\n>>> get_zakat_nisab(zakat_year=\"1445-46\").zakat_year\n1446\n>>> get_zakat_nisab(date=\"2025-06-01\").nisab\n179689\n```",
           "params": [
             {
               "name": "query",
@@ -4919,7 +5039,7 @@
           "kind": "function",
           "name": "zakat_deduction",
           "signature": "def zakat_deduction(\n    input: Any = None,\n    *,\n    balance: Any = None,\n    zakat_year: Any = None,\n    date: Any = None,\n    exempt: Any = False,\n) -> Optional[ZakatDeduction]",
-          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee (First\nSchedule, Note 2), when it is at or above that year's nisab, and nothing\nwhen it is below or the holder has a valid exemption declaration (Form\nCZ-50, `exempt=True`).\n\n`exempt=True` means the declaration was filed with the bank at least 30\ndays before the valuation date, sworn before a magistrate, oath\ncommissioner, notary public or other person authorised to administer\noaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980,\ns. 1(3), proviso (a)). The library does not check the declaration.\n\nA balance exactly equal to the nisab is deducted, as the notifications\nsay (\"Rs. 503,529/- or above\" in 2026). The Ordinance's First Schedule\nsays no deduction where the balance \"does not exceed\" the nisab, which\nwould not deduct it; the library follows the notifications, which banks\napply.\n\n`balance` is the account balance in rupees at the start of the\nvaluation date (0 to 1 trillion, at most 2 decimals count). The year is\ngiven by `zakat_year` or `date`, as in {@link get_zakat_nisab}. All of\nthem may also be passed as one `dict` with the npm package's keys:\n`{\"balance\": 600000, \"zakatYear\": 1447, \"exempt\": True}`.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source ({@link ZakatDeduction}), or\n`None` for an invalid balance, a year that is not covered, or an\nambiguous date. Never raises.\n\n```python\n>>> zakat_deduction(balance=600000, zakat_year=1447).zakat\n15000\n>>> zakat_deduction(balance=600000, zakat_year=1447, exempt=True).reason\n'exempt'\n```",
+          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee (First\nSchedule, Note 2), when it is at or above that year's nisab, and nothing\nwhen it is below or the holder has a valid exemption declaration (Form\nCZ-50, `exempt=True`).\n\n`exempt=True` means the declaration was filed with the bank at least 30\ndays before the valuation date, sworn before a magistrate, oath\ncommissioner, notary public or other person authorised to administer\noaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980,\ns. 1(3), proviso (a)). The library does not check the declaration.\n\nA balance exactly equal to the nisab is deducted: every notification\nsays no deduction where the balance is \"less than\" the nisab, and the\nOrdinance (s. 2(xxiii)) defines a sahib-e-nisab as owning \"not less than\nnisab\". The First Schedule's own wording (\"does not exceed\") would not\ndeduct it. In Punjab the Punjab Zakat and Ushr Act 2018 replaced the\nOrdinance, with the same First Schedule wording.\n\n`balance` is the account balance in rupees at the start of the\nvaluation date (0 to 1 trillion, at most 2 decimals count). The year is\ngiven by `zakat_year` or `date`, as in {@link get_zakat_nisab}. All of\nthem may also be passed as one `dict` with the npm package's keys:\n`{\"balance\": 600000, \"zakatYear\": 1447, \"exempt\": True}`.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source ({@link ZakatDeduction}), or\n`None` for an invalid balance or a year that is not covered. Never raises.\n\n```python\n>>> zakat_deduction(balance=600000, zakat_year=1447).zakat\n15000\n>>> zakat_deduction(balance=600000, zakat_year=1447, exempt=True).reason\n'exempt'\n```",
           "params": [
             {
               "name": "input",

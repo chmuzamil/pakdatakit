@@ -828,7 +828,15 @@
               "name": "retrievedAt",
               "type": "string",
               "default": null,
-              "doc": "When the source was last downloaded and checked (`YYYY-MM-DD`).",
+              "doc": "When the source was last downloaded (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "checkedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the data was last checked against the source (`YYYY-MM-DD`).",
               "static": false,
               "readonly": true
             },
@@ -1992,10 +2000,60 @@
     {
       "id": "iban",
       "name": "PakDataKit",
-      "import": "use PakDataKit\\BankInfo;\nuse PakDataKit\\Iban;",
+      "import": "use PakDataKit\\BankSwiftSource;\nuse PakDataKit\\BankInfo;\nuse PakDataKit\\Iban;",
       "source": "php/src",
       "doc": "",
       "entries": [
+        {
+          "kind": "class",
+          "name": "BankSwiftSource",
+          "signature": "final readonly class BankSwiftSource",
+          "doc": "Where a bank's SWIFT/BIC code is printed (BankInfo::$swiftSource).",
+          "fields": [
+            {
+              "name": "bicSource",
+              "type": "string",
+              "default": null,
+              "doc": "`sbp` (State Bank of Pakistan) or `bank-site` (the institution's own domain).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "printed",
+              "type": "string",
+              "default": null,
+              "doc": "The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceUrl",
+              "type": "string",
+              "default": null,
+              "doc": "The page or document that prints it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "page",
+              "type": "?int",
+              "default": null,
+              "doc": "The PDF page, or null for a web page.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "checkedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the source was checked (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/BankSwiftSource.php"
+        },
         {
           "kind": "class",
           "name": "BankInfo",
@@ -2047,6 +2105,54 @@
               "type": "?string",
               "default": "null",
               "doc": "Main code of the same bank, when this is an older code still in use.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "default": "'active'",
+              "doc": "`active`, `merged` (see `mergedInto`) or `liquidated`. Every bank\nfrom Iban::getBankInfo() and Iban::getBanks() has it; `active` is\nonly the default for code that builds a BankInfo itself.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "website",
+              "type": "?string",
+              "default": "null",
+              "doc": "The institution's official website (from SBP's lists of regulated\ninstitutions, or its own site where SBP lists none or an old\ndomain), or null for a bank that no longer exists.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "websiteSbpListed",
+              "type": "?string",
+              "default": "null",
+              "doc": "What SBP's list gives, where it differs from `website` (an older domain); otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swift",
+              "type": "?string",
+              "default": "null",
+              "doc": "The 8-character SWIFT/BIC code, only where SBP or the institution's\nown website prints it; otherwise null (see `swiftReason`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swiftSource",
+              "type": "?BankSwiftSource",
+              "default": "null",
+              "doc": "Where `swift` is printed, and when it was checked; null without `swift`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swiftReason",
+              "type": "?string",
+              "default": "null",
+              "doc": "Why `swift` is null, or null when it is set.",
               "static": false,
               "readonly": true
             }
@@ -4877,6 +4983,32 @@
         },
         {
           "kind": "class",
+          "name": "WithholdingCircular",
+          "signature": "final readonly class WithholdingCircular",
+          "doc": "An FBR circular that explains a withholding rate (WithholdingRate::$circular).",
+          "fields": [
+            {
+              "name": "reference",
+              "type": "string",
+              "default": null,
+              "doc": "The circular's number, date and paragraph, as written.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/WithholdingCircular.php"
+        },
+        {
+          "kind": "class",
           "name": "WithholdingRate",
           "signature": "final readonly class WithholdingRate",
           "doc": "One case of a withholding section in a tax year, as in FBR's Withholding\nTax Rate Card. Returned by Withholding::getRates().",
@@ -4998,6 +5130,14 @@
               "type": "?string",
               "default": null,
               "doc": "A note on the case, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "circular",
+              "type": "?WithholdingCircular",
+              "default": null,
+              "doc": "FBR's circular explaining the rate, where one is recorded; otherwise null.",
               "static": false,
               "readonly": true
             },
@@ -5257,7 +5397,7 @@
     {
       "id": "zakat",
       "name": "PakDataKit",
-      "import": "use PakDataKit\\ZakatDocument;\nuse PakDataKit\\ZakatValuationDateSource;\nuse PakDataKit\\ZakatNisab;\n// ...",
+      "import": "use PakDataKit\\ZakatDocument;\nuse PakDataKit\\ZakatRamazan1Source;\nuse PakDataKit\\ZakatNisab;\n// ...",
       "source": "php/src",
       "doc": "",
       "entries": [
@@ -5297,29 +5437,57 @@
         },
         {
           "kind": "class",
-          "name": "ZakatValuationDateSource",
-          "signature": "final readonly class ZakatValuationDateSource",
-          "doc": "The source that confirms the Gregorian date of 1 Ramazan for a Zakat year\n(ZakatNisab::$valuationDate).",
+          "name": "ZakatRamazan1Source",
+          "signature": "final readonly class ZakatRamazan1Source",
+          "doc": "Who announced 1 Ramazan for a Zakat year, and where the announcement was\nreported (ZakatNisab::$ramazan1Source).",
           "fields": [
             {
-              "name": "reference",
+              "name": "announcedBy",
               "type": "string",
               "default": null,
-              "doc": "What the source says and who published it.",
+              "doc": "Who announced it: `Central Ruet-e-Hilal Committee`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reportedBy",
+              "type": "string",
+              "default": null,
+              "doc": "The outlet that reported the announcement, e.g. `Dawn`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reportedOn",
+              "type": "?string",
+              "default": null,
+              "doc": "The report's date (`YYYY-MM-DD`), or null if not recorded.",
               "static": false,
               "readonly": true
             },
             {
               "name": "url",
-              "type": "string",
-              "default": null,
-              "doc": "Where it was published.",
+              "type": "?string",
+              "default": "null",
+              "doc": "The report's URL, or null where none is recorded.",
               "static": false,
               "readonly": true
             }
           ],
-          "methods": [],
-          "source": "php/src/ZakatValuationDateSource.php"
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toArray",
+              "signature": "public function toArray(): array",
+              "doc": "The public properties as an array with the npm package's keys; `url`\nis left out when none is recorded, as the npm package does.",
+              "params": [],
+              "returns": {
+                "type": "array<string, mixed>",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/ZakatRamazan1Source.php"
         },
         {
           "kind": "class",
@@ -5355,31 +5523,23 @@
               "name": "valuationDateHijri",
               "type": "string",
               "default": null,
-              "doc": "The valuation (deduction) date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.",
+              "doc": "The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.",
               "static": false,
               "readonly": true
             },
             {
-              "name": "expectedValuationDates",
-              "type": "array",
+              "name": "ramazan1",
+              "type": "string",
               "default": null,
-              "doc": "",
+              "doc": "The valuation date: 1 Ramazan in the Gregorian calendar\n(`YYYY-MM-DD`), as announced by the Central Ruet-e-Hilal Committee.\nZakat years are assigned to dates by it.",
               "static": false,
               "readonly": true
             },
             {
-              "name": "valuationDate",
-              "type": "?string",
+              "name": "ramazan1Source",
+              "type": "ZakatRamazan1Source",
               "default": null,
-              "doc": "The confirmed Gregorian date of 1 Ramazan (`YYYY-MM-DD`), where a\nsource states it; otherwise null.",
-              "static": false,
-              "readonly": true
-            },
-            {
-              "name": "valuationDateSource",
-              "type": "?ZakatValuationDateSource",
-              "default": null,
-              "doc": "The source that confirms `valuationDate`, or null.",
+              "doc": "Who announced 1 Ramazan, and where the announcement was reported.",
               "static": false,
               "readonly": true
             },
@@ -5387,7 +5547,7 @@
               "name": "bankHolidayDate",
               "type": "?string",
               "default": null,
-              "doc": "The bank holiday for the deduction (`YYYY-MM-DD`), when SBP's\ncircular names a Gregorian date; otherwise null.",
+              "doc": "The deduction day: the bank holiday SBP declares for it\n(`YYYY-MM-DD`). It is `ramazan1`, or the next working day when 1\nRamazan falls on a weekend or public holiday (for example 24 March\n2023, after Pakistan Day). Null where no SBP holiday circular was\nfound.",
               "static": false,
               "readonly": true
             },
@@ -5404,6 +5564,14 @@
               "type": "ZakatDocument",
               "default": null,
               "doc": "The SBP BPRD circular letter that conveys it to banks.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "?string",
+              "default": null,
+              "doc": "Notes on the documents, including the notification's \"likely to fall on\" text, or null.",
               "static": false,
               "readonly": true
             },
@@ -5504,7 +5672,7 @@
               "kind": "method",
               "name": "getNisab",
               "signature": "public static function getNisab(mixed $zakatYear = null, mixed $date = null): ?ZakatNisab",
-              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year.\n\nGive the year (`1447`, `'1447'`, or the notification's `'1446-47'`) or\na date; `$zakatYear` takes precedence. A Zakat year starts on 1\nRamazan. Where its Gregorian date is confirmed (`valuationDate`, 2026\nso far), that date is used. Otherwise only the two likely days the\nnotification gives are known, and for a date on the first of them the\nyear is unknown and the result is null.\n\n```php\nZakat::getNisab(zakatYear: 1447)?->nisab; // 503529\nZakat::getNisab(zakatYear: '1445-46')?->zakatYear; // 1446\nZakat::getNisab(date: '2025-06-01')?->nisab; // 179689\n```",
+              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year.\n\nGive the year (`1447`, `'1447'`, or the notification's `'1446-47'`) or\na date; `$zakatYear` takes precedence. A Zakat year starts on 1\nRamazan (`ramazan1`, as the Central Ruet-e-Hilal Committee announced\nit), and a date belongs to the last year whose 1 Ramazan is on or\nbefore it.\n\n```php\nZakat::getNisab(zakatYear: 1447)?->nisab; // 503529\nZakat::getNisab(zakatYear: '1445-46')?->zakatYear; // 1446\nZakat::getNisab(date: '2025-06-01')?->nisab; // 179689\n```",
               "params": [
                 {
                   "name": "$zakatYear",
@@ -5521,7 +5689,7 @@
               ],
               "returns": {
                 "type": "ZakatNisab|null",
-                "doc": "The year's nisab, dates and sources, or null for a year that is not covered, an invalid or missing year or date, or an ambiguous date. Never throws."
+                "doc": "The year's nisab, dates and sources, or null for a year that is not covered (a date before 1 Ramazan 1433, or 353 days or more after the last year's 1 Ramazan), or an invalid or missing year or date. Never throws."
               }
             },
             {
@@ -5539,7 +5707,7 @@
               "kind": "method",
               "name": "deduction",
               "signature": "public static function deduction(\n    mixed $balance,\n    mixed $zakatYear = null,\n    mixed $date = null,\n    bool $exempt = false,\n): ?ZakatDeduction",
-              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee\n(First Schedule, Note 2: less than a rupee is not charged, 50 paisa or\nmore counts as a rupee), when it is at or above that year's nisab, and\nnothing when it is below or the holder has a valid exemption\ndeclaration (Form CZ-50). Give the year or a date as for getNisab().\n\nA balance exactly equal to the nisab is deducted, as the notifications\nsay (\"Rs. 503,529/- or above\" in 2026). The Ordinance's First Schedule\nsays no deduction where the balance \"does not exceed\" the nisab, which\nwould not deduct it; this follows the notifications, which banks apply.\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```php\nZakat::deduction(600000, zakatYear: 1447);\n// ZakatDeduction(zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000, source: …)\nZakat::deduction(600000, zakatYear: 1447, exempt: true)?->zakat; // 0\n```",
+              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee\n(First Schedule, Note 2: less than a rupee is not charged, 50 paisa or\nmore counts as a rupee), when it is at or above that year's nisab, and\nnothing when it is below or the holder has a valid exemption\ndeclaration (Form CZ-50). Give the year or a date as for getNisab().\n\nA balance exactly equal to the nisab is deducted: every notification\nsays no deduction where the balance is \"less than\" the nisab, and the\nOrdinance (s. 2(xxiii)) defines a sahib-e-nisab as owning \"not less\nthan nisab\". The First Schedule's own wording (\"does not exceed\")\nwould not deduct it. In Punjab the Punjab Zakat and Ushr Act 2018\nreplaced the Ordinance, with the same First Schedule wording.\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```php\nZakat::deduction(600000, zakatYear: 1447);\n// ZakatDeduction(zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000, source: …)\nZakat::deduction(600000, zakatYear: 1447, exempt: true)?->zakat; // 0\n```",
               "params": [
                 {
                   "name": "$balance",
@@ -5568,7 +5736,7 @@
               ],
               "returns": {
                 "type": "ZakatDeduction|null",
-                "doc": "The deduction and its source, or null for an invalid balance, a year that is not covered, or an ambiguous date. Never throws."
+                "doc": "The deduction and its source, or null for an invalid balance or a year that is not covered. Never throws."
               }
             }
           ],

@@ -13,11 +13,16 @@ Sources, all from FBR's rate card page
 (https://fbr.gov.pk/withholding-taxes-rate-card/174298/174301), retrieved
 2026-11-23. The cards print no date; the dates are the PDFs' creation dates.
 
-| Tax year | Card                                                                                                                                                                       | PDF date   | Also read                                                |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------- |
-| 2027     | "Updated up to June 30, 2026 as per Finance Act, 2026" (https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf)                                  | 2026-08-11 | FBR's xlsx edition                                       |
-| 2026     | "Updated up to June 30, 2025 as per Finance Act, 2025" (http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf)                                                | 2025-08-15 | FBR's xlsx edition                                       |
-| 2025     | "Withholding Income Tax Regime (WHT Rates Card) ... updated up to June 30, 2024" (http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf) | 2024-08-21 | a scan; read from the page images and FBR's docx edition |
+- **Tax year 2027:** "Updated up to June 30, 2026 as per Finance Act,
+  2026", PDF dated 2026-08-11, also read in FBR's xlsx edition
+  (https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf).
+- **Tax year 2026:** "Updated up to June 30, 2025 as per Finance Act,
+  2025", PDF dated 2025-08-15, also read in FBR's xlsx edition
+  (http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf).
+- **Tax year 2025:** "Withholding Income Tax Regime (WHT Rates Card) ...
+  updated up to June 30, 2024", PDF dated 2024-08-21; a scan, read from the
+  page images and FBR's docx edition
+  (http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf).
 
 Every row was then checked against FBR's consolidated Income Tax Ordinance
 2001 for its year: amended up to 30.06.2024 (tax year 2025), 31.07.2025

@@ -797,23 +797,23 @@ SBP's www site blocks automated downloads, so the files were read from
 SBP's own mirror, `archive.sbp.org.pk`, at the same paths. The scanned
 notifications (2012-2024) were read from the page images.
 
-| Zakat year | Notification label | Nisab (Rs) | Notification                                | SBP circular letter         |
-| ---------- | ------------------ | ---------: | ------------------------------------------- | --------------------------- |
-| 1433       | 1432-33            |     51,086 | CE-1001(36)/NISAB/1432-33/2012, 18 Jul 2012 | No. 18 of 2012, 19 Jul 2012 |
-| 1434       | 1433-34            |     41,872 | CE3 1001(36)/NISAB/1433-34/2013, 5 Jul 2013 | No. 17 of 2013, 9 Jul 2013  |
-| 1435       | 1434-35            |     38,810 | .../1434-35/2014/3494, 26 Jun 2014          | No. 20 of 2014, 26 Jun 2014 |
-| 1436       | 1435-36            |     33,641 | .../1435-36/2015/, 16 Jun 2015              | No. 14 of 2015, 16 Jun 2015 |
-| 1437       | 1436-37            |     35,557 | .../1436-37/2016, 3 Jun 2016                | No. 18 of 2016, 3 Jun 2016  |
-| 1438       | 1437-38            |     38,406 | .../1437-38/2017, 24 May 2017               | No. 15 of 2017, 24 May 2017 |
-| 1439       | 1438-39            |     39,198 | .../1438-39/2018/304, 14 May 2018           | No. 06 of 2018, 14 May 2018 |
-| 1440       | 1439-40            |     44,415 | .../1439-40/2019/226, 3 May 2019            | No. 09 of 2019, 3 May 2019  |
-| 1441       | 1440-41            |     46,329 | .../1440-41/2020, 20 Apr 2020               | No. 19 of 2020, 20 Apr 2020 |
-| 1442       | 1441-42            |     80,933 | .../1441-42/2021/83, 8 Apr 2021             | No. 09 of 2021, 12 Apr 2021 |
-| 1443       | 1442-43            |     88,927 | .../1442-43/2022, 30 Mar 2022               | No. 07 of 2022, 30 Mar 2022 |
-| 1444       | 1443-44            |    103,159 | .../1443-44/2023-140, 17 Mar 2023           | No. 02 of 2023, 17 Mar 2023 |
-| 1445       | 1444-45            |    135,179 | .../1444-45/2024/612, 6 Mar 2024            | No. 03 of 2024, 7 Mar 2024  |
-| 1446       | 1445-46            |    179,689 | .../1445-46/2025-76, 26 Feb 2025            | No. 04 of 2025, 27 Feb 2025 |
-| 1447       | 1446-47            |    503,529 | .../1446-47/2026-48, 16 Feb 2026            | No. 03 of 2026, 17 Feb 2026 |
+| Zakat year | Notification label | Nisab (Rs) | Notification                                                                                           | SBP circular letter                                                                          |
+| ---------- | ------------------ | ---------: | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| 1433       | 1432-33            |     51,086 | [CE-1001(36)/NISAB/1432-33/2012](https://www.sbp.org.pk/bsrvd/2012/CL18-Annex-A.pdf), 2012-07-18       | [BPRD Circular Letter No. 18 of 2012](https://www.sbp.org.pk/bprd/2012/CL18.htm), 2012-07-19 |
+| 1434       | 1433-34            |     41,872 | [CE3 1001(36)/NISAB/1433-34/2013](https://www.sbp.org.pk/bprd/2013/CL17-Annex.pdf), 2013-07-05         | [BPRD Circular Letter No. 17 of 2013](https://www.sbp.org.pk/bprd/2013/CL17.htm), 2013-07-09 |
+| 1435       | 1434-35            |     38,810 | [CE-1001(36)/NISAB/1434-35/2014/3494](https://www.sbp.org.pk/bprd/2014/Encl20.pdf), 2014-06-26         | [BPRD Circular Letter No. 20 of 2014](https://www.sbp.org.pk/bprd/2014/CL20.htm), 2014-06-26 |
+| 1436       | 1435-36            |     33,641 | [CE-1001(36)/NISAB/1435-36/2015/](https://www.sbp.org.pk/bprd/2015/CL14-Annex.pdf), 2015-06-16         | [BPRD Circular Letter No. 14 of 2015](https://www.sbp.org.pk/bprd/2015/CL14.htm), 2015-06-16 |
+| 1437       | 1436-37            |     35,557 | [CE-1001(36)/NISAB/1436-37/2016](https://www.sbp.org.pk/bprd/2016/CL18-Annx-A.pdf), 2016-06-03         | [BPRD Circular Letter No. 18 of 2016](https://www.sbp.org.pk/bprd/2016/CL18.htm), 2016-06-03 |
+| 1438       | 1437-38            |     38,406 | [CE-1001(36)/NISAB/1437-38/2017](https://www.sbp.org.pk/bprd/2017/CL15-Annex.pdf), 2017-05-24          | [BPRD Circular Letter No. 15 of 2017](https://www.sbp.org.pk/bprd/2017/CL15.htm), 2017-05-24 |
+| 1439       | 1438-39            |     39,198 | [CE-1001(36)/NISAB/1438-39/2018/304](https://www.sbp.org.pk/bprd/2018/CL6-Annex.pdf), 2018-05-14       | [BPRD Circular Letter No. 06 of 2018](https://www.sbp.org.pk/bprd/2018/CL6.htm), 2018-05-14  |
+| 1440       | 1439-40            |     44,415 | [CE-1001(36)/NISAB/1439-40/2019/226](https://www.sbp.org.pk/bprd/2019/CL9_Annex.pdf), 2019-05-03       | [BPRD Circular Letter No. 09 of 2019](https://www.sbp.org.pk/bprd/2019/CL9.htm), 2019-05-03  |
+| 1441       | 1440-41            |     46,329 | [CE-1001(36)/NISAB/1440-41/2020](https://www.sbp.org.pk/bprd/2020/CL-19-Annex-A.jpg), 2020-04-20       | [BPRD Circular Letter No. 19 of 2020](https://www.sbp.org.pk/bprd/2020/CL19.htm), 2020-04-20 |
+| 1442       | 1441-42            |     80,933 | [CE-1001(36)/NISAB/1441-42/2021/83](https://www.sbp.org.pk/bprd/2021/CL9-Annex-A.pdf), 2021-04-08      | [BPRD Circular Letter No. 09 of 2021](https://www.sbp.org.pk/bprd/2021/CL9.htm), 2021-04-12  |
+| 1443       | 1442-43            |     88,927 | [CE-1001(36)/NISAB/1442-43/2022](https://www.sbp.org.pk/bprd/2022/CL7-Annex.pdf), 2022-03-30           | [BPRD Circular Letter No. 07 of 2022](https://www.sbp.org.pk/bprd/2022/CL7.htm), 2022-03-30  |
+| 1444       | 1443-44            |    103,159 | [CE-1001(36)/NISAB/1443-44/2023-140](https://www.sbp.org.pk/bprd/2023/CL2-Annix-A.pdf), 2023-03-17     | [BPRD Circular Letter No. 02 of 2023](https://www.sbp.org.pk/bprd/2023/CL2.htm), 2023-03-17  |
+| 1445       | 1444-45            |    135,179 | [CE-1001(36)/NISAB/1444-45/2024/612](https://www.sbp.org.pk/bprd/2024/CL3-Annex.pdf), 2024-03-06       | [BPRD Circular Letter No. 03 of 2024](https://www.sbp.org.pk/bprd/2024/CL3.htm), 2024-03-07  |
+| 1446       | 1445-46            |    179,689 | [CE-1001(36)/NISAB/1445-46/2025-76](https://www.sbp.org.pk/bprd/2025/CL4-AnnexA.pdf), 2025-02-26       | [BPRD Circular Letter No. 04 of 2025](https://www.sbp.org.pk/bprd/2025/CL4.htm), 2025-02-27  |
+| 1447       | 1446-47            |    503,529 | [CE-1001(36)/NISAB/1446-47/2026-48](https://www.sbp.org.pk/bprd/2026/CL3-Notification.pdf), 2026-02-16 | [BPRD Circular Letter No. 03 of 2026](https://www.sbp.org.pk/bprd/2026/CL3.htm), 2026-02-17  |
 
 **Rules** (Zakat and Ushr Ordinance 1980 and the Zakat (Collection and
 Refund) Rules 1981, from pakistancode.gov.pk and pass.gov.pk):
@@ -927,11 +927,16 @@ Sources, all from FBR's rate card page
 (https://fbr.gov.pk/withholding-taxes-rate-card/174298/174301), retrieved
 2026-11-23. The cards print no date; the dates are the PDFs' creation dates.
 
-| Tax year | Card                                                                                                                                                                       | PDF date   | Also read                                                |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------- |
-| 2027     | "Updated up to June 30, 2026 as per Finance Act, 2026" (https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf)                                  | 2026-08-11 | FBR's xlsx edition                                       |
-| 2026     | "Updated up to June 30, 2025 as per Finance Act, 2025" (http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf)                                                | 2025-08-15 | FBR's xlsx edition                                       |
-| 2025     | "Withholding Income Tax Regime (WHT Rates Card) ... updated up to June 30, 2024" (http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf) | 2024-08-21 | a scan; read from the page images and FBR's docx edition |
+- **Tax year 2027:** "Updated up to June 30, 2026 as per Finance Act,
+  2026", PDF dated 2026-08-11, also read in FBR's xlsx edition
+  (https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf).
+- **Tax year 2026:** "Updated up to June 30, 2025 as per Finance Act,
+  2025", PDF dated 2025-08-15, also read in FBR's xlsx edition
+  (http://download1.fbr.gov.pk/Docs/20258181281745641WHT-RateCard.pdf).
+- **Tax year 2025:** "Withholding Income Tax Regime (WHT Rates Card) ...
+  updated up to June 30, 2024", PDF dated 2024-08-21; a scan, read from the
+  page images and FBR's docx edition
+  (http://download1.fbr.gov.pk/Docs/20248211184455183WithholdingTaxRegimeRatesCard2024.pdf).
 
 Every row was then checked against FBR's consolidated Income Tax Ordinance
 2001 for its year: amended up to 30.06.2024 (tax year 2025), 31.07.2025

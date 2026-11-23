@@ -10,6 +10,10 @@ const PAGES = [
   '/install/typescript/',
   '/docs/cnic/',
   '/docs/salestax/',
+  '/docs/withholding/',
+  '/docs/zakat/',
+  '/docs/population/',
+  '/docs/data-info/',
   '/docs/raast/',
   // Module guides added in Phase 2: each has a live widget.
   ...[

@@ -240,11 +240,7 @@
     "series": {
       "from": "from",
       "to": "to",
-      "groupBy": [
-        "kind",
-        "authority",
-        "province"
-      ]
+      "groupBy": ["kind", "authority", "province"]
     }
   },
   {
@@ -303,10 +299,7 @@
     "series": {
       "from": "from",
       "to": "to",
-      "groupBy": [
-        "section",
-        "subType"
-      ]
+      "groupBy": ["section", "subType"]
     }
   },
   {

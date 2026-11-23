@@ -36,6 +36,14 @@ gives the same results on the shared test vectors.
   units and HS code/unit pairs against the lists an app syncs from FBR's
   reference APIs, which are authoritative. `getSaleTypes()` lists the sale
   types named in PRAL's specification v1.12.
+- **Bank websites and SWIFT/BIC codes (#94).** `getBankInfo()` adds
+  `status` (`active`, `merged` or `liquidated`), the official `website`
+  (and `websiteSbpListed` where SBP lists an older domain), and `swift` with
+  `swiftSource` or `swiftReason`. `swiftSource.bicSource` says where a code
+  comes from: `sbp` or `bank-site` (printed by SBP or the bank's own
+  website, 16 codes) or `directory` (listed in a SWIFT code directory but
+  not printed by SBP or the bank, 17 codes; confirm these with the bank
+  before sending money). 1LINK IMD codes are not included.
 - **CNICs across lines (#88).** `findCNICs()` and `maskCNICs()` take
   `{ acrossLines: true }`: a single line break joins digit groups like a
   space; a blank line never does.

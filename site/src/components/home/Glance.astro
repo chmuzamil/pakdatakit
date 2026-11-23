@@ -1,0 +1,168 @@
+---
+/**
+ * Home, section 01: everything the library covers, at a glance. A row of
+ * facts, then one entry per area: what it does, the key figures, and links to
+ * its guide and browser tool. Counts are read from data/*.json and
+ * test-vectors/README.md at build time, so they stay true after a data update.
+ */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const root = join(process.cwd(), '..');
+const json = (file: string) => JSON.parse(readFileSync(join(root, 'data', file), 'utf8'));
+const n = (x: number) => x.toLocaleString('en-US');
+
+const banks = json('banks.json') as { swift: string | null; website: string | null }[];
+const withholding = json('withholding-rates.json') as { taxYear: number }[];
+const whtYears = [...new Set(withholding.map((r) => r.taxYear))].sort();
+const zakat = json('zakat-nisab.json') as { zakatYear: number }[];
+const slabs = json('income-tax-slabs.json') as { taxYear: number }[];
+const slabYears = slabs.map((s) => s.taxYear).sort();
+const holidays = Object.keys(json('holidays.json')).sort();
+const readme = readFileSync(join(root, 'test-vectors', 'README.md'), 'utf8');
+const vectors = /([\d,]+) vectors in \d+ files/.exec(readme)?.[1];
+
+const FACTS = [
+  ['5', 'languages: TypeScript, Python, Dart, .NET, PHP'],
+  [vectors ?? '', 'shared test vectors every port passes'],
+  ['0', 'network calls: all data ships with the package'],
+  ['0', 'runtime dependencies in the core'],
+];
+
+const AREAS: { id: string; name: string; what: string; facts: string[]; guide: string; tool?: string }[] = [
+  {
+    id: 'identity',
+    name: 'Identity',
+    what: 'CNIC, passport, NTN and STRN formats, and vehicle plates.',
+    facts: ['Province and gender from a CNIC', 'Find and mask CNICs in free text, even across lines', 'Not NADRA verification'],
+    guide: '/docs/cnic/',
+    tool: '/tools/cnic/',
+  },
+  {
+    id: 'phone',
+    name: 'Phones',
+    what: 'Mobile, landline, UAN, toll-free and premium numbers.',
+    facts: [
+      `${n(json('networks.json').length)} mobile prefixes, ${n(json('area-codes.json').length)} area codes (PTA)`,
+      'E.164 formatting and WhatsApp links',
+      'Original network and risk signals',
+    ],
+    guide: '/docs/phone/',
+    tool: '/tools/phone/',
+  },
+  {
+    id: 'banking',
+    name: 'Banks and payments',
+    what: 'IBANs, bank details and Raast QR codes.',
+    facts: [
+      `${banks.length} bank codes, ${banks.filter((b) => b.website).length} websites, ${banks.filter((b) => b.swift).length} SWIFT/BIC codes`,
+      'Raast QR: make and read, as banking apps scan it',
+      'Amounts like 1,50,000 or 1.5 lakh, and in words',
+    ],
+    guide: '/docs/iban/',
+    tool: '/tools/iban/',
+  },
+  {
+    id: 'tax',
+    name: 'Income and sales tax',
+    what: 'Salary tax, sales tax and FBR Digital Invoicing.',
+    facts: [
+      `Salary tax, tax years ${slabYears[0]}–${slabYears.at(-1)}`,
+      'Sales tax by province and date, with the law behind each rate',
+      "Digital-invoice JSON checked offline, with FBR's error codes",
+    ],
+    guide: '/docs/incometax/',
+    tool: '/tools/salary-tax/',
+  },
+  {
+    id: 'withholding',
+    name: 'Withholding tax',
+    what: 'Tax deducted at source, for filers (ATL), non-filers and late filers.',
+    facts: [
+      `${withholding.length} rates, tax years ${whtYears[0]}–${whtYears.at(-1)}`,
+      'Dividends, profit on debt, sukuk, contracts, services, property, cash withdrawals',
+      'From FBR rate cards, checked against the Ordinance',
+    ],
+    guide: '/docs/withholding/',
+  },
+  {
+    id: 'zakat',
+    name: 'Zakat',
+    what: 'Zakat deducted at source on bank balances.',
+    facts: [
+      `Nisab for ${zakat.length} Zakat years, ${Math.min(...zakat.map((z) => z.zakatYear))}–${Math.max(...zakat.map((z) => z.zakatYear))} AH`,
+      'Each from its Ministry notification and SBP circular',
+      'The deduction day, and 2.5% rounded to the rupee',
+    ],
+    guide: '/docs/zakat/',
+  },
+  {
+    id: 'addresses',
+    name: 'Addresses and census',
+    what: 'Addresses, postal codes and administrative areas.',
+    facts: [
+      `${n(json('post-offices.json').length)} post offices; ${n(json('districts.json').length)} districts, ${n(json('tehsils.json').length)} tehsils`,
+      'Census 2023 population by district and tehsil',
+      'Address parsing and a delivery score',
+    ],
+    guide: '/docs/address/',
+    tool: '/tools/address-score/',
+  },
+  {
+    id: 'text',
+    name: 'Urdu, dates and bills',
+    what: 'Urdu text, Hijri dates, holidays and utility bills.',
+    facts: [
+      'Urdu slugs, sorting and Roman Urdu matching',
+      `Hijri dates; public holidays ${holidays[0]}–${holidays.at(-1)}`,
+      'Electricity and gas bill numbers',
+    ],
+    guide: '/docs/text/',
+    tool: '/tools/urdu-text/',
+  },
+];
+---
+
+<section class="pdk-home-section pdk-glance not-content" aria-labelledby="glance">
+  <span class="pdk-label">01 · At a glance</span>
+  <h2 id="glance">More than CNICs and IBANs</h2>
+  <p class="pdk-home-prose">
+    Identifiers, phones, banks, tax, Zakat, addresses, census figures and Urdu text, with the data behind them dated
+    and sourced. Each area has a guide, and most have a tool that runs in your browser.
+  </p>
+  <ul class="pdk-facts">
+    {
+      FACTS.map(([num, label]) => (
+        <li>
+          <span class="pdk-fact-n">{num}</span>
+          <span>{label}</span>
+        </li>
+      ))
+    }
+  </ul>
+  <div class="pdk-areas">
+    {
+      AREAS.map((a) => (
+        <section class="pdk-area" aria-labelledby={`g-${a.id}`}>
+          <h3 id={`g-${a.id}`}>{a.name}</h3>
+          <p>{a.what}</p>
+          <ul>
+            {a.facts.map((f) => (
+              <li>{f}</li>
+            ))}
+          </ul>
+          <p class="pdk-area-links">
+            <a href={a.guide}>
+              Guide<span class="sr-only">: {a.name}</span>
+            </a>
+            {a.tool && (
+              <a href={a.tool}>
+                Tool<span class="sr-only">: {a.name}</span>
+              </a>
+            )}
+          </p>
+        </section>
+      ))
+    }
+  </div>
+</section>

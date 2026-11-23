@@ -890,7 +890,7 @@ void main() {
     expect(cnic.validateCNIC('35202-1234567-1'), isTrue);
     expect(phone.normalizePhoneDigits('0300-1234567'), '923001234567');
     expect(phone.getPhonePrefix('+923451234567'), '0345');
-    expect(dataVersion, '2026-11-22');
+    expect(dataVersion, '2026-11-24');
     expect(salestax.splitInclusive(1180, 18)?.net, 1000);
     expect(incometax.getTaxYear('2025-07-01'), 2026);
     expect(bills.validateElectricityRef('0400012345678'), isTrue);

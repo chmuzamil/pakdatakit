@@ -31,7 +31,8 @@ used.
   belongs to the last year whose 1 Ramazan is on or before it.
   `WithholdingRate.Circular` cites FBR's circular where one is recorded.
 - **Banks (#94).** `BankInfo` gains `Status`, `Website`, `WebsiteSbpListed`,
-  `Swift` (only where SBP or the bank's own domain prints it),
+  `Swift` (with `BankBicSource.Sbp` or `BankSite` where SBP or the bank's
+  own domain prints it, or `Directory` from a SWIFT code directory),
   `SwiftSource` and `SwiftReason`, as init-only properties so the 2.7
   constructor still binds.
 - **Population (#95).** `Population.GetDistrict()` and

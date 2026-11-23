@@ -28,8 +28,9 @@ vectors.
 - **Banks.** `BankInfo` adds `status` (`active`, `merged` or `liquidated`),
   the official `website` (and `website_sbp_listed` where SBP lists an older
   domain), and `swift` with `swift_source` (`BankSwiftSource`): the SWIFT/BIC
-  code only where SBP or the bank's own website prints it, otherwise
-  `swift_reason` says why it is `None`.
+  code, with `swift_source.bic_source` `sbp` or `bank-site` (printed by SBP
+  or the bank's own website) or `directory` (from a SWIFT code directory;
+  confirm with the bank). Otherwise `swift_reason` says why it is `None`.
 - **Zakat.** `get_zakat_nisab(zakat_year=... | date=...)`, `get_zakat_years()`
   and `zakat_deduction(balance=..., zakat_year=... | date=..., exempt=False)`:
   the nisab for deduction at source, Zakat years 1433 to 1447 AH. `zakat` is

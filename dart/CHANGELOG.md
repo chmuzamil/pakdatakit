@@ -25,7 +25,9 @@ vectors.
   SBP deduction day (`bankHolidayDate`) and a `note`.
 - `BankInfo` gains `status` (`BankStatus`), `website`, `websiteSbpListed`,
   and `swift` with `swiftSource` (`BankSwiftSource`) or `swiftReason`: the
-  SWIFT/BIC code only where SBP or the bank's own website prints it (#94).
+  SWIFT/BIC code, with `BankBicSource.sbp` or `bankSite` (printed by SBP or
+  the bank's own website) or `directory` (from a SWIFT code directory;
+  confirm with the bank) (#94).
 - `DataInfo.checkedAt`: when the data was last checked against its source.
 - `WithholdingRate.circular`: FBR's circular explaining the rate, where
   recorded.

@@ -1,6 +1,6 @@
 ---
 /**
- * Home, section 03: where the data comes from. Counts are read from
+ * Home, section 04: where the data comes from. Counts are read from
  * data/*.json at build time and the date from the library's dataVersion;
  * the sources are the ones DATA.md documents for each dataset (see /data/
  * for every source, URL and date).
@@ -26,11 +26,14 @@ const ROWS = [
     source: 'Pakistan Bureau of Statistics, Census 2023',
   },
   { name: 'Salary tax years', entries: n(count('income-tax-slabs.json')), source: 'Finance Acts and FBR' },
+  { name: 'Withholding tax rates', entries: n(count('withholding-rates.json')), source: 'FBR rate cards and the Income Tax Ordinance' },
+  { name: 'Zakat years (nisab)', entries: n(count('zakat-nisab.json')), source: 'Administrator-General Zakat notifications and SBP circulars' },
+  { name: 'FBR sale types', entries: n(count('fbr-sale-types.json')), source: "PRAL's Digital Invoicing specification" },
 ];
 ---
 
 <section class="pdk-home-section not-content" aria-labelledby="provenance">
-  <span class="pdk-label">03 · Provenance</span>
+  <span class="pdk-label">04 · Provenance</span>
   <h2 id="provenance">Where the data comes from</h2>
   <table class="pdk-prov">
     <thead>

@@ -9,11 +9,11 @@ version in this repository and is supported from its first release.
 
 | Package                                                                   | Registry  | Language          | Supported | On the registry |
 | ------------------------------------------------------------------------- | --------- | ----------------- | --------- | --------------- |
-| `pakdatakit`                                                              | npm       | TypeScript, JS    | 2.7.x     | yes             |
-| `pakdatakit`                                                              | PyPI      | Python 3.9+       | 2.7.x     | yes             |
-| `pakdatakit`                                                              | pub.dev   | Dart              | 2.7.x     | yes             |
-| `PakDataKit`, `PakDataKit.DataAnnotations`, `PakDataKit.FluentValidation` | NuGet     | .NET 8+           | 2.7.x     | yes             |
-| `chmuzamil/pakdatakit`                                                    | Packagist | PHP 8.2+, Laravel | 2.7.x     | yes             |
+| `pakdatakit`                                                              | npm       | TypeScript, JS    | 2.8.x     | yes             |
+| `pakdatakit`                                                              | PyPI      | Python 3.9+       | 2.8.x     | yes             |
+| `pakdatakit`                                                              | pub.dev   | Dart              | 2.8.x     | yes             |
+| `PakDataKit`, `PakDataKit.DataAnnotations`, `PakDataKit.FluentValidation` | NuGet     | .NET 8+           | 2.8.x     | yes             |
+| `chmuzamil/pakdatakit`                                                    | Packagist | PHP 8.2+, Laravel | 2.8.x     | yes             |
 | `pakdatakit-react`                                                        | npm       | React             | 0.2.x     | yes             |
 | `pakdatakit-faker`                                                        | npm       | TypeScript, JS    | 0.2.x     | yes             |
 | `pakdatakit-vue`                                                          | npm       | Vue 3             | 0.1.x     | yes             |

@@ -1018,7 +1018,65 @@ starlight-tabs [role='tabpanel'] {
   color: inherit;
 }
 
-/* 01 Anatomy. Segment colours pass AA on both backgrounds. */
+/* 01 At a glance: a row of facts, then the areas in a ruled grid, no cards. */
+.pdk-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: 1rem 1.5rem;
+  margin: 0 0 1.75rem;
+  padding: 0;
+  list-style: none;
+}
+.pdk-facts li {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+.pdk-fact-n {
+  font: 600 1.75rem / 1.1 var(--sl-font-mono);
+  color: var(--sl-color-white);
+}
+.pdk-areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 0 2rem;
+}
+.pdk-area {
+  padding-block: 1rem;
+  border-top: 1px solid var(--sl-color-gray-6);
+  min-width: 0;
+}
+.pdk-area h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.125rem;
+  color: var(--sl-color-white);
+}
+.pdk-area p {
+  margin: 0 0 0.5rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+.pdk-area ul {
+  margin: 0 0 0.6rem;
+  padding-inline-start: 1.1rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+.pdk-area li {
+  margin: 0.15rem 0 0;
+}
+.pdk-area .pdk-area-links {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+}
+.pdk-area-links a {
+  color: var(--sl-color-text-accent);
+}
+
+/* 02 Anatomy. Segment colours pass AA on both backgrounds. */
 .pdk-anatomy {
   display: grid;
   gap: 2rem;
@@ -1107,7 +1165,7 @@ starlight-tabs [role='tabpanel'] {
   color: var(--seg);
 }
 
-/* 02 Parity: language | call | result. */
+/* 03 Parity: language | call | result. */
 .pdk-parity {
   display: table;
   width: 100%;
@@ -1167,7 +1225,7 @@ starlight-tabs [role='tabpanel'] {
   }
 }
 
-/* 03 Provenance. */
+/* 04 Provenance. */
 .pdk-prov {
   display: table;
   width: 100%;
@@ -1194,7 +1252,7 @@ starlight-tabs [role='tabpanel'] {
   white-space: nowrap;
 }
 
-/* 04 Modules: a typographic list, no cards. */
+/* 05 Modules: a typographic list, no cards. */
 .pdk-module-pills {
   margin-bottom: 1.25rem;
 }
@@ -1249,7 +1307,7 @@ starlight-tabs [role='tabpanel'] {
   }
 }
 
-/* 05 Production. */
+/* 06 Production. */
 .pdk-production {
   display: grid;
   gap: 1rem 3rem;

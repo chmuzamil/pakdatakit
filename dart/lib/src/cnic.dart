@@ -132,8 +132,20 @@ const String _join = '(?:$_space+|$_space*$_mark$_space*)';
 /// One digit group: an unbroken run of digits.
 final RegExp _group = RegExp('$_anyDigit+');
 
+/// One line break: CRLF, LF or CR.
+const String _lineBreak = r'(?:\r\n|\r|\n)';
+
+/// With `acrossLines`: what [_join] allows, or the same with one line break
+/// counting as a space (`35202\n1234567\n1`, `35202-\r\n1234567`). Only one
+/// line break per gap, so a blank line never joins groups.
+const String _joinLines = '(?:$_space*$_lineBreak$_space*(?:$_mark$_space*)?|'
+    '$_space*$_mark$_space*$_lineBreak$_space*|$_join)';
+
 /// Digit groups joined as above, as long as the run goes.
 final RegExp _digitRun = RegExp('$_anyDigit+(?:$_join$_anyDigit+)*');
+
+/// The same, joining across single line breaks (`acrossLines`).
+final RegExp _digitRunLines = RegExp('$_anyDigit+(?:$_joinLines$_anyDigit+)*');
 final RegExp _anyDigitPattern = RegExp(_anyDigit);
 final RegExp _firstIsProvince = RegExp('^$_provinceDigit');
 
@@ -142,9 +154,10 @@ final RegExp _firstIsProvince = RegExp('^$_provinceDigit');
 /// starting with a province digit, are a CNIC; the search goes on after it.
 /// A group is never split, so 13 digits inside a longer unbroken number are
 /// never matched.
-List<(int, int)> _cnicSpans(String text) {
+List<(int, int)> _cnicSpans(String text, {bool acrossLines = false}) {
   final spans = <(int, int)>[];
-  for (final run in _digitRun.allMatches(text)) {
+  for (final run
+      in (acrossLines ? _digitRunLines : _digitRun).allMatches(text)) {
     final groups = [
       for (final g in _group.allMatches(run[0]!))
         (start: run.start + g.start, end: run.start + g.end, text: g[0]!),
@@ -252,13 +265,17 @@ class MaskedText {
 /// dot, a slash or an underscore) with any spaces around it: `35202 1234567
 /// 1`, `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`,
 /// `35202 - 1234567 - 1`, `352 0212 3456 71`, `35202/1234567/1`. A line
-/// break never joins groups. A match is consecutive whole groups that add up
-/// to exactly 13 digits, starting with a province code (1-8); the search
-/// goes on after each match, so `0300-1234567 35202-1234567-1` finds the
-/// CNIC. A group is never split, so 13 digits inside a longer unbroken
-/// number (an IBAN, a card number) never match. Digits may be ASCII, Urdu or
-/// Arabic-Indic, even mixed. This matches everything Jaanch's own CNIC
-/// redaction does, except across line breaks.
+/// break joins groups only with [acrossLines] (below). A match is
+/// consecutive whole groups that add up to exactly 13 digits, starting with
+/// a province code (1-8); the search goes on after each match, so
+/// `0300-1234567 35202-1234567-1` finds the CNIC. A group is never split, so
+/// 13 digits inside a longer unbroken number (an IBAN, a card number) never
+/// match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed.
+///
+/// With [acrossLines] set to `true`, a single line break (`\r\n`, `\r` or
+/// `\n`, with any spaces around it) also joins groups, so a CNIC written over
+/// several lines is found; a blank line never joins them. This can also join
+/// numbers on consecutive lines, such as a list of amounts. Default `false`.
 ///
 /// Accepting any grouping catches CNICs as people really type them, but
 /// matches more that is not a CNIC: any 13 digits starting with 1-8 split
@@ -275,11 +292,13 @@ class MaskedText {
 /// // [CNICMatch(raw: 35202-1234567-1, digits: 3520212345671,
 /// //   formatted: 35202-1234567-1, start: 6, end: 21)]
 /// findCNICs('id 352 0212 3456 71').first.digits; // '3520212345671'
+/// findCNICs('CNIC\n35202\n1234567\n1', acrossLines: true).first.formatted;
+/// // '35202-1234567-1'
 /// ```
 ///
 /// Returns the matches in order, or an empty list. Never throws.
-List<CNICMatch> findCNICs(String text) => [
-      for (final (start, end) in _cnicSpans(text))
+List<CNICMatch> findCNICs(String text, {bool acrossLines = false}) => [
+      for (final (start, end) in _cnicSpans(text, acrossLines: acrossLines))
         _toMatch(text.substring(start, end), start),
     ];
 
@@ -315,10 +334,18 @@ CNICMatch _toMatch(String raw, int start) {
 ///
 /// [mask] is the string that replaces each digit (default `'X'`);
 /// [replacement], when given, is the string that replaces each whole CNIC,
-/// separators included, and takes precedence over [mask]. Returns the
-/// masked text and the number of CNICs masked. Never throws.
-MaskedText maskCNICs(String text, {String mask = 'X', String? replacement}) {
-  final spans = _cnicSpans(text);
+/// separators included, and takes precedence over [mask]. [acrossLines]
+/// also finds CNICs written across single line breaks, as in [findCNICs];
+/// with [mask] the line breaks stay, with [replacement] they are replaced
+/// with the rest of the CNIC (default `false`). Returns the masked text and
+/// the number of CNICs masked. Never throws.
+MaskedText maskCNICs(
+  String text, {
+  String mask = 'X',
+  String? replacement,
+  bool acrossLines = false,
+}) {
+  final spans = _cnicSpans(text, acrossLines: acrossLines);
   final out = StringBuffer();
   var at = 0;
   for (final (start, end) in spans) {

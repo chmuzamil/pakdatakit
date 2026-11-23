@@ -85,6 +85,16 @@
           "id": "fbr-invoice",
           "title": "FBR digital invoicing",
           "description": "Build and check invoices for the FBR digital invoicing API."
+        },
+        {
+          "id": "withholding",
+          "title": "Withholding tax",
+          "description": "Withholding tax for persons on and not on the Active Taxpayers List, tax years 2025-2027."
+        },
+        {
+          "id": "zakat",
+          "title": "Zakat",
+          "description": "The nisab for Zakat deduction at source, Zakat years 1433-1447 AH, and the deduction on a balance."
         }
       ]
     },
@@ -116,6 +126,11 @@
           "id": "vehicle",
           "title": "Vehicle plates",
           "description": "Parse and validate vehicle registration plates."
+        },
+        {
+          "id": "population",
+          "title": "Population",
+          "description": "Census 2023 population, households and urban/rural split by district and tehsil."
         }
       ]
     },
@@ -163,6 +178,11 @@
           "id": "data-version",
           "title": "Data version",
           "description": "The date of the bundled datasets, the same in every port."
+        },
+        {
+          "id": "data-info",
+          "title": "Data sources",
+          "description": "Each dataset's issuer, official source, dates, record count and next expected update."
         }
       ]
     },

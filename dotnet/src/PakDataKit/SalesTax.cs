@@ -36,7 +36,16 @@ public sealed record SalesTaxRate(
 /// <param name="Tax">Tax, in rupees.</param>
 /// <param name="Gross">Value including tax; always <c>Net + Tax</c> to the paisa.</param>
 /// <param name="Rate">Percent used.</param>
-public sealed record SalesTaxAmounts(double Net, double Tax, double Gross, double Rate);
+public sealed record SalesTaxAmounts(double Net, double Tax, double Gross, double Rate)
+{
+    /// <summary>
+    /// The rate's period, law and official source (dataset
+    /// <c>sales-tax-rates</c>), when <see cref="SalesTax.Calculate"/> looked
+    /// the rate up from a province or kind. <c>null</c> when you passed the
+    /// rate yourself, and from <see cref="SalesTax.SplitInclusive"/>.
+    /// </summary>
+    public DataSource? Source { get; init; }
+}
 
 /// <summary>Options for <see cref="SalesTax.GetRate"/>.</summary>
 public sealed record SalesTaxRateQuery
@@ -202,6 +211,9 @@ public static class SalesTax
     /// <see cref="GetRate"/>. The tax is rounded half up to the paisa.
     /// <code>
     /// SalesTax.Calculate(1000, new SalesTaxOptions { Rate = 18 }); // Net = 1000, Tax = 180, Gross = 1180, Rate = 18
+    /// SalesTax.Calculate(1000, new SalesTaxOptions { Province = "Punjab", Date = "2026-11-18" });
+    /// // Net = 1000, Tax = 160, Gross = 1160, Rate = 16,
+    /// // Source = { Id = "sales-tax-rates", EffectiveFrom = "2019-07-01", … }
     /// </code>
     /// </remarks>
     /// <param name="amount">0 to 1 trillion rupees.</param>
@@ -214,6 +226,7 @@ public static class SalesTax
     {
         if (options is null) return null;
         double rate;
+        DataSource? source = null;
         if (options.Rate is { } given)
         {
             rate = given;
@@ -231,14 +244,22 @@ public static class SalesTax
             });
             if (found is null) return null;
             rate = found.Rate;
+            source = new DataSource("sales-tax-rates", found.From, found.To, found.Law, found.Source);
         }
-        if (options.Inclusive) return SplitInclusive(amount, rate);
 
-        var netPaisa = Money.ToUnits(amount, 2);
-        var bp = BasisPoints(rate);
-        if (netPaisa is not { } n || bp is not { } b) return null;
-        var taxPaisa = Money.DivideHalfUp(n * b, 10_000);
-        return Amounts(n, taxPaisa, b);
+        SalesTaxAmounts? result;
+        if (options.Inclusive)
+        {
+            result = SplitInclusive(amount, rate);
+        }
+        else
+        {
+            var netPaisa = Money.ToUnits(amount, 2);
+            var bp = BasisPoints(rate);
+            if (netPaisa is not { } n || bp is not { } b) return null;
+            result = Amounts(n, Money.DivideHalfUp(n * b, 10_000), b);
+        }
+        return result is not null && source is not null ? result with { Source = source } : result;
     }
 
     private static string? ProvinceName(string input) =>

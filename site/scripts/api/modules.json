@@ -5,6 +5,7 @@
     "bills": ["ElectricityRefType", "GasCompany", "ElectricityRef", "Bills"],
     "cnic": ["CnicGender", "CnicInfo", "CnicMatch", "MaskedText", "Cnic"],
     "courier": ["CourierStatus", "Courier"],
+    "data-info": ["DataInfo", "DataSource"],
     "data-version": ["PakData"],
     "fbr-invoice": [
       "FbrInvoiceType",
@@ -13,7 +14,9 @@
       "FbrInvoiceValidation",
       "FbrInvoiceTotals",
       "FbrInvoiceBuild",
-      "FbrInvoice"
+      "FbrInvoice",
+      "FbrInvoiceReference",
+      "FbrSaleType"
     ],
     "format": ["Currency", "ParsedAmount"],
     "geo": ["Geo"],
@@ -25,7 +28,14 @@
       "HolidayOptions",
       "Holidays"
     ],
-    "iban": ["BankType", "BankInfo", "Iban"],
+    "iban": [
+      "BankType",
+      "BankStatus",
+      "BankBicSource",
+      "BankSwiftSource",
+      "BankInfo",
+      "Iban"
+    ],
     "incometax": [
       "SalaryTaxSlab",
       "SalaryTaxSurcharge",
@@ -39,6 +49,7 @@
     "numbers": ["NumberType", "NumberInfo", "Numbers"],
     "passport": ["Passport"],
     "phone": ["PhoneAnalysis", "Phone"],
+    "population": ["DistrictPopulation", "TehsilPopulation", "Population"],
     "postal": ["PostOffice", "Postal"],
     "quality": ["AddressPart", "AddressScore", "PhoneRiskFlag", "Quality"],
     "raast": [
@@ -65,7 +76,27 @@
     "text": ["SlugScript", "SlugifyOptions", "BidiDirection", "Text"],
     "vehicle": ["VehiclePlateInfo", "VehiclePlate"],
     "whatsapp": ["WhatsApp"],
+    "withholding": [
+      "WithholdingNonAtlRule",
+      "WithholdingSlab",
+      "WithholdingThreshold",
+      "WithholdingThresholdCheck",
+      "WithholdingInput",
+      "WithholdingTax",
+      "WithholdingCircular",
+      "WithholdingRate",
+      "Withholding"
+    ],
     "words": ["WordsLanguage", "Words"],
+    "zakat": [
+      "ZakatExemption",
+      "ZakatDocument",
+      "ZakatRamazan1Source",
+      "ZakatNisab",
+      "ZakatYearQuery",
+      "ZakatDeduction",
+      "Zakat"
+    ],
     "data-annotations": ["PakDataKit.DataAnnotations.*"],
     "fluent-validation": ["PakDataKit.FluentValidation.*"]
   },
@@ -74,13 +105,19 @@
     "bills": ["ElectricityRef", "Bills"],
     "cnic": ["CnicInfo", "CnicMatch", "MaskedText", "Cnic"],
     "courier": ["Courier"],
+    "data-info": ["DataInfo", "DataSource"],
     "data-version": ["PakData"],
-    "fbr-invoice": ["FbrInvoiceError", "FbrInvoiceValidation", "FbrInvoice"],
+    "fbr-invoice": [
+      "FbrInvoiceError",
+      "FbrInvoiceValidation",
+      "FbrInvoice",
+      "FbrSaleType"
+    ],
     "format": ["Currency", "ParsedAmount"],
     "geo": ["Geo"],
     "hijri": ["HijriDate", "Hijri"],
     "holidays": ["Holiday", "Holidays"],
-    "iban": ["BankInfo", "Iban"],
+    "iban": ["BankSwiftSource", "BankInfo", "Iban"],
     "incometax": [
       "SalaryTaxSlab",
       "SalaryTaxSurcharge",
@@ -93,6 +130,7 @@
     "numbers": ["NumberInfo", "Numbers"],
     "passport": ["Passport"],
     "phone": ["PhoneAnalysis", "Phone"],
+    "population": ["DistrictPopulation", "TehsilPopulation", "Population"],
     "postal": ["PostOffice", "Postal"],
     "quality": ["AddressScore", "Quality"],
     "raast": ["EmvField", "ParsedRaastQr", "RaastQrValidation", "RaastQr"],
@@ -101,7 +139,23 @@
     "text": ["Text"],
     "vehicle": ["VehiclePlateInfo", "VehiclePlate"],
     "whatsapp": ["WhatsApp"],
+    "withholding": [
+      "WithholdingSlab",
+      "WithholdingThreshold",
+      "WithholdingThresholdCheck",
+      "WithholdingTax",
+      "WithholdingCircular",
+      "WithholdingRate",
+      "Withholding"
+    ],
     "words": ["Words"],
+    "zakat": [
+      "ZakatDocument",
+      "ZakatRamazan1Source",
+      "ZakatNisab",
+      "ZakatDeduction",
+      "Zakat"
+    ],
     "laravel": ["PakDataKit\\Laravel\\*"]
   }
 }

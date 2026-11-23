@@ -29,6 +29,8 @@ final readonly class SalaryTax
         public SalaryTaxSlab $slab,
         /** The tax year used. */
         public int $taxYear,
+        /** The rate table used: its tax year's dates, law and official source. */
+        public DataSource $source,
     ) {
     }
 }

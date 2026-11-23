@@ -1,0 +1,451 @@
+{
+  "description": "Official website and SWIFT/BIC per IBAN bank code (2.8.0, #94), merged into data/banks.json by scripts/generate-data.mjs. website: SBP's lists of regulated institutions, or the institution's own site where SBP lists none or an old domain (websiteSbpListed). swift: only codes printed by SBP or on the institution's own domain, with where (swiftSource); otherwise null with swiftReason. See DATA.md.",
+  "banks": {
+    "ABPA": {
+      "website": "https://abl.com/",
+      "websiteSbpListed": null,
+      "swift": "ABPAPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "ABPAPKKA",
+        "sourceUrl": "https://www.abl.com/business-banking/accounts/home-remmittances/nostro-account-and-swift-code/",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "AIIN": {
+      "website": "https://albaraka.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC."
+    },
+    "ALFH": {
+      "website": "https://www.bankalfalah.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only the Roshan Digital Account branch code ALFHPKKARDA is printed (SBP list, bank pages); the 8-character code would be derived."
+    },
+    "APNA": {
+      "website": "https://apnabank.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "ASCM": {
+      "website": "https://askaribank.com/",
+      "websiteSbpListed": "askaribank.com.pk",
+      "swift": "ASCMPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "ASCM PKKA",
+        "sourceUrl": "https://askaribank.com/investor-relations/useful-information-for-shareholders",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "BAHL": {
+      "website": "https://bankalhabib.com/",
+      "websiteSbpListed": null,
+      "swift": "BAHLPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "BAHLPKKA",
+        "sourceUrl": "https://www.bankalhabib.com/alhabib-roshan-digital-account",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "BKCH": {
+      "website": "https://bankofchina.com/",
+      "websiteSbpListed": null,
+      "swift": "BKCHPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "BKCHPKKA",
+        "sourceUrl": "https://www.boc.cn/english/thisisboc/gls/ovs/202601/t20260106_25640027.html",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "BKIP": {
+      "website": "https://bankislami.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "The bank's site prints \"BKIPPKKXXX\", which has 10 characters and is not a valid BIC."
+    },
+    "BPUN": {
+      "website": "https://bop.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "The bank's trade pages are behind an Imperva security check; not bypassed. Only branch codes appear in search results."
+    },
+    "CITI": {
+      "website": "https://citibank.com.pk/",
+      "websiteSbpListed": null,
+      "swift": "CITIPKKX",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "CITIPKKX",
+        "sourceUrl": "https://depositaryreceipts.citi.com/adr/guides/dspcustodian.aspx?pageId=15&subpageID=151&cusip=695849109&cstdn_id=CPAK",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "DEUT": {
+      "website": "https://country.db.com/mea/company/country-profiles/pakistan",
+      "websiteSbpListed": "db.com/pakistan/",
+      "swift": "DEUTPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "DEUTPKKAXXX",
+        "sourceUrl": "https://country.db.com/mea/documents/Deutsche-Bank-AG-Pakistan-SSI.pdf",
+        "page": 1,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "DUIB": {
+      "website": "https://dibpak.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only the Roshan Digital Account branch code DUIBPKKARDA is printed (SBP list, dibpak.com)."
+    },
+    "FAYS": {
+      "website": "https://faysalbank.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "The bank's document that prints it is behind a Cloudflare challenge; not bypassed."
+    },
+    "FINC": {
+      "website": "https://abhibank.com/",
+      "websiteSbpListed": "finca.pk",
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "FMFB": {
+      "website": "https://hblmfb.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "FWOM": {
+      "website": "https://fwbl.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC."
+    },
+    "HABB": {
+      "website": "https://hbl.com/",
+      "websiteSbpListed": null,
+      "swift": "HABBPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "HABBPKKA",
+        "sourceUrl": "https://www.hbl.com/assets/documents/Nostros_and_SSI_for_HBL_Pakistan_-_JAN_2026.pdf",
+        "page": 1,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "ICBK": {
+      "website": "https://karachi.icbc.com.cn/",
+      "websiteSbpListed": null,
+      "swift": "ICBKPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "ICBKPKKAXXX",
+        "sourceUrl": "https://www.icbc-ltd.com/en/page/721852698013237261.html",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "JCMA": {
+      "website": "https://mobilinkbank.com/",
+      "websiteSbpListed": "waseelabank.com",
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "JSBL": {
+      "website": "https://jsbl.com/",
+      "websiteSbpListed": null,
+      "swift": "JSBLPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "JSBLPKKA",
+        "sourceUrl": "https://jsbl.com/wp-content/uploads/2020/01/SSI-for-website.pdf",
+        "page": 1,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "KHBL": {
+      "website": "https://khushhalibank.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "KHYB": {
+      "website": "https://bok.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only a branch code is printed (\"khybpkka 024\"); the page that may print it returns \"Access denied\"."
+    },
+    "MCBL": {
+      "website": "https://mcb.com.pk/",
+      "websiteSbpListed": null,
+      "swift": "MUCBPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "MUCBPKKA",
+        "sourceUrl": "https://mopss.mcb.com.pk/assets/pdf/Guidelines%20for%20remitting%20funds%20to%20your%20MCB%20Bank%20Roshan%20Digital%20Account.pdf",
+        "page": 1,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "MCIB": {
+      "website": "https://mcbislamicbank.com/",
+      "websiteSbpListed": null,
+      "swift": "MCIBPKKI",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "MCIBPKKI",
+        "sourceUrl": "https://www.mcbislamicbank.com/investor-relations/investor-information/",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "MEZN": {
+      "website": "https://meezanbank.com/",
+      "websiteSbpListed": null,
+      "swift": "MEZNPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "MEZN PK KA",
+        "sourceUrl": "https://www.meezanbank.com/wp-content/themes/mbl/downloads/NOSTRO.pdf",
+        "page": 1,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "MPBL": {
+      "website": "https://hmb.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only the Roshan Digital Account branch code MPBLPKKARDA is printed (SBP list); no habibmetro.com page prints the code."
+    },
+    "MSHQ": {
+      "website": "https://www.mashreq.com/en/pk/home/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No Mashreq Pakistan page prints a BIC."
+    },
+    "MUCB": {
+      "website": "https://mcb.com.pk/",
+      "websiteSbpListed": null,
+      "swift": "MUCBPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "MUCBPKKA",
+        "sourceUrl": "https://mopss.mcb.com.pk/assets/pdf/Guidelines%20for%20remitting%20funds%20to%20your%20MCB%20Bank%20Roshan%20Digital%20Account.pdf",
+        "page": 1,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "NAYA": {
+      "website": "https://nayapay.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Electronic money institution, not a bank; no BIC printed."
+    },
+    "NBPA": {
+      "website": "https://nbp.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR."
+    },
+    "NBPB": {
+      "website": "https://nbp.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR."
+    },
+    "NIBP": {
+      "website": null,
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Merged into MCB Bank."
+    },
+    "NRSP": {
+      "website": "https://nrspbank.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "RQMI": {
+      "website": "https://raqamidigital.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC."
+    },
+    "SADA": {
+      "website": "https://sadapay.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Electronic money institution, not a bank; no BIC printed."
+    },
+    "SAMB": {
+      "website": "https://samba.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only the Roshan Digital Account branch code SAMBPKKARDA is printed (SBP list); the bank FAQ that printed it is gone."
+    },
+    "SAUD": {
+      "website": null,
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Merged into United Bank Limited."
+    },
+    "SBPP": {
+      "website": "https://sbp.org.pk/",
+      "websiteSbpListed": null,
+      "swift": "SBPPPKKA",
+      "swiftSource": {
+        "bicSource": "sbp",
+        "printed": "SBPPPKKA",
+        "sourceUrl": "https://archive.sbp.org.pk/dmmd/2019/C2.htm",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "SCBL": {
+      "website": "https://www.sc.com/pk/",
+      "websiteSbpListed": "standardchartered.com.pk",
+      "swift": "SCBLPKKX",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "SCBLPKKX",
+        "sourceUrl": "https://www.sc.com/pk/donation-goals/",
+        "page": null,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "SIND": {
+      "website": "https://sindhbank.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC (its IBFT page shows only the short code SND)."
+    },
+    "SMES": {
+      "website": null,
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "In liquidation."
+    },
+    "SMFB": {
+      "website": "https://sindhmfb.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "SONE": {
+      "website": "https://soneribank.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Only branch codes are printed (SONEPKKACTO, SONEPKKALHR, SONEPKKASIK); the 8-character code would be derived."
+    },
+    "SUMB": {
+      "website": "https://bankmakramah.com/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC."
+    },
+    "TAMW": {
+      "website": "https://easypaisa.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC."
+    },
+    "TMFB": {
+      "website": "https://easypaisa.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC."
+    },
+    "UMBL": {
+      "website": "https://ubank.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; its site calls the 4-letter IBAN code \"UMBL\" a SWIFT code, which it is not."
+    },
+    "UNIL": {
+      "website": "https://ubl.com.pk/",
+      "websiteSbpListed": null,
+      "swift": "UNILPKKA",
+      "swiftSource": {
+        "bicSource": "bank-site",
+        "printed": "UNILPKKA",
+        "sourceUrl": "https://www.ubldigital.com/Portals/0/Remittance/FXServices/UBLSSIs.pdf",
+        "page": 1,
+        "checkedAt": "2026-11-23"
+      },
+      "swiftReason": null
+    },
+    "WMBL": {
+      "website": "https://mobilinkbank.com/",
+      "websiteSbpListed": "waseelabank.com",
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "Microfinance bank; no BIC printed on its own domain (it may have none)."
+    },
+    "ZTBL": {
+      "website": "https://ztbl.com.pk/",
+      "websiteSbpListed": null,
+      "swift": null,
+      "swiftSource": null,
+      "swiftReason": "No page on the bank's own domain prints a BIC."
+    }
+  }
+}

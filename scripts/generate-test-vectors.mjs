@@ -337,6 +337,17 @@ each('cnic', ['validateCNIC', 'getCNICInfo'], cnics);
     call('cnic', 'findCNICs', [text]);
     call('cnic', 'maskCNICs', [text], { replacement: '[CNIC removed]' });
   }
+  // 2.8.0 (#88): acrossLines joins groups across single line breaks only.
+  for (const text of [...cases.lineBreaks, ...cases.acrossLines]) {
+    call('cnic', 'findCNICs', [text], { acrossLines: true });
+    call('cnic', 'findCNICs', [text], { acrossLines: false });
+    call('cnic', 'maskCNICs', [text], { acrossLines: true });
+    call('cnic', 'maskCNICs', [text], {
+      replacement: '[CNIC removed]',
+      acrossLines: true,
+    });
+  }
+  for (const text of cases.acrossLines) call('cnic', 'findCNICs', [text]);
 }
 
 // Phone, networks, WhatsApp ------------------------------------------------------
@@ -2988,6 +2999,44 @@ for (const value of [null, 1, 'x', [], {}]) {
   call('fbr-invoice', 'validateFbrInvoice', [value]);
 }
 
+// 2.8.0 (#91): reference lists synced from FBR's APIs, and the spec's sale types.
+call('fbr-invoice', 'getSaleTypes', []);
+{
+  const item = fbrBase.items[0];
+  const references = [
+    {},
+    { provinces: ['PUNJAB', 'SINDH'] },
+    { provinces: ['SINDH'] },
+    { provinces: [] },
+    { saleTypes: [item.saleType.toUpperCase()] },
+    { saleTypes: ['Exempt Goods'] },
+    { uoms: [` ${item.uoM} `] },
+    { uoms: ['KG'] },
+    { hsUom: { [item.hsCode]: [item.uoM] } },
+    { hsUom: { [item.hsCode]: ['KG'] } },
+    { hsUom: { 9999.9999: ['KG'] } },
+    { hsUom: { [item.hsCode]: 'not a list' } },
+    {
+      provinces: ['punjab', 'sindh'],
+      saleTypes: [item.saleType],
+      uoms: [item.uoM],
+      hsUom: { [item.hsCode]: [item.uoM] },
+    },
+    { provinces: 'PUNJAB', saleTypes: [1, 2], uoms: null },
+  ];
+  for (const reference of references) {
+    call('fbr-invoice', 'validateFbrInvoice', [fbrBase], { reference });
+    call(
+      'fbr-invoice',
+      'validateFbrInvoice',
+      [fbrWith((i) => (i.items[0].uoM = ''))],
+      { reference },
+    );
+  }
+  for (const reference of [null, 'x', 42])
+    call('fbr-invoice', 'validateFbrInvoice', [fbrBase], { reference });
+}
+
 // Urdu text: slugs, sorting, direction ----------------------------------------
 {
   const slugInputs = unique([
@@ -3299,6 +3348,205 @@ vectors.set('data-version', [
 // ---------------------------------------------------------------------------
 // Write
 // ---------------------------------------------------------------------------
+
+// Data dating (2.8.0, #90): the manifest entry of every dataset.
+{
+  const manifest = readData('manifest.json');
+  for (const entry of manifest) call('data-info', 'getDataInfo', [entry.id]);
+  for (const value of ['', 'unknown', 'BANKS', null, 42])
+    call('data-info', 'getDataInfo', [value]);
+  call('data-info', 'listDataInfo', []);
+}
+
+// Zakat (2.8.0, #93): nisab by year, label or date; deduction at source.
+{
+  const zakat = readData('zakat-nisab.json');
+  for (const year of zakat) {
+    call('zakat', 'getZakatNisab', [{ zakatYear: year.zakatYear }]);
+    call('zakat', 'getZakatNisab', [{ zakatYear: String(year.zakatYear) }]);
+    call('zakat', 'getZakatNisab', [{ zakatYear: year.label }]);
+    // Dates are assigned to Zakat years by 1 Ramazan (ramazan1).
+    const dayBefore = new RealDate(`${year.ramazan1}T00:00:00Z`);
+    dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+    const before = dayBefore.toISOString().slice(0, 10);
+    for (const date of [before, year.ramazan1, year.bankHolidayDate].filter(
+      Boolean,
+    )) {
+      call('zakat', 'getZakatNisab', [{ date: D(date) }]);
+      call('zakat', 'getZakatNisab', [{ date }]);
+    }
+    for (const balance of [
+      0,
+      year.nisab - 1,
+      year.nisab - 0.01,
+      year.nisab,
+      year.nisab + 0.01,
+      1234567.89,
+      600019.99,
+      600020,
+      1e12,
+    ]) {
+      call('zakat', 'zakatDeduction', [{ balance, zakatYear: year.zakatYear }]);
+    }
+    call('zakat', 'zakatDeduction', [
+      { balance: year.nisab * 2, zakatYear: year.zakatYear, exempt: true },
+    ]);
+    call('zakat', 'zakatDeduction', [
+      { balance: year.nisab * 3, date: year.ramazan1 },
+    ]);
+  }
+  for (const date of [
+    '2026-02-17',
+    '2026-02-18',
+    '2026-02-19',
+    '2026-02-20',
+    '2027-02-07',
+    '2011-01-01',
+    '2012-07-19',
+    '2025-06-01',
+    '2026-11-23',
+    '2027-02-06',
+    '2027-02-07',
+    '2030-01-01',
+    'not a date',
+  ])
+    call('zakat', 'getZakatNisab', [{ date }]);
+  for (const query of [
+    { zakatYear: 1432 },
+    { zakatYear: 1448 },
+    { zakatYear: '1447-48' },
+    { zakatYear: 1447.5 },
+    { zakatYear: '' },
+    {},
+    null,
+    42,
+  ])
+    call('zakat', 'getZakatNisab', [query]);
+  for (const input of [
+    { balance: -1, zakatYear: 1447 },
+    { balance: NUM('NaN'), zakatYear: 1447 },
+    { balance: 1e13, zakatYear: 1447 },
+    { balance: '600000', zakatYear: 1447 },
+    { balance: 600000 },
+    { balance: 600000, zakatYear: 1447, exempt: 'yes' },
+    { balance: 600000.005, zakatYear: 1447 },
+    null,
+  ])
+    call('zakat', 'zakatDeduction', [input]);
+  call('zakat', 'getZakatYears', []);
+}
+
+// Census 2023 population (2.8.0, #95): every district and tehsil.
+{
+  for (const { district } of districts) {
+    call('population', 'getDistrictPopulation', [district]);
+  }
+  for (const value of ['lahore', '  LAHORE  ', 'Nowhere', '', null, 42])
+    call('population', 'getDistrictPopulation', [value]);
+  const tehsilPop = readData('tehsil-population.json');
+  for (const t of tehsilPop) {
+    call('population', 'getTehsilPopulation', [t.tehsil]);
+    call('population', 'getTehsilPopulation', [t.tehsil, t.inCensusDistrict]);
+    call('population', 'getTehsilPopulation', [t.tehsil, t.currentDistrict]);
+  }
+  for (const args of [['nowhere'], ['Murree', 'Lahore'], [null], [42, 'x']])
+    call('population', 'getTehsilPopulation', args);
+}
+
+// Withholding tax (2.8.0, #92): every case of every year, ATL and not, at
+// slab and threshold edges.
+{
+  const wht = readData('withholding-rates.json');
+  const amounts = [
+    0, 1, 0.01, 0.5, 49999, 49999.99, 50000, 50000.01, 50001, 80000, 123456.78,
+    999999.99, 1000000, 1000000.01, 49999999.99, 50000000, 50000000.01,
+    100000000, 100000000.01, 250000000,
+  ];
+  for (const row of wht) {
+    for (const atl of [true, false]) {
+      for (const amount of amounts) {
+        call('withholding', 'calculateWithholding', [
+          {
+            section: row.section,
+            subType: row.subType,
+            amount,
+            atl,
+            taxYear: row.taxYear,
+          },
+        ]);
+      }
+      call('withholding', 'calculateWithholding', [
+        {
+          section: row.section,
+          subType: row.subType,
+          amount: 75000000,
+          atl,
+          lateFiler: true,
+          taxYear: row.taxYear,
+        },
+      ]);
+    }
+    call('withholding', 'calculateWithholding', [
+      {
+        section: row.section,
+        subType: row.subType,
+        amount: 1000,
+        atl: true,
+        date: row.from,
+      },
+    ]);
+  }
+  // Sukuk cases checked against the return on investment (exactly Rs 1m
+  // fits neither), and 154B's tax nature by residency.
+  for (const subType of [
+    'sukuk-individual-above-1m',
+    'sukuk-individual-below-1m',
+  ])
+    for (const returnOnInvestment of [
+      999999.99,
+      1000000,
+      1000000.01,
+      5000000,
+      -1,
+      NUM('NaN'),
+    ])
+      for (const taxYear of [2025, 2027])
+        call('withholding', 'calculateWithholding', [
+          {
+            section: '151',
+            subType,
+            amount: 25000,
+            atl: true,
+            taxYear,
+            returnOnInvestment,
+          },
+        ]);
+  for (const resident of [true, false, 'yes', undefined])
+    call('withholding', 'calculateWithholding', [
+      { section: '154B', amount: 100000, atl: false, taxYear: 2027, resident },
+    ]);
+  for (const year of [2024, 2025, 2026, 2027, 2028]) {
+    call('withholding', 'getWithholdingRates', [year]);
+    for (const section of ['153', '236K', '154b', 'x'])
+      call('withholding', 'getWithholdingRates', [year, section]);
+  }
+  for (const input of [
+    { section: '236k', amount: 6e7, atl: false, taxYear: 2027 },
+    { section: ' 231AB ', amount: 80000, atl: false, taxYear: 2027 },
+    { section: '151', amount: 1000, atl: true, taxYear: 2027 },
+    { section: '151', subType: 'nope', amount: 1000, atl: true, taxYear: 2027 },
+    { section: '236K', amount: 6e7, atl: 'no', taxYear: 2027 },
+    { section: '236K', amount: -1, atl: true, taxYear: 2027 },
+    { section: '236K', amount: NUM('NaN'), atl: true, taxYear: 2027 },
+    { section: '236K', amount: 6e7, atl: true, taxYear: 2027.5 },
+    { section: '236K', amount: 6e7, atl: true },
+    { section: '236K', amount: 6e7, atl: true, date: 'not a date' },
+    { section: '236K', amount: 6e7, atl: true, date: D('2026-07-01') },
+    { section: 236, amount: 6e7, atl: true, taxYear: 2027 },
+    null,
+  ])
+    call('withholding', 'calculateWithholding', [input]);
+}
 
 const outDir = join(root, 'test-vectors');
 mkdirSync(outDir, { recursive: true });

@@ -6,7 +6,7 @@ description: Build FBR Digital Invoicing JSON with the sales tax worked out, and
 import LangTabs from '../../../components/LangTabs.astro';
 import FbrInvoiceWidget from '../../../components/widgets/FbrInvoiceWidget.tsx';
 
-`import { buildFbrInvoice, validateFbrInvoice, expectedSalesTax, FBR_DI_SPEC_VERSION } from 'pakdatakit/fbr-invoice'`
+`import { buildFbrInvoice, validateFbrInvoice, expectedSalesTax, getSaleTypes, FBR_DI_SPEC_VERSION } from 'pakdatakit/fbr-invoice'`
 
 Types for the invoice JSON that is posted to PRAL's Digital Invoicing (DI) gateway, a builder that works out the sales tax on each line, and an offline validator that returns every problem with FBR's error code. It follows PRAL's "Technical Specification for DI API", version 1.12 (last updated 24 July 2025), and PRAL's "Error Message Guide (Sales)".
 
@@ -46,7 +46,16 @@ interface FbrInvoiceBuild {
 ```ts
 function validateFbrInvoice(
   invoice: FbrInvoice,
-  options?: { today?: string }, // YYYY-MM-DD
+  options?: {
+    today?: string; // YYYY-MM-DD
+    reference?: {
+      // lists your app syncs from FBR's reference APIs
+      provinces?: string[];
+      saleTypes?: string[];
+      uoms?: string[];
+      hsUom?: Record<string, string[]>; // HS code -> allowed units
+    };
+  },
 ): FbrInvoiceValidation;
 
 interface FbrInvoiceValidation {
@@ -67,9 +76,19 @@ interface FbrInvoiceError {
 
 **Caveats.** Checked: invoice type (0003, 0011), date format (0005, 0042, 0113) and, with `today`, a future date (0043); seller and buyer NTN/CNIC (0401, 0402, 0009), self-invoicing (0058), names, provinces (0073, 0074), addresses, buyer registration type (0012), the reference number of a debit note (0026), the sandbox scenario, and on each line: HS code (0044), rate (0020), unit, sale type (0013), required and valid amounts (0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial (0077, 0078), Third Schedule retail price (0090), extra tax on reduced-rate goods (0091) and the sales tax arithmetic (0102, 0104, 0105, to within one paisa).
 
-Not checked, because they need FBR's data: registration status, whether a province, HS code, unit, rate, sale type or SRO is in FBR's lists or fits the others, and the original invoice of a debit note. The specification has no string length limits, so none are checked. An NTN is 7 digits and a CNIC 13.
+Not checked unless you pass `options.reference`: whether a province (0073, 0074), sale type (0013), unit (0099) or HS code and unit pair (0099) is in FBR's lists. Pass the lists your app syncs with its token from PRAL's reference APIs (`/pdi/v1/provinces`, `/pdi/v1/uom`, `/pdi/v2/HS_UOM` …). FBR's APIs are authoritative, and this library ships no copy of them: FBR publishes no other HS code-to-unit list for sales tax. Never checked: registration status, rates and SROs, and the original invoice of a debit note. The specification has no string length limits, so none are checked. An NTN is 7 digits and a CNIC 13.
 
 **Related:** the [FBR invoice playground](/playground/fbr-invoice/), [`buildFbrInvoice()`](#buildfbrinvoice).
+
+### getSaleTypes()
+
+```ts
+function getSaleTypes(): { saleType: string; scenarioIds: string[] }[];
+```
+
+**Returns** the 24 sale types named in the specification's sandbox scenarios (v1.12, section 9), with the scenarios that use each: handy for forms and tests.
+
+**Caveats.** FBR's full, current list comes from its reference API. `validateFbrInvoice()` does not reject a sale type that is missing from this list.
 
 ### expectedSalesTax()
 

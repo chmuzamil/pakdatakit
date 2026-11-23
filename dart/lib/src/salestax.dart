@@ -1,4 +1,5 @@
 import 'data/sales_tax_rates.g.dart';
+import 'data_info.dart';
 import 'internal/date.dart';
 import 'internal/money.dart';
 import 'internal/normalize.dart';
@@ -100,6 +101,7 @@ class SalesTaxAmounts {
     required this.tax,
     required this.gross,
     required this.rate,
+    this.source,
   });
 
   /// Value excluding tax, in rupees (2 decimals at most).
@@ -114,12 +116,20 @@ class SalesTaxAmounts {
   /// Percent used.
   final double rate;
 
-  /// JSON form, with the same keys as the npm package.
+  /// The rate's period, law and official source (dataset
+  /// `sales-tax-rates`), when [calculateSalesTax] looked the rate up from a
+  /// province or kind. `null` when you passed the rate yourself, and from
+  /// [splitInclusive].
+  final DataSource? source;
+
+  /// JSON form, with the same keys as the npm package. `source` is left
+  /// out when it is `null`.
   Map<String, Object?> toJson() => {
         'net': net,
         'tax': tax,
         'gross': gross,
         'rate': rate,
+        if (source != null) 'source': source!.toJson(),
       };
 
   @override
@@ -128,10 +138,11 @@ class SalesTaxAmounts {
       other.net == net &&
       other.tax == tax &&
       other.gross == gross &&
-      other.rate == rate;
+      other.rate == rate &&
+      other.source == source;
 
   @override
-  int get hashCode => Object.hash(net, tax, gross, rate);
+  int get hashCode => Object.hash(net, tax, gross, rate, source);
 
   @override
   String toString() => 'SalesTaxAmounts${toJson()}';
@@ -274,6 +285,8 @@ SalesTaxAmounts? splitInclusive(num gross, num rate) {
 /// (and [kind], default [SalesTaxKind.services] when a province is given,
 /// and [date]) to use the standard rate from [getSalesTaxRate]. [rate] takes
 /// precedence over [province]. The tax is rounded half up to the paisa.
+/// When the rate was looked up, [SalesTaxAmounts.source] names its period,
+/// law and official source.
 ///
 /// Returns `null` if the amount, rate or province is invalid or no rate
 /// applies. Never throws.
@@ -282,6 +295,8 @@ SalesTaxAmounts? splitInclusive(num gross, num rate) {
 /// calculateSalesTax(1000, rate: 18);
 /// // SalesTaxAmounts{net: 1000.0, tax: 180.0, gross: 1180.0, rate: 18.0}
 /// calculateSalesTax(1000, province: 'Punjab', date: '2026-11-18')?.tax; // 160
+/// calculateSalesTax(1000, province: 'Punjab', date: '2026-11-18')
+///     ?.source?.effectiveFrom; // '2019-07-01'
 /// calculateSalesTax(1150,
 ///     province: 'Sindh', date: '2026-11-18', inclusive: true)?.net; // 1000
 /// ```
@@ -294,6 +309,7 @@ SalesTaxAmounts? calculateSalesTax(
   bool inclusive = false,
 }) {
   num percent;
+  DataSource? source;
   if (rate != null) {
     percent = rate;
   } else {
@@ -303,15 +319,33 @@ SalesTaxAmounts? calculateSalesTax(
         getSalesTaxRate(kind: resolved, province: province, date: date);
     if (found == null) return null;
     percent = found.rate;
+    source = DataSource(
+      id: 'sales-tax-rates',
+      effectiveFrom: found.from,
+      effectiveTo: found.to,
+      sourceReference: found.law,
+      sourceUrl: found.source,
+    );
   }
-  if (inclusive) return splitInclusive(amount, percent);
-
-  final netPaisa = toUnits(amount, 2);
-  final bp = _basisPoints(percent);
-  if (netPaisa == null || bp == null) return null;
-  final taxPaisa = divideHalfUp(
-    BigInt.from(netPaisa) * BigInt.from(bp),
-    BigInt.from(10000),
+  final SalesTaxAmounts? result;
+  if (inclusive) {
+    result = splitInclusive(amount, percent);
+  } else {
+    final netPaisa = toUnits(amount, 2);
+    final bp = _basisPoints(percent);
+    if (netPaisa == null || bp == null) return null;
+    final taxPaisa = divideHalfUp(
+      BigInt.from(netPaisa) * BigInt.from(bp),
+      BigInt.from(10000),
+    );
+    result = _amounts(netPaisa, taxPaisa, bp);
+  }
+  if (result == null || source == null) return result;
+  return SalesTaxAmounts(
+    net: result.net,
+    tax: result.tax,
+    gross: result.gross,
+    rate: result.rate,
+    source: source,
   );
-  return _amounts(netPaisa, taxPaisa, bp);
 }

@@ -60,7 +60,10 @@ interface CNICInfo {
 ### findCNICs()
 
 ```ts
-function findCNICs(text: string): CNICMatch[];
+function findCNICs(
+  text: string,
+  options?: { acrossLines?: boolean }, // default false
+): CNICMatch[];
 
 interface CNICMatch {
   raw: string; // as written, e.g. '35202 1234567-1'
@@ -73,7 +76,7 @@ interface CNICMatch {
 
 **Parameters.** `text`: any text, such as a chat message, a note or an uploaded document.
 
-**Returns** every CNIC in the text, in order, or `[]`. Digits are read in groups (unbroken runs of digits). Groups may be joined by any run of spaces or tabs, or by one mark (a hyphen or dash, a dot, a slash or an underscore) with any spaces around it: `35202 1234567 1`, `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`, `35202/1234567/1`. A line break never joins groups. A match is consecutive whole groups that add up to exactly 13 digits, starting with a province code (1-8); the search goes on after each match, so `0300-1234567 35202-1234567-1` finds the CNIC. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. It never throws.
+**Returns** every CNIC in the text, in order, or `[]`. Digits are read in groups (unbroken runs of digits). Groups may be joined by any run of spaces or tabs, or by one mark (a hyphen or dash, a dot, a slash or an underscore) with any spaces around it: `35202 1234567 1`, `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`, `35202/1234567/1`. A line break never joins groups, unless `acrossLines: true`: then a single line break, with any spaces around it, joins them like a space (`35202\n1234567\n1`); a blank line never does. A match is consecutive whole groups that add up to exactly 13 digits, starting with a province code (1-8); the search goes on after each match, so `0300-1234567 35202-1234567-1` finds the CNIC. Digits may be ASCII, Urdu or Arabic-Indic, even mixed. It never throws.
 
 **Caveats.**
 
@@ -91,10 +94,11 @@ function maskCNICs(
   options?: {
     mask?: string; // replaces each digit; default 'X'
     replacement?: string; // replaces each whole CNIC instead
+    acrossLines?: boolean; // also join groups across single line breaks
   },
 ): { text: string; count: number };
 ```
 
 **Returns** the text with each digit of every CNIC found by [`findCNICs()`](#findcnics) replaced by `mask`, keeping the separators (`35202-1234567-1` becomes `XXXXX-XXXXXXX-X`), and how many CNICs were masked. With `replacement`, each whole CNIC, separators included, becomes that text instead (`{ replacement: '[CNIC removed]' }`); it takes precedence over `mask`. It never throws.
 
-**Caveats.** Like `findCNICs()`, it also masks any other 13 digits that start with 1-8, however they are grouped.
+**Caveats.** Like `findCNICs()`, it also masks any other 13 digits that start with 1-8, however they are grouped. With `acrossLines`, it can also join numbers on consecutive lines, such as a list of amounts. Line breaks inside a match stay with `mask` and are replaced with `replacement`.

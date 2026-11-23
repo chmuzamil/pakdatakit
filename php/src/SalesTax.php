@@ -121,6 +121,15 @@ final class SalesTax
      * - `province` (string), `kind` (string), `date` (string|DateTimeInterface): as for getRate()
      * - `inclusive` (bool): true if `$amount` already includes the tax
      *
+     * When the rate was looked up, the result's `source` gives that rate's
+     * period, law and official document; with your own `rate` it is null.
+     *
+     * ```php
+     * SalesTax::calculate(1000, ['province' => 'Punjab', 'date' => '2026-11-18']);
+     * // net 1000, tax 160, gross 1160, rate 16,
+     * // source DataSource(id: 'sales-tax-rates', effectiveFrom: '2019-07-01', …)
+     * ```
+     *
      * @param mixed $amount Rupees (int|float), 0 to one trillion
      * @param array{rate?: mixed, province?: mixed, kind?: mixed, date?: mixed, inclusive?: mixed}|null $options
      * @return SalesTaxAmounts|null Null if the amount, rate or province is
@@ -131,6 +140,7 @@ final class SalesTax
         if ($options === null) {
             return null;
         }
+        $source = null;
         if (isset($options['rate'])) {
             $rate = $options['rate'];
         } else {
@@ -150,18 +160,27 @@ final class SalesTax
                 return null;
             }
             $rate = $found->rate;
+            $source = new DataSource(
+                id: 'sales-tax-rates',
+                effectiveFrom: $found->from,
+                effectiveTo: $found->to,
+                sourceReference: $found->law,
+                sourceUrl: $found->source,
+            );
         }
         if (($options['inclusive'] ?? null) === true) {
-            return self::splitInclusive($amount, $rate);
+            $result = self::splitInclusive($amount, $rate);
+        } else {
+            $netPaisa = Money::toUnits($amount, 2);
+            $bp = self::basisPoints($rate);
+            if ($netPaisa === null || $bp === null) {
+                return null;
+            }
+            $result = self::amounts($netPaisa, Money::divideHalfUp($netPaisa * $bp, 10_000), $bp);
         }
-
-        $netPaisa = Money::toUnits($amount, 2);
-        $bp = self::basisPoints($rate);
-        if ($netPaisa === null || $bp === null) {
-            return null;
-        }
-        $taxPaisa = Money::divideHalfUp($netPaisa * $bp, 10_000);
-        return self::amounts($netPaisa, $taxPaisa, $bp);
+        return $result === null || $source === null
+            ? $result
+            : new SalesTaxAmounts($result->net, $result->tax, $result->gross, $result->rate, $source);
     }
 
     /**

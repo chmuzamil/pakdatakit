@@ -1,5 +1,45 @@
 # Changelog
 
+## 2.8.0
+
+Feature release: dated sources for every dataset, withholding tax for filers
+and non-filers, Zakat deduction at source, Census 2023 population, FBR
+Digital Invoicing reference lists, and CNICs written across lines. Every port
+gives the same results on the shared test vectors.
+
+### Added
+
+- **Dated sources (#90).** `data/manifest.json` records each dataset's
+  issuer, official source and reference, issue and retrieval dates, the
+  period it applies to, record count and next expected update.
+  `getDataInfo(id)` and `listDataInfo()` return it, and results calculated
+  from dated data carry a `source` (`calculateSalaryTax`,
+  `calculateSalesTax` when the rate is looked up, and the new functions
+  below). CI checks the manifest against the data, including that dated
+  series have no gaps or overlaps, and a weekly job opens an issue when a
+  dataset passes its expected update. DATA.md and the site's /data page
+  are generated from the manifest.
+- **Withholding tax, ATL and non-ATL (#92).** `calculateWithholding()` and
+  `getWithholdingRates()` for sections 149, 150, 151, 153, 154B, 231AB, 236C
+  and 236K, tax years 2025 to 2027, from FBR's rate cards checked against the
+  Income Tax Ordinance. Each case keeps its own non-ATL rule (double, a
+  fixed rate, its own value bands, or none), late-filer bands where they
+  existed, and the 231AB threshold of Rs 50,000 a day.
+- **Zakat (#93).** `getZakatNisab()`, `getZakatYears()` and
+  `zakatDeduction()`: the nisab for deduction at source, Zakat years 1433 to
+  1447 AH, each from its Ministry notification and SBP circular.
+- **Population (#95).** `getDistrictPopulation()` and
+  `getTehsilPopulation()` from the 2023 census (PBS). Districts created
+  after the census have `null` figures; nothing is estimated.
+- **FBR Digital Invoicing reference lists (#91).**
+  `validateFbrInvoice(invoice, { reference })` checks provinces, sale types,
+  units and HS code/unit pairs against the lists an app syncs from FBR's
+  reference APIs, which are authoritative. `getSaleTypes()` lists the sale
+  types named in PRAL's specification v1.12.
+- **CNICs across lines (#88).** `findCNICs()` and `maskCNICs()` take
+  `{ acrossLines: true }`: a single line break joins digit groups like a
+  space; a blank line never does.
+
 ## 2.7.2
 
 Patch release: `findCNICs()` and `maskCNICs()` now mask everything Jaanch's

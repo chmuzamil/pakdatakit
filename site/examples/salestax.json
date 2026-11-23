@@ -36,7 +36,14 @@
         "net": 1000,
         "tax": 180,
         "gross": 1180,
-        "rate": 18
+        "rate": 18,
+        "source": {
+          "id": "sales-tax-rates",
+          "effectiveFrom": "2023-02-23",
+          "effectiveTo": null,
+          "sourceReference": "Sales Tax Act 1990, s. 3(1), as amended by the Finance (Supplementary) Act 2023",
+          "sourceUrl": "https://download1.fbr.gov.pk/Docs/20267171373418951SalesTaxAct1990updatedupto30.06.2026.pdf"
+        }
       }
     },
     {
@@ -54,7 +61,14 @@
         "net": 1000,
         "tax": 150,
         "gross": 1150,
-        "rate": 15
+        "rate": 15,
+        "source": {
+          "id": "sales-tax-rates",
+          "effectiveFrom": "2024-07-01",
+          "effectiveTo": null,
+          "sourceReference": "Sindh Sales Tax on Services Act 2011, s. 8(1), as amended by the Sindh Finance Acts 2024 and 2025",
+          "sourceUrl": "https://www.srb.gos.pk/srb/wp-content/uploads/2026/01/Sindh-Sales-Tax-Act-2011-25-26-2.pdf"
+        }
       }
     },
     {

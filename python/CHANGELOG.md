@@ -1,5 +1,55 @@
 # Changelog
 
+## 2.8.0
+
+Minor release: dated sources for every dataset, withholding tax, Zakat
+deduction at source, Census 2023 population, FBR reference lists and CNICs
+written across lines. Every port gives the same results on the shared test
+vectors.
+
+### Added
+
+- **Dated sources.** `get_data_info(id)` and `list_data_info()` return each
+  dataset's `DataInfo` (issuer, official source and reference, dates, coverage,
+  record count, next expected update, and `checked_at`, when the data was
+  last checked against the source). `calculate_salary_tax()` and
+  `calculate_monthly_salary_tax()` results, and `calculate_sales_tax()` results
+  when the rate is looked up, carry a `source` (`DataSource`).
+- **Withholding tax, ATL and non-ATL.** `calculate_withholding()` returns a
+  `Withholding`; `get_withholding_rates(tax_year, section=None)` returns
+  `WithholdingRate` objects. Sections 149, 150, 151, 153, 154B, 231AB, 236C
+  and 236K, tax years 2025 to 2027. `tax` is in whole rupees (section 219),
+  computed exactly and rounded once, 149 included. `return_on_investment`
+  picks the 151 sukuk case for an individual or AOP (more or less than Rs 1
+  million; exactly Rs 1 million gives `None`), and `resident` gives 154B's
+  `tax_nature` (`"minimum"` or `"final"`). 150 has the company case
+  `mutual-fund-debt-part-company`. `WithholdingRate.circular`
+  (`WithholdingCircular`) cites FBR's circular where one explains the rate.
+- **Banks.** `BankInfo` adds `status` (`active`, `merged` or `liquidated`),
+  the official `website` (and `website_sbp_listed` where SBP lists an older
+  domain), and `swift` with `swift_source` (`BankSwiftSource`): the SWIFT/BIC
+  code only where SBP or the bank's own website prints it, otherwise
+  `swift_reason` says why it is `None`.
+- **Zakat.** `get_zakat_nisab(zakat_year=... | date=...)`, `get_zakat_years()`
+  and `zakat_deduction(balance=..., zakat_year=... | date=..., exempt=False)`:
+  the nisab for deduction at source, Zakat years 1433 to 1447 AH. `zakat` is
+  in whole rupees (First Schedule, Note 2). Each year gives `ramazan1`, the
+  valuation date as the Central Ruet-e-Hilal Committee announced it, with its
+  `ramazan1_source` (`ZakatRamazan1Source`), the deduction day
+  (`bank_holiday_date`) and a `note`; a date belongs to the last year whose
+  1 Ramazan is on or before it.
+- **Population.** `get_district_population(district)` and
+  `get_tehsil_population(tehsil, district=None)` from the 2023 census, with
+  `census_district`.
+- **FBR reference lists.** `validate_fbr_invoice(invoice, reference=...)`
+  checks provinces (0073, 0074), sale types (0013), units (0099) and HS
+  code/unit pairs against the lists an app syncs from FBR's APIs
+  (`FbrInvoiceReference`). `get_sale_types()` lists the sale types in PRAL's
+  specification v1.12 (`FbrSaleType`).
+- **CNICs across lines.** `find_cnics()` and `mask_cnics()` take
+  `across_lines=True`: a single line break (`\r\n`, `\r` or `\n`) with any
+  spaces around it joins digit groups like a space; a blank line never does.
+
 ## 2.7.2
 
 Patch release. Every port gives the same results on the shared test

@@ -30,6 +30,9 @@ jobs:
       # PyPI, pub.dev, NuGet and Packagist manifests (scripts/check-metadata.mjs).
       - run: npm run check:metadata
 
+      - name: Data manifest and DATA.md
+        run: npm run check:manifest
+
       - run: npm run lint
 
       - run: npm run typecheck

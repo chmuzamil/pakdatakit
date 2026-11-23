@@ -38,10 +38,11 @@ interface SalaryTax {
   effectiveRate: number; // percent of total
   slab: { over: number; upTo: number | null; fixed: number; rate: number };
   taxYear: number;
+  source: DataSource; // the year's table: dates, law and official document
 }
 ```
 
-**Returns** the tax on an annual taxable salary. Without `taxYear` or `date`, the current tax year is used; a year that is not covered returns `null`.
+**Returns** the tax on an annual taxable salary, with the `source` of the rate table used ([data sources in code](/docs/data-info/)). Without `taxYear` or `date`, the current tax year is used; a year that is not covered returns `null`.
 
 **Caveats.**
 

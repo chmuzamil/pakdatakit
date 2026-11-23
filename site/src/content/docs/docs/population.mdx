@@ -1,0 +1,47 @@
+---
+title: District and tehsil population
+description: Population, households and the urban/rural split for every district and tehsil from Pakistan's 2023 census (PBS), linked to today's districts, with no estimates for districts created later.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+
+`import { getDistrictPopulation, getTehsilPopulation } from 'pakdatakit/population'`
+
+Figures from the Pakistan Bureau of Statistics' 7th Population and Housing Census 2023: Table 1 for population, urban and rural, and Table 20 for households. They add up to PBS's own provincial totals.
+
+## Examples
+
+<LangTabs module="population" />
+
+## Reference
+
+### getDistrictPopulation()
+
+```ts
+function getDistrictPopulation(district: string): DistrictPopulation | null;
+// { district, province, population, households, urban, rural, census: 2023,
+//   censusDistrict, boundaryChanged, note, source }
+```
+
+**Returns** the census figures for any of the 177 districts.
+
+**Caveats.**
+
+- **Districts created after the census** have `null` figures and name the census district their area came from. Nothing is estimated.
+- **Districts that lost area** keep their census-boundary figures, with `boundaryChanged: true`.
+- **Gilgit-Baltistan and Azad Jammu and Kashmir** were not enumerated, so their figures are `null`.
+
+### getTehsilPopulation()
+
+```ts
+function getTehsilPopulation(
+  tehsil: string,
+  district?: string,
+): TehsilPopulation | null;
+```
+
+**Returns** the figures for one of the census's 591 tehsils, talukas and sub-divisions. A few names occur in two districts; pass the district to choose.
+
+**Related:** [districts and tehsils](/docs/geo/), [sources](/data/#population-district-populationjson-tehsil-populationjson).
+
+**API:** [TypeScript](/api/typescript/population/) and the other languages from the [API reference list](/docs/#api-reference).

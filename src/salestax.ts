@@ -1,4 +1,5 @@
 import ratesData from '../data/sales-tax-rates.json';
+import type { DataSource } from './data-info.js';
 import { divideHalfUp, fromPaisa, toUnits } from './internal/money.js';
 import { isoDate } from './internal/date.js';
 import { normalizeKey } from './internal/normalize.js';
@@ -48,6 +49,11 @@ export interface SalesTaxAmounts {
   gross: number;
   /** Percent used. */
   rate: number;
+  /**
+   * The rate's period, law and official source, when the rate was looked up
+   * from a province or kind. Absent when you passed the `rate` yourself.
+   */
+  source?: DataSource;
 }
 
 /** Options for {@link calculateSalesTax}: a `rate`, or a `province`/`kind` to look one up. */
@@ -207,7 +213,9 @@ export function splitInclusive(
  *
  * @example
  * calculateSalesTax(1000, { rate: 18 }); // { net: 1000, tax: 180, gross: 1180, rate: 18 }
- * calculateSalesTax(1000, { province: 'Punjab', date: '2026-11-18' }); // { net: 1000, tax: 160, gross: 1160, rate: 16 }
+ * calculateSalesTax(1000, { province: 'Punjab', date: '2026-11-18' });
+ * // { net: 1000, tax: 160, gross: 1160, rate: 16,
+ * //   source: { id: 'sales-tax-rates', effectiveFrom: '2019-07-01', … } }
  * calculateSalesTax(1150, { province: 'Sindh', date: '2026-11-18', inclusive: true }); // { net: 1000, tax: 150, gross: 1150, rate: 15 }
  */
 export function calculateSalesTax(
@@ -216,6 +224,7 @@ export function calculateSalesTax(
 ): SalesTaxAmounts | null {
   if (options === null || typeof options !== 'object') return null;
   let rate: number;
+  let source: DataSource | undefined;
   if (options.rate !== undefined && options.rate !== null) {
     rate = options.rate;
   } else {
@@ -229,12 +238,23 @@ export function calculateSalesTax(
     });
     if (found === null) return null;
     rate = found.rate;
+    source = {
+      id: 'sales-tax-rates',
+      effectiveFrom: found.from,
+      effectiveTo: found.to,
+      sourceReference: found.law,
+      sourceUrl: found.source,
+    };
   }
-  if (options.inclusive === true) return splitInclusive(amount, rate);
-
-  const netPaisa = toUnits(amount, 2);
-  const bp = basisPoints(rate);
-  if (netPaisa === null || bp === null) return null;
-  const taxPaisa = divideHalfUp(BigInt(netPaisa) * BigInt(bp), 10000n);
-  return amounts(netPaisa, taxPaisa, bp);
+  let result: SalesTaxAmounts | null;
+  if (options.inclusive === true) {
+    result = splitInclusive(amount, rate);
+  } else {
+    const netPaisa = toUnits(amount, 2);
+    const bp = basisPoints(rate);
+    if (netPaisa === null || bp === null) return null;
+    const taxPaisa = divideHalfUp(BigInt(netPaisa) * BigInt(bp), 10000n);
+    result = amounts(netPaisa, taxPaisa, bp);
+  }
+  return result && source ? { ...result, source } : result;
 }

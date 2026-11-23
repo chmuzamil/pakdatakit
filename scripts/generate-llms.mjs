@@ -130,6 +130,26 @@ const MODULES = [
     'FBR Digital Invoicing: build an invoice and validate it offline with FBR error codes (buildFbrInvoice, validateFbrInvoice, expectedSalesTax)',
   ],
   [
+    'withholding',
+    'withholding',
+    'Withholding tax for persons on and not on the Active Taxpayers List, sections 149, 150, 151, 153, 154B, 231AB, 236C and 236K, tax years 2025-2027, from FBR rate cards checked against the Ordinance (calculateWithholding, getWithholdingRates)',
+  ],
+  [
+    'zakat',
+    'zakat',
+    'Zakat nisab for deduction at source from savings accounts, Zakat years 1433-1447 AH, from Ministry notifications and SBP circulars; the deduction on a balance (getZakatNisab, zakatDeduction, getZakatYears)',
+  ],
+  [
+    'population',
+    'population',
+    'Census 2023 (PBS) population, households and urban/rural split by district and tehsil; null for districts created later (getDistrictPopulation, getTehsilPopulation)',
+  ],
+  [
+    'data-info',
+    'data-info',
+    'For each bundled dataset: issuer, official source, issue and retrieval dates, period, record count and next expected update (getDataInfo, listDataInfo)',
+  ],
+  [
     'bills',
     'bills',
     'Electricity bill references and gas consumer numbers (parseElectricityRef, validateElectricityRef, validateGasConsumerNumber)',
@@ -224,7 +244,7 @@ function siteGuides() {
     .join('\n');
   return `### Module guides (examples in TypeScript, Python, Dart, C# and PHP)
 
-${section('docs', ['cnic', 'passport', 'vehicle', 'tax', 'phone', 'networks', 'numbers', 'whatsapp', 'iban', 'raast', 'bills', 'words', 'format', 'amount', 'salestax', 'incometax', 'fbr-invoice', 'postal', 'geo', 'address', 'quality', 'courier', 'text', 'hijri', 'holidays', 'input', 'forms'])}
+${section('docs', ['cnic', 'passport', 'vehicle', 'tax', 'phone', 'networks', 'numbers', 'whatsapp', 'iban', 'raast', 'bills', 'words', 'format', 'amount', 'salestax', 'incometax', 'fbr-invoice', 'withholding', 'zakat', 'postal', 'geo', 'address', 'population', 'quality', 'courier', 'text', 'hijri', 'holidays', 'input', 'forms', 'data-info'])}
 
 ### Use cases (end-to-end walkthroughs)
 

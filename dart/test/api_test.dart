@@ -223,8 +223,24 @@ void main() {
           date: '2026-11-18',
           inclusive: true,
         ),
-        const SalesTaxAmounts(net: 1000, tax: 150, gross: 1150, rate: 15),
+        const SalesTaxAmounts(
+          net: 1000,
+          tax: 150,
+          gross: 1150,
+          rate: 15,
+          source: DataSource(
+            id: 'sales-tax-rates',
+            effectiveFrom: '2024-07-01',
+            effectiveTo: null,
+            sourceReference: 'Sindh Sales Tax on Services Act 2011, s. 8(1), '
+                'as amended by the Sindh Finance Acts 2024 and 2025',
+            sourceUrl: 'https://www.srb.gos.pk/srb/wp-content/uploads/2026/01/'
+                'Sindh-Sales-Tax-Act-2011-25-26-2.pdf',
+          ),
+        ),
       );
+      // A rate you pass yourself has no source.
+      expect(calculateSalesTax(1000, rate: 18)?.source, isNull);
       expect(
         splitInclusive(99.99, 18),
         const SalesTaxAmounts(net: 84.74, tax: 15.25, gross: 99.99, rate: 18),
@@ -391,6 +407,17 @@ void main() {
           slab: SalaryTaxSlab(
               over: 1200000, upTo: 2200000, fixed: 6000, rate: 11),
           taxYear: 2026,
+          source: DataSource(
+            id: 'income-tax-slabs',
+            effectiveFrom: '2025-07-01',
+            effectiveTo: '2026-06-30',
+            sourceReference: 'Income Tax Ordinance 2001, First Schedule, '
+                'Part I, Division I, clause (2), as substituted by the '
+                'Finance Act 2025',
+            sourceUrl: 'https://download1.fbr.gov.pk/Docs/'
+                '2025881983148210Income-Tax-Ordinance,-2001-Amended-upto-'
+                '31.07.2025.pdf',
+          ),
         ),
       );
       expect(calculateSalaryTax(1800000, taxYear: 2025)?.tax, 120000);

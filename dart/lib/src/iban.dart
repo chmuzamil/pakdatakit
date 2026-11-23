@@ -1,4 +1,4 @@
-import 'internal/data.dart';
+import 'data/banks.g.dart';
 import 'internal/js.dart';
 import 'internal/normalize.dart';
 
@@ -48,7 +48,107 @@ enum BankType {
       BankType.values.firstWhere((type) => type.value == value);
 }
 
+/// Whether a bank still exists. See [BankInfo.status].
+enum BankStatus {
+  /// Operating.
+  active('active'),
+
+  /// Merged into another bank (see [BankInfo.mergedInto]).
+  merged('merged'),
+
+  /// Liquidated.
+  liquidated('liquidated');
+
+  const BankStatus(this.value);
+
+  /// The value used by the npm package.
+  final String value;
+
+  /// Returns [value].
+  String toJson() => value;
+
+  /// The status whose [value] is [value].
+  static BankStatus fromValue(String value) =>
+      BankStatus.values.firstWhere((status) => status.value == value);
+}
+
+/// Where a bank's SWIFT/BIC code is printed. See [BankInfo.swiftSource].
+enum BankBicSource {
+  /// The State Bank of Pakistan.
+  sbp('sbp'),
+
+  /// The institution's own website (its own domain).
+  bankSite('bank-site');
+
+  const BankBicSource(this.value);
+
+  /// The value used by the npm package.
+  final String value;
+
+  /// Returns [value].
+  String toJson() => value;
+
+  /// The source whose [value] is [value].
+  static BankBicSource fromValue(String value) =>
+      BankBicSource.values.firstWhere((source) => source.value == value);
+}
+
+/// Where a bank's SWIFT/BIC code is printed, and when it was checked.
+class BankSwiftSource {
+  /// Creates a SWIFT source value.
+  const BankSwiftSource({
+    required this.bicSource,
+    required this.printed,
+    required this.sourceUrl,
+    this.page,
+    required this.checkedAt,
+  });
+
+  /// SBP or the institution's own website.
+  final BankBicSource bicSource;
+
+  /// The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`.
+  final String printed;
+
+  /// The document or page that prints it.
+  final String sourceUrl;
+
+  /// The PDF page, or `null` for a web page.
+  final int? page;
+
+  /// When the source was checked (`YYYY-MM-DD`).
+  final String checkedAt;
+
+  /// JSON form, with the same keys as the npm package.
+  Map<String, Object?> toJson() => {
+        'bicSource': bicSource.value,
+        'printed': printed,
+        'sourceUrl': sourceUrl,
+        'page': page,
+        'checkedAt': checkedAt,
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is BankSwiftSource &&
+      other.bicSource == bicSource &&
+      other.printed == printed &&
+      other.sourceUrl == sourceUrl &&
+      other.page == page &&
+      other.checkedAt == checkedAt;
+
+  @override
+  int get hashCode =>
+      Object.hash(bicSource, printed, sourceUrl, page, checkedAt);
+
+  @override
+  String toString() => 'BankSwiftSource${toJson()}';
+}
+
 /// A bank (or other institution) that issues Pakistani IBANs.
+///
+/// Values are immutable, so each result can be kept or passed on without
+/// changing the shared data.
 class BankInfo {
   /// Creates a bank info value.
   const BankInfo({
@@ -58,6 +158,12 @@ class BankInfo {
     required this.active,
     this.mergedInto,
     this.aliasOf,
+    this.status = BankStatus.active,
+    this.website,
+    this.websiteSbpListed,
+    this.swift,
+    this.swiftSource,
+    this.swiftReason,
   });
 
   /// 4-letter IBAN bank code (characters 5–8 of the IBAN).
@@ -78,6 +184,28 @@ class BankInfo {
   /// Main code of the same bank, when this is an older code still in use.
   final String? aliasOf;
 
+  /// Active, merged (see [mergedInto]) or liquidated.
+  final BankStatus status;
+
+  /// The institution's official website (from SBP's lists of regulated
+  /// institutions, or its own site where SBP lists none or an old domain),
+  /// or `null` for a bank that no longer exists.
+  final String? website;
+
+  /// What SBP's list gives, where it differs from [website] (an older
+  /// domain); otherwise `null`.
+  final String? websiteSbpListed;
+
+  /// The 8-character SWIFT/BIC code, only where SBP or the institution's own
+  /// website prints it; otherwise `null` (see [swiftReason]).
+  final String? swift;
+
+  /// Where [swift] is printed, and when it was checked; `null` without one.
+  final BankSwiftSource? swiftSource;
+
+  /// Why [swift] is `null`, or `null` when it is set.
+  final String? swiftReason;
+
   /// JSON form, with the same keys as the npm package.
   Map<String, Object?> toJson() => {
         'code': code,
@@ -86,6 +214,12 @@ class BankInfo {
         'active': active,
         'mergedInto': mergedInto,
         'aliasOf': aliasOf,
+        'status': status.value,
+        'website': website,
+        'websiteSbpListed': websiteSbpListed,
+        'swift': swift,
+        'swiftSource': swiftSource?.toJson(),
+        'swiftReason': swiftReason,
       };
 
   @override
@@ -96,25 +230,58 @@ class BankInfo {
       other.type == type &&
       other.active == active &&
       other.mergedInto == mergedInto &&
-      other.aliasOf == aliasOf;
+      other.aliasOf == aliasOf &&
+      other.status == status &&
+      other.website == website &&
+      other.websiteSbpListed == websiteSbpListed &&
+      other.swift == swift &&
+      other.swiftSource == swiftSource &&
+      other.swiftReason == swiftReason;
 
   @override
-  int get hashCode =>
-      Object.hash(code, name, type, active, mergedInto, aliasOf);
+  int get hashCode => Object.hash(
+        code,
+        name,
+        type,
+        active,
+        mergedInto,
+        aliasOf,
+        status,
+        website,
+        websiteSbpListed,
+        swift,
+        swiftSource,
+        swiftReason,
+      );
 
   @override
   String toString() => 'BankInfo${toJson()}';
 }
 
 final List<BankInfo> _banks = List.unmodifiable([
-  for (final e in banks)
+  for (final e in banksJson.cast<Map<String, Object?>>())
     BankInfo(
-      code: e.code,
-      name: e.name,
-      type: BankType.fromValue(e.type),
-      active: e.mergedInto == null && e.active,
-      mergedInto: e.mergedInto,
-      aliasOf: e.aliasOf,
+      code: e['code']! as String,
+      name: e['name']! as String,
+      type: BankType.fromValue(e['type']! as String),
+      active: e['mergedInto'] == null && e['active'] != false,
+      mergedInto: e['mergedInto'] as String?,
+      aliasOf: e['aliasOf'] as String?,
+      status: BankStatus.fromValue(e['status']! as String),
+      website: e['website'] as String?,
+      websiteSbpListed: e['websiteSbpListed'] as String?,
+      swift: e['swift'] as String?,
+      swiftSource: switch (e['swiftSource']) {
+        final Map<String, Object?> s => BankSwiftSource(
+            bicSource: BankBicSource.fromValue(s['bicSource']! as String),
+            printed: s['printed']! as String,
+            sourceUrl: s['sourceUrl']! as String,
+            page: s['page'] as int?,
+            checkedAt: s['checkedAt']! as String,
+          ),
+        _ => null,
+      },
+      swiftReason: e['swiftReason'] as String?,
     ),
 ]);
 
@@ -155,10 +322,22 @@ String? getBankFromIBAN(String iban) {
 }
 
 /// Returns details of the bank that issued an IBAN: name, type (commercial,
-/// Islamic, microfinance, digital bank, wallet …) and whether it still
-/// exists. Also accepts a 4-letter bank code on its own, such as `MEZN`.
+/// Islamic, microfinance, digital bank, wallet …), whether it still
+/// exists ([BankInfo.status]), its official website and its SWIFT/BIC code
+/// where SBP or the bank's own website prints it. Also accepts a 4-letter
+/// bank code on its own, such as `MEZN`.
 ///
-/// Returns `null` if the IBAN is invalid or the code unknown.
+/// ```dart
+/// getBankInfo('PK36SCBL0000001123456702');
+/// // BankInfo{code: SCBL, name: Standard Chartered Bank (Pakistan) Limited,
+/// //   type: commercial, active: true, mergedInto: null, aliasOf: null,
+/// //   status: active, website: https://www.sc.com/pk/,
+/// //   websiteSbpListed: standardchartered.com.pk, swift: SCBLPKKX,
+/// //   swiftSource: {bicSource: bank-site, ...}, swiftReason: null}
+/// getBankInfo('SADA')?.type; // BankType.emi
+/// ```
+///
+/// Returns `null` if the IBAN is invalid or the code unknown. Never throws.
 BankInfo? getBankInfo(String ibanOrCode) {
   final value = _normalize(ibanOrCode);
   if (_bankCode.hasMatch(value)) return _bankByCode[value];

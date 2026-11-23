@@ -81,7 +81,15 @@ public sealed record SalaryTaxOptions
 /// <param name="Slab">The band the income falls in.</param>
 /// <param name="TaxYear">The tax year used.</param>
 public sealed record SalaryTax(
-    double Tax, double Surcharge, double Total, double Monthly, double EffectiveRate, SalaryTaxSlab Slab, int TaxYear);
+    double Tax, double Surcharge, double Total, double Monthly, double EffectiveRate, SalaryTaxSlab Slab, int TaxYear)
+{
+    /// <summary>
+    /// The rate table used: its tax year's dates, law and official source
+    /// (dataset <c>income-tax-slabs</c>). Set on every result
+    /// <see cref="IncomeTax"/> returns.
+    /// </summary>
+    public DataSource? Source { get; init; }
+}
 
 /// <summary>
 /// Pakistani income tax on salary: the salaried rate tables for tax years
@@ -156,7 +164,8 @@ public static class IncomeTax
     /// <code>
     /// IncomeTax.CalculateSalaryTax(1_800_000, new SalaryTaxOptions { TaxYear = 2026 });
     /// // Tax = 72000, Surcharge = 0, Total = 72000, Monthly = 6000, EffectiveRate = 4,
-    /// // Slab = { Over = 1200000, … }, TaxYear = 2026
+    /// // Slab = { Over = 1200000, … }, TaxYear = 2026,
+    /// // Source = { Id = "income-tax-slabs", EffectiveFrom = "2025-07-01", … }
     /// IncomeTax.CalculateSalaryTax(12_000_000, new SalaryTaxOptions { TaxYear = 2026, IncludeSurcharge = true });
     /// // Tax = 3381000, Surcharge = 304290, Total = 3685290, Monthly = 307107.5, …
     /// </code>
@@ -234,6 +243,9 @@ public static class IncomeTax
             Money.FromPaisa(Money.DivideHalfUp(totalPaisa, 12)),
             incomePaisa == 0 ? 0 : (double)Money.DivideHalfUp(new BigInteger(totalPaisa) * 10_000, incomePaisa) / 100,
             slab,
-            year.TaxYear);
+            year.TaxYear)
+        {
+            Source = new DataSource("income-tax-slabs", year.From, year.To, year.Law, year.Source),
+        };
     }
 }

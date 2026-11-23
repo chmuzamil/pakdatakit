@@ -25,6 +25,7 @@ use PakDataKit\Numbers;
 use PakDataKit\PakData;
 use PakDataKit\Passport;
 use PakDataKit\Phone;
+use PakDataKit\Population;
 use PakDataKit\Postal;
 use PakDataKit\Quality;
 use PakDataKit\RaastQr;
@@ -33,7 +34,9 @@ use PakDataKit\Tax;
 use PakDataKit\Text;
 use PakDataKit\VehiclePlate;
 use PakDataKit\WhatsApp;
+use PakDataKit\Withholding;
 use PakDataKit\Words;
+use PakDataKit\Zakat;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -365,6 +368,20 @@ final class VectorTest extends TestCase
     }
 
     /**
+     * A TypeScript input object, for a PHP method that takes its fields as
+     * named arguments.
+     *
+     * @return array<string, mixed>
+     */
+    private static function fieldsOf(mixed $value): array
+    {
+        if (!is_array($value) || ($value !== [] && array_is_list($value))) {
+            throw new Unrepresentable(self::describe(self::plain($value)) . ' is not an object');
+        }
+        return $value;
+    }
+
+    /**
      * @return array<string, callable(array<int, mixed>, array<string, mixed>): mixed>
      */
     private static function functions(): array
@@ -389,11 +406,15 @@ final class VectorTest extends TestCase
         return $functions = [
             'validateCNIC' => $one(Cnic::validate(...)),
             'getCNICInfo' => $one(Cnic::getInfo(...)),
-            'findCNICs' => static fn (array $a, array $k): mixed => Cnic::findAll($a[0] ?? null),
+            'findCNICs' => static fn (array $a, array $k): mixed => Cnic::findAll(
+                $a[0] ?? null,
+                acrossLines: ($k['acrossLines'] ?? false) === true,
+            ),
             'maskCNICs' => static fn (array $a, array $k): mixed => Cnic::mask(
                 $a[0] ?? null,
                 array_key_exists('mask', $k) ? $k['mask'] : 'X',
                 $k['replacement'] ?? null,
+                acrossLines: ($k['acrossLines'] ?? false) === true,
             ),
             'validatePhone' => $one(Phone::validate(...)),
             'formatPhone' => $one(Phone::format(...)),
@@ -521,6 +542,45 @@ final class VectorTest extends TestCase
             'buildFbrInvoice' => static fn (array $a, array $k): mixed => FbrInvoice::build($a[0]),
             'validateFbrInvoice' => static fn (array $a, array $k): mixed => FbrInvoice::validate($a[0], $k),
             'expectedSalesTax' => static fn (array $a, array $k): mixed => FbrInvoice::expectedSalesTax($a[0]),
+            'getSaleTypes' => static fn (array $a, array $k): mixed => FbrInvoice::getSaleTypes(),
+            'getDataInfo' => static fn (array $a, array $k): mixed => PakData::getDataInfo($a[0] ?? null),
+            'listDataInfo' => static fn (array $a, array $k): mixed => PakData::listDataInfo(),
+            'getZakatNisab' => static function (array $a, array $k): mixed {
+                $q = self::fieldsOf($a[0] ?? null);
+                return Zakat::getNisab(zakatYear: $q['zakatYear'] ?? null, date: $q['date'] ?? null);
+            },
+            'getZakatYears' => static fn (array $a, array $k): mixed => Zakat::getYears(),
+            'zakatDeduction' => static function (array $a, array $k): mixed {
+                $q = self::fieldsOf($a[0] ?? null);
+                return Zakat::deduction(
+                    $q['balance'] ?? null,
+                    zakatYear: $q['zakatYear'] ?? null,
+                    date: $q['date'] ?? null,
+                    exempt: ($q['exempt'] ?? null) === true,
+                );
+            },
+            'calculateWithholding' => static function (array $a, array $k): mixed {
+                $q = self::fieldsOf($a[0] ?? null);
+                return Withholding::calculate(
+                    $q['section'] ?? null,
+                    $q['amount'] ?? null,
+                    $q['atl'] ?? null,
+                    subType: $q['subType'] ?? null,
+                    taxYear: $q['taxYear'] ?? null,
+                    date: $q['date'] ?? null,
+                    lateFiler: ($q['lateFiler'] ?? null) === true,
+                    returnOnInvestment: $q['returnOnInvestment'] ?? null,
+                    resident: is_bool($q['resident'] ?? null) ? $q['resident'] : null,
+                );
+            },
+            'getWithholdingRates' => static fn (array $a, array $k): mixed => count($a) > 1
+                ? Withholding::getRates($a[0] ?? null, $a[1])
+                : Withholding::getRates($a[0] ?? null),
+            'getDistrictPopulation' => static fn (array $a, array $k): mixed => Population::getDistrict($a[0] ?? null),
+            'getTehsilPopulation' => static fn (array $a, array $k): mixed => Population::getTehsil(
+                $a[0] ?? null,
+                $a[1] ?? null,
+            ),
             'mapCourierStatus' => static fn (array $a, array $k): mixed => Courier::mapStatus($a[0], $a[1]),
             'normalizeCityForCourier' => $one(Courier::normalizeCity(...)),
         ];

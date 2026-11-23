@@ -95,10 +95,24 @@ const MARK = /[-\u2010\u2011\u2012\u2013\u2014./_]/.source;
  */
 const JOIN = `(?:${SPACE}+|${SPACE}*${MARK}${SPACE}*)`;
 
+/** One line break: CRLF, LF or CR. */
+const LINE_BREAK = /(?:\r\n|\r|\n)/.source;
+/**
+ * With `acrossLines`: what JOIN allows, or the same with one line break
+ * counting as a space (`35202\n1234567\n1`, `35202-\r\n1234567`). Only one
+ * line break per gap, so a blank line never joins groups.
+ */
+const JOIN_LINES = `(?:${SPACE}*${LINE_BREAK}${SPACE}*(?:${MARK}${SPACE}*)?|${SPACE}*${MARK}${SPACE}*${LINE_BREAK}${SPACE}*|${JOIN})`;
+
 /** One digit group: an unbroken run of digits. */
 const GROUP = new RegExp(`${ANY_DIGIT}+`, 'g');
 /** Digit groups joined as above, as long as the run goes. */
 const DIGIT_RUN = new RegExp(`${ANY_DIGIT}+(?:${JOIN}${ANY_DIGIT}+)*`, 'g');
+/** The same, joining across single line breaks (`acrossLines`). */
+const DIGIT_RUN_LINES = new RegExp(
+  `${ANY_DIGIT}+(?:${JOIN_LINES}${ANY_DIGIT}+)*`,
+  'g',
+);
 const FIRST_IS_PROVINCE = new RegExp(`^${PROVINCE_DIGIT}`);
 
 /**
@@ -108,9 +122,9 @@ const FIRST_IS_PROVINCE = new RegExp(`^${PROVINCE_DIGIT}`);
  * A group is never split, so 13 digits inside a longer unbroken number are
  * never matched.
  */
-function cnicSpans(text: string): [number, number][] {
+function cnicSpans(text: string, acrossLines = false): [number, number][] {
   const spans: [number, number][] = [];
-  for (const run of text.matchAll(DIGIT_RUN)) {
+  for (const run of text.matchAll(acrossLines ? DIGIT_RUN_LINES : DIGIT_RUN)) {
     const groups = [...run[0].matchAll(GROUP)].map((g) => ({
       start: run.index + g.index,
       end: run.index + g.index + g[0].length,
@@ -153,6 +167,16 @@ export interface CNICMatch {
   end: number;
 }
 
+/** Options for {@link findCNICs}. */
+export interface FindCNICsOptions {
+  /**
+   * Also join digit groups across a single line break, as if it were a
+   * space: `35202\n1234567\n1`. A blank line (two or more line breaks)
+   * never joins groups. Default `false`.
+   */
+  acrossLines?: boolean;
+}
+
 /**
  * Finds CNIC numbers in free text, such as a chat message, a note or an
  * uploaded document, for example to mask them before logging.
@@ -167,8 +191,12 @@ export interface CNICMatch {
  * goes on after each match, so `0300-1234567 35202-1234567-1` finds the
  * CNIC. A group is never split, so 13 digits inside a longer unbroken
  * number (an IBAN, a card number) never match. Digits may be ASCII, Urdu or
- * Arabic-Indic, even mixed. This matches everything Jaanch's own CNIC
- * redaction does, except across line breaks.
+ * Arabic-Indic, even mixed.
+ *
+ * With `{ acrossLines: true }`, a single line break (with any spaces around
+ * it) also joins groups, so a CNIC written over several lines is found; a
+ * blank line never joins them. This can also join numbers on consecutive
+ * lines, such as a list of amounts.
  *
  * Accepting any grouping catches CNICs as people really type them, but
  * matches more that is not a CNIC: any 13 digits starting with 1-8 split
@@ -182,14 +210,20 @@ export interface CNICMatch {
  * // [{ raw: '35202-1234567-1', digits: '3520212345671',
  * //    formatted: '35202-1234567-1', start: 6, end: 21 }]
  * findCNICs('id 352 0212 3456 71')[0]?.digits; // '3520212345671'
+ * findCNICs('CNIC\n35202\n1234567\n1', { acrossLines: true })[0]?.formatted;
+ * // '35202-1234567-1'
  *
  * @param text - Any text
+ * @param options - `acrossLines`: also join groups across single line breaks
  * @returns The matches in order, or `[]` (also for a value that is not a
  *   string). Never throws.
  */
-export function findCNICs(text: string): CNICMatch[] {
+export function findCNICs(
+  text: string,
+  options: FindCNICsOptions = {},
+): CNICMatch[] {
   if (typeof text !== 'string') return [];
-  return cnicSpans(text).map(([start, end]) => {
+  return cnicSpans(text, options?.acrossLines === true).map(([start, end]) => {
     const raw = text.slice(start, end);
     const digits = toAsciiDigits(raw).replace(/\D/g, '');
     return {
@@ -211,6 +245,12 @@ export interface MaskCNICsOptions {
    * e.g. `'[CNIC removed]'`. Takes precedence over `mask`.
    */
   replacement?: string;
+  /**
+   * Also find CNICs written across single line breaks, as in
+   * {@link findCNICs}. With `mask` the line breaks stay; with `replacement`
+   * they are replaced with the rest of the CNIC. Default `false`.
+   */
+  acrossLines?: boolean;
 }
 
 /**
@@ -244,7 +284,8 @@ export interface MaskedText {
  *
  * @param text - Any text
  * @param options - `mask`: the string that replaces each digit;
- *   `replacement`: the string that replaces each whole CNIC
+ *   `replacement`: the string that replaces each whole CNIC; `acrossLines`:
+ *   also join groups across single line breaks
  * @returns The masked text and the number of CNICs masked. A value that is
  *   not a string gives `{ text: '', count: 0 }`. Never throws.
  */
@@ -253,10 +294,11 @@ export function maskCNICs(
   options: MaskCNICsOptions = {},
 ): MaskedText {
   if (typeof text !== 'string') return { text: '', count: 0 };
+  options = options && typeof options === 'object' ? options : {};
   const mask = typeof options.mask === 'string' ? options.mask : 'X';
   const replacement =
     typeof options.replacement === 'string' ? options.replacement : null;
-  const spans = cnicSpans(text);
+  const spans = cnicSpans(text, options.acrossLines === true);
   let out = '';
   let at = 0;
   for (const [start, end] of spans) {

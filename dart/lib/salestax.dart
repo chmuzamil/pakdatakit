@@ -3,4 +3,5 @@
 /// Same as the `pakdatakit/salestax` entry point of the npm package.
 library;
 
+export 'src/data_info.dart' show DataSource;
 export 'src/salestax.dart';

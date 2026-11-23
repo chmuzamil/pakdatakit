@@ -6,6 +6,7 @@ export const modules = [
   'bills',
   'cnic',
   'courier',
+  'data-info',
   'fbr-invoice',
   'format',
   'geo',
@@ -18,6 +19,7 @@ export const modules = [
   'numbers',
   'passport',
   'phone',
+  'population',
   'postal',
   'quality',
   'raast',
@@ -26,7 +28,9 @@ export const modules = [
   'text',
   'vehicle',
   'whatsapp',
+  'withholding',
   'words',
+  'zakat',
 ];
 
 /** Form-library adapters; each is exposed as a subpath (e.g. `pakdatakit/zod`). */

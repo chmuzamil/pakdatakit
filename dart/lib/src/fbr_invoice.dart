@@ -7,9 +7,11 @@
 /// DATA.md. Nothing here talks to FBR: there is no HTTP client and no token
 /// handling. Values that only FBR's reference APIs can confirm (provinces, HS
 /// codes, units, rates, sale types, SRO numbers) are checked for presence,
-/// not against FBR's lists.
+/// not against FBR's lists, unless the app passes the lists it synced from
+/// those APIs (`validateFbrInvoice(invoice, reference: ...)`).
 library;
 
+import 'data/fbr_sale_types.g.dart';
 import 'internal/equality.dart';
 import 'internal/js.dart';
 import 'internal/money.dart';
@@ -244,6 +246,142 @@ class FbrInvoiceValidation {
   @override
   String toString() => 'FbrInvoiceValidation${toJson()}';
 }
+
+/// Reference lists from FBR's own APIs (PRAL's `/pdi/v1/provinces`,
+/// `/pdi/v1/uom`, `/pdi/v2/HS_UOM`, sale types from `/pdi/v2/SaleTypeToRate`
+/// ...), which an app syncs with its token, for
+/// `validateFbrInvoice(invoice, reference: ...)`. FBR's APIs are
+/// authoritative; this library ships no copy of these lists.
+///
+/// Each list given is checked; a list left out (`null`) is not. Values are
+/// compared ignoring case and extra whitespace.
+class FbrInvoiceReference {
+  /// Creates reference lists; give only the ones to check.
+  const FbrInvoiceReference({
+    this.provinces,
+    this.saleTypes,
+    this.uoms,
+    this.hsUom,
+  });
+
+  /// Province names as FBR lists them, e.g. `['PUNJAB', 'SINDH', ...]`.
+  /// Checks `sellerProvince` (0073) and `buyerProvince` (0074).
+  final List<String>? provinces;
+
+  /// Sale type descriptions as FBR lists them. Checks each item's
+  /// `saleType` (0013).
+  final List<String>? saleTypes;
+
+  /// Unit of measure descriptions as FBR lists them. Checks each item's
+  /// `uoM` (0099).
+  final List<String>? uoms;
+
+  /// The units allowed for each HS code, as FBR's HS_UOM API returns them:
+  /// `{'0101.2100': ['Numbers, pieces, units']}`. An item's `hsCode` must be
+  /// listed (an error with no code) and its `uoM` allowed for it (0099).
+  final Map<String, List<String>>? hsUom;
+
+  /// JSON form, with the same keys as the npm package.
+  Map<String, Object?> toJson() => {
+        if (provinces != null) 'provinces': [...provinces!],
+        if (saleTypes != null) 'saleTypes': [...saleTypes!],
+        if (uoms != null) 'uoms': [...uoms!],
+        if (hsUom != null)
+          'hsUom': {
+            for (final e in hsUom!.entries) e.key: [...e.value],
+          },
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is FbrInvoiceReference &&
+      listEquals(other.provinces, provinces) &&
+      listEquals(other.saleTypes, saleTypes) &&
+      listEquals(other.uoms, uoms) &&
+      _hsUomEquals(other.hsUom, hsUom);
+
+  @override
+  int get hashCode => Object.hash(
+        listHash(provinces),
+        listHash(saleTypes),
+        listHash(uoms),
+        hsUom == null
+            ? 0
+            : Object.hashAllUnordered(
+                hsUom!.entries
+                    .map((e) => Object.hash(e.key, listHash(e.value))),
+              ),
+      );
+
+  @override
+  String toString() => 'FbrInvoiceReference${toJson()}';
+}
+
+bool _hsUomEquals(Map<String, List<String>>? a, Map<String, List<String>>? b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null || a.length != b.length) return false;
+  for (final e in a.entries) {
+    if (!b.containsKey(e.key) || !listEquals(b[e.key], e.value)) return false;
+  }
+  return true;
+}
+
+/// A sale type as PRAL's specification names it, with its sandbox
+/// scenarios. Result of [getSaleTypes].
+class FbrSaleType {
+  /// Creates a sale type value.
+  const FbrSaleType({required this.saleType, required this.scenarioIds});
+
+  /// The sale type, e.g. `Goods at Standard Rate (default)`.
+  final String saleType;
+
+  /// The specification's sandbox scenarios (`SN001`-`SN028`) that use it.
+  final List<String> scenarioIds;
+
+  /// JSON form, with the same keys as the npm package.
+  Map<String, Object?> toJson() => {
+        'saleType': saleType,
+        'scenarioIds': [...scenarioIds],
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is FbrSaleType &&
+      other.saleType == saleType &&
+      listEquals(other.scenarioIds, scenarioIds);
+
+  @override
+  int get hashCode => Object.hash(saleType, listHash(scenarioIds));
+
+  @override
+  String toString() => 'FbrSaleType${toJson()}';
+}
+
+/// The sale types named in PRAL's DI specification (v1.12, section 9,
+/// "Scenarios for Sandbox Testing"), with the scenarios that use each.
+///
+/// FBR's full, current list comes from its reference API; this is a
+/// convenience for building forms and tests, and [validateFbrInvoice] does
+/// not reject a sale type that is not in it. Never throws.
+///
+/// ```dart
+/// getSaleTypes().first;
+/// // FbrSaleType{saleType: Goods at Standard Rate (default),
+/// //   scenarioIds: [SN001, SN002, SN026]}
+/// ```
+List<FbrSaleType> getSaleTypes() => [
+      for (final e in fbrSaleTypesJson.cast<Map<String, Object?>>())
+        FbrSaleType(
+          saleType: e['saleType']! as String,
+          scenarioIds: List.unmodifiable(
+            (e['scenarioIds']! as List<Object?>).cast<String>(),
+          ),
+        ),
+    ];
+
+/// A reference list as a set of normalized keys, or `null` if not given.
+Set<String>? _keySet(List<String>? list) =>
+    list == null ? null : {for (final v in list) normalizeKey(v)};
 
 const Set<String> _invoiceTypes = {'Sale Invoice', 'Debit Note'};
 const Set<String> _registrationTypes = {'Registered', 'Unregistered'};
@@ -485,7 +623,12 @@ bool _present(Object? value) => value != null && value != '';
 ///
 /// Not checked, because they need FBR's data: registration status, whether a
 /// province, HS code, unit, rate, sale type or SRO is in FBR's lists or fits
-/// the others, and the original invoice of a debit note.
+/// the others, and the original invoice of a debit note. Pass the lists your
+/// app syncs from FBR's reference APIs as [reference] to check provinces
+/// (0073, 0074), sale types (0013), units (0099) and HS code/unit pairs
+/// against them (an HS code that is not listed has no code; a unit not
+/// allowed for it is 0099); lists left out are not checked. FBR's APIs are
+/// authoritative.
 ///
 /// Never throws.
 ///
@@ -494,8 +637,16 @@ bool _present(Object? value) => value != null && value != '';
 /// validateFbrInvoice({...invoice, 'invoiceDate': '21-04-2025'}).errors.first;
 /// // FbrInvoiceError{code: 0005, field: invoiceDate,
 /// //   message: Invoice date must be in YYYY-MM-DD format}
+/// validateFbrInvoice(
+///   invoice,
+///   reference: const FbrInvoiceReference(provinces: ['PUNJAB', 'SINDH']),
+/// ).valid; // true when both provinces are in the list
 /// ```
-FbrInvoiceValidation validateFbrInvoice(Object? invoice, {String? today}) {
+FbrInvoiceValidation validateFbrInvoice(
+  Object? invoice, {
+  String? today,
+  FbrInvoiceReference? reference,
+}) {
   final errors = <FbrInvoiceError>[];
   void add(String? code, String field, String message) =>
       errors.add(FbrInvoiceError(code, field, message));
@@ -601,6 +752,21 @@ FbrInvoiceValidation validateFbrInvoice(Object? invoice, {String? today}) {
   if (_present(scenarioId)) {
     if (scenarioId is! String || !_scenario.hasMatch(scenarioId)) {
       add(null, 'scenarioId', 'Scenario ID must be SN001 to SN028');
+    }
+  }
+
+  // Reference lists synced from FBR's APIs ([reference]), if given.
+  final provinces = _keySet(reference?.provinces);
+  if (provinces != null) {
+    for (final (field, code, who) in const [
+      ('sellerProvince', '0073', 'Seller'),
+      ('buyerProvince', '0074', 'Buyer'),
+    ]) {
+      final value = inv[field];
+      if (_filled(value) &&
+          !provinces.contains(normalizeKey(value as String))) {
+        add(code, field, "$who province is not in FBR's province list");
+      }
     }
   }
 
@@ -712,6 +878,45 @@ FbrInvoiceValidation validateFbrInvoice(Object? invoice, {String? today}) {
               'Sales tax should be ${jsToFixed(expected, 2)} for this rate',
             );
           }
+        }
+      }
+    }
+  }
+
+  final saleTypes = _keySet(reference?.saleTypes);
+  final uoms = _keySet(reference?.uoms);
+  final hsUom = reference?.hsUom == null
+      ? null
+      : {
+          for (final e in reference!.hsUom!.entries)
+            normalizeKey(e.key): _keySet(e.value)!,
+        };
+  if (saleTypes != null || uoms != null || hsUom != null) {
+    for (final (index, raw) in items.indexed) {
+      if (raw is! Map) continue;
+      String at(String key) => 'items[$index].$key';
+      final saleType = raw['saleType'];
+      if (saleTypes != null &&
+          _filled(saleType) &&
+          !saleTypes.contains(normalizeKey(saleType as String))) {
+        add('0013', at('saleType'), "Sale type is not in FBR's sale type list");
+      }
+      final uoM = raw['uoM'];
+      final unit = _filled(uoM) ? normalizeKey(uoM as String) : null;
+      if (uoms != null && unit != null && !uoms.contains(unit)) {
+        add('0099', at('uoM'), "Unit of measure is not in FBR's unit list");
+      }
+      final hsCode = raw['hsCode'];
+      if (hsUom != null && _filled(hsCode)) {
+        final allowed = hsUom[normalizeKey(hsCode as String)];
+        if (allowed == null) {
+          add(null, at('hsCode'), "HS code is not in FBR's HS code list");
+        } else if (unit != null && !allowed.contains(unit)) {
+          add(
+            '0099',
+            at('uoM'),
+            'Unit of measure is not allowed for this HS code',
+          );
         }
       }
     }

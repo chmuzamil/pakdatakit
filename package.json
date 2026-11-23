@@ -70,6 +70,16 @@
         "default": "./dist/courier.cjs"
       }
     },
+    "./data-info": {
+      "import": {
+        "types": "./dist/data-info.d.ts",
+        "default": "./dist/data-info.js"
+      },
+      "require": {
+        "types": "./dist/data-info.d.cts",
+        "default": "./dist/data-info.cjs"
+      }
+    },
     "./fbr-invoice": {
       "import": {
         "types": "./dist/fbr-invoice.d.ts",
@@ -190,6 +200,16 @@
         "default": "./dist/phone.cjs"
       }
     },
+    "./population": {
+      "import": {
+        "types": "./dist/population.d.ts",
+        "default": "./dist/population.js"
+      },
+      "require": {
+        "types": "./dist/population.d.cts",
+        "default": "./dist/population.cjs"
+      }
+    },
     "./postal": {
       "import": {
         "types": "./dist/postal.d.ts",
@@ -270,6 +290,16 @@
         "default": "./dist/whatsapp.cjs"
       }
     },
+    "./withholding": {
+      "import": {
+        "types": "./dist/withholding.d.ts",
+        "default": "./dist/withholding.js"
+      },
+      "require": {
+        "types": "./dist/withholding.d.cts",
+        "default": "./dist/withholding.cjs"
+      }
+    },
     "./words": {
       "import": {
         "types": "./dist/words.d.ts",
@@ -278,6 +308,16 @@
       "require": {
         "types": "./dist/words.d.cts",
         "default": "./dist/words.cjs"
+      }
+    },
+    "./zakat": {
+      "import": {
+        "types": "./dist/zakat.d.ts",
+        "default": "./dist/zakat.js"
+      },
+      "require": {
+        "types": "./dist/zakat.d.cts",
+        "default": "./dist/zakat.cjs"
       }
     },
     "./class-validator": {
@@ -360,6 +400,8 @@
     "format:check": "prettier --check .",
     "size": "node scripts/check-size.mjs",
     "check:metadata": "node scripts/check-metadata.mjs",
+    "check:manifest": "node scripts/check-manifest.mjs && node scripts/generate-data-md.mjs --check",
+    "data:docs": "node scripts/generate-data-md.mjs",
     "test:ports": "node scripts/test-ports.mjs",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run lint && npm run typecheck && npm test && npm run build",

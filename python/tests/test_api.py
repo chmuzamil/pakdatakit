@@ -147,6 +147,13 @@ def test_bank_info() -> None:
     assert inactive and all(b.merged_into or b.code == "SMES" for b in inactive)
     smes = pdk.get_bank_info("SMES")
     assert smes is not None and not smes.active and smes.merged_into is None
+    assert {b.status for b in pdk.get_banks()} <= {"active", "merged", "liquidated"}
+    abl = pdk.get_bank_info("ABPA")
+    assert abl is not None and abl.swift == "ABPAPKKA" and abl.swift_reason is None
+    assert isinstance(abl.swift_source, pdk.BankSwiftSource) and abl.swift_source.bic_source == "bank-site"
+    assert all((b.swift is None) == (b.swift_source is None) for b in pdk.get_banks())
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        abl.swift = "X"  # type: ignore[misc]
     with pytest.raises(ValueError):
         pdk.number_to_words(5, language="fr")
 
@@ -262,7 +269,8 @@ def test_sales_tax() -> None:
     assert pdk.calculate_sales_tax(1000, rate=18) == pdk.SalesTaxAmounts(1000, 180, 1180, 18)
     assert pdk.calculate_sales_tax(1000, province="Punjab", date="2026-11-18").tax == 160  # type: ignore[union-attr]
     split = pdk.calculate_sales_tax(1150, province="Sindh", date="2026-11-18", inclusive=True)
-    assert split == pdk.SalesTaxAmounts(1000, 150, 1150, 15)
+    assert split is not None and dataclasses.replace(split, source=None) == pdk.SalesTaxAmounts(1000, 150, 1150, 15)
+    assert split.source is not None and split.source.id == "sales-tax-rates"
     assert pdk.split_inclusive(99.99, 18) == pdk.SalesTaxAmounts(84.74, 15.25, 99.99, 18)
     assert pdk.calculate_sales_tax(1.005, rate=0).net == 1.01  # type: ignore[union-attr]
     assert pdk.calculate_sales_tax(1000) is None
@@ -643,7 +651,7 @@ def test_salary_tax_surcharge() -> None:
     assert (result.tax, result.surcharge, result.total, result.monthly) == (3_381_000, 304_290, 3_685_290, 307_107.5)
     assert result.effective_rate == 30.71
     assert [f.name for f in dataclasses.fields(pdk.SalaryTax)] == [
-        "tax", "surcharge", "total", "monthly", "effective_rate", "slab", "tax_year",
+        "tax", "surcharge", "total", "monthly", "effective_rate", "slab", "tax_year", "source",
     ]
     # Only above Rs 10 million, and not in years without one.
     at_limit = pdk.calculate_salary_tax(10_000_000, tax_year=2026, include_surcharge=True)
@@ -683,3 +691,143 @@ def test_cnics_in_text_spaces_marks_underscores() -> None:
     ]:
         assert pdk.find_cnics(text) == []
     assert len(pdk.find_cnics(f"35202-1234567-1{lf}42201-7654321-2")) == 2
+
+
+def test_cnics_across_lines() -> None:
+    lf, cr = chr(10), chr(13)
+    for text in [f"35202{lf}1234567{lf}1", f"35202{cr}{lf}1234567{cr}1", f"35202 -{lf} 1234567 {lf}- 1"]:
+        found = pdk.find_cnics(text, across_lines=True)
+        assert [m.digits for m in found] == ["3520212345671"]
+        assert pdk.find_cnics(text) == []
+    blank = f"35202{lf}{lf}1234567{lf}1"
+    assert pdk.find_cnics(blank, across_lines=True) == []
+    assert pdk.find_cnics(f"35202{lf}1234567{lf}1", across_lines=1) == []  # only True turns it on
+    masked = pdk.mask_cnics(f"id 35202{lf}1234567{lf}1", across_lines=True)
+    assert masked == pdk.MaskedText(f"id XXXXX{lf}XXXXXXX{lf}X", 1)
+    replaced = pdk.mask_cnics(f"id 35202{lf}1234567{lf}1", across_lines=True, replacement="[CNIC]")
+    assert replaced.text == "id [CNIC]"
+
+
+def test_data_info() -> None:
+    info = pdk.get_data_info("income-tax-slabs")
+    assert isinstance(info, pdk.DataInfo) and info.file == "income-tax-slabs.json"
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", info.checked_at)
+    assert not hasattr(info, "series")
+    ids = [d.id for d in pdk.list_data_info()]
+    assert ids == sorted(ids) and "banks" in ids
+    for value in [None, 42, "", "BANKS", [], {}]:
+        assert pdk.get_data_info(value) is None
+    salary = pdk.calculate_salary_tax(1_800_000, tax_year=2026)
+    assert salary is not None and salary.source.id == "income-tax-slabs"
+    assert salary.source.effective_from == "2025-07-01"
+    assert pdk.calculate_sales_tax(1000, rate=18).source is None  # type: ignore[union-attr]
+
+
+def test_zakat() -> None:
+    assert pdk.get_zakat_nisab(zakat_year=1447) == pdk.get_zakat_nisab({"zakatYear": 1447})
+    nisab = pdk.get_zakat_nisab(zakat_year="1446-47")
+    assert nisab is not None and nisab.zakat_year == 1447 and nisab.ramazan1 == "2026-02-19"
+    assert isinstance(nisab.ramazan1_source, pdk.ZakatRamazan1Source)
+    assert nisab.ramazan1_source.announced_by == "Central Ruet-e-Hilal Committee"
+    assert nisab.source.effective_from == "2026-02-19" and nisab.source.effective_to is None
+    assert pdk.get_zakat_nisab(date="2026-02-19") == nisab  # 1 Ramazan 1447
+    assert pdk.get_zakat_nisab(date=dt.date(2026, 2, 18)).zakat_year == 1446  # type: ignore[union-attr]
+    assert pdk.get_zakat_nisab(date="2026-02-18").source.effective_to == "2026-02-18"  # type: ignore[union-attr]
+    first = pdk.get_zakat_nisab(zakat_year=1433)
+    assert first is not None and pdk.get_zakat_nisab(date=first.ramazan1) == first
+    assert first.ramazan1_source.url is None  # not recorded for 1433
+    assert pdk.get_zakat_nisab(date=pdk.get_zakat_nisab(zakat_year=1433).source.effective_from) == first  # type: ignore[union-attr]
+    assert pdk.get_zakat_nisab(date="2011-01-01") is None  # before the first covered year
+    assert pdk.zakat_deduction(balance=600_000.2, zakat_year=1447).zakat == 15_000  # whole rupees
+    years = pdk.get_zakat_years()
+    assert years == sorted(years) and years[-1] == 1447
+    deduction = pdk.zakat_deduction(balance=600_000, zakat_year=1447)
+    assert deduction is not None and deduction.deductible and deduction.zakat == 15_000
+    assert pdk.zakat_deduction({"balance": 600_000, "zakatYear": 1447, "exempt": True}).reason == "exempt"  # type: ignore[union-attr]
+    assert pdk.zakat_deduction(balance=1, zakat_year=1447).reason == "below-nisab"  # type: ignore[union-attr]
+    for value in HOSTILE_INPUTS + [[], {}, 1447.5, True]:
+        assert pdk.get_zakat_nisab(value) is None or isinstance(value, dict)
+        pdk.get_zakat_nisab(zakat_year=value)
+        pdk.get_zakat_nisab(date=value)
+        pdk.zakat_deduction(value)
+        pdk.zakat_deduction(balance=value, zakat_year=1447)
+        pdk.zakat_deduction(balance=600_000, zakat_year=value, date=value, exempt=value)
+
+
+def test_withholding() -> None:
+    result = pdk.calculate_withholding(section="236K", amount=60_000_000, atl=False, tax_year=2027)
+    assert result is not None and result.rate == 14.5 and result.tax == 8_700_000
+    assert result.non_atl_rule == "slabs" and isinstance(result.slab, pdk.WithholdingSlab)
+    assert result == pdk.calculate_withholding(
+        {"section": "236k", "amount": 60_000_000, "atl": False, "taxYear": 2027}
+    )
+    cash = pdk.calculate_withholding(section="231AB", amount=50_000, atl=False, tax_year=2027)
+    assert cash is not None and cash.tax == 0 and cash.threshold is not None and cash.threshold.within_threshold
+    assert pdk.calculate_withholding(section="151", amount=1000, atl=True, tax_year=2027) is None  # needs sub_type
+    assert pdk.calculate_withholding(section="236K", amount=1000, tax_year=2027) is None  # needs atl
+    by_date = pdk.calculate_withholding(section="236K", amount=1000, atl=True, date=dt.date(2026, 7, 1))
+    assert by_date is not None and by_date.tax_year == 2027
+    sukuk = {"section": "151", "amount": 2_000_000, "atl": True, "taxYear": 2027}
+    assert pdk.calculate_withholding({**sukuk, "subType": "sukuk-individual-above-1m"}) is not None
+    assert pdk.calculate_withholding({**sukuk, "subType": "sukuk-individual-below-1m"}) is None
+    assert pdk.calculate_withholding(
+        section="151", sub_type="sukuk-individual-above-1m", amount=1_000_000, atl=True, tax_year=2027
+    ) is None  # exactly Rs 1 million fits neither case
+    social = pdk.calculate_withholding(section="154B", amount=1000, atl=True, tax_year=2027, resident=False)
+    assert social is not None and social.tax_nature == "final"
+    assert result.tax_nature is None and isinstance(result.tax, int)
+    rates = pdk.get_withholding_rates(2027)
+    assert rates and all(isinstance(r, pdk.WithholdingRate) for r in rates)
+    assert any(isinstance(r.circular, pdk.WithholdingCircular) for r in rates)
+    assert [r.section for r in pdk.get_withholding_rates(2027, "154b")] == ["154B"]
+    assert pdk.get_withholding_rates(2020) == [] and pdk.get_withholding_rates("2027") == []
+    for value in HOSTILE_INPUTS + [[], {}, True, float("nan")]:
+        pdk.calculate_withholding(value)
+        pdk.calculate_withholding(section=value, amount=value, atl=True, tax_year=2027)
+        pdk.calculate_withholding(section="153", sub_type=value, amount=1000, atl=True, tax_year=value, date=value)
+        pdk.get_withholding_rates(value, value)
+
+
+def test_population() -> None:
+    lahore = pdk.get_district_population("  LAHORE ")
+    assert lahore is not None and lahore.district == "Lahore" and lahore.census == 2023
+    assert lahore.source.id == "district-population"
+    murree = pdk.get_district_population("Murree")
+    assert murree is not None and murree.population is None and murree.census_district is not None
+    tehsil = pdk.get_tehsil_population("Murree")
+    assert tehsil is not None and tehsil.current_district == "Murree"
+    assert pdk.get_tehsil_population("Dasht") is None  # in two districts
+    dasht = pdk.get_tehsil_population("Dasht", "Mastung")
+    assert dasht is not None and dasht.census_district == "Mastung"
+    for value in HOSTILE_INPUTS + [[], {}]:
+        assert pdk.get_district_population(value) is None or isinstance(value, str)
+        pdk.get_tehsil_population(value, value)
+        pdk.get_tehsil_population("Dasht", value)
+
+
+def test_fbr_reference_lists() -> None:
+    sale_types = pdk.get_sale_types()
+    assert sale_types[0].sale_type == "Goods at Standard Rate (default)"
+    built = pdk.build_fbr_invoice(FBR_INPUT)
+    assert built is not None
+    invoice = built.invoice
+    item = invoice["items"][0]
+    ok = {
+        "provinces": [invoice["sellerProvince"].upper(), invoice["buyerProvince"]],
+        "saleTypes": [item["saleType"]],
+        "uoms": [f" {item['uoM']} "],
+        "hsUom": {item["hsCode"]: [item["uoM"]]},
+    }
+    assert pdk.validate_fbr_invoice(invoice, reference=ok).valid
+    bad = pdk.validate_fbr_invoice(
+        invoice, reference={"provinces": [], "sale_types": ["x"], "uoms": ["KG"], "hsUom": {"0000.0000": ["KG"]}}
+    )
+    assert [(e.code, e.field) for e in bad.errors] == [
+        ("0073", "sellerProvince"),
+        ("0074", "buyerProvince"),
+        ("0013", "items[0].saleType"),
+        ("0099", "items[0].uoM"),
+        (None, "items[0].hsCode"),
+    ]
+    for value in HOSTILE_INPUTS + [[], {}, {"provinces": "x", "hsUom": [1]}, {"hsUom": {1: "x"}}]:
+        assert isinstance(pdk.validate_fbr_invoice(invoice, reference=value).valid, bool)

@@ -85,7 +85,7 @@ final class ReleaseChangesTest extends TestCase
     {
         $plain = IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026]);
         self::assertSame(
-            ['tax', 'surcharge', 'total', 'monthly', 'effectiveRate', 'slab', 'taxYear'],
+            ['tax', 'surcharge', 'total', 'monthly', 'effectiveRate', 'slab', 'taxYear', 'source'],
             array_keys($plain->toArray()),
         );
         self::assertSame(72000.0, $plain->tax);

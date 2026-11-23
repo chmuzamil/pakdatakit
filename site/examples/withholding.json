@@ -1,0 +1,126 @@
+{
+  "module": "withholding",
+  "title": "Withholding tax",
+  "examples": [
+    {
+      "id": "property",
+      "title": "236K on a Rs 60 million purchase, not on the ATL",
+      "fn": "calculateWithholding",
+      "args": [
+        {
+          "section": "236K",
+          "amount": 60000000,
+          "atl": false,
+          "taxYear": 2027
+        }
+      ],
+      "expected": {
+        "section": "236K",
+        "subType": "purchase",
+        "description": "Purchase of Immovable Property",
+        "taxYear": 2027,
+        "atl": false,
+        "lateFiler": false,
+        "rate": 14.5,
+        "tax": 8700000,
+        "nonAtlRule": "slabs",
+        "slab": {
+          "over": 50000000,
+          "upTo": 100000000,
+          "rate": 14.5
+        },
+        "threshold": null,
+        "cardRef": "TY2027 PDF p.17; xlsx row No.150; TY2027 PDF p.17; xlsx row No.151; TY2027 PDF p.17; xlsx row No.152",
+        "lawRef": "Division-XVIII of Part-IV of First Schedule read with R.1 of Tenth Schedule",
+        "statuteOverride": null,
+        "taxNature": null,
+        "source": {
+          "id": "withholding-rates",
+          "effectiveFrom": "2026-07-01",
+          "effectiveTo": "2027-06-30",
+          "sourceReference": "Division-XVIII of Part-IV of First Schedule read with R.1 of Tenth Schedule (FBR Withholding Tax Rate Card, tax year 2027, TY2027 PDF p.17; xlsx row No.150; TY2027 PDF p.17; xlsx row No.151; TY2027 PDF p.17; xlsx row No.152)",
+          "sourceUrl": "https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf"
+        }
+      }
+    },
+    {
+      "id": "cash",
+      "title": "231AB on Rs 80,000 withdrawn in a day",
+      "fn": "calculateWithholding",
+      "args": [
+        {
+          "section": "231AB",
+          "amount": 80000,
+          "atl": false,
+          "taxYear": 2027
+        }
+      ],
+      "expected": {
+        "section": "231AB",
+        "subType": "cash-withdrawal",
+        "description": "Cash withdrawal by a person whose name is not appearing in the Active Taxpayers' List",
+        "taxYear": 2027,
+        "atl": false,
+        "lateFiler": false,
+        "rate": 0.8,
+        "tax": 640,
+        "nonAtlRule": "fixed",
+        "slab": null,
+        "threshold": {
+          "amount": 50000,
+          "per": "day",
+          "withinThreshold": false
+        },
+        "cardRef": "TY2027 PDF p.10; xlsx row No.89",
+        "lawRef": "Section 231AB",
+        "statuteOverride": null,
+        "taxNature": null,
+        "source": {
+          "id": "withholding-rates",
+          "effectiveFrom": "2026-07-01",
+          "effectiveTo": "2027-06-30",
+          "sourceReference": "Section 231AB (FBR Withholding Tax Rate Card, tax year 2027, TY2027 PDF p.10; xlsx row No.89)",
+          "sourceUrl": "https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf"
+        }
+      }
+    },
+    {
+      "id": "profit",
+      "title": "151 on bank profit, on the ATL",
+      "fn": "calculateWithholding",
+      "args": [
+        {
+          "section": "151",
+          "subType": "bank-deposit",
+          "amount": 10000,
+          "atl": true,
+          "taxYear": 2027
+        }
+      ],
+      "expected": {
+        "section": "151",
+        "subType": "bank-deposit",
+        "description": "On yield or profit paid by a banking company or financial institution on an account or deposit maintained with such company or institution",
+        "taxYear": 2027,
+        "atl": true,
+        "lateFiler": false,
+        "rate": 20,
+        "tax": 2000,
+        "nonAtlRule": "double",
+        "slab": null,
+        "threshold": null,
+        "cardRef": "TY2027 PDF p.4; xlsx row No.29",
+        "lawRef": "Division-IA, Part-III of First Schedule read with R.1 of Tenth Schedule",
+        "statuteOverride": null,
+        "taxNature": null,
+        "source": {
+          "id": "withholding-rates",
+          "effectiveFrom": "2026-07-01",
+          "effectiveTo": "2027-06-30",
+          "sourceReference": "Division-IA, Part-III of First Schedule read with R.1 of Tenth Schedule (FBR Withholding Tax Rate Card, tax year 2027, TY2027 PDF p.4; xlsx row No.29)",
+          "sourceUrl": "https://download1.fbr.gov.pk/Docs/202681113864992WithholdingTaxRatesCard2027.pdf"
+        }
+      }
+    }
+  ]
+}

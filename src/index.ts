@@ -6,6 +6,7 @@ export {
   type CNICInfo,
   type CNICMatch,
   type MaskCNICsOptions,
+  type FindCNICsOptions,
   type MaskedText,
 } from './cnic.js';
 export {
@@ -41,6 +42,7 @@ export {
   getBankInfo,
   getBanks,
   type BankInfo,
+  type BankSwiftSource,
   type BankType,
 } from './iban.js';
 export {
@@ -188,6 +190,9 @@ export {
   type FbrInvoiceValidationOptions,
   type FbrInvoiceType,
   type FbrRegistrationType,
+  type FbrInvoiceReference,
+  type FbrSaleType,
+  getSaleTypes,
 } from './fbr-invoice.js';
 export {
   getSalaryTaxSlabs,
@@ -202,3 +207,35 @@ export {
   type SalaryTaxYear,
 } from './incometax.js';
 export { dataVersion } from './data-version.js';
+export {
+  getDataInfo,
+  listDataInfo,
+  type DataInfo,
+  type DataSource,
+} from './data-info.js';
+export {
+  getZakatNisab,
+  getZakatYears,
+  zakatDeduction,
+  type ZakatNisab,
+  type ZakatRamazan1Source,
+  type ZakatDocument,
+  type ZakatYearQuery,
+  type ZakatDeduction,
+  type ZakatDeductionInput,
+} from './zakat.js';
+export {
+  getDistrictPopulation,
+  getTehsilPopulation,
+  type CensusCounts,
+  type DistrictPopulation,
+  type TehsilPopulation,
+} from './population.js';
+export {
+  calculateWithholding,
+  getWithholdingRates,
+  type Withholding,
+  type WithholdingInput,
+  type WithholdingRate,
+  type WithholdingSlab,
+} from './withholding.js';

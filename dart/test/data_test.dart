@@ -10,30 +10,42 @@ import 'package:pakdatakit/src/data/area_codes.g.dart';
 import 'package:pakdatakit/src/data/banks.g.dart';
 import 'package:pakdatakit/src/data/cities.g.dart';
 import 'package:pakdatakit/src/data/collation.g.dart';
+import 'package:pakdatakit/src/data/district_population.g.dart';
 import 'package:pakdatakit/src/data/districts.g.dart';
 import 'package:pakdatakit/src/data/divisions.g.dart';
+import 'package:pakdatakit/src/data/fbr_sale_types.g.dart';
 import 'package:pakdatakit/src/data/holidays.g.dart';
 import 'package:pakdatakit/src/data/income_tax_slabs.g.dart';
+import 'package:pakdatakit/src/data/manifest.g.dart';
 import 'package:pakdatakit/src/data/networks.g.dart';
 import 'package:pakdatakit/src/data/post_offices.g.dart';
 import 'package:pakdatakit/src/data/postal_codes.g.dart';
 import 'package:pakdatakit/src/data/sales_tax_rates.g.dart';
+import 'package:pakdatakit/src/data/tehsil_population.g.dart';
 import 'package:pakdatakit/src/data/tehsils.g.dart';
+import 'package:pakdatakit/src/data/withholding_rates.g.dart';
+import 'package:pakdatakit/src/data/zakat_nisab.g.dart';
 import 'package:test/test.dart';
 
 const Map<String, Object> embedded = {
   'area-codes.json': areaCodesJson,
   'banks.json': banksJson,
   'cities.json': citiesJson,
+  'district-population.json': districtPopulationJson,
   'districts.json': districtsJson,
   'divisions.json': divisionsJson,
+  'fbr-sale-types.json': fbrSaleTypesJson,
   'holidays.json': holidaysJson,
   'income-tax-slabs.json': incomeTaxSlabsJson,
+  'manifest.json': manifestJson,
   'networks.json': networksJson,
   'post-offices.json': postOfficesJson,
   'postal-codes.json': postalCodesJson,
   'sales-tax-rates.json': salesTaxRatesJson,
+  'tehsil-population.json': tehsilPopulationJson,
   'tehsils.json': tehsilsJson,
+  'withholding-rates.json': withholdingRatesJson,
+  'zakat-nisab.json': zakatNisabJson,
 };
 
 bool deepEquals(Object? a, Object? b) {
@@ -51,6 +63,9 @@ bool deepEquals(Object? a, Object? b) {
     }
     return true;
   }
+  // JSON has one number type: `15.0` in a data file is embedded as `15`, as
+  // JavaScript reads it.
+  if (a is num && b is num) return a == b;
   return a == b && a.runtimeType == b.runtimeType;
 }
 

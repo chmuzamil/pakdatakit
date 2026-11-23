@@ -88,6 +88,8 @@ final class IncomeTax
      * ```php
      * IncomeTax::calculateSalary(12_000_000, ['taxYear' => 2026, 'includeSurcharge' => true]);
      * // tax 3381000, surcharge 304290, total 3685290, monthly 307107.5
+     * IncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026])->source;
+     * // DataSource(id: 'income-tax-slabs', effectiveFrom: '2025-07-01', …)
      * ```
      *
      * @param mixed $annualIncome Taxable income for the year in rupees
@@ -182,6 +184,13 @@ final class IncomeTax
             effectiveRate: $incomePaisa === 0 ? 0.0 : Money::divideHalfUp($totalPaisa * 10_000, $incomePaisa) / 100,
             slab: $slab,
             taxYear: $year->taxYear,
+            source: new DataSource(
+                id: 'income-tax-slabs',
+                effectiveFrom: $year->from,
+                effectiveTo: $year->to,
+                sourceReference: $year->law,
+                sourceUrl: $year->source,
+            ),
         );
     }
 

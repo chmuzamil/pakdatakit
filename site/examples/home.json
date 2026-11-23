@@ -36,7 +36,14 @@
           "fixed": 541000,
           "rate": 29
         },
-        "taxYear": 2027
+        "taxYear": 2027,
+        "source": {
+          "id": "income-tax-slabs",
+          "effectiveFrom": "2026-07-01",
+          "effectiveTo": "2027-06-30",
+          "sourceReference": "Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2), as substituted by the Finance Act 2026",
+          "sourceUrl": "https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf"
+        }
       }
     }
   ]

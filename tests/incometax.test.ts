@@ -43,6 +43,15 @@ describe('calculateSalaryTax', () => {
       effectiveRate: 4,
       slab: { over: 1200000, upTo: 2200000, fixed: 6000, rate: 11 },
       taxYear: 2026,
+      source: {
+        id: 'income-tax-slabs',
+        effectiveFrom: '2025-07-01',
+        effectiveTo: '2026-06-30',
+        sourceReference: expect.stringContaining('Finance Act 2025'),
+        sourceUrl: expect.stringMatching(
+          /^https:\/\/download1\.fbr\.gov\.pk\//,
+        ),
+      },
     });
     expect(calculateSalaryTax(1_800_000, { taxYear: 2025 })?.tax).toBe(120000);
     expect(calculateSalaryTax(8_000_000, { taxYear: 2027 })?.tax).toBe(1774000);

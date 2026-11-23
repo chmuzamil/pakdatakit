@@ -7,7 +7,8 @@ updated 24 July 2025), and PRAL's "Error Message Guide (Sales)"; see DATA.md.
 Nothing here talks to FBR: there is no HTTP client and no token handling.
 Values that only FBR's reference APIs can confirm (provinces, HS codes, units,
 rates, sale types, SRO numbers) are checked for presence, not against FBR's
-lists.
+lists, unless the app passes the lists it synced from those APIs
+(``validate_fbr_invoice(invoice, reference=...)``).
 
 The invoice is a plain ``dict`` with the camelCase keys FBR expects, so it can
 be sent with ``json.dumps`` as is. The ``TypedDict`` classes below describe it.
@@ -17,8 +18,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Literal, Optional, TypedDict
+from typing import Any, Dict, List, Literal, Optional, Set, TypedDict
 
+from ._data import load
 from ._internal.js import WS, is_finite, is_number, number_to_string, to_fixed, trim
 from ._internal.money import divide_half_up, from_paisa, to_units
 from ._internal.normalize import normalize_key
@@ -36,6 +38,9 @@ __all__ = [
     "FbrInvoiceBuild",
     "FbrInvoiceError",
     "FbrInvoiceValidation",
+    "FbrInvoiceReference",
+    "FbrSaleType",
+    "get_sale_types",
     "expected_sales_tax",
     "build_fbr_invoice",
     "validate_fbr_invoice",
@@ -187,6 +192,62 @@ class FbrInvoiceValidation:
 
     valid: bool
     errors: List[FbrInvoiceError]
+
+
+class FbrInvoiceReference(TypedDict, total=False):
+    """Reference lists from FBR's own APIs (PRAL's ``/pdi/v1/provinces``,
+    ``/pdi/v1/uom``, ``/pdi/v2/HS_UOM``, sale types from
+    ``/pdi/v2/SaleTypeToRate`` ...), which an app syncs with its token. FBR's
+    APIs are authoritative; this library ships no copy of these lists. Every
+    key is optional, and only the lists given are checked."""
+
+    #: Province names as FBR lists them, e.g. ``["PUNJAB", "SINDH", ...]``.
+    provinces: List[str]
+    #: Sale type descriptions as FBR lists them.
+    saleTypes: List[str]
+    #: Unit of measure descriptions as FBR lists them.
+    uoms: List[str]
+    #: The units allowed for each HS code, as FBR's HS_UOM API returns them:
+    #: ``{"0101.2100": ["Numbers, pieces, units"]}``.
+    hsUom: Dict[str, List[str]]
+
+
+@dataclass(frozen=True)
+class FbrSaleType:
+    """A sale type as PRAL's specification names it, with its sandbox
+    scenarios. Returned by :func:`get_sale_types`."""
+
+    sale_type: str
+    #: The specification's sandbox scenarios (SN001-SN028) that use it.
+    scenario_ids: List[str]
+
+
+def get_sale_types() -> List[FbrSaleType]:
+    """The sale types named in PRAL's DI specification (v1.12, section 9,
+    "Scenarios for Sandbox Testing"), with the scenarios that use each.
+
+    FBR's full, current list comes from its reference API; this is a
+    convenience for building forms and tests, and :func:`validate_fbr_invoice`
+    does not reject a sale type that is not in it.
+
+    >>> get_sale_types()[0]
+    FbrSaleType(sale_type='Goods at Standard Rate (default)', scenario_ids=['SN001', 'SN002', 'SN026'])
+    """
+    return [
+        FbrSaleType(sale_type=t["saleType"], scenario_ids=list(t["scenarioIds"]))
+        for t in load("fbr-sale-types.json")
+    ]
+
+
+def _key_set(values: Any) -> Optional[Set[str]]:
+    """A reference list as a set of normalized keys, or ``None`` if it is not a list."""
+    if not isinstance(values, (list, tuple)):
+        return None
+    return {normalize_key(v) for v in values if isinstance(v, str)}
+
+
+def _reference_list(reference: Dict[Any, Any], camel: str, snake: str) -> Any:
+    return reference[camel] if camel in reference else reference.get(snake)
 
 
 _INVOICE_TYPES = ("Sale Invoice", "Debit Note")
@@ -389,7 +450,7 @@ def _valid_date(text: str) -> bool:
     return 1 <= m <= 12 and 1 <= d <= days[m - 1]
 
 
-def validate_fbr_invoice(invoice: Any, *, today: Any = None) -> FbrInvoiceValidation:
+def validate_fbr_invoice(invoice: Any, *, today: Any = None, reference: Any = None) -> FbrInvoiceValidation:
     """Checks an FBR digital invoice against the rules of PRAL's specification
     (v1.12) and Error Message Guide that need no call to FBR, and returns
     every problem with FBR's error code.
@@ -408,6 +469,15 @@ def validate_fbr_invoice(invoice: Any, *, today: Any = None) -> FbrInvoiceValida
     Not checked, because they need FBR's data: registration status, whether a
     province, HS code, unit, rate, sale type or SRO is in FBR's lists or fits
     the others, and the original invoice of a debit note.
+
+    Pass the lists your app syncs from FBR's reference APIs as ``reference``
+    (a :class:`FbrInvoiceReference` ``dict``: ``provinces``, ``saleTypes``,
+    ``uoms``, ``hsUom``; the snake_case keys ``sale_types`` and ``hs_uom``
+    work too) to check them: provinces (0073, 0074), sale types (0013), units
+    (0099) and, with ``hsUom``, that each HS code is listed (no code) and the
+    unit is allowed for it (0099). Matching ignores case and extra spaces.
+    Lists left out, or not given as lists, are not checked; FBR's APIs are
+    authoritative.
 
     ``invoice`` is a ``dict`` with FBR's camelCase keys; any value (untrusted
     JSON) is accepted. Returns :class:`FbrInvoiceValidation` (``valid``,
@@ -495,6 +565,15 @@ def validate_fbr_invoice(invoice: Any, *, today: Any = None) -> FbrInvoiceValida
         if not _is_text(scenario) or not _SCENARIO.match(scenario):
             add(None, "scenarioId", "Scenario ID must be SN001 to SN028")
 
+    # Reference lists synced from FBR's APIs (``reference``), if given.
+    ref: Dict[Any, Any] = reference if _is_object(reference) else {}
+    provinces = _key_set(ref.get("provinces"))
+    if provinces is not None:
+        for field, code, who in (("sellerProvince", "0073", "Seller"), ("buyerProvince", "0074", "Buyer")):
+            value = inv.get(field)
+            if _filled(value) and normalize_key(value) not in provinces:
+                add(code, field, f"{who} province is not in FBR's province list")
+
     # Items
     raw_items = inv.get("items")
     if not _is_array(raw_items) or len(raw_items) == 0:
@@ -505,6 +584,35 @@ def validate_fbr_invoice(invoice: Any, *, today: Any = None) -> FbrInvoiceValida
             add(None, f"items[{index}]", "Each item must be an object")
             continue
         _validate_item(raw, f"items[{index}].", add)
+
+    sale_types = _key_set(_reference_list(ref, "saleTypes", "sale_types"))
+    uoms = _key_set(ref.get("uoms"))
+    raw_hs_uom = _reference_list(ref, "hsUom", "hs_uom")
+    hs_uom: Optional[Dict[str, Set[str]]] = None
+    if _is_object(raw_hs_uom):
+        hs_uom = {}
+        for hs, units in raw_hs_uom.items():
+            allowed = _key_set(units)
+            hs_uom[normalize_key(hs if isinstance(hs, str) else str(hs))] = set() if allowed is None else allowed
+    if sale_types is not None or uoms is not None or hs_uom is not None:
+        for index, raw in enumerate(raw_items):
+            if not _is_object(raw):
+                continue
+            prefix = f"items[{index}]."
+            sale_type = raw.get("saleType")
+            if sale_types is not None and _filled(sale_type) and normalize_key(sale_type) not in sale_types:
+                add("0013", prefix + "saleType", "Sale type is not in FBR's sale type list")
+            uom = raw.get("uoM")
+            unit = normalize_key(uom) if _filled(uom) else None
+            if uoms is not None and unit is not None and unit not in uoms:
+                add("0099", prefix + "uoM", "Unit of measure is not in FBR's unit list")
+            hs_code = raw.get("hsCode")
+            if hs_uom is not None and _filled(hs_code):
+                allowed_units = hs_uom.get(normalize_key(hs_code))
+                if allowed_units is None:
+                    add(None, prefix + "hsCode", "HS code is not in FBR's HS code list")
+                elif unit is not None and unit not in allowed_units:
+                    add("0099", prefix + "uoM", "Unit of measure is not allowed for this HS code")
 
     return FbrInvoiceValidation(valid=len(errors) == 0, errors=errors)
 

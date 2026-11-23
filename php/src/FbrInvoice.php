@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PakDataKit;
 
+use PakDataKit\Internal\Data;
 use PakDataKit\Internal\Js;
 use PakDataKit\Internal\Money;
 
@@ -17,7 +18,8 @@ use PakDataKit\Internal\Money;
  * here talks to FBR: there is no HTTP client and no token handling. Values
  * that only FBR's reference APIs can confirm (provinces, HS codes, units,
  * rates, sale types, SRO numbers) are checked for presence, not against
- * FBR's lists.
+ * FBR's lists, unless the app passes the lists it synced from those APIs
+ * (`validate($invoice, ['reference' => [...]])`).
  *
  * An invoice is the JSON object FBR expects, with its camelCase keys: an
  * associative array (as `json_decode($json, true)` gives) or a `stdClass`
@@ -70,6 +72,38 @@ final class FbrInvoice
 
     /** Optional amounts of a line. */
     private const OPTIONAL_NUMBERS = ['extraTax', 'furtherTax', 'fedPayable', 'discount'];
+
+    /** @var list<FbrSaleType>|null */
+    private static ?array $saleTypes = null;
+
+    /**
+     * The sale types named in PRAL's DI specification (v1.12, section 9,
+     * "Scenarios for Sandbox Testing"), with the scenarios that use each.
+     * FBR's full, current list comes from its reference API; this is a
+     * convenience for building forms and tests, and validate() does not
+     * reject a sale type that is not in it.
+     *
+     * ```php
+     * FbrInvoice::getSaleTypes()[0];
+     * // FbrSaleType(saleType: 'Goods at Standard Rate (default)',
+     * //   scenarioIds: ['SN001', 'SN002', 'SN026'])
+     * ```
+     *
+     * @return list<FbrSaleType> In the specification's order.
+     */
+    public static function getSaleTypes(): array
+    {
+        if (self::$saleTypes === null) {
+            self::$saleTypes = array_map(
+                static fn (array $entry): FbrSaleType => new FbrSaleType(
+                    saleType: $entry['saleType'],
+                    scenarioIds: $entry['scenarioIds'],
+                ),
+                Data::load('fbr-sale-types'),
+            );
+        }
+        return self::$saleTypes;
+    }
 
     /**
      * The sales tax FBR expects on a line, in rupees, or null when the rate
@@ -165,11 +199,33 @@ final class FbrInvoice
      *
      * Not checked, because they need FBR's data: registration status, whether
      * a province, HS code, unit, rate, sale type or SRO is in FBR's lists or
-     * fits the others, and the original invoice of a debit note.
+     * fits the others, and the original invoice of a debit note. Pass the
+     * lists your app syncs from FBR's reference APIs as `reference` to check
+     * provinces, sale types, units and HS code/unit pairs against them; FBR's
+     * APIs are authoritative.
+     *
+     * Options:
+     * - `today` (string): `YYYY-MM-DD`, to reject invoices dated later (error
+     *   0043); not checked when left out
+     * - `reference` (array or object): lists synced from FBR's reference APIs
+     *   (PRAL's `/pdi/v1/provinces`, `/pdi/v1/uom`, `/pdi/v2/HS_UOM`, sale
+     *   types from `/pdi/v2/SaleTypeToRate` …). Each list given is checked,
+     *   ignoring case and extra spaces; lists left out are not:
+     *   - `provinces` (list of strings), e.g. `['PUNJAB', 'SINDH']`: the
+     *     seller (0073) and buyer (0074) province
+     *   - `saleTypes` (list of strings): each line's sale type (0013)
+     *   - `uoms` (list of strings): each line's unit of measure (0099)
+     *   - `hsUom` (map of HS code to a list of units), as FBR's HS_UOM API
+     *     returns them, e.g. `['0101.2100' => ['Numbers, pieces, units']]`:
+     *     each line's HS code must be listed (an error with no code) and its
+     *     unit allowed for it (0099)
+     *
+     * ```php
+     * FbrInvoice::validate($invoice, ['reference' => ['provinces' => ['PUNJAB', 'SINDH']]]);
+     * ```
      *
      * @param mixed $invoice The invoice (array or object), e.g. decoded JSON
-     * @param array{today?: string}|null $options `today` as `YYYY-MM-DD`, to
-     *   reject invoices dated later (error 0043); not checked when left out
+     * @param array{today?: mixed, reference?: mixed}|null $options See above
      * @return FbrInvoiceValidation Never throws.
      */
     public static function validate(mixed $invoice, ?array $options = null): FbrInvoiceValidation
@@ -266,6 +322,18 @@ final class FbrInvoice
             }
         }
 
+        // Reference lists synced from FBR's APIs (options.reference), if given.
+        $reference = self::fields($options['reference'] ?? null) ?? [];
+        $provinces = self::keySet($reference['provinces'] ?? null);
+        if ($provinces !== null) {
+            foreach ([['sellerProvince', '0073', 'Seller'], ['buyerProvince', '0074', 'Buyer']] as [$field, $code, $who]) {
+                $value = $get($field);
+                if (self::filled($value) && !isset($provinces[Js::normalizeKey($value)])) {
+                    $add($code, $field, $who . " province is not in FBR's province list");
+                }
+            }
+        }
+
         // Items
         $items = $get('items');
         if (!self::isList($items) || $items === []) {
@@ -281,7 +349,80 @@ final class FbrInvoice
             self::validateItem($item, 'items[' . $index . '].', $add);
         }
 
+        $saleTypes = self::keySet($reference['saleTypes'] ?? null);
+        $uoms = self::keySet($reference['uoms'] ?? null);
+        $hsUom = null;
+        $hsFields = self::mapFields($reference['hsUom'] ?? null);
+        if ($hsFields !== null) {
+            $hsUom = [];
+            foreach ($hsFields as $hs => $units) {
+                $hsUom[Js::normalizeKey((string) $hs)] = self::keySet($units) ?? [];
+            }
+        }
+        if ($saleTypes !== null || $uoms !== null || $hsUom !== null) {
+            foreach ($items as $index => $raw) {
+                $item = self::fields($raw);
+                if ($item === null) {
+                    continue;
+                }
+                $at = 'items[' . $index . '].';
+                $saleType = $item['saleType'] ?? null;
+                if ($saleTypes !== null && self::filled($saleType) && !isset($saleTypes[Js::normalizeKey($saleType)])) {
+                    $add('0013', $at . 'saleType', "Sale type is not in FBR's sale type list");
+                }
+                $uom = $item['uoM'] ?? null;
+                $unit = self::filled($uom) ? Js::normalizeKey($uom) : null;
+                if ($uoms !== null && $unit !== null && !isset($uoms[$unit])) {
+                    $add('0099', $at . 'uoM', "Unit of measure is not in FBR's unit list");
+                }
+                $hsCode = $item['hsCode'] ?? null;
+                if ($hsUom !== null && self::filled($hsCode)) {
+                    $allowed = $hsUom[Js::normalizeKey($hsCode)] ?? null;
+                    if ($allowed === null) {
+                        $add(null, $at . 'hsCode', "HS code is not in FBR's HS code list");
+                    } elseif ($unit !== null && !isset($allowed[$unit])) {
+                        $add('0099', $at . 'uoM', 'Unit of measure is not allowed for this HS code');
+                    }
+                }
+            }
+        }
+
         return new FbrInvoiceValidation($errors === [], $errors);
+    }
+
+    /**
+     * A reference list as a set of normalized keys (the strings in it), or
+     * null if it is not a list.
+     *
+     * @return array<string, true>|null
+     */
+    private static function keySet(mixed $list): ?array
+    {
+        if (!self::isList($list)) {
+            return null;
+        }
+        $keys = [];
+        foreach ($list as $value) {
+            if (is_string($value)) {
+                $keys[Js::normalizeKey($value)] = true;
+            }
+        }
+        return $keys;
+    }
+
+    /**
+     * The entries of a JSON object used as a map, such as `hsUom`: an
+     * object's public properties, or an array that is not a non-empty list
+     * (so an empty array is an empty map). Null for anything else.
+     *
+     * @return array<array-key, mixed>|null
+     */
+    private static function mapFields(mixed $value): ?array
+    {
+        if (is_array($value) && $value === []) {
+            return [];
+        }
+        return self::fields($value);
     }
 
     /**

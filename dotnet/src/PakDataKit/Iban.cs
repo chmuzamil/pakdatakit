@@ -38,6 +38,37 @@ public enum BankType
     Central,
 }
 
+/// <summary>Whether a bank still exists.</summary>
+public enum BankStatus
+{
+    /// <summary>The bank operates.</summary>
+    Active,
+
+    /// <summary>It merged into another bank (see <see cref="BankInfo.MergedInto"/>).</summary>
+    Merged,
+
+    /// <summary>It was liquidated.</summary>
+    Liquidated,
+}
+
+/// <summary>Who prints a bank's SWIFT/BIC code.</summary>
+public enum BankBicSource
+{
+    /// <summary>The State Bank of Pakistan (<c>sbp</c>).</summary>
+    Sbp,
+
+    /// <summary>The institution's own domain (<c>bank-site</c>).</summary>
+    BankSite,
+}
+
+/// <summary>Where a bank's SWIFT/BIC code is printed.</summary>
+/// <param name="BicSource">SBP or the institution's own domain.</param>
+/// <param name="Printed">The code as printed, e.g. <c>HABBPKKAXXX</c> or <c>MEZN PK KA</c>.</param>
+/// <param name="SourceUrl">The page or PDF that prints it.</param>
+/// <param name="Page">The PDF page, or <c>null</c> for a web page.</param>
+/// <param name="CheckedAt">When the source was checked (<c>YYYY-MM-DD</c>).</param>
+public sealed record BankSwiftSource(BankBicSource BicSource, string Printed, string SourceUrl, int? Page, string CheckedAt);
+
 /// <summary>A bank (or other institution) that issues Pakistani IBANs.</summary>
 /// <param name="Code">4-letter IBAN bank code (characters 5–8 of the IBAN).</param>
 /// <param name="Name">Current name of the institution.</param>
@@ -46,7 +77,33 @@ public enum BankType
 /// <param name="MergedInto">Code of the bank this one merged into, if it no longer exists.</param>
 /// <param name="AliasOf">Main code of the same bank, when this is an older code still in use.</param>
 public sealed record BankInfo(
-    string Code, string Name, BankType Type, bool Active, string? MergedInto, string? AliasOf);
+    string Code, string Name, BankType Type, bool Active, string? MergedInto, string? AliasOf)
+{
+    /// <summary><see cref="BankStatus.Active"/>, <see cref="BankStatus.Merged"/> (see <see cref="MergedInto"/>) or <see cref="BankStatus.Liquidated"/>.</summary>
+    public BankStatus Status { get; init; }
+
+    /// <summary>
+    /// The institution's official website (from SBP's lists of regulated
+    /// institutions, or its own site where SBP lists none or an old domain),
+    /// or <c>null</c> for a bank that no longer exists.
+    /// </summary>
+    public string? Website { get; init; }
+
+    /// <summary>What SBP's list gives, where it differs from <see cref="Website"/> (an older domain); otherwise <c>null</c>.</summary>
+    public string? WebsiteSbpListed { get; init; }
+
+    /// <summary>
+    /// The 8-character SWIFT/BIC code, only where SBP or the institution's
+    /// own website prints it; otherwise <c>null</c> (see <see cref="SwiftReason"/>).
+    /// </summary>
+    public string? Swift { get; init; }
+
+    /// <summary>Where <see cref="Swift"/> is printed, and when it was checked; <c>null</c> when it is not set.</summary>
+    public BankSwiftSource? SwiftSource { get; init; }
+
+    /// <summary>Why <see cref="Swift"/> is <c>null</c>, or <c>null</c> when it is set.</summary>
+    public string? SwiftReason { get; init; }
+}
 
 /// <summary>Pakistani IBAN validation and bank lookup.</summary>
 public static class Iban
@@ -57,7 +114,20 @@ public static class Iban
     private static readonly Lazy<IReadOnlyList<BankInfo>> BankList = new(() =>
         Data.Banks.Select(e => new BankInfo(
             e.Code, e.Name, Enum.Parse<BankType>(e.Type.Replace("-", ""), ignoreCase: true),
-            e.MergedInto is null && e.Active, e.MergedInto, e.AliasOf)).ToArray());
+            e.MergedInto is null && e.Active, e.MergedInto, e.AliasOf)
+        {
+            Status = e.Status switch
+            {
+                "merged" => BankStatus.Merged,
+                "liquidated" => BankStatus.Liquidated,
+                _ => BankStatus.Active,
+            },
+            Website = e.Website,
+            WebsiteSbpListed = e.WebsiteSbpListed,
+            Swift = e.Swift,
+            SwiftSource = e.SwiftSource,
+            SwiftReason = e.SwiftReason,
+        }).ToArray());
 
     private static readonly Lazy<Dictionary<string, BankInfo>> BankMap = new(() =>
     {

@@ -36,11 +36,26 @@ final class Cnic
      */
     private const JOIN = '(?:' . self::SPACE . '++|' . self::SPACE . '*+' . self::MARK . self::SPACE . '*+)';
 
+    /** One line break: CRLF, LF or CR. */
+    private const LINE_BREAK = '(?:\r\n|\r|\n)';
+
+    /**
+     * With `acrossLines`: what JOIN allows, or the same with one line break
+     * counting as a space (`35202\n1234567\n1`, `35202-\r\n1234567`). Only
+     * one line break per gap, so a blank line never joins groups.
+     */
+    private const JOIN_LINES = '(?:' . self::SPACE . '*+' . self::LINE_BREAK . self::SPACE . '*+(?:' . self::MARK . self::SPACE . '*+)?+'
+        . '|' . self::SPACE . '*+' . self::MARK . self::SPACE . '*+' . self::LINE_BREAK . self::SPACE . '*+'
+        . '|' . self::JOIN . ')';
+
     /** One digit group: an unbroken run of digits. */
     private const GROUP = '/' . self::ANY_DIGIT . '++/u';
 
     /** Digit groups joined as above, as long as the run goes. */
     private const DIGIT_RUN = '/' . self::ANY_DIGIT . '++(?:' . self::JOIN . self::ANY_DIGIT . '++)*+/u';
+
+    /** The same, joining across single line breaks (`acrossLines`). */
+    private const DIGIT_RUN_LINES = '/' . self::ANY_DIGIT . '++(?:' . self::JOIN_LINES . self::ANY_DIGIT . '++)*+/u';
 
     private const PROVINCES = [
         '1' => 'Khyber Pakhtunkhwa',
@@ -92,13 +107,14 @@ final class Cnic
      * in order. In each run of digit groups, consecutive whole groups that
      * add up to exactly 13 digits, starting with a province digit, are a
      * CNIC; the search goes on after it. A group is never split, so 13
-     * digits inside a longer unbroken number are never matched.
+     * digits inside a longer unbroken number are never matched. With
+     * `$acrossLines`, single line breaks join groups too.
      *
      * @return list<array{int, int}>
      */
-    private static function spans(string $text): array
+    private static function spans(string $text, bool $acrossLines = false): array
     {
-        if (!@preg_match_all(self::DIGIT_RUN, $text, $runs, PREG_OFFSET_CAPTURE)) {
+        if (!@preg_match_all($acrossLines ? self::DIGIT_RUN_LINES : self::DIGIT_RUN, $text, $runs, PREG_OFFSET_CAPTURE)) {
             return [];
         }
         $spans = [];
@@ -149,8 +165,11 @@ final class Cnic
      * `0300-1234567 35202-1234567-1` finds the CNIC. A group is never split,
      * so 13 digits inside a longer unbroken number (an IBAN, a card number)
      * never match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed.
-     * This matches everything Jaanch's own CNIC redaction does, except
-     * across line breaks.
+     *
+     * With `acrossLines: true`, a single line break (`\r\n`, `\r` or `\n`,
+     * with any spaces around it) also joins groups, so a CNIC written over
+     * several lines is found; a blank line never joins them. This can also
+     * join numbers on consecutive lines, such as a list of amounts.
      *
      * Accepting any grouping catches CNICs as people really type them, but
      * matches more that is not a CNIC: any 13 digits starting with 1-8 split
@@ -168,20 +187,25 @@ final class Cnic
      * // [CnicMatch(raw: '35202-1234567-1', digits: '3520212345671',
      * //   formatted: '35202-1234567-1', start: 6, end: 21)]
      * Cnic::findAll('id 352 0212 3456 71')[0]->digits; // '3520212345671'
+     * Cnic::findAll("CNIC\n35202\n1234567\n1", acrossLines: true)[0]->formatted;
+     * // '35202-1234567-1'
      * ```
      *
      * @param mixed $text Any text
+     * @param bool $acrossLines Also join digit groups across a single line
+     *   break, as if it were a space; a blank line never joins them. Default
+     *   false.
      * @return list<CnicMatch> The matches in order, or `[]` (also for a value
      *   that is not a string). Never throws.
      */
-    public static function findAll(mixed $text): array
+    public static function findAll(mixed $text, bool $acrossLines = false): array
     {
         if (!is_string($text)) {
             return [];
         }
         $text = mb_scrub($text, 'UTF-8');
         $found = [];
-        foreach (self::spans($text) as [$from, $to]) {
+        foreach (self::spans($text, $acrossLines) as [$from, $to]) {
             $raw = substr($text, $from, $to - $from);
             $digits = Js::replace('/[^0-9]/', '', Js::toAsciiDigits($raw));
             $start = mb_strlen(substr($text, 0, $from), 'UTF-8');
@@ -214,6 +238,8 @@ final class Cnic
      * // MaskedText(text: '***** ******* *', count: 1)
      * Cnic::mask('CNIC 352 0212 3456 71', replacement: '[CNIC removed]');
      * // MaskedText(text: 'CNIC [CNIC removed]', count: 1)
+     * Cnic::mask("35202\n1234567\n1", acrossLines: true);
+     * // MaskedText(text: "XXXXX\nXXXXXXX\nX", count: 1)
      * ```
      *
      * @param mixed $text Any text
@@ -222,18 +248,26 @@ final class Cnic
      * @param mixed $replacement The string that replaces each whole CNIC,
      *   separators included, e.g. `'[CNIC removed]'`. Takes precedence over
      *   `$mask`; anything that is not a string is ignored.
+     * @param bool $acrossLines Also find CNICs written across single line
+     *   breaks, as in findAll(). With `$mask` the line breaks stay; with
+     *   `$replacement` they are replaced with the rest of the CNIC. Default
+     *   false.
      * @return MaskedText The masked text and the number of CNICs masked. A
      *   value that is not a string gives `text: ''`, `count: 0`. Never throws.
      */
-    public static function mask(mixed $text, mixed $mask = 'X', mixed $replacement = null): MaskedText
-    {
+    public static function mask(
+        mixed $text,
+        mixed $mask = 'X',
+        mixed $replacement = null,
+        bool $acrossLines = false,
+    ): MaskedText {
         if (!is_string($text)) {
             return new MaskedText('', 0);
         }
         $mask = is_string($mask) ? $mask : 'X';
         $replacement = is_string($replacement) ? $replacement : null;
         $text = mb_scrub($text, 'UTF-8');
-        $spans = self::spans($text);
+        $spans = self::spans($text, $acrossLines);
         $out = '';
         $at = 0;
         foreach ($spans as [$from, $to]) {

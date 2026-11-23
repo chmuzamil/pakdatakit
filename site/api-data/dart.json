@@ -829,8 +829,8 @@
         {
           "kind": "function",
           "name": "findCNICs",
-          "signature": "List<CNICMatch> findCNICs(String text)",
-          "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nDigits are read in groups (unbroken runs of digits). Groups may be joined\nby any run of spaces or tabs, or by one mark (a hyphen or Unicode dash, a\ndot, a slash or an underscore) with any spaces around it: `35202 1234567\n1`, `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`,\n`35202 - 1234567 - 1`, `352 0212 3456 71`, `35202/1234567/1`. A line\nbreak never joins groups. A match is consecutive whole groups that add up\nto exactly 13 digits, starting with a province code (1-8); the search\ngoes on after each match, so `0300-1234567 35202-1234567-1` finds the\nCNIC. A group is never split, so 13 digits inside a longer unbroken\nnumber (an IBAN, a card number) never match. Digits may be ASCII, Urdu or\nArabic-Indic, even mixed. This matches everything Jaanch's own CNIC\nredaction does, except across line breaks.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8 split\ninto groups this way (an account, order or tracking number, table\ncolumns, a price list such as `8260 - 8048 - 2804 - 0`, a file name such\nas `IMG_20261123_12345`, or two shorter numbers written together) are\nfound. {@link validateCNIC} stays strict.\n\nOffsets are UTF-16 code units, so `text.substring(m.start, m.end)` is\n`m.raw`.\n\n```dart\nfindCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CNICMatch(raw: 35202-1234567-1, digits: 3520212345671,\n//   formatted: 35202-1234567-1, start: 6, end: 21)]\nfindCNICs('id 352 0212 3456 71').first.digits; // '3520212345671'\n```\n\nReturns the matches in order, or an empty list. Never throws.",
+          "signature": "List<CNICMatch> findCNICs(String text, {bool acrossLines = false})",
+          "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nDigits are read in groups (unbroken runs of digits). Groups may be joined\nby any run of spaces or tabs, or by one mark (a hyphen or Unicode dash, a\ndot, a slash or an underscore) with any spaces around it: `35202 1234567\n1`, `35202  1234567  1`, `35202 -1234567- 1`, `35202_1234567_1`,\n`35202 - 1234567 - 1`, `352 0212 3456 71`, `35202/1234567/1`. A line\nbreak joins groups only with {@link acrossLines} (below). A match is\nconsecutive whole groups that add up to exactly 13 digits, starting with\na province code (1-8); the search goes on after each match, so\n`0300-1234567 35202-1234567-1` finds the CNIC. A group is never split, so\n13 digits inside a longer unbroken number (an IBAN, a card number) never\nmatch. Digits may be ASCII, Urdu or Arabic-Indic, even mixed.\n\nWith {@link acrossLines} set to `true`, a single line break (`\\r\\n`, `\\r` or\n`\\n`, with any spaces around it) also joins groups, so a CNIC written over\nseveral lines is found; a blank line never joins them. This can also join\nnumbers on consecutive lines, such as a list of amounts. Default `false`.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8 split\ninto groups this way (an account, order or tracking number, table\ncolumns, a price list such as `8260 - 8048 - 2804 - 0`, a file name such\nas `IMG_20261123_12345`, or two shorter numbers written together) are\nfound. {@link validateCNIC} stays strict.\n\nOffsets are UTF-16 code units, so `text.substring(m.start, m.end)` is\n`m.raw`.\n\n```dart\nfindCNICs('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CNICMatch(raw: 35202-1234567-1, digits: 3520212345671,\n//   formatted: 35202-1234567-1, start: 6, end: 21)]\nfindCNICs('id 352 0212 3456 71').first.digits; // '3520212345671'\nfindCNICs('CNIC\\n35202\\n1234567\\n1', acrossLines: true).first.formatted;\n// '35202-1234567-1'\n```\n\nReturns the matches in order, or an empty list. Never throws.",
           "params": [
             {
               "name": "text",
@@ -838,6 +838,13 @@
               "default": null,
               "named": false,
               "required": true
+            },
+            {
+              "name": "acrossLines",
+              "type": "bool",
+              "default": "false",
+              "named": true,
+              "required": false
             }
           ],
           "returns": {
@@ -847,8 +854,8 @@
         {
           "kind": "function",
           "name": "maskCNICs",
-          "signature": "MaskedText maskCNICs(String text, {String mask = 'X', String? replacement})",
-          "doc": "Masks every CNIC in free text, as found by [findCNICs]: each digit\nbecomes {@link mask} and the separators stay, so `35202-1234567-1` becomes\n`XXXXX-XXXXXXX-X`. The rest of the text is unchanged.\n\nWith {@link replacement}, each whole CNIC is replaced by that text instead.\n\nLike {@link findCNICs}, it also masks any other 13 digits that start with\n1-8, however they are grouped.\n\n```dart\nmaskCNICs('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nmaskCNICs('35202 1234567 1', mask: '*');\n// MaskedText(text: '***** ******* *', count: 1)\nmaskCNICs('CNIC 352 0212 3456 71', replacement: '[CNIC removed]');\n// MaskedText(text: 'CNIC [CNIC removed]', count: 1)\n```\n\n{@link mask} is the string that replaces each digit (default `'X'`);\n{@link replacement}, when given, is the string that replaces each whole CNIC,\nseparators included, and takes precedence over {@link mask}. Returns the\nmasked text and the number of CNICs masked. Never throws.",
+          "signature": "MaskedText maskCNICs(\n  String text, {\n  String mask = 'X',\n  String? replacement,\n  bool acrossLines = false,\n})",
+          "doc": "Masks every CNIC in free text, as found by [findCNICs]: each digit\nbecomes {@link mask} and the separators stay, so `35202-1234567-1` becomes\n`XXXXX-XXXXXXX-X`. The rest of the text is unchanged.\n\nWith {@link replacement}, each whole CNIC is replaced by that text instead.\n\nLike {@link findCNICs}, it also masks any other 13 digits that start with\n1-8, however they are grouped.\n\n```dart\nmaskCNICs('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nmaskCNICs('35202 1234567 1', mask: '*');\n// MaskedText(text: '***** ******* *', count: 1)\nmaskCNICs('CNIC 352 0212 3456 71', replacement: '[CNIC removed]');\n// MaskedText(text: 'CNIC [CNIC removed]', count: 1)\n```\n\n{@link mask} is the string that replaces each digit (default `'X'`);\n{@link replacement}, when given, is the string that replaces each whole CNIC,\nseparators included, and takes precedence over {@link mask}. {@link acrossLines}\nalso finds CNICs written across single line breaks, as in {@link findCNICs};\nwith {@link mask} the line breaks stay, with {@link replacement} they are replaced\nwith the rest of the CNIC (default `false`). Returns the masked text and\nthe number of CNICs masked. Never throws.",
           "params": [
             {
               "name": "text",
@@ -868,6 +875,13 @@
               "name": "replacement",
               "type": "String?",
               "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "acrossLines",
+              "type": "bool",
+              "default": "false",
               "named": true,
               "required": false
             }
@@ -1054,6 +1068,416 @@
           ],
           "returns": {
             "type": "String?"
+          }
+        }
+      ]
+    },
+    {
+      "id": "data-info",
+      "name": "package:pakdatakit/data_info.dart",
+      "import": "import 'package:pakdatakit/data_info.dart';",
+      "source": "dart/lib/src/data_info.dart",
+      "doc": "Where each bundled dataset comes from: issuer, official source, dates,\ncoverage and when it is next expected to change; and the {@link DataSource}\nthat dated results carry.\n\nSame as the `pakdatakit/data-info` entry point of the npm package.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "DataInfo",
+          "signature": "class DataInfo",
+          "doc": "Where a dataset comes from and which period it covers: one entry of\n`data/manifest.json`. Result of {@link getDataInfo} and {@link listDataInfo}.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "String",
+              "default": null,
+              "doc": "The dataset's id, e.g. `income-tax-slabs`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "file",
+              "type": "String",
+              "default": null,
+              "doc": "Its file in `data/`, e.g. `income-tax-slabs.json`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "title",
+              "type": "String",
+              "default": null,
+              "doc": "What the dataset is, e.g. `Landline area codes`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "issuer",
+              "type": "String",
+              "default": null,
+              "doc": "The body that publishes the source, e.g.\n`Federal Board of Revenue (FBR)`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceUrl",
+              "type": "String",
+              "default": null,
+              "doc": "The official document or page the data is taken from.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceReference",
+              "type": "String",
+              "default": null,
+              "doc": "Its number or title: an SRO, circular, notification or table.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceDate",
+              "type": "String?",
+              "default": null,
+              "doc": "When the source was issued (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`), or\n`null` if it is undated.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "retrievedAt",
+              "type": "String",
+              "default": null,
+              "doc": "When the source was last downloaded (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "checkedAt",
+              "type": "String",
+              "default": null,
+              "doc": "When the data was last checked against the source (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveFrom",
+              "type": "String",
+              "default": null,
+              "doc": "First date the data applies to (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveTo",
+              "type": "String?",
+              "default": null,
+              "doc": "Last date it applies to, or `null` while it is current.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "coverage",
+              "type": "String",
+              "default": null,
+              "doc": "What it covers, e.g. `Tax years 2020-2027`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "recordCount",
+              "type": "int",
+              "default": null,
+              "doc": "Number of records in the file.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nextExpectedUpdate",
+              "type": "String",
+              "default": null,
+              "doc": "When the source is next expected to change (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "updateCadence",
+              "type": "String",
+              "default": null,
+              "doc": "What triggers an update, e.g. `After the Finance Act each July`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "notes",
+              "type": "String",
+              "default": null,
+              "doc": "Anything else worth knowing about the source.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "DataInfo",
+              "signature": "const DataInfo({\n  required String id,\n  required String file,\n  required String title,\n  required String issuer,\n  required String sourceUrl,\n  required String sourceReference,\n  required String? sourceDate,\n  required String retrievedAt,\n  required String checkedAt,\n  required String effectiveFrom,\n  required String? effectiveTo,\n  required String coverage,\n  required int recordCount,\n  required String nextExpectedUpdate,\n  required String updateCadence,\n  required String notes,\n})",
+              "doc": "Creates a data info value.",
+              "params": [
+                {
+                  "name": "id",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "file",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "title",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "issuer",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "sourceUrl",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "sourceReference",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "sourceDate",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "retrievedAt",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "checkedAt",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "effectiveFrom",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "effectiveTo",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "coverage",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "recordCount",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "nextExpectedUpdate",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "updateCadence",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "notes",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "DataSource",
+          "signature": "class DataSource",
+          "doc": "The source of the dated record a result was calculated from: which\ndataset, the period that record applies to, and the law or notification\nbehind it.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "String",
+              "default": null,
+              "doc": "The dataset's id, as in {@link getDataInfo}.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveFrom",
+              "type": "String",
+              "default": null,
+              "doc": "First date the record applies to (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveTo",
+              "type": "String?",
+              "default": null,
+              "doc": "Last date it applies to, or `null` while it is current.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceReference",
+              "type": "String",
+              "default": null,
+              "doc": "The law, SRO, circular or notification, as written in the source.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceUrl",
+              "type": "String",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "DataSource",
+              "signature": "const DataSource({\n  required String id,\n  required String effectiveFrom,\n  required String? effectiveTo,\n  required String sourceReference,\n  required String sourceUrl,\n})",
+              "doc": "Creates a data source value.",
+              "params": [
+                {
+                  "name": "id",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "effectiveFrom",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "effectiveTo",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "sourceReference",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "sourceUrl",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "getDataInfo",
+          "signature": "DataInfo? getDataInfo(String id)",
+          "doc": "Where a bundled dataset comes from: the issuer, the official source and\nits reference and date, when it was checked, the period it covers, its\nrecord count and when it is next expected to change.\n\n{@link id} is a dataset id, such as `banks`, `income-tax-slabs` or\n`sales-tax-rates` (see {@link listDataInfo}); it is matched exactly.\n\nReturns the manifest entry, or `null` for an unknown id. Never throws.\n\n```dart\ngetDataInfo('income-tax-slabs')?.coverage; // 'Tax years 2020-2027'\ngetDataInfo('income-tax-slabs')?.nextExpectedUpdate; // '2027-07-15'\n```",
+          "params": [
+            {
+              "name": "id",
+              "type": "String",
+              "default": null,
+              "named": false,
+              "required": true
+            }
+          ],
+          "returns": {
+            "type": "DataInfo?"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "listDataInfo",
+          "signature": "List<DataInfo> listDataInfo()",
+          "doc": "Every bundled dataset's manifest entry, as {@link getDataInfo} returns them,\nin id order. Never throws.\n\n```dart\nlistDataInfo().map((d) => d.id); // (area-codes, banks, ...)\n```",
+          "params": [],
+          "returns": {
+            "type": "List<DataInfo>"
           }
         }
       ]
@@ -1528,6 +1952,164 @@
           ]
         },
         {
+          "kind": "class",
+          "name": "FbrInvoiceReference",
+          "signature": "class FbrInvoiceReference",
+          "doc": "Reference lists from FBR's own APIs (PRAL's `/pdi/v1/provinces`,\n`/pdi/v1/uom`, `/pdi/v2/HS_UOM`, sale types from `/pdi/v2/SaleTypeToRate`\n...), which an app syncs with its token, for\n`validateFbrInvoice(invoice, reference: ...)`. FBR's APIs are\nauthoritative; this library ships no copy of these lists.\n\nEach list given is checked; a list left out (`null`) is not. Values are\ncompared ignoring case and extra whitespace.",
+          "fields": [
+            {
+              "name": "provinces",
+              "type": "List<String>?",
+              "default": null,
+              "doc": "Province names as FBR lists them, e.g. `['PUNJAB', 'SINDH', ...]`.\nChecks `sellerProvince` (0073) and `buyerProvince` (0074).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "saleTypes",
+              "type": "List<String>?",
+              "default": null,
+              "doc": "Sale type descriptions as FBR lists them. Checks each item's\n`saleType` (0013).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "uoms",
+              "type": "List<String>?",
+              "default": null,
+              "doc": "Unit of measure descriptions as FBR lists them. Checks each item's\n`uoM` (0099).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "hsUom",
+              "type": "Map<String, List<String>>?",
+              "default": null,
+              "doc": "The units allowed for each HS code, as FBR's HS_UOM API returns them:\n`{'0101.2100': ['Numbers, pieces, units']}`. An item's `hsCode` must be\nlisted (an error with no code) and its `uoM` allowed for it (0099).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "FbrInvoiceReference",
+              "signature": "const FbrInvoiceReference({\n  List<String>? provinces,\n  List<String>? saleTypes,\n  List<String>? uoms,\n  Map<String, List<String>>? hsUom,\n})",
+              "doc": "Creates reference lists; give only the ones to check.",
+              "params": [
+                {
+                  "name": "provinces",
+                  "type": "List<String>?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "saleTypes",
+                  "type": "List<String>?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "uoms",
+                  "type": "List<String>?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "hsUom",
+                  "type": "Map<String, List<String>>?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "FbrSaleType",
+          "signature": "class FbrSaleType",
+          "doc": "A sale type as PRAL's specification names it, with its sandbox\nscenarios. Result of {@link getSaleTypes}.",
+          "fields": [
+            {
+              "name": "saleType",
+              "type": "String",
+              "default": null,
+              "doc": "The sale type, e.g. `Goods at Standard Rate (default)`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "scenarioIds",
+              "type": "List<String>",
+              "default": null,
+              "doc": "The specification's sandbox scenarios (`SN001`-`SN028`) that use it.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "FbrSaleType",
+              "signature": "const FbrSaleType({required String saleType, required List<String> scenarioIds})",
+              "doc": "Creates a sale type value.",
+              "params": [
+                {
+                  "name": "saleType",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "scenarioIds",
+                  "type": "List<String>",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "getSaleTypes",
+          "signature": "List<FbrSaleType> getSaleTypes()",
+          "doc": "The sale types named in PRAL's DI specification (v1.12, section 9,\n\"Scenarios for Sandbox Testing\"), with the scenarios that use each.\n\nFBR's full, current list comes from its reference API; this is a\nconvenience for building forms and tests, and {@link validateFbrInvoice} does\nnot reject a sale type that is not in it. Never throws.\n\n```dart\ngetSaleTypes().first;\n// FbrSaleType{saleType: Goods at Standard Rate (default),\n//   scenarioIds: [SN001, SN002, SN026]}\n```",
+          "params": [],
+          "returns": {
+            "type": "List<FbrSaleType>"
+          }
+        },
+        {
           "kind": "function",
           "name": "expectedSalesTax",
           "signature": "double? expectedSalesTax(Object? item)",
@@ -1566,8 +2148,8 @@
         {
           "kind": "function",
           "name": "validateFbrInvoice",
-          "signature": "FbrInvoiceValidation validateFbrInvoice(Object? invoice, {String? today})",
-          "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns every\nproblem with FBR's error code.\n\n{@link invoice} is an [FbrInvoice]: a JSON map, e.g. from `jsonDecode` or\n{@link buildFbrInvoice}. Anything else gives one error. Give {@link today}\n(`YYYY-MM-DD`) to reject invoices dated later (error 0043); it is not\nchecked otherwise.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith {@link today}, a future date (0043); seller and buyer NTN/CNIC (0401, 0402,\n0009), self-invoicing (0058), names, provinces (0073, 0074), addresses,\nbuyer registration type (0012), the reference number of a debit note\n(0026), the sandbox scenario, and on each line: HS code (0044), rate\n(0020), unit, sale type (0013), required and valid amounts (0021, 0023,\n0024, 0098, 0300, 0302), SRO schedule and serial (0077, 0078), Third\nSchedule retail price (0090), extra tax on reduced-rate goods (0091) and\nthe sales tax arithmetic (0102, 0104, 0105, to within one paisa).\n\nNot checked, because they need FBR's data: registration status, whether a\nprovince, HS code, unit, rate, sale type or SRO is in FBR's lists or fits\nthe others, and the original invoice of a debit note.\n\nNever throws.\n\n```dart\nvalidateFbrInvoice(invoice); // FbrInvoiceValidation{valid: true, errors: []}\nvalidateFbrInvoice({...invoice, 'invoiceDate': '21-04-2025'}).errors.first;\n// FbrInvoiceError{code: 0005, field: invoiceDate,\n//   message: Invoice date must be in YYYY-MM-DD format}\n```",
+          "signature": "FbrInvoiceValidation validateFbrInvoice(\n  Object? invoice, {\n  String? today,\n  FbrInvoiceReference? reference,\n})",
+          "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns every\nproblem with FBR's error code.\n\n{@link invoice} is an [FbrInvoice]: a JSON map, e.g. from `jsonDecode` or\n{@link buildFbrInvoice}. Anything else gives one error. Give {@link today}\n(`YYYY-MM-DD`) to reject invoices dated later (error 0043); it is not\nchecked otherwise.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith {@link today}, a future date (0043); seller and buyer NTN/CNIC (0401, 0402,\n0009), self-invoicing (0058), names, provinces (0073, 0074), addresses,\nbuyer registration type (0012), the reference number of a debit note\n(0026), the sandbox scenario, and on each line: HS code (0044), rate\n(0020), unit, sale type (0013), required and valid amounts (0021, 0023,\n0024, 0098, 0300, 0302), SRO schedule and serial (0077, 0078), Third\nSchedule retail price (0090), extra tax on reduced-rate goods (0091) and\nthe sales tax arithmetic (0102, 0104, 0105, to within one paisa).\n\nNot checked, because they need FBR's data: registration status, whether a\nprovince, HS code, unit, rate, sale type or SRO is in FBR's lists or fits\nthe others, and the original invoice of a debit note. Pass the lists your\napp syncs from FBR's reference APIs as {@link reference} to check provinces\n(0073, 0074), sale types (0013), units (0099) and HS code/unit pairs\nagainst them (an HS code that is not listed has no code; a unit not\nallowed for it is 0099); lists left out are not checked. FBR's APIs are\nauthoritative.\n\nNever throws.\n\n```dart\nvalidateFbrInvoice(invoice); // FbrInvoiceValidation{valid: true, errors: []}\nvalidateFbrInvoice({...invoice, 'invoiceDate': '21-04-2025'}).errors.first;\n// FbrInvoiceError{code: 0005, field: invoiceDate,\n//   message: Invoice date must be in YYYY-MM-DD format}\nvalidateFbrInvoice(\n  invoice,\n  reference: const FbrInvoiceReference(provinces: ['PUNJAB', 'SINDH']),\n).valid; // true when both provinces are in the list\n```",
           "params": [
             {
               "name": "invoice",
@@ -1579,6 +2161,13 @@
             {
               "name": "today",
               "type": "String?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "reference",
+              "type": "FbrInvoiceReference?",
               "default": null,
               "named": true,
               "required": false
@@ -2611,10 +3200,230 @@
           ]
         },
         {
+          "kind": "enum",
+          "name": "BankStatus",
+          "signature": "enum BankStatus",
+          "doc": "Whether a bank still exists. See {@link BankInfo.status}.",
+          "fields": [
+            {
+              "name": "value",
+              "type": "String",
+              "default": null,
+              "doc": "The value used by the npm package.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "values": [
+            {
+              "name": "active",
+              "doc": "Operating."
+            },
+            {
+              "name": "merged",
+              "doc": "Merged into another bank (see {@link BankInfo.mergedInto})."
+            },
+            {
+              "name": "liquidated",
+              "doc": "Liquidated."
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "String toJson()",
+              "doc": "Returns {@link value}.",
+              "params": [],
+              "returns": {
+                "type": "String"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fromValue",
+              "signature": "static BankStatus fromValue(String value)",
+              "doc": "The status whose {@link value} is {@link value}.",
+              "params": [
+                {
+                  "name": "value",
+                  "type": "String",
+                  "default": null,
+                  "named": false,
+                  "required": true
+                }
+              ],
+              "returns": {
+                "type": "BankStatus"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "enum",
+          "name": "BankBicSource",
+          "signature": "enum BankBicSource",
+          "doc": "Where a bank's SWIFT/BIC code is printed. See {@link BankInfo.swiftSource}.",
+          "fields": [
+            {
+              "name": "value",
+              "type": "String",
+              "default": null,
+              "doc": "The value used by the npm package.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "values": [
+            {
+              "name": "sbp",
+              "doc": "The State Bank of Pakistan."
+            },
+            {
+              "name": "bankSite",
+              "doc": "The institution's own website (its own domain)."
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "String toJson()",
+              "doc": "Returns {@link value}.",
+              "params": [],
+              "returns": {
+                "type": "String"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "fromValue",
+              "signature": "static BankBicSource fromValue(String value)",
+              "doc": "The source whose {@link value} is {@link value}.",
+              "params": [
+                {
+                  "name": "value",
+                  "type": "String",
+                  "default": null,
+                  "named": false,
+                  "required": true
+                }
+              ],
+              "returns": {
+                "type": "BankBicSource"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "BankSwiftSource",
+          "signature": "class BankSwiftSource",
+          "doc": "Where a bank's SWIFT/BIC code is printed, and when it was checked.",
+          "fields": [
+            {
+              "name": "bicSource",
+              "type": "BankBicSource",
+              "default": null,
+              "doc": "SBP or the institution's own website.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "printed",
+              "type": "String",
+              "default": null,
+              "doc": "The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceUrl",
+              "type": "String",
+              "default": null,
+              "doc": "The document or page that prints it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "page",
+              "type": "int?",
+              "default": null,
+              "doc": "The PDF page, or `null` for a web page.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "checkedAt",
+              "type": "String",
+              "default": null,
+              "doc": "When the source was checked (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "BankSwiftSource",
+              "signature": "const BankSwiftSource({\n  required BankBicSource bicSource,\n  required String printed,\n  required String sourceUrl,\n  int? page,\n  required String checkedAt,\n})",
+              "doc": "Creates a SWIFT source value.",
+              "params": [
+                {
+                  "name": "bicSource",
+                  "type": "BankBicSource",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "printed",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "sourceUrl",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "page",
+                  "type": "int?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "checkedAt",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
           "kind": "class",
           "name": "BankInfo",
           "signature": "class BankInfo",
-          "doc": "A bank (or other institution) that issues Pakistani IBANs.",
+          "doc": "A bank (or other institution) that issues Pakistani IBANs.\n\nValues are immutable, so each result can be kept or passed on without\nchanging the shared data.",
           "fields": [
             {
               "name": "code",
@@ -2663,13 +3472,61 @@
               "doc": "Main code of the same bank, when this is an older code still in use.",
               "static": false,
               "readonly": true
+            },
+            {
+              "name": "status",
+              "type": "BankStatus",
+              "default": null,
+              "doc": "Active, merged (see {@link mergedInto}) or liquidated.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "website",
+              "type": "String?",
+              "default": null,
+              "doc": "The institution's official website (from SBP's lists of regulated\ninstitutions, or its own site where SBP lists none or an old domain),\nor `null` for a bank that no longer exists.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "websiteSbpListed",
+              "type": "String?",
+              "default": null,
+              "doc": "What SBP's list gives, where it differs from {@link website} (an older\ndomain); otherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swift",
+              "type": "String?",
+              "default": null,
+              "doc": "The 8-character SWIFT/BIC code, only where SBP or the institution's own\nwebsite prints it; otherwise `null` (see {@link swiftReason}).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swiftSource",
+              "type": "BankSwiftSource?",
+              "default": null,
+              "doc": "Where {@link swift} is printed, and when it was checked; `null` without one.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swiftReason",
+              "type": "String?",
+              "default": null,
+              "doc": "Why {@link swift} is `null`, or `null` when it is set.",
+              "static": false,
+              "readonly": true
             }
           ],
           "methods": [
             {
               "kind": "constructor",
               "name": "BankInfo",
-              "signature": "const BankInfo({\n  required String code,\n  required String name,\n  required BankType type,\n  required bool active,\n  String? mergedInto,\n  String? aliasOf,\n})",
+              "signature": "const BankInfo({\n  required String code,\n  required String name,\n  required BankType type,\n  required bool active,\n  String? mergedInto,\n  String? aliasOf,\n  BankStatus status = BankStatus.active,\n  String? website,\n  String? websiteSbpListed,\n  String? swift,\n  BankSwiftSource? swiftSource,\n  String? swiftReason,\n})",
               "doc": "Creates a bank info value.",
               "params": [
                 {
@@ -2709,6 +3566,48 @@
                 },
                 {
                   "name": "aliasOf",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "status",
+                  "type": "BankStatus",
+                  "default": "BankStatus.active",
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "website",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "websiteSbpListed",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "swift",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "swiftSource",
+                  "type": "BankSwiftSource?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "swiftReason",
                   "type": "String?",
                   "default": null,
                   "named": true,
@@ -2769,7 +3668,7 @@
           "kind": "function",
           "name": "getBankInfo",
           "signature": "BankInfo? getBankInfo(String ibanOrCode)",
-          "doc": "Returns details of the bank that issued an IBAN: name, type (commercial,\nIslamic, microfinance, digital bank, wallet …) and whether it still\nexists. Also accepts a 4-letter bank code on its own, such as `MEZN`.\n\nReturns `null` if the IBAN is invalid or the code unknown.",
+          "doc": "Returns details of the bank that issued an IBAN: name, type (commercial,\nIslamic, microfinance, digital bank, wallet …), whether it still\nexists ({@link BankInfo.status}), its official website and its SWIFT/BIC code\nwhere SBP or the bank's own website prints it. Also accepts a 4-letter\nbank code on its own, such as `MEZN`.\n\n```dart\ngetBankInfo('PK36SCBL0000001123456702');\n// BankInfo{code: SCBL, name: Standard Chartered Bank (Pakistan) Limited,\n//   type: commercial, active: true, mergedInto: null, aliasOf: null,\n//   status: active, website: https://www.sc.com/pk/,\n//   websiteSbpListed: standardchartered.com.pk, swift: SCBLPKKX,\n//   swiftSource: {bicSource: bank-site, ...}, swiftReason: null}\ngetBankInfo('SADA')?.type; // BankType.emi\n```\n\nReturns `null` if the IBAN is invalid or the code unknown. Never throws.",
           "params": [
             {
               "name": "ibanOrCode",
@@ -3175,13 +4074,21 @@
               "doc": "The tax year used.",
               "static": false,
               "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource?",
+              "default": null,
+              "doc": "The rate table used: its tax year's dates, law and official source\n(dataset `income-tax-slabs`). Always set by {@link calculateSalaryTax} and\n{@link calculateMonthlySalaryTax}.",
+              "static": false,
+              "readonly": true
             }
           ],
           "methods": [
             {
               "kind": "constructor",
               "name": "SalaryTax",
-              "signature": "const SalaryTax({\n  required double tax,\n  double surcharge = 0,\n  double? total,\n  required double monthly,\n  required double effectiveRate,\n  required SalaryTaxSlab slab,\n  required int taxYear,\n})",
+              "signature": "const SalaryTax({\n  required double tax,\n  double surcharge = 0,\n  double? total,\n  required double monthly,\n  required double effectiveRate,\n  required SalaryTaxSlab slab,\n  required int taxYear,\n  DataSource? source,\n})",
               "doc": "Creates a salary tax value.",
               "params": [
                 {
@@ -3232,6 +4139,13 @@
                   "default": null,
                   "named": true,
                   "required": true
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource?",
+                  "default": null,
+                  "named": true,
+                  "required": false
                 }
               ],
               "returns": null
@@ -3298,7 +4212,7 @@
           "kind": "function",
           "name": "calculateSalaryTax",
           "signature": "SalaryTax? calculateSalaryTax(\n  num annualIncome, {\n  int? taxYear,\n  Object? date,\n  bool includeSurcharge = false,\n})",
-          "doc": "Income tax on a salaried individual's taxable income for a tax year, from\nthe salaried rate table (see {@link getSalaryTaxSlabs}).\n\n{@link annualIncome} is the taxable income for the year in rupees, 0 to 1\ntrillion (at most 2 decimals count). {@link taxYear} takes precedence over\n{@link date} (a `YYYY-MM-DD` {@link String} or a {@link DateTime} in the tax year); with\nneither, the current tax year is used. The npm `SalaryTaxOptions` object\nis these named parameters.\n\nWith {@link includeSurcharge} set to `true` it adds the section 4AB surcharge:\na percentage of the whole tax once taxable income exceeds Rs 10 million\n(10% in tax year 2025, 9% for salaried individuals in 2026, none in 2027\nor before 2025). Because it applies to the whole tax, one rupee over\nRs 10 million adds it in full. It is off by default in 2.x so that\nexisting results do not change, and will be on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice.\n\nReturns `null` for an invalid amount or date, or a tax year that is not\ncovered. Never throws.\n\n```dart\ncalculateSalaryTax(1800000, taxYear: 2026);\n// SalaryTax{tax: 72000.0, surcharge: 0.0, total: 72000.0,\n//   monthly: 6000.0, effectiveRate: 4.0,\n//   slab: {over: 1200000, upTo: 2200000, fixed: 6000, rate: 11.0},\n//   taxYear: 2026}\ncalculateSalaryTax(12000000, taxYear: 2026, includeSurcharge: true);\n// SalaryTax{tax: 3381000.0, surcharge: 304290.0, total: 3685290.0,\n//   monthly: 307107.5, ...}\n```",
+          "doc": "Income tax on a salaried individual's taxable income for a tax year, from\nthe salaried rate table (see {@link getSalaryTaxSlabs}).\n\n{@link annualIncome} is the taxable income for the year in rupees, 0 to 1\ntrillion (at most 2 decimals count). {@link taxYear} takes precedence over\n{@link date} (a `YYYY-MM-DD` {@link String} or a {@link DateTime} in the tax year); with\nneither, the current tax year is used. The npm `SalaryTaxOptions` object\nis these named parameters.\n\nWith {@link includeSurcharge} set to `true` it adds the section 4AB surcharge:\na percentage of the whole tax once taxable income exceeds Rs 10 million\n(10% in tax year 2025, 9% for salaried individuals in 2026, none in 2027\nor before 2025). Because it applies to the whole tax, one rupee over\nRs 10 million adds it in full. It is off by default in 2.x so that\nexisting results do not change, and will be on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice.\n\nReturns `null` for an invalid amount or date, or a tax year that is not\ncovered. Never throws.\n\n```dart\ncalculateSalaryTax(1800000, taxYear: 2026);\n// SalaryTax{tax: 72000.0, surcharge: 0.0, total: 72000.0,\n//   monthly: 6000.0, effectiveRate: 4.0,\n//   slab: {over: 1200000, upTo: 2200000, fixed: 6000, rate: 11.0},\n//   taxYear: 2026, source: {id: income-tax-slabs,\n//   effectiveFrom: 2025-07-01, ...}}\ncalculateSalaryTax(12000000, taxYear: 2026, includeSurcharge: true);\n// SalaryTax{tax: 3381000.0, surcharge: 304290.0, total: 3685290.0,\n//   monthly: 307107.5, ...}\n```",
           "params": [
             {
               "name": "annualIncome",
@@ -4042,6 +4956,446 @@
           ],
           "returns": {
             "type": "PhoneAnalysis"
+          }
+        }
+      ]
+    },
+    {
+      "id": "population",
+      "name": "package:pakdatakit/population.dart",
+      "import": "import 'package:pakdatakit/population.dart';",
+      "source": "dart/lib/src/population.dart",
+      "doc": "District and tehsil population, households and urban/rural split from\nPakistan's 2023 census.\n\nSame as the `pakdatakit/population` entry point of the npm package.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "DistrictPopulation",
+          "signature": "class DistrictPopulation",
+          "doc": "Result of [getDistrictPopulation]: a district's 2023 census counts.",
+          "fields": [
+            {
+              "name": "district",
+              "type": "String",
+              "default": null,
+              "doc": "The district, as in `getDistrictsByProvince`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "String",
+              "default": null,
+              "doc": "Its province or territory.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "population",
+              "type": "int?",
+              "default": null,
+              "doc": "Total population (all sexes), or `null` where the census has no figure.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "households",
+              "type": "int?",
+              "default": null,
+              "doc": "Households, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "urban",
+              "type": "int?",
+              "default": null,
+              "doc": "Urban population, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rural",
+              "type": "int?",
+              "default": null,
+              "doc": "Rural population, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "censusDistrict",
+              "type": "String?",
+              "default": null,
+              "doc": "The census district the figures belong to. For a district created\nafter the census, the one its area was part of (its own figures are\n`null`); `null` in Gilgit-Baltistan and Azad Jammu and Kashmir, which\nthe census did not cover.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "boundaryChanged",
+              "type": "bool",
+              "default": null,
+              "doc": "`true` when the district has lost area to a district created after the\ncensus: the figures are for the district as it was at the census.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "String?",
+              "default": null,
+              "doc": "Why figures are missing or what they cover, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The census tables (dataset `district-population`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "DistrictPopulation",
+              "signature": "const DistrictPopulation({\n  required String district,\n  required String province,\n  required int? population,\n  required int? households,\n  required int? urban,\n  required int? rural,\n  int census = 2023,\n  required String? censusDistrict,\n  required bool boundaryChanged,\n  required String? note,\n  required DataSource source,\n})",
+              "doc": "Creates a district population value.",
+              "params": [
+                {
+                  "name": "district",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "province",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "population",
+                  "type": "int?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "households",
+                  "type": "int?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "urban",
+                  "type": "int?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "rural",
+                  "type": "int?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "census",
+                  "type": "int",
+                  "default": "2023",
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "censusDistrict",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "boundaryChanged",
+                  "type": "bool",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "note",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "TehsilPopulation",
+          "signature": "class TehsilPopulation",
+          "doc": "Result of [getTehsilPopulation]: a tehsil's 2023 census counts.",
+          "fields": [
+            {
+              "name": "tehsil",
+              "type": "String",
+              "default": null,
+              "doc": "The tehsil (or taluka, sub-division), as the census tables name it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "censusDistrict",
+              "type": "String",
+              "default": null,
+              "doc": "The district at the census.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "currentDistrict",
+              "type": "String?",
+              "default": null,
+              "doc": "The district today, or `null` where the tehsil's current district is\nnot recorded in the data.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "String",
+              "default": null,
+              "doc": "Its province or territory.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "population",
+              "type": "int",
+              "default": null,
+              "doc": "Total population (all sexes).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "households",
+              "type": "int",
+              "default": null,
+              "doc": "Households.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "urban",
+              "type": "int",
+              "default": null,
+              "doc": "Urban population.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rural",
+              "type": "int",
+              "default": null,
+              "doc": "Rural population.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "String?",
+              "default": null,
+              "doc": "What the figures cover, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The census tables (dataset `tehsil-population`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "TehsilPopulation",
+              "signature": "const TehsilPopulation({\n  required String tehsil,\n  required String censusDistrict,\n  required String? currentDistrict,\n  required String province,\n  required int population,\n  required int households,\n  required int urban,\n  required int rural,\n  int census = 2023,\n  required String? note,\n  required DataSource source,\n})",
+              "doc": "Creates a tehsil population value.",
+              "params": [
+                {
+                  "name": "tehsil",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "censusDistrict",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "currentDistrict",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "province",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "population",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "households",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "urban",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "rural",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "census",
+                  "type": "int",
+                  "default": "2023",
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "note",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "getDistrictPopulation",
+          "signature": "DistrictPopulation? getDistrictPopulation(String district)",
+          "doc": "A district's population, households and urban/rural split from\nPakistan's 2023 census (Pakistan Bureau of Statistics), for any of the\n177 districts in `getDistrictsByProvince`.\n\n- Districts created after the census have `null` figures and name the\n  census district their area was part of; nothing is estimated.\n- Districts that lost area to a new district keep their census figures,\n  with {@link DistrictPopulation.boundaryChanged} `true`.\n- Gilgit-Baltistan and Azad Jammu and Kashmir were not enumerated by this\n  census, so their figures are `null`.\n\n{@link district} is a district name, in any case.\n\nReturns the figures and their source, or `null` for an unknown district.\nNever throws.\n\n```dart\ngetDistrictPopulation('Lahore')?.population; // 13004135\ngetDistrictPopulation('Murree')?.population; // null (created after the census)\n```",
+          "params": [
+            {
+              "name": "district",
+              "type": "String",
+              "default": null,
+              "named": false,
+              "required": true
+            }
+          ],
+          "returns": {
+            "type": "DistrictPopulation?"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "getTehsilPopulation",
+          "signature": "TehsilPopulation? getTehsilPopulation(String tehsil, [String? district])",
+          "doc": "A tehsil's (or taluka's, sub-division's) population, households and\nurban/rural split from the 2023 census, for the 591 units in the census\ntables.\n\n{@link tehsil} is a tehsil name, in any case. A few names occur in more than\none district; give {@link district} (at the census or today) to choose.\n\nReturns the figures and their source, or `null` for an unknown or\nambiguous name. Never throws.\n\n```dart\ngetTehsilPopulation('Murree')?.currentDistrict; // 'Murree'\n```",
+          "params": [
+            {
+              "name": "tehsil",
+              "type": "String",
+              "default": null,
+              "named": false,
+              "required": true
+            },
+            {
+              "name": "district",
+              "type": "String?",
+              "default": null,
+              "named": false,
+              "required": false
+            }
+          ],
+          "returns": {
+            "type": "TehsilPopulation?"
           }
         }
       ]
@@ -5603,13 +6957,21 @@
               "doc": "Percent used.",
               "static": false,
               "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource?",
+              "default": null,
+              "doc": "The rate's period, law and official source (dataset\n`sales-tax-rates`), when {@link calculateSalesTax} looked the rate up from a\nprovince or kind. `null` when you passed the rate yourself, and from\n{@link splitInclusive}.",
+              "static": false,
+              "readonly": true
             }
           ],
           "methods": [
             {
               "kind": "constructor",
               "name": "SalesTaxAmounts",
-              "signature": "const SalesTaxAmounts({\n  required double net,\n  required double tax,\n  required double gross,\n  required double rate,\n})",
+              "signature": "const SalesTaxAmounts({\n  required double net,\n  required double tax,\n  required double gross,\n  required double rate,\n  DataSource? source,\n})",
               "doc": "Creates a sales tax amounts value.",
               "params": [
                 {
@@ -5639,6 +7001,13 @@
                   "default": null,
                   "named": true,
                   "required": true
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource?",
+                  "default": null,
+                  "named": true,
+                  "required": false
                 }
               ],
               "returns": null
@@ -5647,7 +7016,7 @@
               "kind": "method",
               "name": "toJson",
               "signature": "Map<String, Object?> toJson()",
-              "doc": "JSON form, with the same keys as the npm package.",
+              "doc": "JSON form, with the same keys as the npm package. `source` is left\nout when it is `null`.",
               "params": [],
               "returns": {
                 "type": "Map<String, Object?>"
@@ -5716,7 +7085,7 @@
           "kind": "function",
           "name": "calculateSalesTax",
           "signature": "SalesTaxAmounts? calculateSalesTax(\n  num amount, {\n  num? rate,\n  String? province,\n  SalesTaxKind? kind,\n  Object? date,\n  bool inclusive = false,\n})",
-          "doc": "Adds sales tax to {@link amount} (0 to 1 trillion rupees), or splits it out\nwhen {@link inclusive} is `true`.\n\nGive a {@link rate} (percent, 0 to 100, at most 2 decimals), or a {@link province}\n(and {@link kind}, default {@link SalesTaxKind.services} when a province is given,\nand {@link date}) to use the standard rate from {@link getSalesTaxRate}. {@link rate} takes\nprecedence over {@link province}. The tax is rounded half up to the paisa.\n\nReturns `null` if the amount, rate or province is invalid or no rate\napplies. Never throws.\n\n```dart\ncalculateSalesTax(1000, rate: 18);\n// SalesTaxAmounts{net: 1000.0, tax: 180.0, gross: 1180.0, rate: 18.0}\ncalculateSalesTax(1000, province: 'Punjab', date: '2026-11-18')?.tax; // 160\ncalculateSalesTax(1150,\n    province: 'Sindh', date: '2026-11-18', inclusive: true)?.net; // 1000\n```",
+          "doc": "Adds sales tax to {@link amount} (0 to 1 trillion rupees), or splits it out\nwhen {@link inclusive} is `true`.\n\nGive a {@link rate} (percent, 0 to 100, at most 2 decimals), or a {@link province}\n(and {@link kind}, default {@link SalesTaxKind.services} when a province is given,\nand {@link date}) to use the standard rate from {@link getSalesTaxRate}. {@link rate} takes\nprecedence over {@link province}. The tax is rounded half up to the paisa.\nWhen the rate was looked up, {@link SalesTaxAmounts.source} names its period,\nlaw and official source.\n\nReturns `null` if the amount, rate or province is invalid or no rate\napplies. Never throws.\n\n```dart\ncalculateSalesTax(1000, rate: 18);\n// SalesTaxAmounts{net: 1000.0, tax: 180.0, gross: 1180.0, rate: 18.0}\ncalculateSalesTax(1000, province: 'Punjab', date: '2026-11-18')?.tax; // 160\ncalculateSalesTax(1000, province: 'Punjab', date: '2026-11-18')\n    ?.source?.effectiveFrom; // '2019-07-01'\ncalculateSalesTax(1150,\n    province: 'Sindh', date: '2026-11-18', inclusive: true)?.net; // 1000\n```",
           "params": [
             {
               "name": "amount",
@@ -6387,6 +7756,958 @@
       ]
     },
     {
+      "id": "withholding",
+      "name": "package:pakdatakit/withholding.dart",
+      "import": "import 'package:pakdatakit/withholding.dart';",
+      "source": "dart/lib/src/withholding.dart",
+      "doc": "Withholding tax under the Income Tax Ordinance 2001 for persons on and\nnot on FBR's Active Taxpayers List, from FBR's Withholding Tax Rate Card.\n\nSame as the `pakdatakit/withholding` entry point of the npm package.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "WithholdingSlab",
+          "signature": "class WithholdingSlab",
+          "doc": "A value band: the rate for amounts over {@link over} up to {@link upTo} (inclusive;\n`null` = no limit).",
+          "fields": [
+            {
+              "name": "over",
+              "type": "int",
+              "default": null,
+              "doc": "Lower bound in rupees (the amount must exceed it).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "upTo",
+              "type": "int?",
+              "default": null,
+              "doc": "Upper bound in rupees, or `null` for the top band.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "double",
+              "default": null,
+              "doc": "Percent of the whole amount, e.g. `3.5`.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "WithholdingSlab",
+              "signature": "const WithholdingSlab({required int over, required int? upTo, required double rate})",
+              "doc": "Creates a withholding slab value.",
+              "params": [
+                {
+                  "name": "over",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "upTo",
+                  "type": "int?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "rate",
+                  "type": "double",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "enum",
+          "name": "WithholdingNonAtlRule",
+          "signature": "enum WithholdingNonAtlRule",
+          "doc": "How the rate for a person not on the Active Taxpayers List is set for a\ncase. See {@link Withholding.nonAtlRule}.",
+          "fields": [
+            {
+              "name": "value",
+              "type": "String",
+              "default": null,
+              "doc": "The value used by the npm package, e.g. `\"double\"`.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "values": [
+            {
+              "name": "doubled",
+              "doc": "The Tenth Schedule's 100% increase: double the rate."
+            },
+            {
+              "name": "fixed",
+              "doc": "Its own rate (236C, or 231AB, which applies only to them)."
+            },
+            {
+              "name": "slabs",
+              "doc": "Its own value bands (236K)."
+            },
+            {
+              "name": "notApplicable",
+              "doc": "The same rate for all (149)."
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "String toJson()",
+              "doc": "Returns {@link value}.",
+              "params": [],
+              "returns": {
+                "type": "String"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "enum",
+          "name": "WithholdingTaxNature",
+          "signature": "enum WithholdingTaxNature",
+          "doc": "Whether a 154B tax is a minimum or a final tax. See\n{@link Withholding.taxNature}.",
+          "fields": [
+            {
+              "name": "value",
+              "type": "String",
+              "default": null,
+              "doc": "The value used by the npm package, e.g. `\"final\"`.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "values": [
+            {
+              "name": "minimum",
+              "doc": "A minimum tax: the recipient is resident."
+            },
+            {
+              "name": "finalTax",
+              "doc": "A final tax: the recipient is a non-resident without a permanent\nestablishment in Pakistan."
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "String toJson()",
+              "doc": "Returns {@link value}.",
+              "params": [],
+              "returns": {
+                "type": "String"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingThreshold",
+          "signature": "class WithholdingThreshold",
+          "doc": "The amount at or below which nothing is collected (231AB: Rs 50,000 of\ncash withdrawn in a day, all withdrawals added up).",
+          "fields": [
+            {
+              "name": "amount",
+              "type": "int",
+              "default": null,
+              "doc": "The amount in rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "per",
+              "type": "String",
+              "default": null,
+              "doc": "The period it applies to, e.g. `day`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "withinThreshold",
+              "type": "bool?",
+              "default": null,
+              "doc": "From [calculateWithholding]: whether the amount was within the\nthreshold, so nothing was collected. `null` in {@link getWithholdingRates}.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "WithholdingThreshold",
+              "signature": "const WithholdingThreshold({\n  required int amount,\n  required String per,\n  bool? withinThreshold,\n})",
+              "doc": "Creates a withholding threshold value.",
+              "params": [
+                {
+                  "name": "amount",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "per",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "withinThreshold",
+                  "type": "bool?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package. `withinThreshold` is\nleft out when it is `null`.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "Withholding",
+          "signature": "class Withholding",
+          "doc": "Result of {@link calculateWithholding}.",
+          "fields": [
+            {
+              "name": "section",
+              "type": "String",
+              "default": null,
+              "doc": "Section of the Income Tax Ordinance 2001, e.g. `236K`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "subType",
+              "type": "String",
+              "default": null,
+              "doc": "The case of the section, e.g. `purchase`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "description",
+              "type": "String",
+              "default": null,
+              "doc": "The case as the rate card describes it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "taxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year used.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "atl",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the person is on FBR's Active Taxpayers List.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lateFiler",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the late-filer rate was asked for (only for a person on the\nlist).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "double",
+              "default": null,
+              "doc": "Percent applied to the whole amount (for 149, the effective rate).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "tax",
+              "type": "int",
+              "default": null,
+              "doc": "Tax to withhold or collect, in whole rupees: section 219 of the\nOrdinance disregards fractions under 50 paisa and counts 50 paisa or\nmore as a rupee.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlRule",
+              "type": "WithholdingNonAtlRule",
+              "default": null,
+              "doc": "How the rate for a person not on the list is set for this case.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "slab",
+              "type": "WithholdingSlab?",
+              "default": null,
+              "doc": "The value band used (236C, 236K), or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "threshold",
+              "type": "WithholdingThreshold?",
+              "default": null,
+              "doc": "The amount at or below which nothing is collected, and whether this\namount was within it. `null` where there is none.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "cardRef",
+              "type": "String",
+              "default": null,
+              "doc": "The rate card reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lawRef",
+              "type": "String",
+              "default": null,
+              "doc": "The law reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "statuteOverride",
+              "type": "String?",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why;\notherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "taxNature",
+              "type": "WithholdingTaxNature?",
+              "default": null,
+              "doc": "154B with `resident` given: {@link WithholdingTaxNature.minimum} for a\nresident, {@link WithholdingTaxNature.finalTax} for a non-resident without a\npermanent establishment in Pakistan; otherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate card and law (dataset `withholding-rates`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "Withholding",
+              "signature": "const Withholding({\n  required String section,\n  required String subType,\n  required String description,\n  required int taxYear,\n  required bool atl,\n  required bool lateFiler,\n  required double rate,\n  required int tax,\n  required WithholdingNonAtlRule nonAtlRule,\n  required WithholdingSlab? slab,\n  required WithholdingThreshold? threshold,\n  required String cardRef,\n  required String lawRef,\n  required String? statuteOverride,\n  WithholdingTaxNature? taxNature,\n  required DataSource source,\n})",
+              "doc": "Creates a withholding value.",
+              "params": [
+                {
+                  "name": "section",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "subType",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "description",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "taxYear",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "atl",
+                  "type": "bool",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "lateFiler",
+                  "type": "bool",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "rate",
+                  "type": "double",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "tax",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "nonAtlRule",
+                  "type": "WithholdingNonAtlRule",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "slab",
+                  "type": "WithholdingSlab?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "threshold",
+                  "type": "WithholdingThreshold?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "cardRef",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "lawRef",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "statuteOverride",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "taxNature",
+                  "type": "WithholdingTaxNature?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingCircular",
+          "signature": "class WithholdingCircular",
+          "doc": "FBR's circular explaining a rate. See {@link WithholdingRate.circular}.",
+          "fields": [
+            {
+              "name": "reference",
+              "type": "String",
+              "default": null,
+              "doc": "The circular as cited, e.g. `FBR Circular No. 02 of 2026-27 (Income\nTax), ...`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "String",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "WithholdingCircular",
+              "signature": "const WithholdingCircular({required String reference, required String url})",
+              "doc": "Creates a withholding circular value.",
+              "params": [
+                {
+                  "name": "reference",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "url",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingRate",
+          "signature": "class WithholdingRate",
+          "doc": "One case of a section in a tax year, as in the rate card. Result of\n{@link getWithholdingRates}.",
+          "fields": [
+            {
+              "name": "taxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year, e.g. `2027`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "section",
+              "type": "String",
+              "default": null,
+              "doc": "Section of the Income Tax Ordinance 2001, e.g. `153`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "subType",
+              "type": "String",
+              "default": null,
+              "doc": "The case of the section, e.g. `goods-company`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "description",
+              "type": "String",
+              "default": null,
+              "doc": "The case as the rate card describes it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "atlRate",
+              "type": "double?",
+              "default": null,
+              "doc": "Percent for a person on the list; `null` where it does not apply or\ndepends on the value (see {@link atlSlabs}).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "atlSlabs",
+              "type": "List<WithholdingSlab>?",
+              "default": null,
+              "doc": "Value bands for a person on the list, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlRule",
+              "type": "WithholdingNonAtlRule",
+              "default": null,
+              "doc": "How the rate for a person not on the list is set.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlRate",
+              "type": "double?",
+              "default": null,
+              "doc": "Percent for a person not on the list, or `null` (see {@link nonAtlSlabs}).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlSlabs",
+              "type": "List<WithholdingSlab>?",
+              "default": null,
+              "doc": "Value bands for a person not on the list, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lateFilerSlabs",
+              "type": "List<WithholdingSlab>?",
+              "default": null,
+              "doc": "Late-filer value bands, where the year has them; otherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "threshold",
+              "type": "WithholdingThreshold?",
+              "default": null,
+              "doc": "The amount at or below which nothing is collected, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "cardRef",
+              "type": "String",
+              "default": null,
+              "doc": "The rate card reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lawRef",
+              "type": "String",
+              "default": null,
+              "doc": "The law reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "statuteOverride",
+              "type": "String?",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why;\notherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "String?",
+              "default": null,
+              "doc": "A note on the case, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "circular",
+              "type": "WithholdingCircular?",
+              "default": null,
+              "doc": "FBR's circular explaining the rate, where one is recorded; otherwise\n`null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate card and law (dataset `withholding-rates`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "WithholdingRate",
+              "signature": "const WithholdingRate({\n  required int taxYear,\n  required String section,\n  required String subType,\n  required String description,\n  required double? atlRate,\n  required List<WithholdingSlab>? atlSlabs,\n  required WithholdingNonAtlRule nonAtlRule,\n  required double? nonAtlRate,\n  required List<WithholdingSlab>? nonAtlSlabs,\n  required List<WithholdingSlab>? lateFilerSlabs,\n  required WithholdingThreshold? threshold,\n  required String cardRef,\n  required String lawRef,\n  required String? statuteOverride,\n  required String? note,\n  WithholdingCircular? circular,\n  required DataSource source,\n})",
+              "doc": "Creates a withholding rate value.",
+              "params": [
+                {
+                  "name": "taxYear",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "section",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "subType",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "description",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "atlRate",
+                  "type": "double?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "atlSlabs",
+                  "type": "List<WithholdingSlab>?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "nonAtlRule",
+                  "type": "WithholdingNonAtlRule",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "nonAtlRate",
+                  "type": "double?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "nonAtlSlabs",
+                  "type": "List<WithholdingSlab>?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "lateFilerSlabs",
+                  "type": "List<WithholdingSlab>?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "threshold",
+                  "type": "WithholdingThreshold?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "cardRef",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "lawRef",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "statuteOverride",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "note",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "circular",
+                  "type": "WithholdingCircular?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "getWithholdingRates",
+          "signature": "List<WithholdingRate> getWithholdingRates(int taxYear, [String? section])",
+          "doc": "Every case FBR's Withholding Tax Rate Card lists for the covered sections\nin a tax year (2025 to 2027), with its rates for persons on and not on the\nActive Taxpayers List and its references.\n\n{@link taxYear} is e.g. `2027`. Give {@link section} (e.g. `'153'`, in any case) for\nthat section only.\n\nReturns the cases, or an empty list for a year that is not covered.\nNever throws.\n\n```dart\ngetWithholdingRates(2027, '236K').first.nonAtlRule;\n// WithholdingNonAtlRule.slabs\n```",
+          "params": [
+            {
+              "name": "taxYear",
+              "type": "int",
+              "default": null,
+              "named": false,
+              "required": true
+            },
+            {
+              "name": "section",
+              "type": "String?",
+              "default": null,
+              "named": false,
+              "required": false
+            }
+          ],
+          "returns": {
+            "type": "List<WithholdingRate>"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "calculateWithholding",
+          "signature": "Withholding? calculateWithholding({\n  required String section,\n  String? subType,\n  required num amount,\n  required bool atl,\n  bool lateFiler = false,\n  int? taxYear,\n  Object? date,\n  num? returnOnInvestment,\n  bool? resident,\n})",
+          "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary (the\nsalaried rate table, as {@link calculateSalaryTax}).\n\n- [section]: `'231AB'`, `'236C'`, `'236K'`, `'151'`, `'150'`, `'153'`,\n  `'154B'` or `'149'` (in any case, surrounding spaces ignored).\n- [subType]: which case of the section, e.g. `'bank-deposit'` (151) or\n  `'goods-company'` (153); see {@link getWithholdingRates}. May be left out for\n  sections with one case.\n- [amount]: the payment (for 236C/236K, the value; for 149, the year's\n  taxable salary) in rupees, 0 to 1 trillion (at most 2 decimals count).\n- [atl]: `true` if the person is on FBR's Active Taxpayers List.\n- [lateFiler]: `true` for a person on the list who filed the return\n  late. Changes the rate only where the year has a late-filer rate (236C\n  and 236K in tax years 2025 and 2026).\n- {@link taxYear} (July to June, e.g. `2027`), or {@link date}, a `YYYY-MM-DD`\n  {@link String} or a {@link DateTime} in the tax year. {@link taxYear} takes precedence;\n  one of them is required.\n- [returnOnInvestment]: 151 sukuk, individual or AOP: the holder's return\n  on investment in rupees, which decides the case (more than Rs 1\n  million: `sukuk-individual-above-1m`; less than Rs 1 million:\n  `sukuk-individual-below-1m`). Defaults to {@link amount}. The law gives no\n  rate for exactly Rs 1 million, so that, an invalid value, or a case\n  that does not fit the return gives `null`.\n- [resident]: 154B: whether the recipient is resident. The rate is the\n  same; it decides [Withholding.taxNature]: a minimum tax (resident) or\n  a final tax (non-resident without a permanent establishment in\n  Pakistan).\n\nThe npm `WithholdingInput` object is these named parameters.\n\nThe rate for a person not on the list follows each case's own rule in the\nTenth Schedule: usually double, but a fixed rate (236C, and 151 in 2025),\nits own value bands (236K), or none (149; 231AB applies only to them).\nThe rate applies to the whole amount (236C and 236K value bands are not\nmarginal), and the tax is rounded to the nearest rupee (section 219).\nWhere FBR's card and the Ordinance differ, the Ordinance is used and\n{@link Withholding.statuteOverride} says so. For 231AB, pass the day's total of\nall cash withdrawals: nothing is collected up to Rs 50,000. For 150\nmutual fund dividends received by a company, the debt part is\n`mutual-fund-debt-part-company` (29%). For 151 sukuk held by an\nindividual or AOP, the case must fit the return on investment, and\nexactly Rs 1 million gives `null`.\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many cases\nnot listed here are not applied.\n\nReturns the rate, tax and references, or `null` for an unknown section,\ncase or tax year, an invalid amount or date, or neither {@link taxYear} nor\n{@link date}. Never throws.\n\n```dart\ncalculateWithholding(\n    section: '236K', amount: 60000000, atl: false, taxYear: 2027);\n// Withholding{..., rate: 14.5, tax: 8700000, nonAtlRule: slabs, ...}\ncalculateWithholding(\n    section: '231AB', amount: 80000, atl: false, taxYear: 2027)?.tax; // 640\ncalculateWithholding(\n  section: '151',\n  subType: 'bank-deposit',\n  amount: 10000,\n  atl: true,\n  taxYear: 2027,\n)?.tax; // 2000\n```",
+          "params": [
+            {
+              "name": "section",
+              "type": "String",
+              "default": null,
+              "named": true,
+              "required": true
+            },
+            {
+              "name": "subType",
+              "type": "String?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "amount",
+              "type": "num",
+              "default": null,
+              "named": true,
+              "required": true
+            },
+            {
+              "name": "atl",
+              "type": "bool",
+              "default": null,
+              "named": true,
+              "required": true
+            },
+            {
+              "name": "lateFiler",
+              "type": "bool",
+              "default": "false",
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "taxYear",
+              "type": "int?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "date",
+              "type": "Object?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "returnOnInvestment",
+              "type": "num?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "resident",
+              "type": "bool?",
+              "default": null,
+              "named": true,
+              "required": false
+            }
+          ],
+          "returns": {
+            "type": "Withholding?"
+          }
+        }
+      ]
+    },
+    {
       "id": "words",
       "name": "package:pakdatakit/words.dart",
       "import": "import 'package:pakdatakit/words.dart';",
@@ -6486,6 +8807,633 @@
           ],
           "returns": {
             "type": "String"
+          }
+        }
+      ]
+    },
+    {
+      "id": "zakat",
+      "name": "package:pakdatakit/zakat.dart",
+      "import": "import 'package:pakdatakit/zakat.dart';",
+      "source": "dart/lib/src/zakat.dart",
+      "doc": "Zakat nisab for deduction at source, by Zakat year or date, and the\namount deducted from an account on the valuation date.\n\nSame as the `pakdatakit/zakat` entry point of the npm package.",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "ZakatDocument",
+          "signature": "class ZakatDocument",
+          "doc": "A document behind a Zakat year's nisab: its number, date and URL.",
+          "fields": [
+            {
+              "name": "number",
+              "type": "String",
+              "default": null,
+              "doc": "Its number or title, as printed.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "date",
+              "type": "String",
+              "default": null,
+              "doc": "Its date (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "String",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "ZakatDocument",
+              "signature": "const ZakatDocument({\n  required String number,\n  required String date,\n  required String url,\n})",
+              "doc": "Creates a Zakat document value.",
+              "params": [
+                {
+                  "name": "number",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "date",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "url",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "ZakatRamazan1Source",
+          "signature": "class ZakatRamazan1Source",
+          "doc": "Who announced 1 Ramazan, and where the announcement was reported. See\n{@link ZakatNisab.ramazan1Source}.",
+          "fields": [
+            {
+              "name": "announcedBy",
+              "type": "String",
+              "default": null,
+              "doc": "Who announced it: `Central Ruet-e-Hilal Committee`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reportedBy",
+              "type": "String",
+              "default": null,
+              "doc": "The outlet that reported the announcement, e.g. `Dawn`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reportedOn",
+              "type": "String?",
+              "default": null,
+              "doc": "The report's date (`YYYY-MM-DD`), or `null` if not recorded.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "String?",
+              "default": null,
+              "doc": "The report's URL, or `null` if not recorded.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "ZakatRamazan1Source",
+              "signature": "const ZakatRamazan1Source({\n  required String announcedBy,\n  required String reportedBy,\n  String? reportedOn,\n  String? url,\n})",
+              "doc": "Creates a 1 Ramazan source value.",
+              "params": [
+                {
+                  "name": "announcedBy",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "reportedBy",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "reportedOn",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "url",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package. `url` is left out\nwhen it is `null`.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "ZakatNisab",
+          "signature": "class ZakatNisab",
+          "doc": "One Zakat year's nisab for deduction at source, as notified. Result of\n{@link getZakatNisab}.",
+          "fields": [
+            {
+              "name": "zakatYear",
+              "type": "int",
+              "default": null,
+              "doc": "The Hijri year of the valuation date (1 Ramazan), e.g. `1447`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "label",
+              "type": "String",
+              "default": null,
+              "doc": "The year as the Ministry's notification writes it, e.g. `1446-47`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nisab",
+              "type": "int",
+              "default": null,
+              "doc": "Nisab in rupees: accounts with a lower balance are not deducted.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "valuationDateHijri",
+              "type": "String",
+              "default": null,
+              "doc": "The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "ramazan1",
+              "type": "String",
+              "default": null,
+              "doc": "The valuation date: 1 Ramazan in the Gregorian calendar\n(`YYYY-MM-DD`), as announced by the Central Ruet-e-Hilal Committee.\nZakat years are assigned to dates by it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "ramazan1Source",
+              "type": "ZakatRamazan1Source",
+              "default": null,
+              "doc": "Who announced {@link ramazan1}, and where it was reported.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "bankHolidayDate",
+              "type": "String?",
+              "default": null,
+              "doc": "The deduction day: the bank holiday SBP declares for it\n(`YYYY-MM-DD`). It is {@link ramazan1}, or the next working day when 1\nRamazan falls on a weekend or public holiday (for example 24 March\n2023, after Pakistan Day). `null` where no SBP holiday circular was\nfound.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "notification",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The Ministry of Poverty Alleviation & Social Safety notification.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sbpCircular",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The SBP BPRD circular letter that conveys it to banks.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "String?",
+              "default": null,
+              "doc": "Notes on the documents, including the notification's \"likely to fall\non\" text, or `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The notification and SBP circular, as a {@link DataSource} (dataset\n`zakat-nisab`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "ZakatNisab",
+              "signature": "const ZakatNisab({\n  required int zakatYear,\n  required String label,\n  required int nisab,\n  required String valuationDateHijri,\n  required String ramazan1,\n  required ZakatRamazan1Source ramazan1Source,\n  required String? bankHolidayDate,\n  required ZakatDocument notification,\n  required ZakatDocument sbpCircular,\n  String? note,\n  required DataSource source,\n})",
+              "doc": "Creates a Zakat nisab value.",
+              "params": [
+                {
+                  "name": "zakatYear",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "label",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "nisab",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "valuationDateHijri",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "ramazan1",
+                  "type": "String",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "ramazan1Source",
+                  "type": "ZakatRamazan1Source",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "bankHolidayDate",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "notification",
+                  "type": "ZakatDocument",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "sbpCircular",
+                  "type": "ZakatDocument",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "note",
+                  "type": "String?",
+                  "default": null,
+                  "named": true,
+                  "required": false
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "enum",
+          "name": "ZakatExemptReason",
+          "signature": "enum ZakatExemptReason",
+          "doc": "Why {@link zakatDeduction} deducts nothing. See {@link ZakatDeduction.reason}.",
+          "fields": [
+            {
+              "name": "value",
+              "type": "String",
+              "default": null,
+              "doc": "The value used by the npm package.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "values": [
+            {
+              "name": "exempt",
+              "doc": "The holder has a valid exemption declaration (Form CZ-50)."
+            },
+            {
+              "name": "belowNisab",
+              "doc": "The balance is below the year's nisab."
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "String toJson()",
+              "doc": "Returns {@link value}.",
+              "params": [],
+              "returns": {
+                "type": "String"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "ZakatDeduction",
+          "signature": "class ZakatDeduction",
+          "doc": "Result of {@link zakatDeduction}.",
+          "fields": [
+            {
+              "name": "zakatYear",
+              "type": "int",
+              "default": null,
+              "doc": "The Zakat year used, e.g. `1447`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nisab",
+              "type": "int",
+              "default": null,
+              "doc": "That year's nisab in rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "balance",
+              "type": "double",
+              "default": null,
+              "doc": "The balance, in rupees (2 decimals at most).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "deductible",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether Zakat is deducted from this balance.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reason",
+              "type": "ZakatExemptReason?",
+              "default": null,
+              "doc": "Why not, when {@link deductible} is `false`; otherwise `null`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "double",
+              "default": null,
+              "doc": "Percent of the whole balance: `2.5`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "zakat",
+              "type": "int",
+              "default": null,
+              "doc": "The amount deducted, in whole rupees (First Schedule, Note 2: less than\na rupee is not charged, 50 paisa or more counts as a rupee); `0` if not\ndeductible.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The year's notification and SBP circular (dataset `zakat-nisab`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "constructor",
+              "name": "ZakatDeduction",
+              "signature": "const ZakatDeduction({\n  required int zakatYear,\n  required int nisab,\n  required double balance,\n  required bool deductible,\n  required ZakatExemptReason? reason,\n  required double rate,\n  required int zakat,\n  required DataSource source,\n})",
+              "doc": "Creates a Zakat deduction value.",
+              "params": [
+                {
+                  "name": "zakatYear",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "nisab",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "balance",
+                  "type": "double",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "deductible",
+                  "type": "bool",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "reason",
+                  "type": "ZakatExemptReason?",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "rate",
+                  "type": "double",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "zakat",
+                  "type": "int",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                },
+                {
+                  "name": "source",
+                  "type": "DataSource",
+                  "default": null,
+                  "named": true,
+                  "required": true
+                }
+              ],
+              "returns": null
+            },
+            {
+              "kind": "method",
+              "name": "toJson",
+              "signature": "Map<String, Object?> toJson()",
+              "doc": "JSON form, with the same keys as the npm package.",
+              "params": [],
+              "returns": {
+                "type": "Map<String, Object?>"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "getZakatNisab",
+          "signature": "ZakatNisab? getZakatNisab({Object? zakatYear, Object? date})",
+          "doc": "The nisab for compulsory Zakat deduction at source in Pakistan for a\nZakat year, as notified by the Administrator-General Zakat (Ministry of\nPoverty Alleviation & Social Safety) and conveyed to banks by SBP, Zakat\nyears 1433 to 1447 AH (2012-2026).\n\nGive {@link zakatYear}, an {@link int} (`1447`) or a {@link String} (`'1447'`, or the\nnotification's `'1446-47'`), or {@link date}, a `YYYY-MM-DD` {@link String} or a\n{@link DateTime} (its local calendar date); {@link zakatYear} takes precedence. A\nZakat year starts on 1 Ramazan ({@link ZakatNisab.ramazan1}, as the Central\nRuet-e-Hilal Committee announced it), and a date belongs to the last year\nwhose 1 Ramazan is on or before it. The npm `ZakatYearQuery` object is\nthese named parameters.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.\n\nReturns the year's nisab, dates and sources, or `null` for a year that is\nnot covered or an invalid query. Never throws.\n\n```dart\ngetZakatNisab(zakatYear: 1447)?.nisab; // 503529\ngetZakatNisab(zakatYear: '1445-46')?.zakatYear; // 1446\ngetZakatNisab(date: '2025-06-01')?.nisab; // 179689\n```",
+          "params": [
+            {
+              "name": "zakatYear",
+              "type": "Object?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "date",
+              "type": "Object?",
+              "default": null,
+              "named": true,
+              "required": false
+            }
+          ],
+          "returns": {
+            "type": "ZakatNisab?"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "getZakatYears",
+          "signature": "List<int> getZakatYears()",
+          "doc": "Every notified Zakat year, oldest first. Never throws.\n\n```dart\ngetZakatYears().last; // 1447\n```",
+          "params": [],
+          "returns": {
+            "type": "List<int>"
+          }
+        },
+        {
+          "kind": "function",
+          "name": "zakatDeduction",
+          "signature": "ZakatDeduction? zakatDeduction({\n  required num balance,\n  Object? zakatYear,\n  Object? date,\n  bool exempt = false,\n})",
+          "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee (First\nSchedule, Note 2: less than a rupee is not charged), when it is at or\nabove that year's nisab, and nothing when it is below or the holder has a\nvalid exemption declaration (Form CZ-50, {@link exempt}).\n\nSet {@link exempt} to `true` if the holder has a valid Form CZ-50 with the bank:\nfiled at least 30 days before the valuation date, sworn before a\nmagistrate, oath commissioner, notary public or other person authorised\nto administer oaths, in the presence of two witnesses (Zakat and Ushr\nOrdinance 1980, s. 1(3), proviso (a)). The library does not check the\ndeclaration.\n\nA balance exactly equal to the nisab is deducted: every notification\nsays no deduction where the balance is \"less than\" the nisab, and the\nOrdinance (s. 2(xxiii)) defines a sahib-e-nisab as owning \"not less than\nnisab\". The First Schedule's own wording (\"does not exceed\") would not\ndeduct it. In Punjab the Punjab Zakat and Ushr Act 2018 replaced the\nOrdinance, with the same First Schedule wording.\n\n{@link balance} is the account balance in rupees at the start of the valuation\ndate, 0 to 1 trillion (at most 2 decimals count). The year is chosen by\n{@link zakatYear} or {@link date}, as in {@link getZakatNisab}. The npm\n`ZakatDeductionInput` object is these named parameters.\n\nIt applies to the accounts the Ordinance subjects to deduction at source:\nsavings, profit-and-loss sharing and similar accounts (asset code 101).\nCurrent accounts and foreign currency accounts are not deducted. It is\nnot a religious ruling on how much Zakat a person owes.\n\nReturns the deduction and its source, or `null` for an invalid balance\nor a year that is not covered. Never throws.\n\n```dart\nzakatDeduction(balance: 600000, zakatYear: 1447);\n// ZakatDeduction{zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000, ...}\nzakatDeduction(balance: 600000, zakatYear: 1447, exempt: true)?.zakat; // 0\n```",
+          "params": [
+            {
+              "name": "balance",
+              "type": "num",
+              "default": null,
+              "named": true,
+              "required": true
+            },
+            {
+              "name": "zakatYear",
+              "type": "Object?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "date",
+              "type": "Object?",
+              "default": null,
+              "named": true,
+              "required": false
+            },
+            {
+              "name": "exempt",
+              "type": "bool",
+              "default": "false",
+              "named": true,
+              "required": false
+            }
+          ],
+          "returns": {
+            "type": "ZakatDeduction?"
           }
         }
       ]

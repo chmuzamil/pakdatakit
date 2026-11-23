@@ -478,14 +478,20 @@
             {
               "kind": "method",
               "name": "findAll",
-              "signature": "public static function findAll(mixed $text): array",
-              "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nDigits are read in groups (unbroken runs of digits). Groups may be\njoined by any run of spaces or tabs, or by one mark (a hyphen or\nUnicode dash, a dot, a slash or an underscore) with any spaces around\nit: `35202 1234567 1`, `35202  1234567  1`, `35202 -1234567- 1`,\n`35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`,\n`35202/1234567/1`. A line break never joins groups. A match is\nconsecutive whole groups that add up to exactly 13 digits, starting\nwith a province code (1-8); the search goes on after each match, so\n`0300-1234567 35202-1234567-1` finds the CNIC. A group is never split,\nso 13 digits inside a longer unbroken number (an IBAN, a card number)\nnever match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed.\nThis matches everything Jaanch's own CNIC redaction does, except\nacross line breaks.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8 split\ninto groups this way (an account, order or tracking number, table\ncolumns, a price list such as `8260 - 8048 - 2804 - 0`, a file name\nsuch as `IMG_20261123_12345`, or two shorter numbers written together)\nare found. validate() stays strict.\n\nOffsets are in code points, so `mb_substr($text, $m->start, $m->end -\n$m->start)` is `$m->raw`. Invalid UTF-8 bytes are first replaced as\n`mb_scrub()` does.\n\n```php\nCnic::findAll('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CnicMatch(raw: '35202-1234567-1', digits: '3520212345671',\n//   formatted: '35202-1234567-1', start: 6, end: 21)]\nCnic::findAll('id 352 0212 3456 71')[0]->digits; // '3520212345671'\n```",
+              "signature": "public static function findAll(mixed $text, bool $acrossLines = false): array",
+              "doc": "Finds CNIC numbers in free text, such as a chat message, a note or an\nuploaded document, for example to mask them before logging.\n\nDigits are read in groups (unbroken runs of digits). Groups may be\njoined by any run of spaces or tabs, or by one mark (a hyphen or\nUnicode dash, a dot, a slash or an underscore) with any spaces around\nit: `35202 1234567 1`, `35202  1234567  1`, `35202 -1234567- 1`,\n`35202_1234567_1`, `35202 - 1234567 - 1`, `352 0212 3456 71`,\n`35202/1234567/1`. A line break never joins groups. A match is\nconsecutive whole groups that add up to exactly 13 digits, starting\nwith a province code (1-8); the search goes on after each match, so\n`0300-1234567 35202-1234567-1` finds the CNIC. A group is never split,\nso 13 digits inside a longer unbroken number (an IBAN, a card number)\nnever match. Digits may be ASCII, Urdu or Arabic-Indic, even mixed.\n\nWith `acrossLines: true`, a single line break (`\\r\\n`, `\\r` or `\\n`,\nwith any spaces around it) also joins groups, so a CNIC written over\nseveral lines is found; a blank line never joins them. This can also\njoin numbers on consecutive lines, such as a list of amounts.\n\nAccepting any grouping catches CNICs as people really type them, but\nmatches more that is not a CNIC: any 13 digits starting with 1-8 split\ninto groups this way (an account, order or tracking number, table\ncolumns, a price list such as `8260 - 8048 - 2804 - 0`, a file name\nsuch as `IMG_20261123_12345`, or two shorter numbers written together)\nare found. validate() stays strict.\n\nOffsets are in code points, so `mb_substr($text, $m->start, $m->end -\n$m->start)` is `$m->raw`. Invalid UTF-8 bytes are first replaced as\n`mb_scrub()` does.\n\n```php\nCnic::findAll('CNIC: 35202-1234567-1, phone 0300-1234567');\n// [CnicMatch(raw: '35202-1234567-1', digits: '3520212345671',\n//   formatted: '35202-1234567-1', start: 6, end: 21)]\nCnic::findAll('id 352 0212 3456 71')[0]->digits; // '3520212345671'\nCnic::findAll(\"CNIC\\n35202\\n1234567\\n1\", acrossLines: true)[0]->formatted;\n// '35202-1234567-1'\n```",
               "params": [
                 {
                   "name": "$text",
                   "type": "mixed",
                   "default": null,
                   "doc": "Any text"
+                },
+                {
+                  "name": "$acrossLines",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": "Also join digit groups across a single line break, as if it were a space; a blank line never joins them. Default false."
                 }
               ],
               "returns": {
@@ -496,8 +502,8 @@
             {
               "kind": "method",
               "name": "mask",
-              "signature": "public static function mask(\n    mixed $text,\n    mixed $mask = 'X',\n    mixed $replacement = null,\n): MaskedText",
-              "doc": "Masks every CNIC in free text, as found by findAll(): each digit\nbecomes the mask and the separators stay, so `35202-1234567-1`\nbecomes `XXXXX-XXXXXXX-X`. The rest of the text is unchanged (invalid\nUTF-8 bytes are replaced as `mb_scrub()` does).\n\nWith `$replacement`, each whole CNIC is replaced by that text instead.\n\nLike findAll(), it also masks any other 13 digits that start with 1-8,\nhowever they are grouped.\n\n```php\nCnic::mask('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nCnic::mask('35202 1234567 1', '*');\n// MaskedText(text: '***** ******* *', count: 1)\nCnic::mask('CNIC 352 0212 3456 71', replacement: '[CNIC removed]');\n// MaskedText(text: 'CNIC [CNIC removed]', count: 1)\n```",
+              "signature": "public static function mask(\n    mixed $text,\n    mixed $mask = 'X',\n    mixed $replacement = null,\n    bool $acrossLines = false,\n): MaskedText",
+              "doc": "Masks every CNIC in free text, as found by findAll(): each digit\nbecomes the mask and the separators stay, so `35202-1234567-1`\nbecomes `XXXXX-XXXXXXX-X`. The rest of the text is unchanged (invalid\nUTF-8 bytes are replaced as `mb_scrub()` does).\n\nWith `$replacement`, each whole CNIC is replaced by that text instead.\n\nLike findAll(), it also masks any other 13 digits that start with 1-8,\nhowever they are grouped.\n\n```php\nCnic::mask('My CNIC is 35202-1234567-1');\n// MaskedText(text: 'My CNIC is XXXXX-XXXXXXX-X', count: 1)\nCnic::mask('35202 1234567 1', '*');\n// MaskedText(text: '***** ******* *', count: 1)\nCnic::mask('CNIC 352 0212 3456 71', replacement: '[CNIC removed]');\n// MaskedText(text: 'CNIC [CNIC removed]', count: 1)\nCnic::mask(\"35202\\n1234567\\n1\", acrossLines: true);\n// MaskedText(text: \"XXXXX\\nXXXXXXX\\nX\", count: 1)\n```",
               "params": [
                 {
                   "name": "$text",
@@ -516,6 +522,12 @@
                   "type": "mixed",
                   "default": "null",
                   "doc": "The string that replaces each whole CNIC, separators included, e.g. `'[CNIC removed]'`. Takes precedence over `$mask`; anything that is not a string is ignored."
+                },
+                {
+                  "name": "$acrossLines",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": "Also find CNICs written across single line breaks, as in findAll(). With `$mask` the line breaks stay; with `$replacement` they are replaced with the rest of the CNIC. Default false."
                 }
               ],
               "returns": {
@@ -744,6 +756,203 @@
       ]
     },
     {
+      "id": "data-info",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\DataInfo;\nuse PakDataKit\\DataSource;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "DataInfo",
+          "signature": "final readonly class DataInfo",
+          "doc": "Where a bundled dataset comes from and which period it covers: one entry\nof the repository's `data/manifest.json`. See PakData::getDataInfo().",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "default": null,
+              "doc": "The dataset's id, e.g. `income-tax-slabs`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "file",
+              "type": "string",
+              "default": null,
+              "doc": "Its file in the repository's `data/`, e.g. `income-tax-slabs.json`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "default": null,
+              "doc": "What the dataset is, e.g. `Income tax on salary`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "issuer",
+              "type": "string",
+              "default": null,
+              "doc": "The body that publishes the source, e.g. `Federal Board of Revenue (FBR)`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceUrl",
+              "type": "string",
+              "default": null,
+              "doc": "The official document or page the data is taken from.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceReference",
+              "type": "string",
+              "default": null,
+              "doc": "Its number or title: an SRO, circular, notification or table.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceDate",
+              "type": "?string",
+              "default": null,
+              "doc": "When the source was issued (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`), or null if it is undated.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "retrievedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the source was last downloaded (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "checkedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the data was last checked against the source (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveFrom",
+              "type": "string",
+              "default": null,
+              "doc": "First date the data applies to (`YYYY`, `YYYY-MM` or `YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveTo",
+              "type": "?string",
+              "default": null,
+              "doc": "Last date it applies to, or null while it is current.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "coverage",
+              "type": "string",
+              "default": null,
+              "doc": "What it covers, e.g. `Tax years 2020-2027`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "recordCount",
+              "type": "int",
+              "default": null,
+              "doc": "Number of records in the file.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nextExpectedUpdate",
+              "type": "string",
+              "default": null,
+              "doc": "When the source is next expected to change (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "updateCadence",
+              "type": "string",
+              "default": null,
+              "doc": "What triggers an update, e.g. `After the Finance Act each July`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "notes",
+              "type": "string",
+              "default": null,
+              "doc": "Anything else worth knowing about the data.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/DataInfo.php"
+        },
+        {
+          "kind": "class",
+          "name": "DataSource",
+          "signature": "final readonly class DataSource",
+          "doc": "The source of the dated record a result was calculated from: which\ndataset, the period that record applies to, and the law or notification\nbehind it.",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string",
+              "default": null,
+              "doc": "The dataset's id, as in PakData::getDataInfo(), e.g. `income-tax-slabs`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveFrom",
+              "type": "string",
+              "default": null,
+              "doc": "First date the record applies to (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "effectiveTo",
+              "type": "?string",
+              "default": null,
+              "doc": "Last date it applies to (`YYYY-MM-DD`), or null while it is current.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceReference",
+              "type": "string",
+              "default": null,
+              "doc": "The law, SRO, circular or notification, as written in the source.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceUrl",
+              "type": "string",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/DataSource.php"
+        }
+      ]
+    },
+    {
       "id": "data-version",
       "name": "PakDataKit",
       "import": "use PakDataKit\\PakData;",
@@ -777,6 +986,35 @@
                 "type": "string",
                 "doc": ""
               }
+            },
+            {
+              "kind": "method",
+              "name": "getDataInfo",
+              "signature": "public static function getDataInfo(mixed $id): ?DataInfo",
+              "doc": "Where a bundled dataset comes from: the issuer, the official source and\nits reference and date, when it was checked, the period it covers, its\nrecord count and when it is next expected to change.\n\n```php\nPakData::getDataInfo('income-tax-slabs')?->coverage; // 'Tax years 2020-2027'\nPakData::getDataInfo('income-tax-slabs')?->nextExpectedUpdate; // '2027-07-15'\n```",
+              "params": [
+                {
+                  "name": "$id",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "A dataset id, such as `banks`, `income-tax-slabs` or `sales-tax-rates` (see listDataInfo()); matched exactly"
+                }
+              ],
+              "returns": {
+                "type": "DataInfo|null",
+                "doc": "The manifest entry, or null for an unknown id or a value that is not a string. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "listDataInfo",
+              "signature": "public static function listDataInfo(): array",
+              "doc": "Every bundled dataset's manifest entry, as getDataInfo() returns them,\nin id order.\n\n```php\narray_map(fn ($d) => $d->id, PakData::listDataInfo()); // ['area-codes', 'banks', …]\n```",
+              "params": [],
+              "returns": {
+                "type": "list<DataInfo>",
+                "doc": ""
+              }
             }
           ],
           "source": "php/src/PakData.php"
@@ -786,7 +1024,7 @@
     {
       "id": "fbr-invoice",
       "name": "PakDataKit",
-      "import": "use PakDataKit\\FbrInvoiceError;\nuse PakDataKit\\FbrInvoiceValidation;\nuse PakDataKit\\FbrInvoice;",
+      "import": "use PakDataKit\\FbrInvoiceError;\nuse PakDataKit\\FbrInvoiceValidation;\nuse PakDataKit\\FbrInvoice;\n// ...",
       "source": "php/src",
       "doc": "",
       "entries": [
@@ -854,7 +1092,7 @@
           "kind": "class",
           "name": "FbrInvoice",
           "signature": "final class FbrInvoice",
-          "doc": "FBR Digital Invoicing (DI): a builder that works out the sales tax on the\ninvoice JSON posted to PRAL's gateway, and an offline validator for the\nrules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12 (last\nupdated 24 July 2025), and PRAL's \"Error Message Guide (Sales)\". Nothing\nhere talks to FBR: there is no HTTP client and no token handling. Values\nthat only FBR's reference APIs can confirm (provinces, HS codes, units,\nrates, sale types, SRO numbers) are checked for presence, not against\nFBR's lists.\n\nAn invoice is the JSON object FBR expects, with its camelCase keys: an\nassociative array (as `json_decode($json, true)` gives) or a `stdClass`\n(as `json_decode($json)` gives). `items` is a list. An empty PHP array is\nread as an empty list, not as an object.",
+          "doc": "FBR Digital Invoicing (DI): a builder that works out the sales tax on the\ninvoice JSON posted to PRAL's gateway, and an offline validator for the\nrules that can be checked without FBR's reference APIs.\n\nBuilt from PRAL's \"Technical Specification for DI API\", version 1.12 (last\nupdated 24 July 2025), and PRAL's \"Error Message Guide (Sales)\". Nothing\nhere talks to FBR: there is no HTTP client and no token handling. Values\nthat only FBR's reference APIs can confirm (provinces, HS codes, units,\nrates, sale types, SRO numbers) are checked for presence, not against\nFBR's lists, unless the app passes the lists it synced from those APIs\n(`validate($invoice, ['reference' => [...]])`).\n\nAn invoice is the JSON object FBR expects, with its camelCase keys: an\nassociative array (as `json_decode($json, true)` gives) or a `stdClass`\n(as `json_decode($json)` gives). `items` is a list. An empty PHP array is\nread as an empty list, not as an object.",
           "fields": [
             {
               "name": "SPEC_VERSION",
@@ -905,6 +1143,17 @@
           "methods": [
             {
               "kind": "method",
+              "name": "getSaleTypes",
+              "signature": "public static function getSaleTypes(): array",
+              "doc": "The sale types named in PRAL's DI specification (v1.12, section 9,\n\"Scenarios for Sandbox Testing\"), with the scenarios that use each.\nFBR's full, current list comes from its reference API; this is a\nconvenience for building forms and tests, and validate() does not\nreject a sale type that is not in it.\n\n```php\nFbrInvoice::getSaleTypes()[0];\n// FbrSaleType(saleType: 'Goods at Standard Rate (default)',\n//   scenarioIds: ['SN001', 'SN002', 'SN026'])\n```",
+              "params": [],
+              "returns": {
+                "type": "list<FbrSaleType>",
+                "doc": "In the specification's order."
+              }
+            },
+            {
+              "kind": "method",
               "name": "expectedSalesTax",
               "signature": "public static function expectedSalesTax(mixed $item): ?float",
               "doc": "The sales tax FBR expects on a line, in rupees, or null when the rate\nis not a plain percentage or per-unit amount (spec §7, errors 0102,\n0104, 0105):\n\n- `N%` on Third Schedule goods: retail price × rate (0102);\n- `N%` otherwise: value excluding sales tax × rate (0104);\n- `Rs.N`: quantity × N (0105).\n\nRounded half up to the paisa (the specification allows 2 decimals and\ngives no rounding rule).",
@@ -943,7 +1192,7 @@
               "kind": "method",
               "name": "validate",
               "signature": "public static function validate(\n    mixed $invoice,\n    ?array $options = null,\n): FbrInvoiceValidation",
-              "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns\nevery problem with FBR's error code.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith `today`, a future date (0043); seller and buyer NTN/CNIC (0401,\n0402, 0009), self-invoicing (0058), names, provinces (0073, 0074),\naddresses, buyer registration type (0012), the reference number of a\ndebit note (0026), the sandbox scenario, and on each line: HS code\n(0044), rate (0020), unit, sale type (0013), required and valid amounts\n(0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial (0077,\n0078), Third Schedule retail price (0090), extra tax on reduced-rate\ngoods (0091) and the sales tax arithmetic (0102, 0104, 0105, to within\none paisa).\n\nNot checked, because they need FBR's data: registration status, whether\na province, HS code, unit, rate, sale type or SRO is in FBR's lists or\nfits the others, and the original invoice of a debit note.",
+              "doc": "Checks an FBR digital invoice against the rules of PRAL's specification\n(v1.12) and Error Message Guide that need no call to FBR, and returns\nevery problem with FBR's error code.\n\nChecked: invoice type (0003, 0011), date format (0005, 0042, 0113) and,\nwith `today`, a future date (0043); seller and buyer NTN/CNIC (0401,\n0402, 0009), self-invoicing (0058), names, provinces (0073, 0074),\naddresses, buyer registration type (0012), the reference number of a\ndebit note (0026), the sandbox scenario, and on each line: HS code\n(0044), rate (0020), unit, sale type (0013), required and valid amounts\n(0021, 0023, 0024, 0098, 0300, 0302), SRO schedule and serial (0077,\n0078), Third Schedule retail price (0090), extra tax on reduced-rate\ngoods (0091) and the sales tax arithmetic (0102, 0104, 0105, to within\none paisa).\n\nNot checked, because they need FBR's data: registration status, whether\na province, HS code, unit, rate, sale type or SRO is in FBR's lists or\nfits the others, and the original invoice of a debit note. Pass the\nlists your app syncs from FBR's reference APIs as `reference` to check\nprovinces, sale types, units and HS code/unit pairs against them; FBR's\nAPIs are authoritative.\n\nOptions:\n- `today` (string): `YYYY-MM-DD`, to reject invoices dated later (error\n  0043); not checked when left out\n- `reference` (array or object): lists synced from FBR's reference APIs\n  (PRAL's `/pdi/v1/provinces`, `/pdi/v1/uom`, `/pdi/v2/HS_UOM`, sale\n  types from `/pdi/v2/SaleTypeToRate` …). Each list given is checked,\n  ignoring case and extra spaces; lists left out are not:\n  - `provinces` (list of strings), e.g. `['PUNJAB', 'SINDH']`: the\n    seller (0073) and buyer (0074) province\n  - `saleTypes` (list of strings): each line's sale type (0013)\n  - `uoms` (list of strings): each line's unit of measure (0099)\n  - `hsUom` (map of HS code to a list of units), as FBR's HS_UOM API\n    returns them, e.g. `['0101.2100' => ['Numbers, pieces, units']]`:\n    each line's HS code must be listed (an error with no code) and its\n    unit allowed for it (0099)\n\n```php\nFbrInvoice::validate($invoice, ['reference' => ['provinces' => ['PUNJAB', 'SINDH']]]);\n```",
               "params": [
                 {
                   "name": "$invoice",
@@ -965,6 +1214,32 @@
             }
           ],
           "source": "php/src/FbrInvoice.php"
+        },
+        {
+          "kind": "class",
+          "name": "FbrSaleType",
+          "signature": "final readonly class FbrSaleType",
+          "doc": "A sale type as PRAL's DI specification names it, with its sandbox\nscenarios. See FbrInvoice::getSaleTypes().",
+          "fields": [
+            {
+              "name": "saleType",
+              "type": "string",
+              "default": null,
+              "doc": "The sale type, e.g. `Goods at Standard Rate (default)`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "scenarioIds",
+              "type": "array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/FbrSaleType.php"
         }
       ]
     },
@@ -1725,10 +2000,60 @@
     {
       "id": "iban",
       "name": "PakDataKit",
-      "import": "use PakDataKit\\BankInfo;\nuse PakDataKit\\Iban;",
+      "import": "use PakDataKit\\BankSwiftSource;\nuse PakDataKit\\BankInfo;\nuse PakDataKit\\Iban;",
       "source": "php/src",
       "doc": "",
       "entries": [
+        {
+          "kind": "class",
+          "name": "BankSwiftSource",
+          "signature": "final readonly class BankSwiftSource",
+          "doc": "Where a bank's SWIFT/BIC code is printed (BankInfo::$swiftSource).",
+          "fields": [
+            {
+              "name": "bicSource",
+              "type": "string",
+              "default": null,
+              "doc": "`sbp` (State Bank of Pakistan) or `bank-site` (the institution's own domain).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "printed",
+              "type": "string",
+              "default": null,
+              "doc": "The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sourceUrl",
+              "type": "string",
+              "default": null,
+              "doc": "The page or document that prints it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "page",
+              "type": "?int",
+              "default": null,
+              "doc": "The PDF page, or null for a web page.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "checkedAt",
+              "type": "string",
+              "default": null,
+              "doc": "When the source was checked (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/BankSwiftSource.php"
+        },
         {
           "kind": "class",
           "name": "BankInfo",
@@ -1780,6 +2105,54 @@
               "type": "?string",
               "default": "null",
               "doc": "Main code of the same bank, when this is an older code still in use.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "default": "'active'",
+              "doc": "`active`, `merged` (see `mergedInto`) or `liquidated`. Every bank\nfrom Iban::getBankInfo() and Iban::getBanks() has it; `active` is\nonly the default for code that builds a BankInfo itself.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "website",
+              "type": "?string",
+              "default": "null",
+              "doc": "The institution's official website (from SBP's lists of regulated\ninstitutions, or its own site where SBP lists none or an old\ndomain), or null for a bank that no longer exists.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "websiteSbpListed",
+              "type": "?string",
+              "default": "null",
+              "doc": "What SBP's list gives, where it differs from `website` (an older domain); otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swift",
+              "type": "?string",
+              "default": "null",
+              "doc": "The 8-character SWIFT/BIC code, only where SBP or the institution's\nown website prints it; otherwise null (see `swiftReason`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swiftSource",
+              "type": "?BankSwiftSource",
+              "default": "null",
+              "doc": "Where `swift` is printed, and when it was checked; null without `swift`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "swiftReason",
+              "type": "?string",
+              "default": "null",
+              "doc": "Why `swift` is null, or null when it is set.",
               "static": false,
               "readonly": true
             }
@@ -2082,6 +2455,14 @@
               "doc": "The tax year used.",
               "static": false,
               "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate table used: its tax year's dates, law and official source.",
+              "static": false,
+              "readonly": true
             }
           ],
           "methods": [],
@@ -2145,7 +2526,7 @@
               "kind": "method",
               "name": "calculateSalary",
               "signature": "public static function calculateSalary(\n    mixed $annualIncome,\n    ?array $options = null,\n): ?SalaryTax",
-              "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see getSalarySlabs()). Tax is rounded\nhalf up to the paisa, reading the amount as written.\n\nWith `includeSurcharge => true` it adds the section 4AB surcharge: a\npercentage of the whole tax once taxable income exceeds Rs 10 million\n(10% in tax year 2025, 9% for salaried individuals in 2026, none in\n2027 or before 2025). Because it applies to the whole tax, one rupee\nover Rs 10 million adds it in full. It is off by default in 2.x so\nthat existing results do not change, and will be on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice.\n\nOptions:\n- `taxYear` (int): e.g. `2026`; takes precedence over `date`\n- `date` (string `YYYY-MM-DD` or DateTimeInterface): a day in the tax year\n- `includeSurcharge` (bool): add the section 4AB surcharge; default false\nWithout `taxYear` or `date`, today's tax year is used.\n\n```php\nIncomeTax::calculateSalary(12_000_000, ['taxYear' => 2026, 'includeSurcharge' => true]);\n// tax 3381000, surcharge 304290, total 3685290, monthly 307107.5\n```",
+              "doc": "Income tax on a salaried individual's taxable income for a tax year,\nfrom the salaried rate table (see getSalarySlabs()). Tax is rounded\nhalf up to the paisa, reading the amount as written.\n\nWith `includeSurcharge => true` it adds the section 4AB surcharge: a\npercentage of the whole tax once taxable income exceeds Rs 10 million\n(10% in tax year 2025, 9% for salaried individuals in 2026, none in\n2027 or before 2025). Because it applies to the whole tax, one rupee\nover Rs 10 million adds it in full. It is off by default in 2.x so\nthat existing results do not change, and will be on by default in 3.0.\n\nTax credits, exemptions, the separate pension rate, super tax and\nwithholding adjustments are not applied. This is an estimate, not tax\nadvice.\n\nOptions:\n- `taxYear` (int): e.g. `2026`; takes precedence over `date`\n- `date` (string `YYYY-MM-DD` or DateTimeInterface): a day in the tax year\n- `includeSurcharge` (bool): add the section 4AB surcharge; default false\nWithout `taxYear` or `date`, today's tax year is used.\n\n```php\nIncomeTax::calculateSalary(12_000_000, ['taxYear' => 2026, 'includeSurcharge' => true]);\n// tax 3381000, surcharge 304290, total 3685290, monthly 307107.5\nIncomeTax::calculateSalary(1_800_000, ['taxYear' => 2026])->source;\n// DataSource(id: 'income-tax-slabs', effectiveFrom: '2025-07-01', …)\n```",
               "params": [
                 {
                   "name": "$annualIncome",
@@ -2693,6 +3074,263 @@
             }
           ],
           "source": "php/src/Phone.php"
+        }
+      ]
+    },
+    {
+      "id": "population",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\DistrictPopulation;\nuse PakDataKit\\TehsilPopulation;\nuse PakDataKit\\Population;",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "DistrictPopulation",
+          "signature": "final readonly class DistrictPopulation",
+          "doc": "A district's 2023 census counts. Returned by Population::getDistrict().",
+          "fields": [
+            {
+              "name": "district",
+              "type": "string",
+              "default": null,
+              "doc": "The district, as getDistrictsByProvince() names it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "string",
+              "default": null,
+              "doc": "Its province or territory.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "population",
+              "type": "?int",
+              "default": null,
+              "doc": "Total population (all sexes), or null where the census has no figure.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "households",
+              "type": "?int",
+              "default": null,
+              "doc": "Households, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "urban",
+              "type": "?int",
+              "default": null,
+              "doc": "Urban population, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rural",
+              "type": "?int",
+              "default": null,
+              "doc": "Rural population, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "censusDistrict",
+              "type": "?string",
+              "default": null,
+              "doc": "The census district the figures belong to. For a district created\nafter the census, the one its area was part of (its own figures are\nnull); null in Gilgit-Baltistan and Azad Jammu and Kashmir, which\nthe census did not cover.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "boundaryChanged",
+              "type": "bool",
+              "default": null,
+              "doc": "True when the district has lost area to a district created after\nthe census: the figures are for the district as it was at the\ncensus.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "?string",
+              "default": null,
+              "doc": "Why figures are missing or what they cover, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The census tables the figures are from.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/DistrictPopulation.php"
+        },
+        {
+          "kind": "class",
+          "name": "TehsilPopulation",
+          "signature": "final readonly class TehsilPopulation",
+          "doc": "A tehsil's (or taluka's, sub-division's) 2023 census counts. Returned by\nPopulation::getTehsil().",
+          "fields": [
+            {
+              "name": "tehsil",
+              "type": "string",
+              "default": null,
+              "doc": "The tehsil, as the census tables name it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "censusDistrict",
+              "type": "string",
+              "default": null,
+              "doc": "The district at the census.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "currentDistrict",
+              "type": "?string",
+              "default": null,
+              "doc": "The district today, or null where the data gives none.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "province",
+              "type": "string",
+              "default": null,
+              "doc": "Its province or territory.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "population",
+              "type": "?int",
+              "default": null,
+              "doc": "Total population (all sexes), or null where the census has no figure.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "households",
+              "type": "?int",
+              "default": null,
+              "doc": "Households, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "urban",
+              "type": "?int",
+              "default": null,
+              "doc": "Urban population, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rural",
+              "type": "?int",
+              "default": null,
+              "doc": "Rural population, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "census",
+              "type": "int",
+              "default": null,
+              "doc": "Always `2023`: the 7th Population and Housing Census.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "?string",
+              "default": null,
+              "doc": "What the figures cover, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The census tables the figures are from.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/TehsilPopulation.php"
+        },
+        {
+          "kind": "class",
+          "name": "Population",
+          "signature": "final class Population",
+          "doc": "Population, households and the urban/rural split of districts and tehsils\nfrom Pakistan's 7th Population and Housing Census 2023 (Pakistan Bureau of\nStatistics).",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getDistrict",
+              "signature": "public static function getDistrict(mixed $district): ?DistrictPopulation",
+              "doc": "A district's population, households and urban/rural split from the\n2023 census, for any of the 177 districts in\nGeo::getDistrictsByProvince().\n\n- Districts created after the census have null figures and name the\n  census district their area was part of; nothing is estimated.\n- Districts that lost area to a new district keep their census\n  figures, with `boundaryChanged: true`.\n- Gilgit-Baltistan and Azad Jammu and Kashmir were not enumerated by\n  this census, so their figures are null.\n\n```php\nPopulation::getDistrict('Lahore')?->population; // 13004135\nPopulation::getDistrict('Murree')?->population; // null (created after the census)\n```",
+              "params": [
+                {
+                  "name": "$district",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "A district name, in any case (spaces collapsed)"
+                }
+              ],
+              "returns": {
+                "type": "DistrictPopulation|null",
+                "doc": "The figures and their source, or null for an unknown district or a value that is not a string. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getTehsil",
+              "signature": "public static function getTehsil(mixed $tehsil, mixed $district = null): ?TehsilPopulation",
+              "doc": "A tehsil's (or taluka's, sub-division's) population, households and\nurban/rural split from the 2023 census, for the 591 units in the\ncensus tables. A few names occur in more than one district; give the\ndistrict (at the census or today) to choose.\n\n```php\nPopulation::getTehsil('Murree')?->currentDistrict; // 'Murree'\nPopulation::getTehsil('Saddar', 'Quetta')?->censusDistrict; // 'Quetta'\n```",
+              "params": [
+                {
+                  "name": "$tehsil",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "A tehsil name, in any case (spaces collapsed)"
+                },
+                {
+                  "name": "$district",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "Its district at the census or today, in any case; needed only when the name is not unique. Anything that is not a string is ignored."
+                }
+              ],
+              "returns": {
+                "type": "TehsilPopulation|null",
+                "doc": "The figures and their source, or null for an unknown or ambiguous name or a value that is not a string. Never throws."
+              }
+            }
+          ],
+          "source": "php/src/Population.php"
         }
       ]
     },
@@ -3481,9 +4119,29 @@
               "doc": "Percent used.",
               "static": false,
               "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "?DataSource",
+              "default": "null",
+              "doc": "The rate's period, law and official source, when SalesTax::calculate()\nlooked the rate up from a province or kind. Null when you passed the\n`rate` yourself, and from splitInclusive().",
+              "static": false,
+              "readonly": true
             }
           ],
-          "methods": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toArray",
+              "signature": "public function toArray(): array",
+              "doc": "The public properties as an array with the npm package's keys;\n`source` is left out when it is null, as the npm package does.",
+              "params": [],
+              "returns": {
+                "type": "array<string, mixed>",
+                "doc": ""
+              }
+            }
+          ],
           "source": "php/src/SalesTaxAmounts.php"
         },
         {
@@ -3534,7 +4192,7 @@
               "kind": "method",
               "name": "calculate",
               "signature": "public static function calculate(mixed $amount, ?array $options): ?SalesTaxAmounts",
-              "doc": "Adds sales tax to an amount, or splits it out when `inclusive` is set.\nThe tax is rounded half up to the paisa, reading the number as written\n(`1.005` is Rs 1.01).\n\nOptions: a `rate`, or a `province` (and `kind`, default `services`,\nand `date`) to use the standard rate from getRate():\n- `rate` (int|float): percent, 0 to 100, at most 2 decimals; takes precedence over `province`\n- `province` (string), `kind` (string), `date` (string|DateTimeInterface): as for getRate()\n- `inclusive` (bool): true if `$amount` already includes the tax",
+              "doc": "Adds sales tax to an amount, or splits it out when `inclusive` is set.\nThe tax is rounded half up to the paisa, reading the number as written\n(`1.005` is Rs 1.01).\n\nOptions: a `rate`, or a `province` (and `kind`, default `services`,\nand `date`) to use the standard rate from getRate():\n- `rate` (int|float): percent, 0 to 100, at most 2 decimals; takes precedence over `province`\n- `province` (string), `kind` (string), `date` (string|DateTimeInterface): as for getRate()\n- `inclusive` (bool): true if `$amount` already includes the tax\n\nWhen the rate was looked up, the result's `source` gives that rate's\nperiod, law and official document; with your own `rate` it is null.\n\n```php\nSalesTax::calculate(1000, ['province' => 'Punjab', 'date' => '2026-11-18']);\n// net 1000, tax 160, gross 1160, rate 16,\n// source DataSource(id: 'sales-tax-rates', effectiveFrom: '2019-07-01', …)\n```",
               "params": [
                 {
                   "name": "$amount",
@@ -4085,6 +4743,519 @@
       ]
     },
     {
+      "id": "withholding",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\WithholdingSlab;\nuse PakDataKit\\WithholdingThreshold;\nuse PakDataKit\\WithholdingThresholdCheck;\n// ...",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "WithholdingSlab",
+          "signature": "final readonly class WithholdingSlab",
+          "doc": "A value band of a withholding rate: the rate for amounts over `over` up to\n`upTo` (inclusive; null for no limit).",
+          "fields": [
+            {
+              "name": "over",
+              "type": "int|float",
+              "default": null,
+              "doc": "The band applies to amounts over this many rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "upTo",
+              "type": "int|float|null",
+              "default": null,
+              "doc": "And up to this many rupees (inclusive), or null for no upper limit.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "int|float",
+              "default": null,
+              "doc": "Percent of the whole amount.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/WithholdingSlab.php"
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingThreshold",
+          "signature": "final readonly class WithholdingThreshold",
+          "doc": "The amount at or below which a withholding case collects nothing (231AB:\nRs 50,000 of cash withdrawn in a day, all withdrawals added up), as listed\nby Withholding::getRates().",
+          "fields": [
+            {
+              "name": "amount",
+              "type": "int|float",
+              "default": null,
+              "doc": "The threshold in rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "per",
+              "type": "string",
+              "default": null,
+              "doc": "The period the amounts are added up over, e.g. `day`.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/WithholdingThreshold.php"
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingThresholdCheck",
+          "signature": "final readonly class WithholdingThresholdCheck",
+          "doc": "The threshold of a withholding case and whether the amount given to\nWithholding::calculate() was within it (nothing is then collected).",
+          "fields": [
+            {
+              "name": "amount",
+              "type": "int|float",
+              "default": null,
+              "doc": "The threshold in rupees: nothing is collected at or below it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "per",
+              "type": "string",
+              "default": null,
+              "doc": "The period the amounts are added up over, e.g. `day`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "withinThreshold",
+              "type": "bool",
+              "default": null,
+              "doc": "True if the amount was at or below the threshold.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/WithholdingThresholdCheck.php"
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingTax",
+          "signature": "final readonly class WithholdingTax",
+          "doc": "Result of Withholding::calculate(): the tax to withhold or collect under\none section of the Income Tax Ordinance 2001.",
+          "fields": [
+            {
+              "name": "section",
+              "type": "string",
+              "default": null,
+              "doc": "Section of the Income Tax Ordinance 2001, e.g. `236K`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "subType",
+              "type": "string",
+              "default": null,
+              "doc": "The case of the section, e.g. `purchase`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "default": null,
+              "doc": "The case as the rate card describes it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "taxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year (July to June) used.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "atl",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the person is on FBR's Active Taxpayers List.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lateFiler",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether the late-filer case was asked for (only for a person on the list).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "int|float",
+              "default": null,
+              "doc": "Percent applied to the whole amount (for 149, the effective rate).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "tax",
+              "type": "int",
+              "default": null,
+              "doc": "Tax to withhold or collect, in whole rupees: section 219 of the\nOrdinance disregards fractions under 50 paisa and counts 50 paisa\nor more as a rupee.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlRule",
+              "type": "string",
+              "default": null,
+              "doc": "How the rate for a person not on the list is set for this case:\n`double` (the Tenth Schedule's 100% increase), `fixed` (its own\nrate, as for 236C, or 231AB, which applies only to them), `slabs`\n(its own value bands, 236K) or `not-applicable` (149: the same rate\nfor all).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "slab",
+              "type": "?WithholdingSlab",
+              "default": null,
+              "doc": "The value band used (236C, 236K), or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "threshold",
+              "type": "?WithholdingThresholdCheck",
+              "default": null,
+              "doc": "The threshold and whether the amount was within it, or null where there is none.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "cardRef",
+              "type": "string",
+              "default": null,
+              "doc": "Rate card reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lawRef",
+              "type": "string",
+              "default": null,
+              "doc": "Law reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "statuteOverride",
+              "type": "?string",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "taxNature",
+              "type": "?string",
+              "default": null,
+              "doc": "154B with `resident` given: `minimum` for a resident, `final` for a\nnon-resident without a permanent establishment in Pakistan;\notherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate card and law, with the tax year's dates.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/WithholdingTax.php"
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingCircular",
+          "signature": "final readonly class WithholdingCircular",
+          "doc": "An FBR circular that explains a withholding rate (WithholdingRate::$circular).",
+          "fields": [
+            {
+              "name": "reference",
+              "type": "string",
+              "default": null,
+              "doc": "The circular's number, date and paragraph, as written.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/WithholdingCircular.php"
+        },
+        {
+          "kind": "class",
+          "name": "WithholdingRate",
+          "signature": "final readonly class WithholdingRate",
+          "doc": "One case of a withholding section in a tax year, as in FBR's Withholding\nTax Rate Card. Returned by Withholding::getRates().",
+          "fields": [
+            {
+              "name": "taxYear",
+              "type": "int",
+              "default": null,
+              "doc": "The tax year (July to June), e.g. `2027`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "section",
+              "type": "string",
+              "default": null,
+              "doc": "Section of the Income Tax Ordinance 2001, e.g. `153`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "subType",
+              "type": "string",
+              "default": null,
+              "doc": "The case of the section, e.g. `goods-company`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "default": null,
+              "doc": "The case as the rate card describes it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "atlRate",
+              "type": "int|float|null",
+              "default": null,
+              "doc": "Percent for a person on the Active Taxpayers List; null where it\ndoes not apply or depends on the value (see `atlSlabs`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "atlSlabs",
+              "type": "?array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlRule",
+              "type": "string",
+              "default": null,
+              "doc": "How the rate for a person not on the list is set: `double`, `fixed`,\n`slabs` or `not-applicable` (see WithholdingTax::$nonAtlRule).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlRate",
+              "type": "int|float|null",
+              "default": null,
+              "doc": "Percent for a person not on the list, or null (see `nonAtlSlabs`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nonAtlSlabs",
+              "type": "?array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lateFilerSlabs",
+              "type": "?array",
+              "default": null,
+              "doc": "",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "threshold",
+              "type": "?WithholdingThreshold",
+              "default": null,
+              "doc": "The amount at or below which nothing is collected, or null where there is none.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "cardRef",
+              "type": "string",
+              "default": null,
+              "doc": "Rate card reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "lawRef",
+              "type": "string",
+              "default": null,
+              "doc": "Law reference, as printed on the card.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "statuteOverride",
+              "type": "?string",
+              "default": null,
+              "doc": "Where the statute differs from the card and the statute is used, why; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "?string",
+              "default": null,
+              "doc": "A note on the case, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "circular",
+              "type": "?WithholdingCircular",
+              "default": null,
+              "doc": "FBR's circular explaining the rate, where one is recorded; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The rate card and law, with the tax year's dates.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/WithholdingRate.php"
+        },
+        {
+          "kind": "class",
+          "name": "Withholding",
+          "signature": "final class Withholding",
+          "doc": "Withholding income tax for persons on and not on FBR's Active Taxpayers\nList (ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to\n2027: 231AB cash withdrawal, 236C sale and 236K purchase of immovable\nproperty, 151 profit on debt, 150 dividends, 153 goods, services and\ncontracts, 154B social media income (from 2027) and 149 salary. Amounts\nare computed exactly from whole paisa, and the tax is rounded once to the\nnearest rupee (section 219).",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getRates",
+              "signature": "public static function getRates(mixed $taxYear, mixed $section = null): array",
+              "doc": "Every case FBR's Withholding Tax Rate Card lists for the covered\nsections in a tax year (2025 to 2027), with its rates for persons on\nand not on the Active Taxpayers List and its references.\n\n```php\ncount(Withholding::getRates(2027, '153')); // 17\n```",
+              "params": [
+                {
+                  "name": "$taxYear",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The tax year (int), e.g. `2027`"
+                },
+                {
+                  "name": "$section",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "Only this section, e.g. `'153'` (any case); null for every section"
+                }
+              ],
+              "returns": {
+                "type": "list<WithholdingRate>",
+                "doc": "The cases in the rate card's order, or `[]` for a year that is not covered. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "calculate",
+              "signature": "public static function calculate(\n    mixed $section,\n    mixed $amount,\n    mixed $atl,\n    mixed $subType = null,\n    mixed $taxYear = null,\n    mixed $date = null,\n    bool $lateFiler = false,\n    mixed $returnOnInvestment = null,\n    ?bool $resident = null,\n): ?WithholdingTax",
+              "doc": "Income tax to withhold or collect under one section of the Income Tax\nOrdinance 2001, for a person on or not on FBR's Active Taxpayers List\n(ATL), from FBR's Withholding Tax Rate Card for tax years 2025 to 2027.\n\nCovered: 231AB cash withdrawal, 236C sale and 236K purchase of\nimmovable property, 151 profit on debt, 150 dividends, 153 goods,\nservices and contracts, 154B social media income (from 2027) and 149\nsalary (the salaried rate table, as IncomeTax::calculateSalary()).\n\nThe rate for a person not on the list follows each case's own rule in\nthe Tenth Schedule: usually double, but a fixed rate (236C, and 151 in\n2025), its own value bands (236K), or none (149; 231AB applies only to\nthem). The rate applies to the whole amount (236C and 236K value bands\nare not marginal), and the tax is rounded to the nearest rupee:\nsection 219 disregards fractions under 50 paisa and counts 50 paisa or\nmore as a rupee. For 149 the salaried rate table is applied exactly\nand rounded once, and `rate` is the effective rate. Where FBR's card\nand the Ordinance differ, the Ordinance is used and `statuteOverride`\nsays so.\n\n- 231AB: pass the day's total of all cash withdrawals; nothing is\n  collected up to Rs 50,000.\n- 150: for mutual fund dividends received by a company, the debt part\n  is `mutual-fund-debt-part-company` (29%).\n- 151 sukuk held by an individual or AOP: the case must fit the return\n  on investment (`$returnOnInvestment`, by default `$amount`): more\n  than Rs 1 million is `sukuk-individual-above-1m`, less than Rs 1\n  million `sukuk-individual-below-1m`. The law gives no rate for\n  exactly Rs 1 million, so that, or a case that does not fit, gives\n  null.\n- 154B: the rate is the same for residents and non-residents; with\n  `$resident`, `taxNature` says whether the tax is a minimum tax\n  (resident) or a final tax (non-resident without a permanent\n  establishment in Pakistan).\n\nThis is an estimate from the rate card, not tax advice: exemptions,\nreduced-rate certificates, adjustable or final status and the many\ncases not listed here are not applied.\n\n```php\nWithholding::calculate('236K', 60_000_000, atl: false, taxYear: 2027);\n// WithholdingTax(rate: 14.5, tax: 8700000, nonAtlRule: 'slabs', …)\nWithholding::calculate('231AB', 80_000, atl: false, taxYear: 2027)?->tax; // 640\nWithholding::calculate('151', 10_000, atl: true, subType: 'bank-deposit', taxYear: 2027)?->tax; // 2000\n```",
+              "params": [
+                {
+                  "name": "$section",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "Section of the Ordinance: `'231AB'`, `'236C'`, `'236K'`, `'151'`, `'150'`, `'153'`, `'154B'` or `'149'` (any case, spaces around it ignored)"
+                },
+                {
+                  "name": "$amount",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The payment (or, for 236C/236K, the value; for 149, the year's taxable salary) in rupees (int|float), 0 to one trillion"
+                },
+                {
+                  "name": "$atl",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "True if the person is on FBR's Active Taxpayers List (a bool; anything else gives null)"
+                },
+                {
+                  "name": "$subType",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "Which case of the section, e.g. `'bank-deposit'` (151) or `'goods-company'` (153); see getRates(). Null (the default) for a section with one case."
+                },
+                {
+                  "name": "$taxYear",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "The tax year (int, July to June), e.g. `2027`; takes precedence over `$date`"
+                },
+                {
+                  "name": "$date",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "A date in the tax year instead: `YYYY-MM-DD` or a DateTimeInterface"
+                },
+                {
+                  "name": "$lateFiler",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": "True for a person on the list who filed the return late. Changes the rate only where the year has a late-filer rate (236C and 236K in tax years 2025 and 2026). Default false."
+                },
+                {
+                  "name": "$returnOnInvestment",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "151 sukuk, individual or AOP: the holder's return on investment in rupees (int|float, at most 2 decimals), which decides the case; null (the default) uses `$amount`. Ignored for other cases."
+                },
+                {
+                  "name": "$resident",
+                  "type": "?bool",
+                  "default": "null",
+                  "doc": "154B: whether the recipient is resident, which sets `taxNature`; null (the default) leaves it null."
+                }
+              ],
+              "returns": {
+                "type": "WithholdingTax|null",
+                "doc": "The rate, tax and references, or null for an unknown section, case or tax year, an invalid amount or return on investment, a sukuk case that does not fit the return, no tax year or date, or an `$atl` that is not a bool. Never throws."
+              }
+            }
+          ],
+          "source": "php/src/Withholding.php"
+        }
+      ]
+    },
+    {
       "id": "words",
       "name": "PakDataKit",
       "import": "use PakDataKit\\Words;",
@@ -4220,6 +5391,356 @@
             }
           ],
           "source": "php/src/Words.php"
+        }
+      ]
+    },
+    {
+      "id": "zakat",
+      "name": "PakDataKit",
+      "import": "use PakDataKit\\ZakatDocument;\nuse PakDataKit\\ZakatRamazan1Source;\nuse PakDataKit\\ZakatNisab;\n// ...",
+      "source": "php/src",
+      "doc": "",
+      "entries": [
+        {
+          "kind": "class",
+          "name": "ZakatDocument",
+          "signature": "final readonly class ZakatDocument",
+          "doc": "A document behind a Zakat year's nisab: its number, date and URL.",
+          "fields": [
+            {
+              "name": "number",
+              "type": "string",
+              "default": null,
+              "doc": "Its number, e.g. `BPRD Circular Letter No. 03 of 2026`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "date",
+              "type": "string",
+              "default": null,
+              "doc": "Its date (`YYYY-MM-DD`).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "default": null,
+              "doc": "The official document.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ZakatDocument.php"
+        },
+        {
+          "kind": "class",
+          "name": "ZakatRamazan1Source",
+          "signature": "final readonly class ZakatRamazan1Source",
+          "doc": "Who announced 1 Ramazan for a Zakat year, and where the announcement was\nreported (ZakatNisab::$ramazan1Source).",
+          "fields": [
+            {
+              "name": "announcedBy",
+              "type": "string",
+              "default": null,
+              "doc": "Who announced it: `Central Ruet-e-Hilal Committee`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reportedBy",
+              "type": "string",
+              "default": null,
+              "doc": "The outlet that reported the announcement, e.g. `Dawn`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reportedOn",
+              "type": "?string",
+              "default": null,
+              "doc": "The report's date (`YYYY-MM-DD`), or null if not recorded.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "url",
+              "type": "?string",
+              "default": "null",
+              "doc": "The report's URL, or null where none is recorded.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "toArray",
+              "signature": "public function toArray(): array",
+              "doc": "The public properties as an array with the npm package's keys; `url`\nis left out when none is recorded, as the npm package does.",
+              "params": [],
+              "returns": {
+                "type": "array<string, mixed>",
+                "doc": ""
+              }
+            }
+          ],
+          "source": "php/src/ZakatRamazan1Source.php"
+        },
+        {
+          "kind": "class",
+          "name": "ZakatNisab",
+          "signature": "final readonly class ZakatNisab",
+          "doc": "One Zakat year's nisab for deduction at source, as notified. Returned by\nZakat::getNisab().",
+          "fields": [
+            {
+              "name": "zakatYear",
+              "type": "int",
+              "default": null,
+              "doc": "The Hijri year of the valuation date (1 Ramazan), e.g. `1447`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "label",
+              "type": "string",
+              "default": null,
+              "doc": "The year as the Ministry's notification writes it, e.g. `1446-47`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nisab",
+              "type": "int",
+              "default": null,
+              "doc": "Nisab in rupees: accounts with a lower balance are not deducted.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "valuationDateHijri",
+              "type": "string",
+              "default": null,
+              "doc": "The valuation date in the Hijri calendar, e.g. `1 Ramazan 1447 AH`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "ramazan1",
+              "type": "string",
+              "default": null,
+              "doc": "The valuation date: 1 Ramazan in the Gregorian calendar\n(`YYYY-MM-DD`), as announced by the Central Ruet-e-Hilal Committee.\nZakat years are assigned to dates by it.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "ramazan1Source",
+              "type": "ZakatRamazan1Source",
+              "default": null,
+              "doc": "Who announced 1 Ramazan, and where the announcement was reported.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "bankHolidayDate",
+              "type": "?string",
+              "default": null,
+              "doc": "The deduction day: the bank holiday SBP declares for it\n(`YYYY-MM-DD`). It is `ramazan1`, or the next working day when 1\nRamazan falls on a weekend or public holiday (for example 24 March\n2023, after Pakistan Day). Null where no SBP holiday circular was\nfound.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "notification",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The Ministry of Poverty Alleviation & Social Safety notification.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "sbpCircular",
+              "type": "ZakatDocument",
+              "default": null,
+              "doc": "The SBP BPRD circular letter that conveys it to banks.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "note",
+              "type": "?string",
+              "default": null,
+              "doc": "Notes on the documents, including the notification's \"likely to fall on\" text, or null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The notification and SBP circular, with the period the nisab applies to.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ZakatNisab.php"
+        },
+        {
+          "kind": "class",
+          "name": "ZakatDeduction",
+          "signature": "final readonly class ZakatDeduction",
+          "doc": "Result of Zakat::deduction(): Zakat deducted at source from one account.",
+          "fields": [
+            {
+              "name": "zakatYear",
+              "type": "int",
+              "default": null,
+              "doc": "The Zakat year (Hijri year of 1 Ramazan), e.g. `1447`.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "nisab",
+              "type": "int",
+              "default": null,
+              "doc": "That year's nisab in rupees.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "balance",
+              "type": "float",
+              "default": null,
+              "doc": "The balance in rupees (2 decimals at most).",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "deductible",
+              "type": "bool",
+              "default": null,
+              "doc": "Whether Zakat is deducted from this balance.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "reason",
+              "type": "?string",
+              "default": null,
+              "doc": "Why not, when `deductible` is false: `exempt` or `below-nisab`; otherwise null.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "rate",
+              "type": "float",
+              "default": null,
+              "doc": "Percent of the whole balance: 2.5.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "zakat",
+              "type": "int",
+              "default": null,
+              "doc": "The amount deducted, in whole rupees (First Schedule, Note 2: less\nthan a rupee is not charged, 50 paisa or more counts as a rupee);\n`0` if not deductible.",
+              "static": false,
+              "readonly": true
+            },
+            {
+              "name": "source",
+              "type": "DataSource",
+              "default": null,
+              "doc": "The notification and SBP circular for the year.",
+              "static": false,
+              "readonly": true
+            }
+          ],
+          "methods": [],
+          "source": "php/src/ZakatDeduction.php"
+        },
+        {
+          "kind": "class",
+          "name": "Zakat",
+          "signature": "final class Zakat",
+          "doc": "Zakat deduction at source in Pakistan: the nisab notified each year by the\nAdministrator-General Zakat (Ministry of Poverty Alleviation & Social\nSafety) and conveyed to banks by SBP, Zakat years 1433 to 1447 AH\n(2012-2026), and the 2.5% deducted from accounts at or above it.\n\nThis is the nisab for deduction from savings and similar bank accounts\nunder the Zakat and Ushr Ordinance 1980, not a religious ruling on\npersonal Zakat.",
+          "fields": [],
+          "methods": [
+            {
+              "kind": "method",
+              "name": "getNisab",
+              "signature": "public static function getNisab(mixed $zakatYear = null, mixed $date = null): ?ZakatNisab",
+              "doc": "The nisab for compulsory Zakat deduction at source for a Zakat year.\n\nGive the year (`1447`, `'1447'`, or the notification's `'1446-47'`) or\na date; `$zakatYear` takes precedence. A Zakat year starts on 1\nRamazan (`ramazan1`, as the Central Ruet-e-Hilal Committee announced\nit), and a date belongs to the last year whose 1 Ramazan is on or\nbefore it.\n\n```php\nZakat::getNisab(zakatYear: 1447)?->nisab; // 503529\nZakat::getNisab(zakatYear: '1445-46')?->zakatYear; // 1446\nZakat::getNisab(date: '2025-06-01')?->nisab; // 179689\n```",
+              "params": [
+                {
+                  "name": "$zakatYear",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "The Hijri year (int, or a string such as `'1447'`), or the label as the notification writes it (`'1446-47'`)"
+                },
+                {
+                  "name": "$date",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "A day in the Zakat year: `YYYY-MM-DD` or a DateTimeInterface (its own calendar date)"
+                }
+              ],
+              "returns": {
+                "type": "ZakatNisab|null",
+                "doc": "The year's nisab, dates and sources, or null for a year that is not covered (a date before 1 Ramazan 1433, or 353 days or more after the last year's 1 Ramazan), or an invalid or missing year or date. Never throws."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getYears",
+              "signature": "public static function getYears(): array",
+              "doc": "Every notified Zakat year, oldest first.",
+              "params": [],
+              "returns": {
+                "type": "list<int>",
+                "doc": ""
+              }
+            },
+            {
+              "kind": "method",
+              "name": "deduction",
+              "signature": "public static function deduction(\n    mixed $balance,\n    mixed $zakatYear = null,\n    mixed $date = null,\n    bool $exempt = false,\n): ?ZakatDeduction",
+              "doc": "Zakat deducted at source from one account on the valuation date (1\nRamazan): 2.5% of the whole balance, rounded to the nearest rupee\n(First Schedule, Note 2: less than a rupee is not charged, 50 paisa or\nmore counts as a rupee), when it is at or above that year's nisab, and\nnothing when it is below or the holder has a valid exemption\ndeclaration (Form CZ-50). Give the year or a date as for getNisab().\n\nA balance exactly equal to the nisab is deducted: every notification\nsays no deduction where the balance is \"less than\" the nisab, and the\nOrdinance (s. 2(xxiii)) defines a sahib-e-nisab as owning \"not less\nthan nisab\". The First Schedule's own wording (\"does not exceed\")\nwould not deduct it. In Punjab the Punjab Zakat and Ushr Act 2018\nreplaced the Ordinance, with the same First Schedule wording.\n\nIt applies to the accounts the Ordinance subjects to deduction at\nsource: savings, profit-and-loss sharing and similar accounts (asset\ncode 101). Current accounts and foreign currency accounts are not\ndeducted. It is not a religious ruling on how much Zakat a person owes.\n\n```php\nZakat::deduction(600000, zakatYear: 1447);\n// ZakatDeduction(zakatYear: 1447, nisab: 503529, balance: 600000.0,\n//   deductible: true, reason: null, rate: 2.5, zakat: 15000, source: …)\nZakat::deduction(600000, zakatYear: 1447, exempt: true)?->zakat; // 0\n```",
+              "params": [
+                {
+                  "name": "$balance",
+                  "type": "mixed",
+                  "default": null,
+                  "doc": "The account balance in rupees (int|float) at the start of the valuation date, 0 to one trillion"
+                },
+                {
+                  "name": "$zakatYear",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "As for getNisab()"
+                },
+                {
+                  "name": "$date",
+                  "type": "mixed",
+                  "default": "null",
+                  "doc": "As for getNisab()"
+                },
+                {
+                  "name": "$exempt",
+                  "type": "bool",
+                  "default": "false",
+                  "doc": "True if the holder has a valid exemption declaration (Form CZ-50) with the bank: filed at least 30 days before the valuation date, sworn before a magistrate, oath commissioner, notary public or other person authorised to administer oaths, in the presence of two witnesses (Zakat and Ushr Ordinance 1980, s. 1(3), proviso (a)). The declaration is not checked. Default false."
+                }
+              ],
+              "returns": {
+                "type": "ZakatDeduction|null",
+                "doc": "The deduction and its source, or null for an invalid balance or a year that is not covered. Never throws."
+              }
+            }
+          ],
+          "source": "php/src/Zakat.php"
         }
       ]
     },

@@ -10,8 +10,6 @@ namespace PakDataKit;
  */
 final readonly class SalesTaxAmounts
 {
-    use Internal\ToArray;
-
     public function __construct(
         /** Value excluding tax, in rupees (2 decimals at most). */
         public float $net,
@@ -21,6 +19,32 @@ final readonly class SalesTaxAmounts
         public float $gross,
         /** Percent used. */
         public float $rate,
+        /**
+         * The rate's period, law and official source, when SalesTax::calculate()
+         * looked the rate up from a province or kind. Null when you passed the
+         * `rate` yourself, and from splitInclusive().
+         */
+        public ?DataSource $source = null,
     ) {
+    }
+
+    /**
+     * The public properties as an array with the npm package's keys;
+     * `source` is left out when it is null, as the npm package does.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $fields = [
+            'net' => $this->net,
+            'tax' => $this->tax,
+            'gross' => $this->gross,
+            'rate' => $this->rate,
+        ];
+        if ($this->source !== null) {
+            $fields['source'] = $this->source->toArray();
+        }
+        return $fields;
     }
 }

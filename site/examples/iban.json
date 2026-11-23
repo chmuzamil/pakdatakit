@@ -27,7 +27,19 @@
         "type": "islamic",
         "active": true,
         "mergedInto": null,
-        "aliasOf": null
+        "aliasOf": null,
+        "status": "active",
+        "website": "https://meezanbank.com/",
+        "websiteSbpListed": null,
+        "swift": "MEZNPKKA",
+        "swiftSource": {
+          "bicSource": "bank-site",
+          "printed": "MEZN PK KA",
+          "sourceUrl": "https://www.meezanbank.com/wp-content/themes/mbl/downloads/NOSTRO.pdf",
+          "page": 1,
+          "checkedAt": "2026-11-23"
+        },
+        "swiftReason": null
       }
     }
   ]

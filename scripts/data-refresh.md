@@ -10,7 +10,7 @@ pbs.gov.pk, cabinet.gov.pk, provincial government and gazette sites). News
 reports and Wikipedia can point to a change, but cite the official document.
 Record each change, with its URL and retrieval date, in [DATA.md](https://github.com/chmuzamil/pakdatakit/blob/main/DATA.md).
 
-## Banks (SBP)
+## Banks (SBP) <!-- dataset: banks -->
 
 Sources:
 
@@ -32,7 +32,18 @@ Checklist:
 - [ ] Mergers and closures: `MERGED_INTO` or `CLOSED`.
 - [ ] Type changes: `BANK_TYPES`.
 
-## Mobile prefixes (PTA)
+Websites and SWIFT/BIC (`data/sources/bank-details.json`):
+
+1. Check each website against SBP's lists; where a bank moved domain, keep
+   SBP's value in `websiteSbpListed`.
+2. Re-check each `swiftSource.sourceUrl`. Add a code only where SBP or the
+   institution's own domain prints it (SSI or nostro PDFs, FI or
+   correspondent banking pages, Roshan Digital pages, annual reports); never
+   from aggregators, branch codes or RDA codes. Record the printed form,
+   page and `checkedAt`; set `swiftReason` where there is none.
+3. Run `node scripts/generate-data.mjs`, then the vector and port tests.
+
+## Mobile prefixes (PTA) <!-- dataset: networks -->
 
 Sources:
 
@@ -49,7 +60,7 @@ Checklist:
 - [ ] Mergers that change an operator's name or label (for example Telenor
       and PTML).
 
-## Public holidays (Cabinet Division)
+## Public holidays (Cabinet Division) <!-- dataset: holidays -->
 
 Sources:
 
@@ -73,7 +84,7 @@ Checklist:
       `src/holidays.ts`.
 - [ ] Any one-off holiday the government declared.
 
-## Postal directory (Pakistan Post)
+## Postal directory (Pakistan Post) <!-- dataset: postal-codes --><!-- dataset: post-offices --><!-- dataset: cities -->
 
 Sources:
 
@@ -90,7 +101,7 @@ Checklist:
       `office,postCode,accountOffice,province`) and review the diff.
 - [ ] Check five random codes from the new file against the search table.
 
-## Landline area codes
+## Landline area codes <!-- dataset: area-codes -->
 
 Sources:
 
@@ -103,7 +114,7 @@ Checklist:
       names so `getAreaCode` finds them.
 - [ ] A new district (below) may need its name added to an existing code.
 
-## Districts, divisions and tehsils
+## Districts, divisions and tehsils <!-- dataset: districts --><!-- dataset: divisions --><!-- dataset: tehsils -->
 
 Sources:
 
@@ -124,7 +135,7 @@ Checklist:
 - [ ] Districts still marked unverified in DATA.md: has a notification
       appeared?
 
-## Sales tax rates
+## Sales tax rates <!-- dataset: sales-tax-rates -->
 
 Rates change mostly in the budget, with effect from 1 July, so check the July
 issue most carefully. Standard rates only.
@@ -153,7 +164,7 @@ Checklist:
 - [ ] Rates still marked uncertain in DATA.md (Balochistan 2025-26 onwards,
       ICT after June 2025): is the official document out now?
 
-## Income tax slabs (after each budget)
+## Income tax slabs (after each budget) <!-- dataset: income-tax-slabs -->
 
 The Finance Act changes the salaried table from 1 July. After the budget is
 passed (June), and again when FBR publishes the consolidated Ordinance
@@ -169,13 +180,79 @@ passed (June), and again when FBR publishes the consolidated Ordinance
       say so in the CHANGELOG.
 - [ ] Update the table and notes (surcharge, pension rate) in DATA.md.
 
+## Zakat nisab (each February) <!-- dataset: zakat-nisab -->
+
+Sources: the SBP BPRD circular letters index for the year,
+https://www.sbp.org.pk/bprd/<YYYY>/index.htm (if it blocks downloads, the
+same path on https://archive.sbp.org.pk/), and the Ministry notification
+attached to the "Deduction of Zakat at Source ... (Asset Code No. 101)"
+circular letter.
+
+1. A week or two before 1 Ramazan, find that circular letter and its annex
+   (the Ministry notification). Read the nisab in figures and in words and
+   check that they agree.
+2. Add a new record to `data/zakat-nisab.json` for the new Zakat year (the
+   Hijri year of 1 Ramazan): `label` as the notification writes it, the
+   notification and circular numbers, dates and URLs, and the notification's
+   "likely to fall on" text in `note`. Once the Central Ruet-e-Hilal
+   Committee announces the moon, set `ramazan1` and `ramazan1Source`
+   (authority, the outlet that reported it, its date and URL), and
+   `bankHolidayDate`: the deduction day in SBP's bank holiday circular (1
+   Ramazan, or the next working day if it is a weekend or public holiday).
+   Never change a past year.
+3. Update the `zakat-nisab` entry in `data/manifest.json` (`recordCount`,
+   `coverage`, `sourceUrl`, `sourceReference`, `sourceDate`,
+   `retrievedAt`, `nextExpectedUpdate`) and the table in
+   `data/notes/200-zakat-nisab.md`.
+4. Run `npm run build && node scripts/generate-test-vectors.mjs`, then
+   `npm test`, `npm run check:manifest` and every port's vector tests.
+
+## Census population (yearly) <!-- dataset: district-population --><!-- dataset: tehsil-population -->
+
+Sources: PBS's detailed census results in Excel,
+https://www.pbs.gov.pk/result-excel/ (Table 1 and Table 20 for each
+province, Islamabad and the national totals).
+
+1. Check whether PBS has republished or corrected the tables (compare the
+   files' Last-Modified dates and provincial totals with
+   `data/notes/210-population.md`).
+2. When a district is created, add it to `data/districts.json` and to
+   `data/district-population.json` with `null` figures, `censusDistrict`
+   set to the census district its area came from, and a note; set
+   `boundaryChanged: true` on the district that lost area. Do not estimate.
+3. Update both `*-population` entries in `data/manifest.json`
+   (`recordCount`, `retrievedAt`, `nextExpectedUpdate`).
+4. Run `npm run build && node scripts/generate-test-vectors.mjs`, then
+   `npm test`, `npm run check:manifest` and every port's vector tests.
+
+## Withholding tax rates (after each budget) <!-- dataset: withholding-rates -->
+
+Sources: FBR's rate card page,
+https://fbr.gov.pk/withholding-taxes-rate-card/174298/174301 (the new tax
+year's card, PDF and xlsx), and FBR's consolidated Income Tax Ordinance and
+Finance Act for that year.
+
+1. When the new card is out (usually August), add a record for every case
+   in `data/withholding-rates.json` for the new tax year: rates for ATL,
+   non-ATL (with the Tenth Schedule rule: double, fixed, value bands or
+   none) and late filers if any, the card's references and URL. Never
+   change a past year.
+2. Check each row against the Ordinance as amended by that year's Finance
+   Act. Where they differ, use the statute and say why in
+   `statuteOverride`; note new or removed cases in
+   `data/notes/220-withholding.md`.
+3. Have the tax adviser review the new year's table before release.
+4. Update the `withholding-rates` entry in `data/manifest.json`, then run
+   `npm run build && node scripts/generate-test-vectors.mjs`, `npm test`,
+   `npm run check:manifest` and every port's vector tests.
+
 ## Urdu alphabetical order
 
 - [ ] Has CLDR changed `common/collation/ur.xml` in a new release
       (https://github.com/unicode-org/cldr/commits/main/common/collation/ur.xml)?
       If so, update `compareUrdu` in `src/text.ts` and every port.
 
-## Bill, courier and FBR invoice formats
+## Bill, courier and FBR invoice formats <!-- dataset: fbr-sale-types -->
 
 No datasets, but each follows an official document that can change.
 
@@ -194,6 +271,12 @@ No datasets, but each follows an official document that can change.
       https://www.fbr.gov.pk/di-technical-assistance/173967/173970)? If not,
       compare the fields and error codes, update `src/fbr-invoice.ts`,
       `FBR_DI_SPEC_VERSION` and DATA.md.
+
+FBR sale types (`data/fbr-sale-types.json`): check
+https://www.fbr.gov.pk/di-technical-assistance/173967/173970 for a newer
+"Technical Specification for DI API". If there is one, update the sale
+types from its scenarios table, `FBR_DI_SPEC_VERSION` in
+`src/fbr-invoice.ts`, and the `fbr-sale-types` manifest entry.
 
 ## Also
 

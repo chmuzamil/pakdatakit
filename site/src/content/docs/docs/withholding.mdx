@@ -1,0 +1,62 @@
+---
+title: Withholding tax, filer and non-filer
+description: Withholding and advance income tax for persons on and not on FBR's Active Taxpayers List, tax years 2025-2027, from FBR's rate cards checked against the Income Tax Ordinance.
+---
+
+import LangTabs from '../../../components/LangTabs.astro';
+
+`import { calculateWithholding, getWithholdingRates } from 'pakdatakit/withholding'`
+
+Most withholding taxes are higher for a person who is not on FBR's Active Taxpayers List (ATL). The rule differs by section. Usually the rate is doubled, but 236C has a fixed rate and 236K has its own value bands. 231AB applies only to persons not on the list, and 149 is the same for everyone. Every case comes from FBR's Withholding Tax Rate Card for its tax year and was checked against the Income Tax Ordinance.
+
+Covered: 149 salary, 150 dividends, 151 profit on debt, 153 goods, services and contracts, 154B social media income (from 2027), 231AB cash withdrawal, and 236C and 236K property.
+
+## Examples
+
+<LangTabs module="withholding" />
+
+## Reference
+
+### calculateWithholding()
+
+```ts
+function calculateWithholding(input: {
+  section: string; // '236K', '151', …
+  subType?: string; // which case, e.g. 'bank-deposit'; see getWithholdingRates
+  amount: number;
+  atl: boolean;
+  lateFiler?: boolean; // 236C and 236K in 2025 and 2026
+  returnOnInvestment?: number; // 151 sukuk: decides the case
+  resident?: boolean; // 154B: minimum or final tax
+  taxYear?: number; // or date
+  date?: string | Date;
+}): Withholding | null;
+// { rate, tax, nonAtlRule, slab, threshold, cardRef, lawRef,
+//   statuteOverride, source, … }
+```
+
+**Returns** the rate and tax on the whole amount, rounded to the nearest rupee (section 219), with the card's and the law's references. `nonAtlRule` says how the non-ATL rate is set: `double`, `fixed`, `slabs` or `not-applicable`.
+
+**Caveats.**
+
+- **Cash withdrawal (231AB):** pass the day's total of all withdrawals. Nothing is collected up to Rs 50,000.
+- **Mutual fund dividends (150):** a company receiving one uses `mutual-fund-debt-part-company` for the debt part (29%, from the statute; not on the card).
+- **Sukuk (151):** for an individual or AOP, the case must fit the return on investment (`returnOnInvestment`, default the amount). The law covers "more than" and "less than" Rs 1 million, so exactly Rs 1 million gives `null`.
+- **Social media income (154B):** pass `resident` to get `taxNature`: a minimum tax for a resident, a final tax for a non-resident without a permanent establishment.
+- **Card and statute disagree:** the statute wins and `statuteOverride` says why. In 2027, 153(2) is 1.25% (the card shows 1%).
+- **Not applied:** exemptions, reduced-rate certificates, and whether the tax is adjustable, minimum or final. This is an estimate, not tax advice.
+
+### getWithholdingRates()
+
+```ts
+function getWithholdingRates(
+  taxYear: number,
+  section?: string,
+): WithholdingRate[];
+```
+
+**Returns** every case of a tax year, or of one section, with its ATL, non-ATL and late-filer rates and references.
+
+**Related:** [salary tax](/docs/incometax/), [sources and statute check](/data/#withholding-tax-rates-withholding-ratesjson).
+
+**API:** [TypeScript](/api/typescript/withholding/) and the other languages from the [API reference list](/docs/#api-reference).

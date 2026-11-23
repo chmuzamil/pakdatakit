@@ -1,0 +1,30 @@
+{
+  "module": "data-info",
+  "title": "Data sources",
+  "examples": [
+    {
+      "id": "info",
+      "title": "Where the salary tax table comes from",
+      "fn": "getDataInfo",
+      "args": ["income-tax-slabs"],
+      "expected": {
+        "id": "income-tax-slabs",
+        "file": "income-tax-slabs.json",
+        "title": "Income tax on salary",
+        "issuer": "Federal Board of Revenue (FBR)",
+        "sourceUrl": "https://download1.fbr.gov.pk/Docs/20266291261044366FinanceAct2026.pdf",
+        "sourceReference": "Income Tax Ordinance 2001, First Schedule, Part I, Division I, clause (2), as substituted by the Finance Act 2026, s. 5(44)(a)(i)",
+        "sourceDate": "2026-06-26",
+        "retrievedAt": "2026-11-18",
+        "checkedAt": "2026-11-18",
+        "effectiveFrom": "2019-07-01",
+        "effectiveTo": "2027-06-30",
+        "coverage": "Tax years 2020-2027",
+        "recordCount": 8,
+        "nextExpectedUpdate": "2027-07-15",
+        "updateCadence": "After the Finance Act each July",
+        "notes": "One record per tax year, each with its own dates, law and source. Past years are never changed."
+      }
+    }
+  ]
+}

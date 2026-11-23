@@ -1,5 +1,5 @@
 name: pakdatakit
-version: 2.7.2
+version: 2.8.0
 description: >-
   Pakistani data utilities for Dart and Flutter: validate CNIC, mobile, IBAN,
   NTN/STRN, passport and vehicle numbers; Raast QR codes, banks, postal codes,

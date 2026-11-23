@@ -968,7 +968,7 @@
             {
               "name": "PACKAGE_VERSION",
               "type": null,
-              "default": "'2.7.2'",
+              "default": "'2.8.0'",
               "doc": "Version of this package.",
               "static": true,
               "readonly": true,

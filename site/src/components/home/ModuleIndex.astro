@@ -1,6 +1,6 @@
 ---
 /**
- * Home, section 04: the modules as a typographic list grouped by problem:
+ * Home, section 05: the modules as a typographic list grouped by problem:
  * the group, then function names (monospace links to their guide) with one
  * line on what each solves. The pills jump to a group.
  */
@@ -31,6 +31,7 @@ const GROUPS = [
     name: 'Banking',
     items: [
       ['validateIBAN', '/docs/iban/', 'Checks the length and check digits; names the bank.'],
+      ['getBankInfo', '/docs/iban/#getbankinfo', "A bank's type, status, website and SWIFT/BIC code."],
       ['createRaastP2PQr', '/docs/raast/', 'Builds a Raast QR that banking apps scan.'],
       ['parseAmount', '/docs/amount/', 'Reads amounts typed as 1,50,000 or 1.5 lakh.'],
       ['amountInWords', '/docs/words/', 'Writes amounts in words, with lakh and crore.'],
@@ -74,7 +75,7 @@ const GROUPS = [
 ---
 
 <section class="pdk-home-section not-content" aria-labelledby="modules">
-  <span class="pdk-label">04 · Modules</span>
+  <span class="pdk-label">05 · Modules</span>
   <h2 id="modules">Modules</h2>
   <nav aria-label="Module groups">
     <ul class="pdk-pills pdk-module-pills">

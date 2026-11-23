@@ -19,8 +19,9 @@ results on the shared test vectors. The new datasets load on first use.
   id order.
 - **Banks** (#94): `BankInfo` has `status` (`active`, `merged` or
   `liquidated`), `website` and `websiteSbpListed`, and `swift` (SWIFT/BIC)
-  only where SBP or the bank's own domain prints it, with `swiftSource` (a
-  `BankSwiftSource`) or `swiftReason`. The new constructor parameters are
+  with `swiftSource` (a `BankSwiftSource`; `bicSource` is `sbp` or
+  `bank-site` where SBP or the bank's own domain prints it, or `directory`
+  from a SWIFT code directory) or `swiftReason`. The new constructor parameters are
   optional, so code that builds a `BankInfo` still works.
 - **Dated sources in results.** `SalaryTax` has `source` (a `DataSource`: the
   rate table's dates, law and document), and `SalesTaxAmounts` has `source`

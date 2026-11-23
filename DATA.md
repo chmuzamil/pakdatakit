@@ -14,7 +14,7 @@ checks it against the data.
 | Dataset | Records | Issuer | Source date | Retrieved | Applies | Next update |
 | --- | ---: | --- | --- | --- | --- | --- |
 | [Landline area codes](https://www.itu.int/dms_pub/itu-t/oth/02/02/T02020000A10002PDFE.pdf) (`area-codes.json`) | 114 | Pakistan Telecommunication Authority (PTA) | 2021-11-09 | 2026-11-16 | 2021-11-09 to now | 2027-11-16 |
-| [Banks and IBAN bank codes](https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks) (`banks.json`) | 50 | State Bank of Pakistan (SBP) | undated | 2026-11-16 | 2026-11-16 to now | 2027-02-16 |
+| [Banks: IBAN codes, websites and SWIFT/BIC](https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks) (`banks.json`) | 50 | State Bank of Pakistan (SBP) | undated | 2026-11-23 | 2026-11-16 to now | 2027-02-16 |
 | [Cities and towns](https://www.pakpost.gov.pk/images/national%20post%20code%20directory.pdf) (`cities.json`) | 226 | Pakistan Post; Pakistan Bureau of Statistics (PBS) | 2021-02 | 2026-11-16 | 2026-11-16 to now | 2027-02-16 |
 | [District population (Census 2023)](https://www.pbs.gov.pk/result-excel/) (`district-population.json`) | 177 | Pakistan Bureau of Statistics (PBS) | 2025-08-25 | 2026-11-23 | 2023-03-01 to now | 2027-11-23 |
 | [Districts](https://www.pbs.gov.pk/wp-content/uploads/census_tables/tables/table_1_punjab_province.pdf) (`districts.json`) | 177 | Pakistan Bureau of Statistics (PBS); provincial governments | undated | 2026-11-16 | 2026-10-01 to now | 2027-02-16 |
@@ -47,8 +47,8 @@ are. To correct an entry, open an issue or pull request with a source.
 
 ## Banks (`banks.json`): IBAN bank codes
 
-- **Dataset:** `banks.json` (id `banks`), 50 records. Scheduled banks and microfinance banks operating in Pakistan.
-- **Source:** State Bank of Pakistan (SBP), SBP lists of regulated institutions (commercial, Islamic, microfinance banks); IBANs printed by SBP (https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks), undated; retrieved 2026-11-16, checked 2026-11-16.
+- **Dataset:** `banks.json` (id `banks`), 50 records. Scheduled banks, microfinance banks and EMIs in Pakistan: 50 IBAN codes, 47 websites, 16 SWIFT/BIC codes.
+- **Source:** State Bank of Pakistan (SBP), SBP lists of regulated institutions (names, types, websites); IBANs printed by SBP (codes); SWIFT/BIC codes only as printed by SBP or on each institution's own domain, each with its URL (https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks), undated; retrieved 2026-11-23, checked 2026-11-23.
 - **Applies:** 2026-11-16 to now.
 - **Next expected update:** 2027-02-16 (quarterly, and after any SBP merger or licence notification).
 
@@ -112,6 +112,89 @@ brackets where people still search for it.
   https://archive.sbp.org.pk/notifications/bprd/2025/ntf4.htm) and `TMFB` →
   "Easypaisa Bank Limited" (a scheduled bank from 23 January 2025,
   https://archive.sbp.org.pk/notifications/bprd/2025/ntf1.htm).
+
+### Websites and SWIFT/BIC codes (2.8.0)
+
+Kept in `data/sources/bank-details.json` and merged into `banks.json` by
+`scripts/generate-data.mjs`. All checked 2026-11-23.
+
+- **Websites (47):** from SBP's lists of regulated institutions
+  (https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks and
+  .../microfinance-banks). Where the bank now uses another domain, `website`
+  is the bank's current one and `websiteSbpListed` keeps SBP's: Askari
+  (`askaribank.com.pk`), ABHI (`finca.pk`), Mobilink (`waseelabank.com`) and
+  Standard Chartered (`standardchartered.com.pk`). Bank Alfalah's SBP link is
+  an Outlook "safelinks" redirect; the plain URL is used. Deutsche Bank and
+  Mashreq point to the Pakistan page of the group site. Bank of China, ICBC,
+  NayaPay and SadaPay have no website in SBP's lists; theirs come from their
+  own sites. NIBP and SAUD (merged) and SMES (in liquidation) have none, with
+  `status` and `mergedInto` naming the successor where there is one.
+- **SWIFT/BIC (16 codes, 15 banks):** only codes printed by SBP or on the
+  institution's own domain, stored as the 8-character BIC, with the printed
+  form, URL, page and date (`swiftSource`). Not used: codes derived from
+  SBP's list of Roshan Digital Account codes or from branch codes, NBP's
+  code in an S&P Global profile hosted on its site, aggregator sites, and
+  BankIslami's 10-character "BKIPPKKXXX". SWIFT's own directory search is
+  behind a CAPTCHA and was not used.
+- **1LINK IMD codes:** not included. There is no official public source;
+  1LINK shares them with members only (its members page returns 404, and
+  SBP's pages do not list them).
+
+| Code   | SWIFT/BIC  | Printed as    | Source                                                                                                                                              |
+| ------ | ---------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ABPA` | `ABPAPKKA` | `ABPAPKKA`    | bank-site: https://www.abl.com/business-banking/accounts/home-remmittances/nostro-account-and-swift-code/                                           |
+| `ASCM` | `ASCMPKKA` | `ASCM PKKA`   | bank-site: https://askaribank.com/investor-relations/useful-information-for-shareholders                                                            |
+| `BAHL` | `BAHLPKKA` | `BAHLPKKA`    | bank-site: https://www.bankalhabib.com/alhabib-roshan-digital-account                                                                               |
+| `BKCH` | `BKCHPKKA` | `BKCHPKKA`    | bank-site: https://www.boc.cn/english/thisisboc/gls/ovs/202601/t20260106_25640027.html                                                              |
+| `CITI` | `CITIPKKX` | `CITIPKKX`    | bank-site: https://depositaryreceipts.citi.com/adr/guides/dspcustodian.aspx?pageId=15&subpageID=151&cusip=695849109&cstdn_id=CPAK                   |
+| `DEUT` | `DEUTPKKA` | `DEUTPKKAXXX` | bank-site: https://country.db.com/mea/documents/Deutsche-Bank-AG-Pakistan-SSI.pdf, p. 1                                                             |
+| `HABB` | `HABBPKKA` | `HABBPKKA`    | bank-site: https://www.hbl.com/assets/documents/Nostros_and_SSI_for_HBL_Pakistan_-_JAN_2026.pdf, p. 1                                               |
+| `ICBK` | `ICBKPKKA` | `ICBKPKKAXXX` | bank-site: https://www.icbc-ltd.com/en/page/721852698013237261.html                                                                                 |
+| `JSBL` | `JSBLPKKA` | `JSBLPKKA`    | bank-site: https://jsbl.com/wp-content/uploads/2020/01/SSI-for-website.pdf, p. 1                                                                    |
+| `MCBL` | `MUCBPKKA` | `MUCBPKKA`    | bank-site: https://mopss.mcb.com.pk/assets/pdf/Guidelines%20for%20remitting%20funds%20to%20your%20MCB%20Bank%20Roshan%20Digital%20Account.pdf, p. 1 |
+| `MCIB` | `MCIBPKKI` | `MCIBPKKI`    | bank-site: https://www.mcbislamicbank.com/investor-relations/investor-information/                                                                  |
+| `MEZN` | `MEZNPKKA` | `MEZN PK KA`  | bank-site: https://www.meezanbank.com/wp-content/themes/mbl/downloads/NOSTRO.pdf, p. 1                                                              |
+| `MUCB` | `MUCBPKKA` | `MUCBPKKA`    | bank-site: https://mopss.mcb.com.pk/assets/pdf/Guidelines%20for%20remitting%20funds%20to%20your%20MCB%20Bank%20Roshan%20Digital%20Account.pdf, p. 1 |
+| `SBPP` | `SBPPPKKA` | `SBPPPKKA`    | sbp: https://archive.sbp.org.pk/dmmd/2019/C2.htm                                                                                                    |
+| `SCBL` | `SCBLPKKX` | `SCBLPKKX`    | bank-site: https://www.sc.com/pk/donation-goals/                                                                                                    |
+| `UNIL` | `UNILPKKA` | `UNILPKKA`    | bank-site: https://www.ubldigital.com/Portals/0/Remittance/FXServices/UBLSSIs.pdf, p. 1                                                             |
+
+No SWIFT/BIC code, and why:
+
+- `AIIN` (Al Baraka Bank (Pakistan) Limited): No page on the bank's own domain prints a BIC.
+- `ALFH` (Bank Alfalah Limited): Only the Roshan Digital Account branch code ALFHPKKARDA is printed (SBP list, bank pages); the 8-character code would be derived.
+- `APNA` (Apna Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `BKIP` (BankIslami Pakistan Limited): The bank's site prints "BKIPPKKXXX", which has 10 characters and is not a valid BIC.
+- `BPUN` (The Bank of Punjab): The bank's trade pages are behind an Imperva security check; not bypassed. Only branch codes appear in search results.
+- `DUIB` (Dubai Islamic Bank Pakistan Limited): Only the Roshan Digital Account branch code DUIBPKKARDA is printed (SBP list, dibpak.com).
+- `FAYS` (Faysal Bank Limited): The bank's document that prints it is behind a Cloudflare challenge; not bypassed.
+- `FINC` (ABHI Microfinance Bank (formerly FINCA Microfinance Bank)): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `FMFB` (HBL Microfinance Bank (formerly First MicroFinance Bank)): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `FWOM` (First Women Bank Limited): No page on the bank's own domain prints a BIC.
+- `JCMA` (Mobilink Microfinance Bank (JazzCash)): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `KHBL` (Khushhali Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `KHYB` (The Bank of Khyber): Only a branch code is printed ("khybpkka 024"); the page that may print it returns "Access denied".
+- `MPBL` (Habib Metropolitan Bank Limited): Only the Roshan Digital Account branch code MPBLPKKARDA is printed (SBP list); no habibmetro.com page prints the code.
+- `MSHQ` (Mashreq Bank Pakistan Limited): No Mashreq Pakistan page prints a BIC.
+- `NAYA` (NayaPay): Electronic money institution, not a bank; no BIC printed.
+- `NBPA` (National Bank of Pakistan): Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR.
+- `NBPB` (National Bank of Pakistan): Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR.
+- `NIBP` (NIB Bank Limited (merged into MCB Bank)): Merged into MCB Bank.
+- `NRSP` (NRSP Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `RQMI` (Raqami Islamic Digital Bank Limited): No page on the bank's own domain prints a BIC.
+- `SADA` (SadaPay): Electronic money institution, not a bank; no BIC printed.
+- `SAMB` (Samba Bank Limited): Only the Roshan Digital Account branch code SAMBPKKARDA is printed (SBP list); the bank FAQ that printed it is gone.
+- `SAUD` (Silkbank Limited (merged into United Bank Limited)): Merged into United Bank Limited.
+- `SIND` (Sindh Bank Limited): No page on the bank's own domain prints a BIC (its IBFT page shows only the short code SND).
+- `SMES` (SME Bank Limited (in liquidation)): In liquidation.
+- `SMFB` (Sindh Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `SONE` (Soneri Bank Limited): Only branch codes are printed (SONEPKKACTO, SONEPKKALHR, SONEPKKASIK); the 8-character code would be derived.
+- `SUMB` (Bank Makramah Limited (formerly Summit Bank)): No page on the bank's own domain prints a BIC.
+- `TAMW` (Easypaisa Bank Limited (formerly Tameer Microfinance Bank)): No page on the bank's own domain prints a BIC.
+- `TMFB` (Easypaisa Bank Limited (formerly Telenor Microfinance Bank)): No page on the bank's own domain prints a BIC.
+- `UMBL` (U Microfinance Bank): Microfinance bank; its site calls the 4-letter IBAN code "UMBL" a SWIFT code, which it is not.
+- `WMBL` (Mobilink Microfinance Bank (JazzCash)): Microfinance bank; no BIC printed on its own domain (it may have none).
+- `ZTBL` (Zarai Taraqiati Bank Limited): No page on the bank's own domain prints a BIC.
 
 ## Mobile networks (`networks.json`)
 

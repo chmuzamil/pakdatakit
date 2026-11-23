@@ -10,6 +10,18 @@ describe('getBankInfo', () => {
       active: true,
       mergedInto: null,
       aliasOf: null,
+      status: 'active',
+      website: 'https://www.sc.com/pk/',
+      websiteSbpListed: 'standardchartered.com.pk',
+      swift: 'SCBLPKKX',
+      swiftSource: {
+        bicSource: 'bank-site',
+        printed: 'SCBLPKKX',
+        sourceUrl: 'https://www.sc.com/pk/donation-goals/',
+        page: null,
+        checkedAt: '2026-11-23',
+      },
+      swiftReason: null,
     });
   });
 

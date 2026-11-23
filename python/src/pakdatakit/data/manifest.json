@@ -20,20 +20,20 @@
   {
     "id": "banks",
     "file": "banks.json",
-    "title": "Banks and IBAN bank codes",
+    "title": "Banks: IBAN codes, websites and SWIFT/BIC",
     "issuer": "State Bank of Pakistan (SBP)",
     "sourceUrl": "https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks",
-    "sourceReference": "SBP lists of regulated institutions (commercial, Islamic, microfinance banks); IBANs printed by SBP",
+    "sourceReference": "SBP lists of regulated institutions (names, types, websites); IBANs printed by SBP (codes); SWIFT/BIC codes only as printed by SBP or on each institution's own domain, each with its URL",
     "sourceDate": null,
-    "retrievedAt": "2026-11-16",
-    "checkedAt": "2026-11-16",
+    "retrievedAt": "2026-11-23",
+    "checkedAt": "2026-11-23",
     "effectiveFrom": "2026-11-16",
     "effectiveTo": null,
-    "coverage": "Scheduled banks and microfinance banks operating in Pakistan",
+    "coverage": "Scheduled banks, microfinance banks and EMIs in Pakistan: 50 IBAN codes, 47 websites, 16 SWIFT/BIC codes",
     "recordCount": 50,
     "nextExpectedUpdate": "2027-02-16",
     "updateCadence": "Quarterly, and after any SBP merger or licence notification",
-    "notes": "SBP's lists are undated web pages. SBP publishes no list of IBAN bank codes, so each code is confirmed from IBANs SBP itself printed."
+    "notes": "SBP's lists are undated web pages. SBP publishes no list of IBAN bank codes, so each code is confirmed from IBANs SBP itself printed. SWIFT/BIC codes are shipped only where SBP or the institution's own domain prints them; 1LINK IMD codes are not included (no official public source)."
   },
   {
     "id": "cities",

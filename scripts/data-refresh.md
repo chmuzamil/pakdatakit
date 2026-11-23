@@ -32,6 +32,17 @@ Checklist:
 - [ ] Mergers and closures: `MERGED_INTO` or `CLOSED`.
 - [ ] Type changes: `BANK_TYPES`.
 
+Websites and SWIFT/BIC (`data/sources/bank-details.json`):
+
+1. Check each website against SBP's lists; where a bank moved domain, keep
+   SBP's value in `websiteSbpListed`.
+2. Re-check each `swiftSource.sourceUrl`. Add a code only where SBP or the
+   institution's own domain prints it (SSI or nostro PDFs, FI or
+   correspondent banking pages, Roshan Digital pages, annual reports); never
+   from aggregators, branch codes or RDA codes. Record the printed form,
+   page and `checkedAt`; set `swiftReason` where there is none.
+3. Run `node scripts/generate-data.mjs`, then the vector and port tests.
+
 ## Mobile prefixes (PTA) <!-- dataset: networks -->
 
 Sources:

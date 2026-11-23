@@ -1263,16 +1263,31 @@ const bankType = (code) =>
   Object.entries(BANK_TYPES).find(([, codes]) => codes.includes(code))?.[0] ??
   'commercial';
 
+/** Website and SWIFT/BIC per bank (data/sources/bank-details.json, #94). */
+const BANK_DETAILS = JSON.parse(
+  readFileSync(join(dataDir, 'sources', 'bank-details.json'), 'utf8'),
+).banks;
+
 writeJson(
   'banks.json',
-  BANKS.map(({ code, name }) => ({
-    code,
-    name,
-    type: bankType(code),
-    ...(CLOSED.has(code) ? { active: false } : {}),
-    ...(MERGED_INTO[code] ? { mergedInto: MERGED_INTO[code] } : {}),
-    ...(ALIAS_OF[code] ? { aliasOf: ALIAS_OF[code] } : {}),
-  })),
+  BANKS.map(({ code, name }) => {
+    const details = BANK_DETAILS[code];
+    if (!details) throw new Error(`bank-details.json: no entry for ${code}`);
+    return {
+      code,
+      name,
+      type: bankType(code),
+      ...(CLOSED.has(code) ? { active: false } : {}),
+      ...(MERGED_INTO[code] ? { mergedInto: MERGED_INTO[code] } : {}),
+      ...(ALIAS_OF[code] ? { aliasOf: ALIAS_OF[code] } : {}),
+      status: CLOSED.has(code)
+        ? 'liquidated'
+        : MERGED_INTO[code]
+          ? 'merged'
+          : 'active',
+      ...details,
+    };
+  }),
 );
 
 console.log(`\nSummary:`);

@@ -35,6 +35,38 @@ export interface BankInfo {
   mergedInto: string | null;
   /** Main code of the same bank, when this is an older code still in use. */
   aliasOf: string | null;
+  /** `active`, `merged` (see `mergedInto`) or `liquidated`. */
+  status: 'active' | 'merged' | 'liquidated';
+  /**
+   * The institution's official website (from SBP's lists of regulated
+   * institutions, or its own site where SBP lists none or an old domain),
+   * or `null` for a bank that no longer exists.
+   */
+  website: string | null;
+  /** What SBP's list gives, where it differs from `website` (an older domain). */
+  websiteSbpListed: string | null;
+  /**
+   * The 8-character SWIFT/BIC code, only where SBP or the institution's own
+   * website prints it; otherwise `null` (see `swiftReason`).
+   */
+  swift: string | null;
+  /** Where `swift` is printed, and when it was checked. */
+  swiftSource: BankSwiftSource | null;
+  /** Why `swift` is `null`, or `null` when it is set. */
+  swiftReason: string | null;
+}
+
+/** Where a bank's SWIFT/BIC code is printed. */
+export interface BankSwiftSource {
+  /** `sbp` (State Bank of Pakistan) or `bank-site` (the institution's own domain). */
+  bicSource: 'sbp' | 'bank-site';
+  /** The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`. */
+  printed: string;
+  sourceUrl: string;
+  /** The PDF page, or `null` for a web page. */
+  page: number | null;
+  /** When the source was checked (YYYY-MM-DD). */
+  checkedAt: string;
 }
 
 interface BankEntry {
@@ -44,6 +76,12 @@ interface BankEntry {
   mergedInto?: string;
   active?: boolean;
   aliasOf?: string;
+  status: BankInfo['status'];
+  website: string | null;
+  websiteSbpListed: string | null;
+  swift: string | null;
+  swiftSource: BankSwiftSource | null;
+  swiftReason: string | null;
 }
 
 const banks = /* @__PURE__ */ lazy((): BankInfo[] =>
@@ -54,8 +92,23 @@ const banks = /* @__PURE__ */ lazy((): BankInfo[] =>
     active: entry.mergedInto === undefined && entry.active !== false,
     mergedInto: entry.mergedInto ?? null,
     aliasOf: entry.aliasOf ?? null,
+    status: entry.status,
+    website: entry.website,
+    websiteSbpListed: entry.websiteSbpListed,
+    swift: entry.swift,
+    swiftSource: entry.swiftSource ? { ...entry.swiftSource } : null,
+    swiftReason: entry.swiftReason,
   })),
 );
+
+/** A copy that callers may change without changing the shared data. */
+function copyBank(bank: BankInfo | undefined): BankInfo | null {
+  if (!bank) return null;
+  return {
+    ...bank,
+    swiftSource: bank.swiftSource ? { ...bank.swiftSource } : null,
+  };
+}
 
 const bankByCode = /* @__PURE__ */ lazy(
   () => new Map(banks().map((bank) => [bank.code, bank])),
@@ -133,7 +186,10 @@ export function getBankFromIBAN(iban: string): string | null {
  * @example
  * getBankInfo('PK36SCBL0000001123456702');
  * // { code: 'SCBL', name: 'Standard Chartered Bank (Pakistan) Limited',
- * //   type: 'commercial', active: true, mergedInto: null, aliasOf: null }
+ * //   type: 'commercial', active: true, mergedInto: null, aliasOf: null,
+ * //   status: 'active', website: 'https://www.sc.com/pk/',
+ * //   websiteSbpListed: 'standardchartered.com.pk', swift: 'SCBLPKKX',
+ * //   swiftSource: { bicSource: 'bank-site', … }, swiftReason: null }
  * getBankInfo('SADA')?.type; // 'emi'
  *
  * @param ibanOrCode - A valid Pakistani IBAN, or a bank code such as `MEZN`
@@ -142,12 +198,12 @@ export function getBankFromIBAN(iban: string): string | null {
 export function getBankInfo(ibanOrCode: string): BankInfo | null {
   const value = normalizeIBAN(ibanOrCode);
   if (/^[A-Z]{4}$/.test(value)) {
-    return bankByCode().get(value) ?? null;
+    return copyBank(bankByCode().get(value));
   }
   if (!validateIBAN(value)) {
     return null;
   }
-  return bankByCode().get(value.slice(4, 8)) ?? null;
+  return copyBank(bankByCode().get(value.slice(4, 8)));
 }
 
 /**
@@ -157,5 +213,5 @@ export function getBankInfo(ibanOrCode: string): BankInfo | null {
  * @returns All banks, including merged banks and older alias codes
  */
 export function getBanks(): BankInfo[] {
-  return banks().map((bank) => ({ ...bank }));
+  return banks().map((bank) => copyBank(bank) as BankInfo);
 }

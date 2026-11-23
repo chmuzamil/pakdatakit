@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateWithholding,
+  getBankInfo,
+  getBanks,
   findCNICs,
   getDataInfo,
   getDistrictPopulation,
@@ -281,6 +283,34 @@ describe('2.8.0 review findings', () => {
       })?.taxNature;
     expect(r(true)).toBe('minimum');
     expect(r(false)).toBe('final');
+  });
+});
+
+describe('banks (#94)', () => {
+  it('ships only well-formed, unique Pakistani BICs, each with a source', () => {
+    const banks = getBanks();
+    const owner = new Map<string, string>();
+    for (const b of banks) {
+      if (b.swift === null) {
+        expect(b.swiftSource).toBeNull();
+        expect(b.swiftReason).toEqual(expect.any(String));
+        continue;
+      }
+      // ISO 9362: 4 letters (bank), country PK, 2 letters or digits (location).
+      expect(b.swift).toMatch(/^[A-Z]{4}PK[A-Z0-9]{2}$/);
+      expect(['sbp', 'bank-site']).toContain(b.swiftSource?.bicSource);
+      expect(b.swiftSource?.sourceUrl).toMatch(/^https?:\/\//);
+      const bank = b.aliasOf ?? b.code;
+      expect(owner.get(b.swift) ?? bank).toBe(bank);
+      owner.set(b.swift, bank);
+    }
+    expect(banks.filter((b) => b.website).length).toBe(47);
+    expect(getBankInfo('NIBP')).toMatchObject({
+      status: 'merged',
+      mergedInto: 'MUCB',
+      website: null,
+    });
+    expect(getBankInfo('SMES')?.status).toBe('liquidated');
   });
 });
 

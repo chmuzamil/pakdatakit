@@ -42,6 +42,7 @@ export {
   getBankInfo,
   getBanks,
   type BankInfo,
+  type BankSwiftSource,
   type BankType,
 } from './iban.js';
 export {

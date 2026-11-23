@@ -13,8 +13,8 @@ export interface ZakatDocument {
 
 /** Who announced 1 Ramazan, and where the announcement was reported. */
 export interface ZakatRamazan1Source {
-  /** `Central Ruet-e-Hilal Committee`. */
-  authority: string;
+  /** Who announced it: `Central Ruet-e-Hilal Committee`. */
+  announcedBy: string;
   /** The outlet that reported the announcement, e.g. `Dawn`. */
   reportedBy: string;
   /** The report's date (YYYY-MM-DD), or `null` if not recorded. */

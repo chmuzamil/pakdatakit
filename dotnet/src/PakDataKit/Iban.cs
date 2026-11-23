@@ -59,10 +59,16 @@ public enum BankBicSource
 
     /// <summary>The institution's own domain (<c>bank-site</c>).</summary>
     BankSite,
+
+    /// <summary>
+    /// A SWIFT code directory such as Wise (<c>directory</c>); not confirmed by SBP or the
+    /// bank, so confirm with the bank before sending money.
+    /// </summary>
+    Directory,
 }
 
 /// <summary>Where a bank's SWIFT/BIC code is printed.</summary>
-/// <param name="BicSource">SBP or the institution's own domain.</param>
+/// <param name="BicSource">SBP, the institution's own domain, or a SWIFT code directory.</param>
 /// <param name="Printed">The code as printed, e.g. <c>HABBPKKAXXX</c> or <c>MEZN PK KA</c>.</param>
 /// <param name="SourceUrl">The page or PDF that prints it.</param>
 /// <param name="Page">The PDF page, or <c>null</c> for a web page.</param>

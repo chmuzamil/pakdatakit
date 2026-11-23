@@ -46,8 +46,9 @@ export interface BankInfo {
   /** What SBP's list gives, where it differs from `website` (an older domain). */
   websiteSbpListed: string | null;
   /**
-   * The 8-character SWIFT/BIC code, only where SBP or the institution's own
-   * website prints it; otherwise `null` (see `swiftReason`).
+   * The 8-character SWIFT/BIC code, where SBP or the institution's own website
+   * prints it or a SWIFT code directory lists it (see `swiftSource.bicSource`);
+   * otherwise `null` (see `swiftReason`).
    */
   swift: string | null;
   /** Where `swift` is printed, and when it was checked. */
@@ -58,8 +59,12 @@ export interface BankInfo {
 
 /** Where a bank's SWIFT/BIC code is printed. */
 export interface BankSwiftSource {
-  /** `sbp` (State Bank of Pakistan) or `bank-site` (the institution's own domain). */
-  bicSource: 'sbp' | 'bank-site';
+  /**
+   * `sbp` (State Bank of Pakistan), `bank-site` (the institution's own
+   * domain) or `directory` (a SWIFT code directory such as Wise; not confirmed
+   * by SBP or the bank, so confirm with the bank before sending money).
+   */
+  bicSource: 'sbp' | 'bank-site' | 'directory';
   /** The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`. */
   printed: string;
   sourceUrl: string;

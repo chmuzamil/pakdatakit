@@ -57,9 +57,9 @@ interface BankInfo {
   status: 'active' | 'merged' | 'liquidated';
   website: string | null; // from SBP's lists, or the bank's own site
   websiteSbpListed: string | null; // SBP's value, where the bank moved domain
-  swift: string | null; // 8-character BIC, only where SBP or the bank prints it
+  swift: string | null; // 8-character BIC (see swiftSource.bicSource)
   swiftSource: {
-    bicSource: 'sbp' | 'bank-site';
+    bicSource: 'sbp' | 'bank-site' | 'directory';
     printed: string;
     sourceUrl: string;
     page: number | null;
@@ -69,7 +69,12 @@ interface BankInfo {
 }
 ```
 
-**SWIFT/BIC codes** are given only where SBP or the institution's own website prints them (16 codes for 15 banks), with where. Codes derived from Roshan Digital or branch codes are not used. 1LINK IMD codes are not included: there is no official public source.
+**SWIFT/BIC codes** come from two kinds of source, told apart by `swiftSource.bicSource`:
+
+- `sbp` or `bank-site`: printed by SBP or on the institution's own website (16 codes for 15 banks).
+- `directory`: listed in a SWIFT code directory (Wise) but not printed by SBP or the bank (17 codes for 16 institutions). Confirm these with the bank before sending money.
+
+Codes derived from Roshan Digital or branch codes are not used. 1LINK IMD codes are not included: there is no official public source.
 
 **Parameters.** `ibanOrCode`: an IBAN or a four-letter bank code.
 

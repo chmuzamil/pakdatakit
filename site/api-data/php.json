@@ -2014,7 +2014,7 @@
               "name": "bicSource",
               "type": "string",
               "default": null,
-              "doc": "`sbp` (State Bank of Pakistan) or `bank-site` (the institution's own domain).",
+              "doc": "`sbp` (State Bank of Pakistan), `bank-site` (the institution's own domain) or `directory` (a SWIFT code directory, not confirmed by SBP or the bank).",
               "static": false,
               "readonly": true
             },

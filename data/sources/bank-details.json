@@ -1,5 +1,5 @@
 {
-  "description": "Official website and SWIFT/BIC per IBAN bank code (2.8.0, #94), merged into data/banks.json by scripts/generate-data.mjs. website: SBP's lists of regulated institutions, or the institution's own site where SBP lists none or an old domain (websiteSbpListed). swift: only codes printed by SBP or on the institution's own domain, with where (swiftSource); otherwise null with swiftReason. See DATA.md.",
+  "description": "Official website and SWIFT/BIC per IBAN bank code (2.8.0, #94), merged into data/banks.json by scripts/generate-data.mjs. website: SBP's lists of regulated institutions, or the institution's own site where SBP lists none or an old domain (websiteSbpListed). swift: codes printed by SBP or on the institution's own domain, or, marked bicSource 'directory', listed in a SWIFT code directory (Wise), with where (swiftSource); otherwise null with swiftReason. See DATA.md.",
   "banks": {
     "ABPA": {
       "website": "https://abl.com/",
@@ -17,16 +17,28 @@
     "AIIN": {
       "website": "https://albaraka.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "No page on the bank's own domain prints a BIC."
+      "swift": "AIINPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "AIINPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/AIINPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "ALFH": {
       "website": "https://www.bankalfalah.com/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only the Roshan Digital Account branch code ALFHPKKARDA is printed (SBP list, bank pages); the 8-character code would be derived."
+      "swift": "ALFHPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "ALFHPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/ALFHPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "APNA": {
       "website": "https://apnabank.com.pk/",
@@ -77,16 +89,28 @@
     "BKIP": {
       "website": "https://bankislami.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "The bank's site prints \"BKIPPKKXXX\", which has 10 characters and is not a valid BIC."
+      "swift": "BKIPPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "BKIPPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/BKIPPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "BPUN": {
       "website": "https://bop.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "The bank's trade pages are behind an Imperva security check; not bypassed. Only branch codes appear in search results."
+      "swift": "BPUNPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "BPUNPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/BPUNPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "CITI": {
       "website": "https://citibank.com.pk/",
@@ -117,16 +141,28 @@
     "DUIB": {
       "website": "https://dibpak.com/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only the Roshan Digital Account branch code DUIBPKKARDA is printed (SBP list, dibpak.com)."
+      "swift": "DUIBPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "DUIBPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/DUIBPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "FAYS": {
       "website": "https://faysalbank.com/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "The bank's document that prints it is behind a Cloudflare challenge; not bypassed."
+      "swift": "FAYSPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "FAYSPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/FAYSPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "FINC": {
       "website": "https://abhibank.com/",
@@ -145,9 +181,15 @@
     "FWOM": {
       "website": "https://fwbl.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "No page on the bank's own domain prints a BIC."
+      "swift": "FWOMPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "FWOMPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/FWOMPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "HABB": {
       "website": "https://hbl.com/",
@@ -205,9 +247,15 @@
     "KHYB": {
       "website": "https://bok.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only a branch code is printed (\"khybpkka 024\"); the page that may print it returns \"Access denied\"."
+      "swift": "KHYBPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "KHYBPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/KHYBPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "MCBL": {
       "website": "https://mcb.com.pk/",
@@ -251,16 +299,28 @@
     "MPBL": {
       "website": "https://hmb.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only the Roshan Digital Account branch code MPBLPKKARDA is printed (SBP list); no habibmetro.com page prints the code."
+      "swift": "MPBLPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "MPBLPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/MPBLPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "MSHQ": {
       "website": "https://www.mashreq.com/en/pk/home/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "No Mashreq Pakistan page prints a BIC."
+      "swift": "MSHQPKKK",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "MSHQPKKKXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/MSHQPKKKXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "MUCB": {
       "website": "https://mcb.com.pk/",
@@ -278,23 +338,41 @@
     "NAYA": {
       "website": "https://nayapay.com/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Electronic money institution, not a bank; no BIC printed."
+      "swift": "NAYAPKK2",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "NAYAPKK2XXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/NAYAPKK2XXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "NBPA": {
       "website": "https://nbp.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR."
+      "swift": "NBPAPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "NBPAPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/NBPAPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "NBPB": {
       "website": "https://nbp.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR."
+      "swift": "NBPAPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "NBPAPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/NBPAPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "NIBP": {
       "website": null,
@@ -322,14 +400,20 @@
       "websiteSbpListed": null,
       "swift": null,
       "swiftSource": null,
-      "swiftReason": "Electronic money institution, not a bank; no BIC printed."
+      "swiftReason": "Its help centre gives \"SADAPKKA\" but says \"We're not live on the Swift network yet\" (help.sadapay.pk, 31 May 2024)."
     },
     "SAMB": {
       "website": "https://samba.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only the Roshan Digital Account branch code SAMBPKKARDA is printed (SBP list); the bank FAQ that printed it is gone."
+      "swift": "SAMBPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "SAMBPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/SAMBPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "SAUD": {
       "website": null,
@@ -367,9 +451,15 @@
     "SIND": {
       "website": "https://sindhbank.com.pk/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "No page on the bank's own domain prints a BIC (its IBFT page shows only the short code SND)."
+      "swift": "SINDPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "SINDPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/SINDPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "SMES": {
       "website": null,
@@ -388,16 +478,28 @@
     "SONE": {
       "website": "https://soneribank.com/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "Only branch codes are printed (SONEPKKACTO, SONEPKKALHR, SONEPKKASIK); the 8-character code would be derived."
+      "swift": "SONEPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "SONEPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/SONEPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "SUMB": {
       "website": "https://bankmakramah.com/",
       "websiteSbpListed": null,
-      "swift": null,
-      "swiftSource": null,
-      "swiftReason": "No page on the bank's own domain prints a BIC."
+      "swift": "SUMBPKKA",
+      "swiftSource": {
+        "bicSource": "directory",
+        "printed": "SUMBPKKAXXX",
+        "sourceUrl": "https://wise.com/us/swift-codes/SUMBPKKAXXX",
+        "page": null,
+        "checkedAt": "2026-11-24"
+      },
+      "swiftReason": null
     },
     "TAMW": {
       "website": "https://easypaisa.com.pk/",

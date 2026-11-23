@@ -298,13 +298,23 @@ describe('banks (#94)', () => {
       }
       // ISO 9362: 4 letters (bank), country PK, 2 letters or digits (location).
       expect(b.swift).toMatch(/^[A-Z]{4}PK[A-Z0-9]{2}$/);
-      expect(['sbp', 'bank-site']).toContain(b.swiftSource?.bicSource);
+      expect(['sbp', 'bank-site', 'directory']).toContain(
+        b.swiftSource?.bicSource,
+      );
       expect(b.swiftSource?.sourceUrl).toMatch(/^https?:\/\//);
       const bank = b.aliasOf ?? b.code;
       expect(owner.get(b.swift) ?? bank).toBe(bank);
       owner.set(b.swift, bank);
     }
     expect(banks.filter((b) => b.website).length).toBe(47);
+    const by = (s: string) =>
+      banks.filter((b) => b.swiftSource?.bicSource === s).length;
+    expect([by('sbp') + by('bank-site'), by('directory')]).toEqual([16, 17]);
+    expect(getBankInfo('FAYS')?.swiftSource).toMatchObject({
+      bicSource: 'directory',
+      sourceUrl: 'https://wise.com/us/swift-codes/FAYSPKKAXXX',
+    });
+    expect(getBankInfo('SADA')?.swift).toBeNull();
     expect(getBankInfo('NIBP')).toMatchObject({
       status: 'merged',
       mergedInto: 'MUCB',

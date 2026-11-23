@@ -3282,6 +3282,10 @@
             {
               "name": "bankSite",
               "doc": "The institution's own website (its own domain)."
+            },
+            {
+              "name": "directory",
+              "doc": "A SWIFT code directory such as Wise; not confirmed by SBP or the bank,\nso confirm with the bank before sending money."
             }
           ],
           "methods": [

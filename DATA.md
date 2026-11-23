@@ -47,8 +47,8 @@ are. To correct an entry, open an issue or pull request with a source.
 
 ## Banks (`banks.json`): IBAN bank codes
 
-- **Dataset:** `banks.json` (id `banks`), 50 records. Scheduled banks, microfinance banks and EMIs in Pakistan: 50 IBAN codes, 47 websites, 16 SWIFT/BIC codes.
-- **Source:** State Bank of Pakistan (SBP), SBP lists of regulated institutions (names, types, websites); IBANs printed by SBP (codes); SWIFT/BIC codes only as printed by SBP or on each institution's own domain, each with its URL (https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks), undated; retrieved 2026-11-23, checked 2026-11-23.
+- **Dataset:** `banks.json` (id `banks`), 50 records. Scheduled banks, microfinance banks and EMIs in Pakistan: 50 IBAN codes, 47 websites, 33 SWIFT/BIC codes (16 official, 17 from a directory).
+- **Source:** State Bank of Pakistan (SBP), SBP lists of regulated institutions (names, types, websites); IBANs printed by SBP (codes); SWIFT/BIC codes as printed by SBP or on each institution's own domain, or listed in a SWIFT code directory (Wise, marked bicSource 'directory'), each with its URL (https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks), undated; retrieved 2026-11-23, checked 2026-11-24.
 - **Applies:** 2026-11-16 to now.
 - **Next expected update:** 2027-02-16 (quarterly, and after any SBP merger or licence notification).
 
@@ -116,7 +116,8 @@ brackets where people still search for it.
 ### Websites and SWIFT/BIC codes (2.8.0)
 
 Kept in `data/sources/bank-details.json` and merged into `banks.json` by
-`scripts/generate-data.mjs`. All checked 2026-11-23.
+`scripts/generate-data.mjs`. Websites and official SWIFT/BIC codes checked
+2026-11-23; directory codes checked 2026-11-24.
 
 - **Websites (47):** from SBP's lists of regulated institutions
   (https://www.sbp.org.pk/sbp-regulated-institutions/commercial-banks and
@@ -129,16 +130,26 @@ Kept in `data/sources/bank-details.json` and merged into `banks.json` by
   NayaPay and SadaPay have no website in SBP's lists; theirs come from their
   own sites. NIBP and SAUD (merged) and SMES (in liquidation) have none, with
   `status` and `mergedInto` naming the successor where there is one.
-- **SWIFT/BIC (16 codes, 15 banks):** only codes printed by SBP or on the
-  institution's own domain, stored as the 8-character BIC, with the printed
-  form, URL, page and date (`swiftSource`). Not used: codes derived from
-  SBP's list of Roshan Digital Account codes or from branch codes, NBP's
-  code in an S&P Global profile hosted on its site, aggregator sites, and
-  BankIslami's 10-character "BKIPPKKXXX". SWIFT's own directory search is
-  behind a CAPTCHA and was not used.
+- **SWIFT/BIC (33 codes), stored as the 8-character BIC with the printed
+  form, URL, page and date (`swiftSource`).** `swiftSource.bicSource` says
+  how far each code can be trusted:
+  - `sbp` or `bank-site` (16 codes, 15 banks): printed by SBP or on the
+    institution's own domain.
+  - `directory` (17 codes, 16 institutions): listed in Wise's SWIFT code
+    directory (https://wise.com/us/swift-codes/), which names the
+    institution and Pakistan, but not printed by SBP or the institution
+    itself. Shipped at the owner's request; confirm with the bank before
+    sending money.
+  - Not used: codes derived from SBP's list of Roshan Digital Account codes
+    or from branch codes, NBP's code in an S&P Global profile hosted on its
+    site (NBP is now a directory code), and BankIslami's 10-character
+    "BKIPPKKXXX" (its directory code is `BKIPPKKA`). SWIFT's own directory
+    search is behind a CAPTCHA and was not used.
 - **1LINK IMD codes:** not included. There is no official public source;
   1LINK shares them with members only (its members page returns 404, and
   SBP's pages do not list them).
+
+Printed by SBP or the institution:
 
 | Code   | SWIFT/BIC  | Printed as    | Source                                                                                                                                              |
 | ------ | ---------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -159,37 +170,42 @@ Kept in `data/sources/bank-details.json` and merged into `banks.json` by
 | `SCBL` | `SCBLPKKX` | `SCBLPKKX`    | bank-site: https://www.sc.com/pk/donation-goals/                                                                                                    |
 | `UNIL` | `UNILPKKA` | `UNILPKKA`    | bank-site: https://www.ubldigital.com/Portals/0/Remittance/FXServices/UBLSSIs.pdf, p. 1                                                             |
 
+From a SWIFT code directory (Wise), not confirmed by SBP or the institution:
+
+| Code   | SWIFT/BIC  | Listed as     | Source                                      |
+| ------ | ---------- | ------------- | ------------------------------------------- |
+| `AIIN` | `AIINPKKA` | `AIINPKKAXXX` | https://wise.com/us/swift-codes/AIINPKKAXXX |
+| `ALFH` | `ALFHPKKA` | `ALFHPKKAXXX` | https://wise.com/us/swift-codes/ALFHPKKAXXX |
+| `BKIP` | `BKIPPKKA` | `BKIPPKKAXXX` | https://wise.com/us/swift-codes/BKIPPKKAXXX |
+| `BPUN` | `BPUNPKKA` | `BPUNPKKAXXX` | https://wise.com/us/swift-codes/BPUNPKKAXXX |
+| `DUIB` | `DUIBPKKA` | `DUIBPKKAXXX` | https://wise.com/us/swift-codes/DUIBPKKAXXX |
+| `FAYS` | `FAYSPKKA` | `FAYSPKKAXXX` | https://wise.com/us/swift-codes/FAYSPKKAXXX |
+| `FWOM` | `FWOMPKKA` | `FWOMPKKAXXX` | https://wise.com/us/swift-codes/FWOMPKKAXXX |
+| `KHYB` | `KHYBPKKA` | `KHYBPKKAXXX` | https://wise.com/us/swift-codes/KHYBPKKAXXX |
+| `MPBL` | `MPBLPKKA` | `MPBLPKKAXXX` | https://wise.com/us/swift-codes/MPBLPKKAXXX |
+| `MSHQ` | `MSHQPKKK` | `MSHQPKKKXXX` | https://wise.com/us/swift-codes/MSHQPKKKXXX |
+| `NAYA` | `NAYAPKK2` | `NAYAPKK2XXX` | https://wise.com/us/swift-codes/NAYAPKK2XXX |
+| `NBPA` | `NBPAPKKA` | `NBPAPKKAXXX` | https://wise.com/us/swift-codes/NBPAPKKAXXX |
+| `NBPB` | `NBPAPKKA` | `NBPAPKKAXXX` | https://wise.com/us/swift-codes/NBPAPKKAXXX |
+| `SAMB` | `SAMBPKKA` | `SAMBPKKAXXX` | https://wise.com/us/swift-codes/SAMBPKKAXXX |
+| `SIND` | `SINDPKKA` | `SINDPKKAXXX` | https://wise.com/us/swift-codes/SINDPKKAXXX |
+| `SONE` | `SONEPKKA` | `SONEPKKAXXX` | https://wise.com/us/swift-codes/SONEPKKAXXX |
+| `SUMB` | `SUMBPKKA` | `SUMBPKKAXXX` | https://wise.com/us/swift-codes/SUMBPKKAXXX |
+
 No SWIFT/BIC code, and why:
 
-- `AIIN` (Al Baraka Bank (Pakistan) Limited): No page on the bank's own domain prints a BIC.
-- `ALFH` (Bank Alfalah Limited): Only the Roshan Digital Account branch code ALFHPKKARDA is printed (SBP list, bank pages); the 8-character code would be derived.
 - `APNA` (Apna Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
-- `BKIP` (BankIslami Pakistan Limited): The bank's site prints "BKIPPKKXXX", which has 10 characters and is not a valid BIC.
-- `BPUN` (The Bank of Punjab): The bank's trade pages are behind an Imperva security check; not bypassed. Only branch codes appear in search results.
-- `DUIB` (Dubai Islamic Bank Pakistan Limited): Only the Roshan Digital Account branch code DUIBPKKARDA is printed (SBP list, dibpak.com).
-- `FAYS` (Faysal Bank Limited): The bank's document that prints it is behind a Cloudflare challenge; not bypassed.
 - `FINC` (ABHI Microfinance Bank (formerly FINCA Microfinance Bank)): Microfinance bank; no BIC printed on its own domain (it may have none).
 - `FMFB` (HBL Microfinance Bank (formerly First MicroFinance Bank)): Microfinance bank; no BIC printed on its own domain (it may have none).
-- `FWOM` (First Women Bank Limited): No page on the bank's own domain prints a BIC.
 - `JCMA` (Mobilink Microfinance Bank (JazzCash)): Microfinance bank; no BIC printed on its own domain (it may have none).
 - `KHBL` (Khushhali Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
-- `KHYB` (The Bank of Khyber): Only a branch code is printed ("khybpkka 024"); the page that may print it returns "Access denied".
-- `MPBL` (Habib Metropolitan Bank Limited): Only the Roshan Digital Account branch code MPBLPKKARDA is printed (SBP list); no habibmetro.com page prints the code.
-- `MSHQ` (Mashreq Bank Pakistan Limited): No Mashreq Pakistan page prints a BIC.
-- `NAYA` (NayaPay): Electronic money institution, not a bank; no BIC printed.
-- `NBPA` (National Bank of Pakistan): Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR.
-- `NBPB` (National Bank of Pakistan): Only printed in an S&P Global profile hosted on nbp.com.pk, not an NBP document; NBP's own documents print only the branch code NBPAPKKAMBR.
 - `NIBP` (NIB Bank Limited (merged into MCB Bank)): Merged into MCB Bank.
 - `NRSP` (NRSP Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
 - `RQMI` (Raqami Islamic Digital Bank Limited): No page on the bank's own domain prints a BIC.
-- `SADA` (SadaPay): Electronic money institution, not a bank; no BIC printed.
-- `SAMB` (Samba Bank Limited): Only the Roshan Digital Account branch code SAMBPKKARDA is printed (SBP list); the bank FAQ that printed it is gone.
+- `SADA` (SadaPay): Its help centre gives "SADAPKKA" but says "We're not live on the Swift network yet" (help.sadapay.pk, 31 May 2024).
 - `SAUD` (Silkbank Limited (merged into United Bank Limited)): Merged into United Bank Limited.
-- `SIND` (Sindh Bank Limited): No page on the bank's own domain prints a BIC (its IBFT page shows only the short code SND).
 - `SMES` (SME Bank Limited (in liquidation)): In liquidation.
 - `SMFB` (Sindh Microfinance Bank): Microfinance bank; no BIC printed on its own domain (it may have none).
-- `SONE` (Soneri Bank Limited): Only branch codes are printed (SONEPKKACTO, SONEPKKALHR, SONEPKKASIK); the 8-character code would be derived.
-- `SUMB` (Bank Makramah Limited (formerly Summit Bank)): No page on the bank's own domain prints a BIC.
 - `TAMW` (Easypaisa Bank Limited (formerly Tameer Microfinance Bank)): No page on the bank's own domain prints a BIC.
 - `TMFB` (Easypaisa Bank Limited (formerly Telenor Microfinance Bank)): No page on the bank's own domain prints a BIC.
 - `UMBL` (U Microfinance Bank): Microfinance bank; its site calls the 4-letter IBAN code "UMBL" a SWIFT code, which it is not.

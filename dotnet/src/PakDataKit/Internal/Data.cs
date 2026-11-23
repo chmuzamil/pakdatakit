@@ -111,7 +111,12 @@ internal static class Data
             Str(e, "status")!, Str(e, "website"), Str(e, "websiteSbpListed"), Str(e, "swift"),
             e.TryGetProperty("swiftSource", out var ss) && ss.ValueKind == JsonValueKind.Object
                 ? new BankSwiftSource(
-                    Str(ss, "bicSource") == "sbp" ? BankBicSource.Sbp : BankBicSource.BankSite,
+                    Str(ss, "bicSource") switch
+                    {
+                        "sbp" => BankBicSource.Sbp,
+                        "directory" => BankBicSource.Directory,
+                        _ => BankBicSource.BankSite,
+                    },
                     Str(ss, "printed")!, Str(ss, "sourceUrl")!,
                     ss.TryGetProperty("page", out var page) && page.ValueKind == JsonValueKind.Number
                         ? page.GetInt32()

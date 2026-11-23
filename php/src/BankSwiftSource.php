@@ -12,7 +12,7 @@ final readonly class BankSwiftSource
     use Internal\ToArray;
 
     public function __construct(
-        /** `sbp` (State Bank of Pakistan) or `bank-site` (the institution's own domain). */
+        /** `sbp` (State Bank of Pakistan), `bank-site` (the institution's own domain) or `directory` (a SWIFT code directory, not confirmed by SBP or the bank). */
         public string $bicSource,
         /** The code as printed, e.g. `HABBPKKAXXX` or `MEZN PK KA`. */
         public string $printed,

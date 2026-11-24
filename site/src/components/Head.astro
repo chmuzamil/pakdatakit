@@ -2,7 +2,7 @@
 /**
  * Starlight's <head>, plus:
  * - /lang.js: `?lang=` picks the code-tab language before the tabs restore it
- * - a per-page Open Graph image (/og/<page>.png, generated at build time)
+ * - the Open Graph image (/og.png, the repo's banner.png) on every page
  * - Umami, served from this site's own origin (/a.js), path and tool name only
  */
 import Default from '@astrojs/starlight/components/Head.astro';
@@ -13,7 +13,7 @@ import { structuredData } from '../lib/seo';
 
 const route = Astro.locals.starlightRoute;
 const id = route.id || 'index';
-const ogImage = new URL(`/og/${id.replace(/\/$/, '') || 'index'}.png`, SITE).href;
+const ogImage = new URL('/og.png', SITE).href;
 const is404 = Astro.url.pathname === '/404/' || Astro.url.pathname === '/404.html' || id === '404';
 const jsonLd = is404
   ? null
@@ -34,8 +34,8 @@ const jsonLd = is404
 {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
 <script is:inline src="/lang.js"></script>
 <meta property="og:image" content={ogImage} />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+<meta property="og:image:width" content="1600" />
+<meta property="og:image:height" content="800" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content={ogImage} />
 <script

@@ -178,7 +178,8 @@ for (const tool of TOOLS) {
     // networkidle; Astro drops the island's `ssr` attribute once it has. Wait for
     // them so their own code chunks aren't counted as requests made while typing.
     await page.waitForFunction(
-      () => !document.querySelector('astro-island[ssr]:not([client="visible"])'),
+      () =>
+        !document.querySelector('astro-island[ssr]:not([client="visible"])'),
     );
     await page.waitForLoadState('networkidle');
     const requests = [];

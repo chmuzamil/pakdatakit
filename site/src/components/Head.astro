@@ -13,7 +13,10 @@ import { structuredData } from '../lib/seo';
 
 const route = Astro.locals.starlightRoute;
 const id = route.id || 'index';
-const ogImage = new URL(`/og/${id.replace(/\/$/, '') || 'index'}.png`, SITE).href;
+const ogSlug = id.replace(/\/$/, '') || 'index';
+const ogImage = new URL(`/og/${ogSlug}.png`, SITE).href;
+// the homepage uses the README banner; other pages get a 1200×630 title card
+const [ogWidth, ogHeight] = ogSlug === 'index' ? [1600, 800] : [1200, 630];
 const is404 = Astro.url.pathname === '/404/' || Astro.url.pathname === '/404.html' || id === '404';
 const jsonLd = is404
   ? null
@@ -34,8 +37,8 @@ const jsonLd = is404
 {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
 <script is:inline src="/lang.js"></script>
 <meta property="og:image" content={ogImage} />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+<meta property="og:image:width" content={String(ogWidth)} />
+<meta property="og:image:height" content={String(ogHeight)} />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content={ogImage} />
 <script

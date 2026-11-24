@@ -1,10 +1,13 @@
 /**
  * Open Graph images, one per page, rendered at build time with resvg (which
  * shapes Urdu correctly). Fonts are the official OFL TTFs; nothing is fetched.
+ * The homepage's image is the repo's banner.png, copied as is.
  */
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
 import registry from '../../components/playground/registry.json';
 
@@ -113,7 +116,12 @@ function svg({ title, description }: Page): string {
 </svg>`;
 }
 
-export const GET: APIRoute = ({ props }) => {
+export const GET: APIRoute = ({ params, props }) => {
+  // The homepage shares the repo's README banner (1600×800), as GitHub does.
+  if (params.slug === 'index')
+    return new Response(readFileSync(join(process.cwd(), '..', 'banner.png')), {
+      headers: { 'Content-Type': 'image/png' },
+    });
   const png = new Resvg(svg(props as Page), {
     fitTo: { mode: 'width', value: 1200 },
     font: {

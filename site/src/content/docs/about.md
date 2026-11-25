@@ -22,6 +22,8 @@ We use [Umami](https://umami.is/), self-hosted, served from this site's own addr
 
 It never records what you type, uses no cookies, and respects your browser's Do Not Track setting.
 
+When one of this site's own scripts fails, a short error report goes to our self-hosted [GlitchTip](https://glitchtip.com/), again through this site's own address (`/api/errors`). It holds the error's type, where in our code it happened, the page path and your browser's user agent. It never includes the error's message, which could quote something you typed, and your IP address is not passed on. Errors from browser extensions and other scripts that aren't ours are not sent.
+
 ## Licence and attribution
 
 The code, the datasets in `data/` and the shared test vectors are MIT licensed. If you copy or adapt a substantial part of PakDataKit, in any language, keep the copyright notice: Copyright (c) 2026 Muzamil Chaudhery and PakDataKit Contributors.

@@ -4,6 +4,8 @@
  * - /lang.js: `?lang=` picks the code-tab language before the tabs restore it
  * - the Open Graph image (/og.png, the repo's banner.png) on every page
  * - Umami, served from this site's own origin (/a.js), path and tool name only
+ * - /e.js: error reports to the owner's GlitchTip through /api/errors on this origin
+ *   (type, stack and page path only, never the error's message; see /about)
  */
 import Default from '@astrojs/starlight/components/Head.astro';
 import { version } from 'pakdatakit/package.json' with { type: 'json' };
@@ -33,6 +35,7 @@ const jsonLd = is404
 <link rel="preload" href="/fonts/pdk-serif-600.woff2" as="font" type="font/woff2" crossorigin />
 {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
 <script is:inline src="/lang.js"></script>
+<script is:inline src="/e.js" data-release={version}></script>
 <meta property="og:image" content={ogImage} />
 <meta property="og:image:width" content="1600" />
 <meta property="og:image:height" content="800" />

@@ -9,7 +9,10 @@
 (function () {
   if (location.hostname !== 'pakdatakit.dev') return;
   var origin = location.origin;
-  var release = (document.currentScript && document.currentScript.getAttribute('data-release')) || undefined;
+  var release =
+    (document.currentScript &&
+      document.currentScript.getAttribute('data-release')) ||
+    undefined;
   var sent = {};
   var count = 0;
 
@@ -17,7 +20,11 @@
   // same text) and a .js file. The page itself is not one: an in-app browser's injected script
   // reports its frames under the page's address (GlitchTip saw this on rasikh.ai).
   function own(url) {
-    return typeof url === 'string' && url.indexOf(origin + '/') === 0 && /\.m?js$/.test(bare(url));
+    return (
+      typeof url === 'string' &&
+      url.indexOf(origin + '/') === 0 &&
+      /\.m?js$/.test(bare(url))
+    );
   }
   function bare(url) {
     return String(url).replace(/[?#].*$/, '');
@@ -67,8 +74,15 @@
       level: 'error',
       environment: 'production',
       release: release,
-      exception: { values: [{ type: type, value: '[redacted]', stacktrace: { frames: frames } }] },
-      request: { url: origin + location.pathname, headers: { 'User-Agent': navigator.userAgent } },
+      exception: {
+        values: [
+          { type: type, value: '[redacted]', stacktrace: { frames: frames } },
+        ],
+      },
+      request: {
+        url: origin + location.pathname,
+        headers: { 'User-Agent': navigator.userAgent },
+      },
       tags: { host: location.hostname },
     };
     try {
@@ -91,7 +105,14 @@
     // No stack (a SyntaxError, or a truncated download of one of our files): the event's own
     // file/line/col is the one frame, so the report still shows which script failed.
     if (!frames.length && e.filename)
-      frames = [{ filename: bare(e.filename), lineno: e.lineno || undefined, colno: e.colno || undefined, in_app: own(e.filename) }];
+      frames = [
+        {
+          filename: bare(e.filename),
+          lineno: e.lineno || undefined,
+          colno: e.colno || undefined,
+          in_app: own(e.filename),
+        },
+      ];
     if (!hasOwnFrame(frames)) return;
     report((err && err.name) || 'Error', frames);
   });

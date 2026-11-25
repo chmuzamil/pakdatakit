@@ -1456,3 +1456,95 @@ starlight-tabs [role='tabpanel'] {
 ) {
   font-weight: 400;
 }
+
+/* ---- raast-qr.com call to action (components/RaastQrCta.astro) ---- */
+.pdk-qr-cta {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  margin-block: 1.25rem 1.75rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+  border-radius: var(--pdk-radius-card);
+  background: linear-gradient(
+    135deg,
+    var(--sl-color-accent-low),
+    var(--pdk-surface) 70%
+  );
+}
+.pdk-qr-cta-glyph {
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0.45rem;
+  border-radius: var(--pdk-radius);
+  background: var(--sl-color-black);
+  color: var(--sl-color-accent);
+  border: 1px solid var(--sl-color-gray-5);
+}
+.pdk-qr-cta-text {
+  min-width: 0;
+}
+.pdk-qr-cta-title {
+  margin: 0;
+  font-size: var(--sl-text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--sl-color-white);
+}
+.pdk-qr-cta-desc {
+  margin: 0.25rem 0 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+.pdk-qr-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--pdk-radius);
+  background: var(--pdk-primary-bg);
+  color: var(--pdk-primary-fg);
+  border: 1px solid var(--sl-color-accent);
+  font-weight: 600;
+  font-size: var(--sl-text-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+.pdk-qr-cta-btn:hover {
+  background: color-mix(
+    in srgb,
+    var(--pdk-primary-bg) 80%,
+    var(--sl-color-accent)
+  );
+}
+.pdk-qr-cta-btn:hover span {
+  transform: translateX(2px);
+}
+.pdk-qr-cta-btn span {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.pdk-qr-cta-btn:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+@media (max-width: 40rem) {
+  .pdk-qr-cta {
+    grid-template-columns: auto 1fr;
+  }
+  .pdk-qr-cta-btn {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pdk-qr-cta-btn,
+  .pdk-qr-cta-btn span {
+    transition: none;
+  }
+}

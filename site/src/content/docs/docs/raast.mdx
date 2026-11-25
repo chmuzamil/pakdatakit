@@ -3,21 +3,20 @@ title: Raast QR
 description: Create, read and check Raast payment QR codes following the State Bank of Pakistan's QR standard.
 ---
 
-import { LinkCard } from '@astrojs/starlight/components';
 import LangTabs from '../../../components/LangTabs.astro';
 import RaastWidget from '../../../components/widgets/RaastWidget.tsx';
+import RaastQrCta from '../../../components/RaastQrCta.astro';
+
+<RaastQrCta
+  title="Just need a Raast QR for your shop or account?"
+  description="Make a printable one at raast-qr.com, with your bank's name and a download. No code needed."
+/>
 
 `import { createRaastP2PQr, createMerchantQr, parseRaastQr, validateRaastQr } from 'pakdatakit/raast'`
 
 Builds and reads payment QR payloads following the State Bank of Pakistan's QR standard (Circular Letter No. 1 of 2022). Turn the returned string into an image with any QR library.
 
 <RaastWidget client:visible />
-
-<LinkCard
-  title="Generate a printable Raast QR → raast-qr.com"
-  description="For a QR to print or share, with your bank's name and a download."
-  href="https://raast-qr.com/"
-/>
 
 ## Example
 

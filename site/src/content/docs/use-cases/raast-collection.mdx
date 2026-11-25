@@ -3,9 +3,10 @@ title: Collecting payments with Raast QR
 description: Collect payments into your IBAN with a Raast QR per order, with the amount, an expiry and the order number, following the State Bank of Pakistan's QR standard.
 ---
 
-import { LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 import LangTabs from '../../../components/LangTabs.astro';
 import RaastWidget from '../../../components/widgets/RaastWidget.tsx';
+import RaastQrCta from '../../../components/RaastQrCta.astro';
 
 ## The problem
 
@@ -13,11 +14,7 @@ A shop, school or freelancer wants customers to pay into a bank account from any
 
 <RaastWidget client:visible />
 
-<LinkCard
-  title="Need a printable QR? Use raast-qr.com"
-  description="For a QR to print or share, with your bank's name and a download. No code needed."
-  href="https://raast-qr.com/"
-/>
+<RaastQrCta />
 
 ## 1. Check the IBAN you collect into
 

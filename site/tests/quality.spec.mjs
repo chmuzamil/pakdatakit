@@ -59,6 +59,10 @@ const PAGES = [
   '/tools/address-score/',
   '/tools/fbr-invoice-validator/',
   '/tools/urdu-text/',
+  '/tools/postal-code/',
+  '/postal-codes/',
+  '/postal-codes/lahore/',
+  '/postal-codes/punjab/',
   '/playground/',
   '/playground/cnic/',
   '/playground/fbr-invoice/',
@@ -168,6 +172,7 @@ const TOOLS = [
     text: '{"invoiceType":"Sale Invoice"}',
   },
   { path: '/tools/urdu-text/', text: 'Lahore 2026' },
+  { path: '/tools/postal-code/', text: 'Gulberg' },
   { path: '/playground/cnic/', text: '61101-7654321-3' },
 ];
 
@@ -186,7 +191,9 @@ for (const tool of TOOLS) {
     page.on('request', (req) => requests.push(req));
     // The tool's first text field (not a radio, checkbox or date).
     const input = page
-      .locator('main :is(input:not([type]), input[type="text"], textarea)')
+      .locator(
+        'main :is(input:not([type]), input[type="text"], input[type="search"], textarea)',
+      )
       .first();
     await input.fill('');
     await input.pressSequentially(tool.text, { delay: 20 });

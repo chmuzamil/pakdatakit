@@ -1,0 +1,68 @@
+---
+/** /postal-codes/: every city's main postal code, by province, from Pakistan Post's directory. */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import PostalCta from '../../components/PostalCta.astro';
+import { GITHUB } from '../../../site.config.mjs';
+import { CITIES, OFFICES, PROVINCES, PROVINCE_PAGES, SOURCE, cityHref, n, sourceMonth } from '../../lib/postal-pages';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Pakistan postal codes by city',
+    description: `The main postal code of ${CITIES.length} Pakistani cities, by province, and every post office code from Pakistan Post's directory of ${n(OFFICES.length)} delivery post offices.`,
+  }}
+>
+  <PostalCta
+    title="Need the code for an area or village?"
+    description={`Search all ${n(OFFICES.length)} post offices by name, town or code.`}
+  />
+  <p>
+    A city's main postal code is its General Post Office (GPO). Bigger cities have a code for each delivery post
+    office; open a city to see them all. Codes are from Pakistan Post's <a href={SOURCE.sourceUrl}>post code
+    directory</a> ({sourceMonth}).
+  </p>
+  {
+    PROVINCES.map((p) => (
+      <>
+        <h2 id={p.slug}>{p.name}</h2>
+        {PROVINCE_PAGES.includes(p) && (
+          <p>
+            <a href={`/postal-codes/${p.slug}/`}>All {n(p.offices.length)} post offices in {p.name} →</a>
+          </p>
+        )}
+        <div class="pdk-table-wrap" tabindex="0" aria-label={`Main postal codes in ${p.name}`}>
+          <table class="pdk-table">
+            <thead>
+              <tr>
+                <th scope="col">City</th>
+                <th scope="col">Main postal code</th>
+                <th scope="col">Post offices</th>
+              </tr>
+            </thead>
+            <tbody>
+              {p.cities.map((c) => {
+                const href = cityHref(c.name);
+                return (
+                  <tr>
+                    <td>{href ? <a href={href}>{c.name}</a> : c.name}</td>
+                    <td class="mono">{c.main}</td>
+                    <td>{c.offices.length}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </>
+    ))
+  }
+  <h2 id="about-the-data">About the data</h2>
+  <p>
+    Pakistan Post's <em>Post Code Directory of Delivery Post Offices</em>, dated {sourceMonth}, with office names as
+    the directory spells them. Spotted a wrong code? <a href={`${GITHUB}/issues/new?title=${encodeURIComponent('Postal code: ')}`}>Report it on GitHub</a>.
+  </p>
+  <p>
+    Developers: the same data is in <a href="/docs/postal/">pakdatakit/postal</a>, offline, in TypeScript, Python,
+    Dart, C# and PHP.
+  </p>
+</StarlightPage>

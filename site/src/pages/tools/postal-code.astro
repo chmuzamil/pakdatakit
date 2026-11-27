@@ -1,0 +1,29 @@
+---
+import ToolPage from '../../components/ToolPage.astro';
+import PostalCodeTool from '../../components/tools/PostalCodeTool.tsx';
+import { CITY_PAGES, OFFICES, PROVINCE_PAGES, n, sourceMonth } from '../../lib/postal-pages';
+
+const cityPages = Object.fromEntries(CITY_PAGES.map((c) => [c.name, `/postal-codes/${c.slug}/`]));
+const big = [...CITY_PAGES].sort((a, b) => b.offices.length - a.offices.length).slice(0, 12);
+---
+
+<ToolPage
+  title="Pakistan postal code finder"
+  description="Find the postal code of any city, area, town or village in Pakistan, from Pakistan Post's directory of 2,560 delivery post offices. Free, no sign-up."
+  appName="Pakistan postal code finder"
+  path="/tools/postal-code/"
+  code={[{ module: 'postal' }]}
+  guide="/docs/postal/"
+>
+  <PostalCodeTool client:load cityPages={cityPages} />
+  <h2 id="by-city">Postal codes by city</h2>
+  <p>
+    Every post office in a city, on one page. Data from Pakistan Post's post code directory ({sourceMonth}),
+    {n(OFFICES.length)} delivery post offices.
+  </p>
+  <ul class="pdk-link-cols">
+    {big.map((c) => <li><a href={`/postal-codes/${c.slug}/`}>{c.name} postal codes</a></li>)}
+    {PROVINCE_PAGES.map((p) => <li><a href={`/postal-codes/${p.slug}/`}>{p.name} postal codes</a></li>)}
+  </ul>
+  <p><a href="/postal-codes/">All cities and their main postal codes →</a></p>
+</ToolPage>

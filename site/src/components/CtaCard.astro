@@ -1,0 +1,28 @@
+---
+/**
+ * A call-to-action card for the top of a page: an icon (the default slot),
+ * a title, a line of text and one button. Styles in theme.css (.pdk-cta).
+ */
+interface Props {
+  title: string;
+  description: string;
+  href: string;
+  /** Button text; an arrow is added. */
+  button: string;
+  /** Accessible name of the card. */
+  label: string;
+}
+const { title, description, href, button, label } = Astro.props;
+const external = /^https?:/.test(href);
+---
+
+<aside class="pdk-cta not-content" aria-label={label}>
+  <slot />
+  <div class="pdk-cta-text">
+    <p class="pdk-cta-title">{title}</p>
+    <p class="pdk-cta-desc">{description}</p>
+  </div>
+  <a class="pdk-cta-btn" href={href} rel={external ? 'noopener' : undefined}>
+    {button} <span aria-hidden="true">→</span>
+  </a>
+</aside>

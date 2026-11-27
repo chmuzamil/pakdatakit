@@ -1,0 +1,36 @@
+---
+/** Call to action for the postal code finder (/tools/postal-code/). */
+import CtaCard from './CtaCard.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = 'Looking for a postal code?',
+  description = 'Search 2,560 post offices by city, area, town or village. No code needed.',
+} = Astro.props;
+---
+
+<CtaCard
+  title={title}
+  description={description}
+  href="/tools/postal-code/"
+  button="Find a postal code"
+  label="Postal code finder"
+>
+  <svg
+    class="pdk-cta-glyph"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.75"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z" />
+    <circle cx="12" cy="9.5" r="2.5" />
+  </svg>
+</CtaCard>

@@ -1,0 +1,122 @@
+---
+/**
+ * /postal-codes/<city>/ and /postal-codes/<province>/: every delivery post
+ * office there with its code, from Pakistan Post's directory.
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Code } from '@astrojs/starlight/components';
+import PostalCta from '../../components/PostalCta.astro';
+import { GITHUB } from '../../../site.config.mjs';
+import {
+  CITY_PAGES,
+  PROVINCE_PAGES,
+  SOURCE,
+  cityHref,
+  n,
+  sourceMonth,
+  type City,
+  type Province,
+} from '../../lib/postal-pages';
+
+export function getStaticPaths() {
+  return [
+    ...CITY_PAGES.map((city) => ({ params: { slug: city.slug }, props: { city } })),
+    ...PROVINCE_PAGES.map((province) => ({ params: { slug: province.slug }, props: { province } })),
+  ];
+}
+
+const { city, province } = Astro.props as { city?: City; province?: Province };
+const place = (city ?? province)!;
+const offices = place.offices;
+const provinceName = city ? city.province : place.name;
+const provincePage = PROVINCE_PAGES.find((p) => p.name === provinceName);
+const nearby = CITY_PAGES.filter((c) => c.province === provinceName && c.name !== city?.name);
+const title = `${place.name} postal codes`;
+const description = city
+  ? `Postal codes of all ${offices.length} post offices in ${city.name}, ${city.province}. The main code is ${city.main} (${city.mainOffice}). From Pakistan Post's directory.`
+  : `Postal codes of all ${n(offices.length)} delivery post offices in ${place.name}, A to Z, with each office's town. From Pakistan Post's directory.`;
+const issue = `${GITHUB}/issues/new?title=${encodeURIComponent(`Postal code: ${place.name}`)}`;
+const snippet = city
+  ? `import { getPostalCode, getPostalCodes } from 'pakdatakit/postal';
+
+getPostalCode('${city.name}');  // '${city.main}'
+getPostalCodes('${city.name}'); // all ${offices.length} codes`
+  : `import { getPostOffice, searchPostOffices } from 'pakdatakit/postal';
+
+getPostOffice('${offices[0].code}');   // { office: '${offices[0].office.replace(/'/g, "\'")}', province: '${place.name}', ... }
+searchPostOffices('${offices[0].office.split(' ')[0].replace(/'/g, "\'")}'); // offices whose name or town matches`;
+---
+
+<StarlightPage frontmatter={{ title, description, tableOfContents: false }}>
+  {
+    city ? (
+      <p class="pdk-postal-main">
+        Main postal code: <strong>{city.main}</strong> ({city.mainOffice})
+      </p>
+    ) : null
+  }
+  <p>
+    {
+      city
+        ? `${city.name} has ${offices.length} delivery post offices, each with its own code. Use the code of the office that delivers to the address; the main code reaches the GPO.`
+        : `${place.name} has ${n(offices.length)} delivery post offices in Pakistan Post's directory, from big cities to villages. Each has its own code.`
+    }
+  </p>
+  <PostalCta
+    title="Can't find the place?"
+    description="Search every post office in Pakistan by area, town, village or code."
+  />
+  <div class="pdk-table-wrap" tabindex="0" aria-label={`Post offices in ${place.name}`}>
+    <table class="pdk-table">
+      <thead>
+        <tr>
+          <th scope="col">Post office</th>
+          <th scope="col">Postal code</th>
+          {province && <th scope="col">City or town</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {
+          offices.map((o) => {
+            const href = province ? cityHref(o.town) : null;
+            return (
+              <tr>
+                <td>{o.office}</td>
+                <td class="mono">{o.code}</td>
+                {province && <td>{href ? <a href={href}>{o.town}</a> : o.town}</td>}
+              </tr>
+            );
+          })
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="pdk-note">
+    Source: Pakistan Post, <a href={SOURCE.sourceUrl}>Post Code Directory of Delivery Post Offices</a> ({sourceMonth}).
+    Office names are as the directory spells them. Spotted a wrong code? <a href={issue}>Report it on GitHub</a>.
+  </p>
+  {
+    nearby.length > 0 && (
+      <>
+        <h2 id="more">{city ? `More cities in ${provinceName}` : `Cities in ${place.name}`}</h2>
+        <ul class="pdk-link-cols">
+          {nearby.map((c) => (
+            <li>
+              <a href={`/postal-codes/${c.slug}/`}>{c.name}</a> <span class="mono">{c.main}</span>
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
+  <p>
+    {provincePage && city ? <><a href={`/postal-codes/${provincePage.slug}/`}>All post offices in {provinceName}</a> · </> : null}
+    <a href="/postal-codes/">All cities</a>
+  </p>
+  <h2 id="developers">Use this data in your app</h2>
+  <p>
+    The same directory is in the free <a href="/docs/postal/">pakdatakit/postal</a> module, offline, in TypeScript,
+    Python, Dart, C# and PHP.
+  </p>
+  <Code code={snippet} lang="ts" />
+</StarlightPage>

@@ -72,6 +72,13 @@ export function sourcesFor(path) {
       `site/src/pages/tools/${rest[0]}.astro`,
       'site/src/components/tools',
     ];
+  if (top === 'postal-codes')
+    return [
+      'data/post-offices.json',
+      'data/postal-codes.json',
+      'site/src/pages/postal-codes',
+      'site/src/lib/postal-pages.ts',
+    ];
   if (top === 'playground')
     return ['site/src/components/playground', 'site/src/pages/playground'];
   if (top === 'api' && ['python', 'dart', 'dotnet', 'php'].includes(rest[0]))

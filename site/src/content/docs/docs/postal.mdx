@@ -5,6 +5,12 @@ description: Postal codes of Pakistani cities and every delivery post office in 
 
 import LangTabs from '../../../components/LangTabs.astro';
 import PostalWidget from '../../../components/widgets/PostalWidget.tsx';
+import PostalCta from '../../../components/PostalCta.astro';
+
+<PostalCta
+  title="Just looking for a postal code?"
+  description="Search every post office in Pakistan by city, area or village, or browse the codes by city. No code needed."
+/>
 
 `import { getPostalCode, getCityByPostalCode, getPostOffice, searchPostOffices } from 'pakdatakit/postal'`
 

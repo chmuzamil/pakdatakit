@@ -248,6 +248,8 @@ export default defineConfig({
               label: 'FBR invoice validator',
               link: '/tools/fbr-invoice-validator/',
             },
+            { label: 'Postal code finder', link: '/tools/postal-code/' },
+            { label: 'Postal codes by city', link: '/postal-codes/' },
             { label: 'Delivery address score', link: '/tools/address-score/' },
             { label: 'Urdu text tools', link: '/tools/urdu-text/' },
             { label: 'Playground', link: '/playground/' },

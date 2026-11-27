@@ -1457,8 +1457,8 @@ starlight-tabs [role='tabpanel'] {
   font-weight: 400;
 }
 
-/* ---- raast-qr.com call to action (components/RaastQrCta.astro) ---- */
-.pdk-qr-cta {
+/* ---- call to action card (components/CtaCard.astro) ---- */
+.pdk-cta {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -1473,7 +1473,7 @@ starlight-tabs [role='tabpanel'] {
     var(--pdk-surface) 70%
   );
 }
-.pdk-qr-cta-glyph {
+.pdk-cta-glyph {
   width: 3.5rem;
   height: 3.5rem;
   padding: 0.45rem;
@@ -1482,22 +1482,22 @@ starlight-tabs [role='tabpanel'] {
   color: var(--sl-color-accent);
   border: 1px solid var(--sl-color-gray-5);
 }
-.pdk-qr-cta-text {
+.pdk-cta-text {
   min-width: 0;
 }
-.pdk-qr-cta-title {
+.pdk-cta-title {
   margin: 0;
   font-size: var(--sl-text-lg);
   font-weight: 600;
   line-height: 1.3;
   color: var(--sl-color-white);
 }
-.pdk-qr-cta-desc {
+.pdk-cta-desc {
   margin: 0.25rem 0 0;
   font-size: var(--sl-text-sm);
   color: var(--sl-color-gray-2);
 }
-.pdk-qr-cta-btn {
+.pdk-cta-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -1515,36 +1515,54 @@ starlight-tabs [role='tabpanel'] {
     background-color 0.15s ease,
     transform 0.15s ease;
 }
-.pdk-qr-cta-btn:hover {
+.pdk-cta-btn:hover {
   background: color-mix(
     in srgb,
     var(--pdk-primary-bg) 80%,
     var(--sl-color-accent)
   );
 }
-.pdk-qr-cta-btn:hover span {
+.pdk-cta-btn:hover span {
   transform: translateX(2px);
 }
-.pdk-qr-cta-btn span {
+.pdk-cta-btn span {
   display: inline-block;
   transition: transform 0.15s ease;
 }
-.pdk-qr-cta-btn:focus-visible {
+.pdk-cta-btn:focus-visible {
   outline: 2px solid var(--sl-color-accent);
   outline-offset: 2px;
 }
 @media (max-width: 40rem) {
-  .pdk-qr-cta {
+  .pdk-cta {
     grid-template-columns: auto 1fr;
   }
-  .pdk-qr-cta-btn {
+  .pdk-cta-btn {
     grid-column: 1 / -1;
     justify-content: center;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pdk-qr-cta-btn,
-  .pdk-qr-cta-btn span {
+  .pdk-cta-btn,
+  .pdk-cta-btn span {
     transition: none;
   }
+}
+
+/* ---- postal codes (pages/postal-codes, pages/tools/postal-code.astro) ---- */
+.pdk-link-cols {
+  columns: 14rem auto;
+  column-gap: 2rem;
+  padding-inline-start: 1.25rem;
+}
+.pdk-link-cols li {
+  break-inside: avoid;
+}
+.pdk-postal-main {
+  font-size: var(--sl-text-lg);
+}
+.pdk-postal-main strong {
+  font-family: var(--sl-font-mono);
+  font-size: var(--sl-text-2xl);
+  margin-inline: 0.25rem;
 }

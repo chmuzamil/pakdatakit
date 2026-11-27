@@ -3,6 +3,8 @@
  * Call to action for raast-qr.com, the no-code printable Raast QR generator.
  * Used at the top of the Raast docs and the Raast collection use case.
  */
+import CtaCard from './CtaCard.astro';
+
 interface Props {
   title?: string;
   description?: string;
@@ -19,8 +21,14 @@ const modules = [
 ];
 ---
 
-<aside class="pdk-qr-cta not-content" aria-label="Printable Raast QR">
-  <svg class="pdk-qr-cta-glyph" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+<CtaCard
+  title={title}
+  description={description}
+  href="https://raast-qr.com/"
+  button="Open raast-qr.com"
+  label="Printable Raast QR"
+>
+  <svg class="pdk-cta-glyph" viewBox="0 0 15 15" aria-hidden="true" focusable="false">
     {[[0, 0], [8, 0], [0, 8]].map(([x, y]) => (
       <g>
         <rect x={x + 0.5} y={y + 0.5} width="6" height="6" rx="1" fill="none" stroke="currentColor" />
@@ -29,12 +37,4 @@ const modules = [
     ))}
     {modules.map(([x, y]) => <rect x={x} y={y} width="1" height="1" fill="currentColor" />)}
   </svg>
-  <div class="pdk-qr-cta-text">
-    <p class="pdk-qr-cta-title">{title}</p>
-    <p class="pdk-qr-cta-desc">{description}</p>
-  </div>
-  <a class="pdk-qr-cta-btn" href="https://raast-qr.com/" rel="noopener">
-    Open raast-qr.com <span aria-hidden="true">→</span>
-  </a>
-</aside>
-
+</CtaCard>
